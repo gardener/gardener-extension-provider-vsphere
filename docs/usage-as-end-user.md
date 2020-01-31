@@ -60,6 +60,7 @@ loadBalancerClasses:
   - name: mypubliclbclass
   - name: myprivatelbclass
     ipPoolName: pool42 # optional overwrite
+loadBalancerSize: SMALL
 cloudControllerManager:
   featureGates:
     CustomResourceValidation: true
@@ -70,6 +71,10 @@ The specified names must be defined in the constraints section of the cloud prof
 If the list contains a load balancer named "default", it is used as the default load balancer.
 Otherwise the first one is also the default.
 If no classes are specified the default load balancer class is used as defined in the cloud profile constraints section.
+
+The `loadBalancerSize` is optional and overwrites the default value specified in the cloud profile config.
+It must be one of the values `SMALL`, `MEDIUM`, or `LARGE`. `SMALL` can manage 10 service ports,
+`MEDIUM` 100, and `LARGE` 1000. 
 
 The `cloudControllerManager.featureGates` contains an optional map of explicitly enabled or disabled feature gates.
 For production usage it's not recommend to use this field at all as you can enable alpha features or disable beta/stable features, potentially impacting the cluster stability.

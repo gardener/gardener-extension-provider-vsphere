@@ -15,9 +15,11 @@
 package validation
 
 import (
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"strings"
 
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 
@@ -34,6 +36,13 @@ func ValidateControlPlaneConfig(controlPlaneConfig *apisvsphere.ControlPlaneConf
 			allErrs = append(allErrs, field.Required(field.NewPath("loadBalancerClasses", "name"), "name of load balancer class must be set"))
 		} else if _, ok := knownClassNames[lbclass.Name]; !ok {
 			allErrs = append(allErrs, field.Invalid(field.NewPath("loadBalancerClasses", "name"), lbclass.Name, "must be defined in in cloud profile constraints"))
+		}
+	}
+
+	if controlPlaneConfig.LoadBalancerSize != nil {
+		if !validLoadBalancerSizeValues.Has(*controlPlaneConfig.LoadBalancerSize) {
+			allErrs = append(allErrs, field.Invalid(field.NewPath("loadBalancerSize"),
+				"must provide a valid load balancer size value", strings.Join(validLoadBalancerSizeValues.List(), ",")))
 		}
 	}
 

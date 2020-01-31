@@ -24,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 
-var validValues = sets.NewString("SMALL", "MEDIUM", "LARGE")
+var validLoadBalancerSizeValues = sets.NewString("SMALL", "MEDIUM", "LARGE")
 
 // ValidateCloudProfileConfig validates a CloudProfileConfig object.
 func ValidateCloudProfileConfig(cloudProfile *apisvsphere.CloudProfileConfig) field.ErrorList {
@@ -34,9 +34,9 @@ func ValidateCloudProfileConfig(cloudProfile *apisvsphere.CloudProfileConfig) fi
 	if cloudProfile.Constraints.LoadBalancerConfig.Size == "" {
 		allErrs = append(allErrs, field.Required(loadBalancerSizePath, "must provide the load balancer size"))
 	} else {
-		if !validValues.Has(cloudProfile.Constraints.LoadBalancerConfig.Size) {
+		if !validLoadBalancerSizeValues.Has(cloudProfile.Constraints.LoadBalancerConfig.Size) {
 			allErrs = append(allErrs, field.Required(loadBalancerSizePath,
-				fmt.Sprintf("must provide a valid load balancer size value (%s)", strings.Join(validValues.List(), ","))))
+				fmt.Sprintf("must provide a valid load balancer size value (%s)", strings.Join(validLoadBalancerSizeValues.List(), ","))))
 		}
 	}
 

@@ -151,6 +151,11 @@ func (in *ControlPlaneConfig) DeepCopyInto(out *ControlPlaneConfig) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.LoadBalancerSize != nil {
+		in, out := &in.LoadBalancerSize, &out.LoadBalancerSize
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 
