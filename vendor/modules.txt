@@ -71,9 +71,9 @@ github.com/gardener/gardener/pkg/utils/kubernetes/health
 github.com/gardener/gardener/pkg/utils/retry
 github.com/gardener/gardener/pkg/utils/secrets
 github.com/gardener/gardener/pkg/utils/version
-# github.com/gardener/gardener-extensions v1.2.1-0.20200130094329-f359bd0eb552
-github.com/gardener/gardener-extensions/.ci
+# github.com/gardener/gardener-extensions v1.3.0
 github.com/gardener/gardener-extensions/hack
+github.com/gardener/gardener-extensions/hack/.ci
 github.com/gardener/gardener-extensions/hack/api-reference/template
 github.com/gardener/gardener-extensions/hack/code-generator
 github.com/gardener/gardener-extensions/pkg/controller
