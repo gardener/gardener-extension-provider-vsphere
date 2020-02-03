@@ -20,8 +20,10 @@ import (
 	"fmt"
 	"path/filepath"
 
-	vsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+
 	"github.com/gardener/gardener-extensions/pkg/terraformer"
 	corev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -39,18 +41,11 @@ const (
 	TerraformOutputKeyLogicalSwitchId = "logical_switch_id"
 )
 
-var (
-	// ChartsPath is the path to the charts
-	ChartsPath = filepath.Join("controllers", "provider-vsphere", "charts")
-	// InternalChartsPath is the path to the internal charts
-	InternalChartsPath = filepath.Join(ChartsPath, "internal")
-)
-
 // ComputeTerraformerChartValues computes the values for the vSphere Terraformer chart.
 func ComputeTerraformerChartValues(
 	infra *extensionsv1alpha1.Infrastructure,
-	config *vsphere.InfrastructureConfig,
-	cloudProfileConfig *vsphere.CloudProfileConfig,
+	config *api.InfrastructureConfig,
+	cloudProfileConfig *api.CloudProfileConfig,
 	networking corev1beta1.Networking,
 ) (map[string]interface{}, error) {
 	region := helper.FindRegion(infra.Spec.Region, cloudProfileConfig)
@@ -88,8 +83,8 @@ func ComputeTerraformerChartValues(
 func RenderTerraformerChart(
 	renderer chartrenderer.Interface,
 	infra *extensionsv1alpha1.Infrastructure,
-	config *vsphere.InfrastructureConfig,
-	cloudProfileConfig *vsphere.CloudProfileConfig,
+	config *api.InfrastructureConfig,
+	cloudProfileConfig *api.CloudProfileConfig,
 	networking corev1beta1.Networking,
 ) (*TerraformFiles, error) {
 	values, err := ComputeTerraformerChartValues(infra, config, cloudProfileConfig, networking)
@@ -97,7 +92,7 @@ func RenderTerraformerChart(
 		return nil, err
 	}
 
-	release, err := renderer.Render(filepath.Join(InternalChartsPath, "vsphere-infra"), "vsphere-infra", infra.Namespace, values)
+	release, err := renderer.Render(filepath.Join(vsphere.InternalChartsPath, "vsphere-infra"), "vsphere-infra", infra.Namespace, values)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +141,7 @@ func extractTerraformState(tf terraformer.Terraformer) (*terraformState, error) 
 }
 
 // ComputeStatus computes the status based on the Terraformer and the given InfrastructureConfig.
-func ComputeStatus(tf terraformer.Terraformer, cloudProfileConfig *vsphere.CloudProfileConfig, regionName string) (*vsphere.InfrastructureStatus, error) {
+func ComputeStatus(tf terraformer.Terraformer, cloudProfileConfig *api.CloudProfileConfig, regionName string) (*api.InfrastructureStatus, error) {
 	state, err := extractTerraformState(tf)
 	if err != nil {
 		return nil, err
@@ -157,7 +152,7 @@ func ComputeStatus(tf terraformer.Terraformer, cloudProfileConfig *vsphere.Cloud
 		return nil, fmt.Errorf("region %q not found in cloud profile", regionName)
 	}
 
-	zoneConfigs := map[string]vsphere.ZoneConfig{}
+	zoneConfigs := map[string]api.ZoneConfig{}
 	for _, z := range region.Zones {
 		datacenter := region.Datacenter
 		if z.Datacenter != nil {
@@ -175,7 +170,7 @@ func ComputeStatus(tf terraformer.Terraformer, cloudProfileConfig *vsphere.Cloud
 			datastore = nil
 			datastoreCluster = z.DatastoreCluster
 		}
-		zoneConfigs[z.Name] = vsphere.ZoneConfig{
+		zoneConfigs[z.Name] = api.ZoneConfig{
 			Datacenter:       safe(datacenter),
 			ComputeCluster:   safe(z.ComputeCluster),
 			ResourcePool:     safe(z.ResourcePool),
@@ -185,15 +180,15 @@ func ComputeStatus(tf terraformer.Terraformer, cloudProfileConfig *vsphere.Cloud
 		}
 	}
 
-	status := &vsphere.InfrastructureStatus{
+	status := &api.InfrastructureStatus{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: vsphere.SchemeGroupVersion.String(),
+			APIVersion: api.SchemeGroupVersion.String(),
 			Kind:       "InfrastructureStatus",
 		},
 		Network:         state.NetworkName,
 		LogicalRouterId: state.LogicalRouterId,
 		LogicalSwitchId: state.LogicalSwitchId,
-		VsphereConfig: vsphere.VsphereConfig{
+		VsphereConfig: api.VsphereConfig{
 			Folder:      cloudProfileConfig.Folder,
 			Region:      region.Name,
 			ZoneConfigs: zoneConfigs,
