@@ -92,6 +92,21 @@ var _ = Describe("ControlPlaneConfig validation", func() {
 				"Field": Equal("loadBalancerClasses.name"),
 			}))))
 		})
+
+		It("should check valid value for load balancer size", func() {
+			s := "LARGE"
+			controlPlane.LoadBalancerSize = &s
+			errorList := ValidateControlPlaneConfig(controlPlane, region, regions, constraints)
+			Expect(errorList).To(ConsistOf())
+
+			s2 := "foo"
+			controlPlane.LoadBalancerSize = &s2
+			errorList = ValidateControlPlaneConfig(controlPlane, region, regions, constraints)
+			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+				"Type":  Equal(field.ErrorTypeNotSupported),
+				"Field": Equal("loadBalancerSize"),
+			}))))
+		})
 	})
 
 	Describe("#ValidateControlPlaneConfigUpdate", func() {

@@ -207,6 +207,18 @@ CloudControllerManagerConfig
 <p>LoadBalancerClasses lists the load balancer classes to be used.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>loadBalancerSize</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>LoadBalancerSize can override the default of the NSX-T load balancer size (&ldquo;SMALL&rdquo;, &ldquo;MEDIUM&rdquo;, or &ldquo;LARGE&rdquo;) defined in the cloud profile.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.InfrastructureConfig">InfrastructureConfig

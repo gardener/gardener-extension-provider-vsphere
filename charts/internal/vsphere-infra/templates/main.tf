@@ -58,10 +58,18 @@ data "nsxt_ip_pool" "snat_pool" {
 # create logical router & switch
 #################################
 
+resource "random_id" "switchSuffix" {
+  byte_length = 3
+}
+
+locals {
+    network_name = "${var.nsx_full_cluster_name}-${random_id.switchSuffix.hex}"
+}
+
 resource "nsxt_logical_switch" "switch" {
   admin_state = "UP"
   description = "logical switch for gardener cluster"
-  display_name = "${var.nsx_full_cluster_name}"
+  display_name = "${local.network_name}"
   transport_zone_id = "${data.nsxt_transport_zone.cluster.id}"
   replication_mode = "MTEP"
 
@@ -281,7 +289,7 @@ resource "nsxt_dhcp_server_ip_pool" "dhcp_pool" {
 //=====================================================================
 
 output "network_name" {
-  value = "${var.nsx_full_cluster_name}"
+  value = "${local.network_name}"
 }
 
 output "logical_router_id" {

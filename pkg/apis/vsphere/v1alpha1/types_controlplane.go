@@ -31,6 +31,9 @@ type ControlPlaneConfig struct {
 	// LoadBalancerClasses lists the load balancer classes to be used.
 	// +optional
 	LoadBalancerClasses []CPLoadBalancerClass `json:"loadBalancerClasses,omitempty"`
+	// LoadBalancerSize can override the default of the NSX-T load balancer size ("SMALL", "MEDIUM", or "LARGE") defined in the cloud profile.
+	// +optional
+	LoadBalancerSize *string `json:"loadBalancerSize,omitempty"`
 }
 
 // CloudControllerManagerConfig contains configuration settings for the cloud-controller-manager.

@@ -325,6 +325,7 @@ func Convert_vsphere_Constraints_To_v1alpha1_Constraints(in *vsphere.Constraints
 func autoConvert_v1alpha1_ControlPlaneConfig_To_vsphere_ControlPlaneConfig(in *ControlPlaneConfig, out *vsphere.ControlPlaneConfig, s conversion.Scope) error {
 	out.CloudControllerManager = (*vsphere.CloudControllerManagerConfig)(unsafe.Pointer(in.CloudControllerManager))
 	out.LoadBalancerClasses = *(*[]vsphere.CPLoadBalancerClass)(unsafe.Pointer(&in.LoadBalancerClasses))
+	out.LoadBalancerSize = (*string)(unsafe.Pointer(in.LoadBalancerSize))
 	return nil
 }
 
@@ -336,6 +337,7 @@ func Convert_v1alpha1_ControlPlaneConfig_To_vsphere_ControlPlaneConfig(in *Contr
 func autoConvert_vsphere_ControlPlaneConfig_To_v1alpha1_ControlPlaneConfig(in *vsphere.ControlPlaneConfig, out *ControlPlaneConfig, s conversion.Scope) error {
 	out.CloudControllerManager = (*CloudControllerManagerConfig)(unsafe.Pointer(in.CloudControllerManager))
 	out.LoadBalancerClasses = *(*[]CPLoadBalancerClass)(unsafe.Pointer(&in.LoadBalancerClasses))
+	out.LoadBalancerSize = (*string)(unsafe.Pointer(in.LoadBalancerSize))
 	return nil
 }
 

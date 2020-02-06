@@ -398,9 +398,13 @@ outer:
 		return nil, fmt.Errorf("load balancer default class %q must specify both ipPoolName and size in cloud profile", defaultClass.Name)
 	}
 
+	lbSize := cloudProfileConfig.Constraints.LoadBalancerConfig.Size
+	if cpConfig.LoadBalancerSize != nil && *cpConfig.LoadBalancerSize != "" {
+		lbSize = *cpConfig.LoadBalancerSize
+	}
 	loadBalancers := map[string]interface{}{
 		"ipPoolName": defaultClass.IPPoolName,
-		"size":       cloudProfileConfig.Constraints.LoadBalancerConfig.Size,
+		"size":       lbSize,
 		"classes":    loadBalancersClasses,
 	}
 	if infraStatus.LogicalRouterId != "" {

@@ -28,6 +28,8 @@ type ControlPlaneConfig struct {
 	CloudControllerManager *CloudControllerManagerConfig
 	// LoadBalancerClasses lists the load balancer classes to be used.
 	LoadBalancerClasses []CPLoadBalancerClass
+	// LoadBalancerSize can override the default of the NSX-T load balancer size ("SMALL", "MEDIUM", or "LARGE") defined in the cloud profile.
+	LoadBalancerSize *string
 }
 
 // CloudControllerManagerConfig contains configuration settings for the cloud-controller-manager.
