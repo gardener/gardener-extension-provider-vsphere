@@ -15,10 +15,9 @@
 package validation
 
 import (
-	"strings"
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
@@ -41,8 +40,8 @@ func ValidateControlPlaneConfig(controlPlaneConfig *apisvsphere.ControlPlaneConf
 
 	if controlPlaneConfig.LoadBalancerSize != nil {
 		if !validLoadBalancerSizeValues.Has(*controlPlaneConfig.LoadBalancerSize) {
-			allErrs = append(allErrs, field.Invalid(field.NewPath("loadBalancerSize"),
-				"must provide a valid load balancer size value", strings.Join(validLoadBalancerSizeValues.List(), ",")))
+			allErrs = append(allErrs, field.NotSupported(field.NewPath("loadBalancerSize"),
+				*controlPlaneConfig.LoadBalancerSize, validLoadBalancerSizeValues.List()))
 		}
 	}
 

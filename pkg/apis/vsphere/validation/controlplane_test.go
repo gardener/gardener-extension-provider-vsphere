@@ -103,7 +103,7 @@ var _ = Describe("ControlPlaneConfig validation", func() {
 			controlPlane.LoadBalancerSize = &s2
 			errorList = ValidateControlPlaneConfig(controlPlane, region, regions, constraints)
 			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
-				"Type":  Equal(field.ErrorTypeInvalid),
+				"Type":  Equal(field.ErrorTypeNotSupported),
 				"Field": Equal("loadBalancerSize"),
 			}))))
 		})

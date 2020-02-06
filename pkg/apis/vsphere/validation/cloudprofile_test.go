@@ -159,7 +159,7 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
 
 				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
-					"Type":  Equal(field.ErrorTypeRequired),
+					"Type":  Equal(field.ErrorTypeNotSupported),
 					"Field": Equal("constraints.loadBalancerConfig.size"),
 				}))))
 			})
