@@ -49,4 +49,12 @@ var _ = Describe("Helpers", func() {
 			Expect(result).To(Equal("10.0.96.1/19"))
 		})
 	})
+	Describe("#RandomString", func() {
+		It("should generate random strings", func() {
+			s1 := RandomString(16)
+			s2 := RandomString(16)
+			Expect(len(s1)).To(Equal(16))
+			Expect(s1).NotTo(Equal(s2))
+		})
+	})
 })
