@@ -17,11 +17,6 @@
 
 package infrastructure
 
-type Reference struct {
-	ID   string
-	Path string
-}
-
 type NSXTInfraSpec struct {
 	EdgeClusterName   string
 	TransportZoneName string
@@ -33,26 +28,32 @@ type NSXTInfraSpec struct {
 	DNSServers        []string
 }
 
+type Reference struct {
+	ID   string `json:"id"`
+	Path string `json:"path"`
+}
+
 type NSXTInfraState struct {
-	EdgeClusterRef        *Reference
-	TransportZoneRef      *Reference
-	Tier0GatewayRef       *Reference
-	SNATIPPoolRef         *Reference
-	Tier1GatewayRef       *Reference
-	SegmentRef            *Reference
-	SNATIPAddressAllocRef *Reference
-	SNATRuleRef           *Reference
-	SNATIPAddress         *string
-	AdvancedDHCP          AdvancedDHCPState
+	EdgeClusterRef        *Reference        `json:"edgeClusterRef,omitEmpty"`
+	TransportZoneRef      *Reference        `json:"transportZoneRef,omitEmpty"`
+	Tier0GatewayRef       *Reference        `json:"tier0GatewayRef,omitEmpty"`
+	SNATIPPoolRef         *Reference        `json:"snatIPPoolRef,omitEmpty"`
+	Tier1GatewayRef       *Reference        `json:"tier1GatewayRef,omitEmpty"`
+	LocaleServiceRef      *Reference        `json:"localeServiceRef,omitEmpty"`
+	SegmentRef            *Reference        `json:"segmentRef,omitEmpty"`
+	SNATIPAddressAllocRef *Reference        `json:"snatIPAddressAllocRef,omitEmpty"`
+	SNATRuleRef           *Reference        `json:"snatRuleRef,omitEmpty"`
+	SNATIPAddress         *string           `json:"snatIPAddress,omitEmpty"`
+	AdvancedDHCP          AdvancedDHCPState `json:"advancedDHCP"`
 }
 
 type AdvancedDHCPState struct {
-	EdgeClusterID   *string
-	LogicalSwitchID *string
-	ProfileID       *string
-	ServerID        *string
-	PortID          *string
-	IPPoolID        *string
+	EdgeClusterID   *string `json:"edgeClusterID,omitEmpty"`
+	LogicalSwitchID *string `json:"logicalSwitchID,omitEmpty"`
+	ProfileID       *string `json:"profileID,omitEmpty"`
+	ServerID        *string `json:"serverID,omitEmpty"`
+	PortID          *string `json:"portID,omitEmpty"`
+	IPPoolID        *string `json:"ipPoolID,omitEmpty"`
 }
 
 // NsxtConfig contains the NSX-T specific configuration
@@ -73,7 +74,7 @@ type NsxtConfig struct {
 	CAFile             string `json:"ca-file"`
 }
 
-type NSXTAccess interface {
+type NSXTInfrastructureEnsurer interface {
 	EnsureInfrastructure(spec NSXTInfraSpec, state *NSXTInfraState) error
 	EnsureInfrastructureDeleted(spec NSXTInfraSpec, state *NSXTInfraState) error
 }

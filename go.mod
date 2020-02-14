@@ -9,6 +9,7 @@ require (
 	github.com/gardener/gardener-extensions v1.3.0
 	github.com/gardener/machine-controller-manager v0.25.1-0.20200115123605-0510de7ddfca
 	github.com/go-logr/logr v0.1.0
+	github.com/go-logr/stdr v0.0.0-20190808155957-db4f46c40425
 	github.com/gobuffalo/packr/v2 v2.1.0
 	github.com/golang/mock v1.3.1
 	github.com/google/uuid v1.1.1

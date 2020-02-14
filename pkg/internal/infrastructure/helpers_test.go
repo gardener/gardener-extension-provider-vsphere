@@ -42,4 +42,11 @@ var _ = Describe("Helpers", func() {
 		Entry("last-pos", 4095, "10.0.111.255", true),
 		Entry("out of bounds", 4096, "", false),
 	)
+	Describe("#cidrHostAndPrefix", func() {
+		It("should build host with prefix", func() {
+			result, err := cidrHostAndPrefix("10.0.96.0/19", 1)
+			Expect(err).To(BeNil())
+			Expect(result).To(Equal("10.0.96.1/19"))
+		})
+	})
 })

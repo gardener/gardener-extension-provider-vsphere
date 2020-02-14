@@ -20,6 +20,7 @@ package infrastructure
 import (
 	"fmt"
 	"net"
+	"strings"
 
 	vapi_errors "github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 )
@@ -87,4 +88,16 @@ func cidrHost(cidr string, index int) (string, error) {
 	}
 
 	return delta.String(), nil
+}
+
+func cidrHostAndPrefix(cidr string, index int) (string, error) {
+	host, err := cidrHost(cidr, index)
+	if err != nil {
+		return "", err
+	}
+	parts := strings.Split(cidr, "/")
+	if len(parts) != 2 {
+		return "", fmt.Errorf("splitting cidr failed: %s", cidr)
+	}
+	return fmt.Sprintf("%s/%s", host, parts[1]), nil
 }

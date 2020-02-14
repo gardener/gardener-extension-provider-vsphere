@@ -124,6 +124,8 @@ github.com/ghodss/yaml
 github.com/gibson042/canonicaljson-go
 # github.com/go-logr/logr v0.1.0
 github.com/go-logr/logr
+# github.com/go-logr/stdr v0.0.0-20190808155957-db4f46c40425
+github.com/go-logr/stdr
 # github.com/go-logr/zapr v0.1.1
 github.com/go-logr/zapr
 # github.com/go-openapi/jsonpointer v0.19.2
@@ -364,6 +366,7 @@ github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/ip_pools
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/realized_state
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/sites/enforcement_points
+github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/tier_1s
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/tier_1s/nat
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model
 # go.uber.org/atomic v1.4.0
