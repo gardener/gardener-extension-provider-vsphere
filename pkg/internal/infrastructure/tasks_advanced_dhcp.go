@@ -26,31 +26,33 @@ import (
 	"github.com/vmware/go-vmware-nsxt/manager"
 )
 
-type advancedLookupEdgeClusterTask struct{ baseTask }
+type advancedLookupLogicalSwitchTask struct{ baseTask }
 
-func newAdvancedLookupEdgeClusterTask() *advancedLookupEdgeClusterTask {
-	return &advancedLookupEdgeClusterTask{baseTask{label: "edge cluster lookup (Advanced API)"}}
+func newAdvancedLookupLogicalSwitchTask() *advancedLookupLogicalSwitchTask {
+	return &advancedLookupLogicalSwitchTask{baseTask{label: "logical switch lookup (Advanced API)"}}
 }
 
-func (t *advancedLookupEdgeClusterTask) name(spec NSXTInfraSpec) *string { return &spec.EdgeClusterName }
-
-func (t *advancedLookupEdgeClusterTask) reference(state *NSXTInfraState) *Reference {
-	return toReference(state.AdvancedDHCP.EdgeClusterID)
+func (t *advancedLookupLogicalSwitchTask) reference(state *NSXTInfraState) *Reference {
+	return toReference(state.AdvancedDHCP.LogicalSwitchID)
 }
 
-func (t *advancedLookupEdgeClusterTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) error {
-	name := spec.EdgeClusterName
-	objList, _, err := a.nsxClient.NetworkTransportApi.ListEdgeClusters(a.nsxClient.Context, nil)
+func (t *advancedLookupLogicalSwitchTask) Ensure(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (string, error) {
+	result, resp, err := a.nsxClient.LogicalSwitchingApi.ListLogicalSwitches(a.nsxClient.Context, nil)
 	if err != nil {
-		return err
+		return "", err
 	}
-	for _, obj := range objList.Results {
-		if obj.DisplayName == name {
-			state.AdvancedDHCP.EdgeClusterID = &obj.Id
-			return nil
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("listing failed with unexpected HTTP status code %d", resp.StatusCode)
+	}
+	for _, obj := range result.Results {
+		for _, tag := range obj.Tags {
+			if tag.Scope == "policyPath" && tag.Tag == state.SegmentRef.Path {
+				state.AdvancedDHCP.LogicalSwitchID = &obj.Id
+				return actionFound, nil
+			}
 		}
 	}
-	return fmt.Errorf("not found: %s", name)
+	return "", fmt.Errorf("not found by segment path %s", state.SegmentRef.Path)
 }
 
 type advancedDHCPProfileTask struct{ baseTask }
@@ -60,14 +62,14 @@ func newAdvancedDHCPProfileTask() *advancedDHCPProfileTask {
 }
 
 func (t *advancedDHCPProfileTask) reference(state *NSXTInfraState) *Reference {
-	return toReference(state.AdvancedDHCP.PortID)
+	return toReference(state.AdvancedDHCP.ProfileID)
 }
 
-func (t *advancedDHCPProfileTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) error {
+func (t *advancedDHCPProfileTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
 	profile := manager.DhcpProfile{
 		DisplayName:   spec.FullClusterName(),
 		Description:   description,
-		EdgeClusterId: *state.AdvancedDHCP.EdgeClusterID,
+		EdgeClusterId: state.EdgeClusterRef.ID,
 		Tags:          spec.createCommonTags(),
 	}
 
@@ -88,10 +90,11 @@ func (t *advancedDHCPProfileTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *
 				return updatingErr(err)
 			}
 			if resp.StatusCode != http.StatusOK {
-				return fmt.Errorf("updating failed with unexpected HTTP status code %d", resp.StatusCode)
+				return updatingStateCode(resp.StatusCode)
 			}
+			return actionUpdated, nil
 		}
-		return nil
+		return actionUnchanged, nil
 	}
 
 	createdProfile, resp, err := a.nsxClient.ServicesApi.CreateDhcpProfile(a.nsxClient.Context, profile)
@@ -99,10 +102,10 @@ func (t *advancedDHCPProfileTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *
 		return creatingErr(err)
 	}
 	if resp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("creating failed with unexpected HTTP status code %d", resp.StatusCode)
+		return creatingStateCode(resp.StatusCode)
 	}
 	state.AdvancedDHCP.ProfileID = &createdProfile.Id
-	return nil
+	return actionCreated, nil
 }
 
 func (t *advancedDHCPProfileTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
@@ -131,14 +134,14 @@ func (t *advancedDHCPServerTask) reference(state *NSXTInfraState) *Reference {
 	return toReference(state.AdvancedDHCP.ServerID)
 }
 
-func (t *advancedDHCPServerTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) error {
+func (t *advancedDHCPServerTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
 	dhcpServerIP, err := cidrHostAndPrefix(spec.WorkersNetwork, 2)
 	if err != nil {
-		return errors.Wrapf(err, "DHCP server IP")
+		return "", errors.Wrapf(err, "DHCP server IP")
 	}
 	gatewayIP, err := cidrHost(spec.WorkersNetwork, 1)
 	if err != nil {
-		return errors.Wrapf(err, "gateway IP")
+		return "", errors.Wrapf(err, "gateway IP")
 	}
 	ipv4DhcpServer := manager.IPv4DhcpServer{
 		DhcpServerIp:   dhcpServerIP,
@@ -175,10 +178,11 @@ func (t *advancedDHCPServerTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 				return updatingErr(err)
 			}
 			if resp.StatusCode != http.StatusOK {
-				return fmt.Errorf("updating failed with unexpected HTTP status code %d", resp.StatusCode)
+				return updatingStateCode(resp.StatusCode)
 			}
+			return actionUpdated, nil
 		}
-		return nil
+		return actionUnchanged, nil
 	}
 
 	createdServer, resp, err := a.nsxClient.ServicesApi.CreateDhcpServer(a.nsxClient.Context, server)
@@ -186,10 +190,10 @@ func (t *advancedDHCPServerTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 		return creatingErr(err)
 	}
 	if resp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("creating failed with unexpected HTTP status code %d", resp.StatusCode)
+		return creatingStateCode(resp.StatusCode)
 	}
 	state.AdvancedDHCP.ServerID = &createdServer.Id
-	return nil
+	return actionCreated, nil
 }
 
 func (t *advancedDHCPServerTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
@@ -208,35 +212,6 @@ func (t *advancedDHCPServerTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, stat
 	return true, nil
 }
 
-type advancedLookupLogicalSwitchTask struct{ baseTask }
-
-func newAdvancedLookupLogicalSwitchTask() *advancedLookupLogicalSwitchTask {
-	return &advancedLookupLogicalSwitchTask{baseTask{label: "logical switch lookup (Advanced API)"}}
-}
-
-func (t *advancedLookupLogicalSwitchTask) reference(state *NSXTInfraState) *Reference {
-	return toReference(state.AdvancedDHCP.LogicalSwitchID)
-}
-
-func (t *advancedLookupLogicalSwitchTask) Ensure(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) error {
-	result, resp, err := a.nsxClient.LogicalSwitchingApi.ListLogicalSwitches(a.nsxClient.Context, nil)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("listing failed with unexpected HTTP status code %d", resp.StatusCode)
-	}
-	for _, obj := range result.Results {
-		for _, tag := range obj.Tags {
-			if tag.Scope == "policyPath" && tag.Tag == state.SegmentRef.Path {
-				state.AdvancedDHCP.LogicalSwitchID = &obj.Id
-				return nil
-			}
-		}
-	}
-	return fmt.Errorf("not found by segment path %s", state.SegmentRef.Path)
-}
-
 type advancedDHCPPortTask struct{ baseTask }
 
 func newAdvancedDHCPPortTask() *advancedDHCPPortTask {
@@ -247,7 +222,7 @@ func (t *advancedDHCPPortTask) reference(state *NSXTInfraState) *Reference {
 	return toReference(state.AdvancedDHCP.PortID)
 }
 
-func (t *advancedDHCPPortTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) error {
+func (t *advancedDHCPPortTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
 	attachment := manager.LogicalPortAttachment{
 		AttachmentType: "DHCP_SERVICE",
 		Id:             *state.AdvancedDHCP.ServerID,
@@ -282,10 +257,11 @@ func (t *advancedDHCPPortTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSX
 				return updatingErr(err)
 			}
 			if resp.StatusCode != http.StatusOK {
-				return fmt.Errorf("updating failed with unexpected HTTP status code %d", resp.StatusCode)
+				return updatingStateCode(resp.StatusCode)
 			}
+			return actionUpdated, nil
 		}
-		return nil
+		return actionUnchanged, nil
 	}
 
 	createdPort, resp, err := a.nsxClient.LogicalSwitchingApi.CreateLogicalPort(a.nsxClient.Context, port)
@@ -293,10 +269,10 @@ func (t *advancedDHCPPortTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSX
 		return creatingErr(err)
 	}
 	if resp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("creating failed with unexpected HTTP status code %d", resp.StatusCode)
+		return creatingStateCode(resp.StatusCode)
 	}
 	state.AdvancedDHCP.PortID = &createdPort.Id
-	return nil
+	return actionCreated, nil
 }
 
 func (t *advancedDHCPPortTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
@@ -327,18 +303,18 @@ func (t *advancedDHCPIPPoolTask) reference(state *NSXTInfraState) *Reference {
 	return toReference(state.AdvancedDHCP.IPPoolID)
 }
 
-func (t *advancedDHCPIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) error {
+func (t *advancedDHCPIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
 	gatewayIP, err := cidrHost(spec.WorkersNetwork, 1)
 	if err != nil {
-		return errors.Wrapf(err, "gateway IP")
+		return "", errors.Wrapf(err, "gateway IP")
 	}
 	startIP, err := cidrHost(spec.WorkersNetwork, 10)
 	if err != nil {
-		return errors.Wrapf(err, "start IP of pool")
+		return "", errors.Wrapf(err, "start IP of pool")
 	}
 	endIP, err := cidrHost(spec.WorkersNetwork, -1)
 	if err != nil {
-		return errors.Wrapf(err, "end IP of pool")
+		return "", errors.Wrapf(err, "end IP of pool")
 	}
 	ipPoolRange := manager.IpPoolRange{
 		Start: startIP,
@@ -367,8 +343,8 @@ func (t *advancedDHCPIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 		if oldPool.DisplayName != pool.DisplayName ||
 			oldPool.GatewayIp != pool.GatewayIp ||
 			oldPool.LeaseTime != pool.LeaseTime ||
-			oldPool.ErrorThreshold == pool.ErrorThreshold ||
-			oldPool.WarningThreshold == pool.WarningThreshold ||
+			oldPool.ErrorThreshold != pool.ErrorThreshold ||
+			oldPool.WarningThreshold != pool.WarningThreshold ||
 			len(oldPool.AllocationRanges) != 1 ||
 			oldPool.AllocationRanges[0].Start != pool.AllocationRanges[0].Start ||
 			oldPool.AllocationRanges[0].End != pool.AllocationRanges[0].End ||
@@ -378,10 +354,11 @@ func (t *advancedDHCPIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 				return updatingErr(err)
 			}
 			if resp.StatusCode != http.StatusOK {
-				return fmt.Errorf("updating failed with unexpected HTTP status code %d", resp.StatusCode)
+				return updatingStateCode(resp.StatusCode)
 			}
+			return actionUpdated, nil
 		}
-		return nil
+		return actionUnchanged, nil
 	}
 
 	createdPool, resp, err := a.nsxClient.ServicesApi.CreateDhcpIpPool(a.nsxClient.Context, *state.AdvancedDHCP.ServerID, pool)
@@ -389,10 +366,10 @@ func (t *advancedDHCPIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 		return creatingErr(err)
 	}
 	if resp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("creating failed with unexpected HTTP status code %d", resp.StatusCode)
+		return creatingStateCode(resp.StatusCode)
 	}
 	state.AdvancedDHCP.IPPoolID = &createdPool.Id
-	return nil
+	return actionCreated, nil
 }
 
 func (t *advancedDHCPIPPoolTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
@@ -428,4 +405,12 @@ func equalCommonTags(a, b []common.Tag) bool {
 		}
 	}
 	return true
+}
+
+func updatingStateCode(statusCode int) (string, error) {
+	return "", fmt.Errorf("updating failed with unexpected HTTP status code %d", statusCode)
+}
+
+func creatingStateCode(statusCode int) (string, error) {
+	return "", fmt.Errorf("creating failed with unexpected HTTP status code %d", statusCode)
 }

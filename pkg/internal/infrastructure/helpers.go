@@ -19,11 +19,30 @@ package infrastructure
 
 import (
 	"fmt"
+	"math/rand"
 	"net"
 	"strings"
+	"time"
 
 	vapi_errors "github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 )
+
+const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+var seededRand *rand.Rand = rand.New(
+	rand.NewSource(time.Now().UnixNano()))
+
+func RandomStringWithCharset(length int, charset string) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
+}
+
+func RandomString(length int) string {
+	return RandomStringWithCharset(length, charset)
+}
 
 func strptr(s string) *string {
 	return &s
@@ -43,13 +62,6 @@ func boolptr(b bool) *bool {
 
 func int64ptr(i int64) *int64 {
 	return &i
-}
-
-func safeEquals(a, b *string) bool {
-	if a == nil || b == nil {
-		return a == b
-	}
-	return *a == *b
 }
 
 func cidrHost(cidr string, index int) (string, error) {

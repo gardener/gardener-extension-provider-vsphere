@@ -18,6 +18,8 @@
 package infrastructure
 
 import (
+	"fmt"
+
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	"github.com/vmware/go-vmware-nsxt"
@@ -48,7 +50,7 @@ func NewNSXTInfrastructureEnsurer(logger logr.Logger, nsxtConfig *NsxtConfig) (N
 
 	tasks := []task{
 		newLookupTier0GatewayTask(),
-		newLookupTransportZone(),
+		newLookupTransportZoneTask(),
 		newLookupEdgeClusterTask(),
 		newLookupSNATIPPoolTask(),
 		newTier1GatewayTask(),
@@ -57,7 +59,6 @@ func NewNSXTInfrastructureEnsurer(logger logr.Logger, nsxtConfig *NsxtConfig) (N
 		newSNATIPAddressAllocationTask(),
 		newSNATIPAddressRealizationTask(),
 		newSNATRuleTask(),
-		newAdvancedLookupEdgeClusterTask(),
 		newAdvancedLookupLogicalSwitchTask(),
 		newAdvancedDHCPProfileTask(),
 		newAdvancedDHCPServerTask(),
@@ -75,7 +76,7 @@ func NewNSXTInfrastructureEnsurer(logger logr.Logger, nsxtConfig *NsxtConfig) (N
 
 func (e *ensurer) EnsureInfrastructure(spec NSXTInfraSpec, state *NSXTInfraState) error {
 	for _, task := range e.tasks {
-		err := task.Ensure(e, spec, state)
+		action, err := task.Ensure(e, spec, state)
 		if err != nil {
 			return errors.Wrapf(err, task.Label()+" failed")
 		}
@@ -88,7 +89,7 @@ func (e *ensurer) EnsureInfrastructure(spec NSXTInfraSpec, state *NSXTInfraState
 		if ref != nil {
 			keysAndVals = append(keysAndVals, "id", ref.ID)
 		}
-		e.logger.Info(task.Label()+" ensured", keysAndVals...)
+		e.logger.Info(fmt.Sprintf("%s %s", task.Label(), action), keysAndVals...)
 	}
 
 	return nil

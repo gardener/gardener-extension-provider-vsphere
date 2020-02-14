@@ -19,6 +19,7 @@ package infrastructure
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -42,11 +43,16 @@ const (
 	defaultSite                  = "default"
 	policyEnforcementPoint       = "default"
 	defaultPolicyLocaleServiceID = "default"
+
+	actionCreated   = "created"
+	actionUpdated   = "updated"
+	actionUnchanged = "unchanged"
+	actionFound     = "found"
 )
 
 type task interface {
 	Label() string
-	Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) error
+	Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (action string, err error)
 	EnsureDeleted(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (deleted bool, err error)
 	name(spec NSXTInfraSpec) *string
 	reference(state *NSXTInfraState) *Reference
@@ -60,8 +66,8 @@ func (t *baseTask) Label() string {
 	return t.label
 }
 
-func (t *baseTask) Ensure(_ *ensurer, _ NSXTInfraSpec, _ *NSXTInfraState) error {
-	return nil
+func (t *baseTask) Ensure(_ *ensurer, _ NSXTInfraSpec, _ *NSXTInfraState) (action string, err error) {
+	return "", nil
 }
 
 func (t *baseTask) EnsureDeleted(_ *ensurer, _ NSXTInfraSpec, _ *NSXTInfraState) (deleted bool, err error) {
@@ -88,7 +94,7 @@ func (t *lookupTier0GatewayTask) reference(state *NSXTInfraState) *Reference {
 	return state.Tier0GatewayRef
 }
 
-func (t *lookupTier0GatewayTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) error {
+func (t *lookupTier0GatewayTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
 	name := spec.Tier0GatewayName
 	client := infra.NewDefaultTier0sClient(a.connector)
 	var cursor *string
@@ -97,13 +103,13 @@ func (t *lookupTier0GatewayTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 	for {
 		result, err := client.List(cursor, nil, nil, nil, nil, nil)
 		if err != nil {
-			return nicerVAPIError(err)
+			return "", nicerVAPIError(err)
 		}
 		for _, item := range result.Results {
 			if *item.DisplayName == name {
 				// found
 				state.Tier0GatewayRef = &Reference{ID: *item.Id, Path: *item.Path}
-				return nil
+				return actionFound, nil
 			}
 		}
 		if cursor == nil {
@@ -111,7 +117,7 @@ func (t *lookupTier0GatewayTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 		}
 		count += len(result.Results)
 		if count >= total {
-			return fmt.Errorf("not found: %s", name)
+			return "", fmt.Errorf("not found: %s", name)
 		}
 		cursor = result.Cursor
 	}
@@ -129,48 +135,48 @@ func (t *lookupEdgeClusterTask) reference(state *NSXTInfraState) *Reference {
 	return state.EdgeClusterRef
 }
 
-func (t *lookupEdgeClusterTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) error {
+func (t *lookupEdgeClusterTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
 	name := spec.EdgeClusterName
 	client := enforcement_points.NewDefaultEdgeClustersClient(a.connector)
 	result, err := client.List(defaultSite, policyEnforcementPoint, nil, nil, nil, nil, nil, nil)
 	if err != nil {
-		return nicerVAPIError(err)
+		return "", nicerVAPIError(err)
 	}
 	for _, item := range result.Results {
 		if *item.DisplayName == name {
 			state.EdgeClusterRef = &Reference{ID: *item.Id, Path: *item.Path}
-			return nil
+			return actionFound, nil
 		}
 	}
-	return fmt.Errorf("not found: %s", name)
+	return "", fmt.Errorf("not found: %s", name)
 }
 
-type lookupTransportZone struct{ baseTask }
+type lookupTransportZoneTask struct{ baseTask }
 
-func newLookupTransportZone() *lookupTransportZone {
-	return &lookupTransportZone{baseTask{label: "transport zone lookup"}}
+func newLookupTransportZoneTask() *lookupTransportZoneTask {
+	return &lookupTransportZoneTask{baseTask{label: "transport zone lookup"}}
 }
 
-func (t *lookupTransportZone) name(spec NSXTInfraSpec) *string { return &spec.TransportZoneName }
+func (t *lookupTransportZoneTask) name(spec NSXTInfraSpec) *string { return &spec.TransportZoneName }
 
-func (t *lookupTransportZone) reference(state *NSXTInfraState) *Reference {
+func (t *lookupTransportZoneTask) reference(state *NSXTInfraState) *Reference {
 	return state.TransportZoneRef
 }
 
-func (t *lookupTransportZone) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) error {
+func (t *lookupTransportZoneTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
 	name := spec.TransportZoneName
 	client := enforcement_points.NewDefaultTransportZonesClient(a.connector)
 	result, err := client.List(defaultSite, policyEnforcementPoint, nil, nil, nil, nil, nil, nil)
 	if err != nil {
-		return nicerVAPIError(err)
+		return "", nicerVAPIError(err)
 	}
 	for _, item := range result.Results {
 		if *item.DisplayName == name {
 			state.TransportZoneRef = &Reference{ID: *item.Id, Path: *item.Path}
-			return nil
+			return actionFound, nil
 		}
 	}
-	return fmt.Errorf("not found: %s", name)
+	return "", fmt.Errorf("not found: %s", name)
 }
 
 type lookupSNATIPPoolTask struct{ baseTask }
@@ -183,7 +189,7 @@ func (t *lookupSNATIPPoolTask) name(spec NSXTInfraSpec) *string { return &spec.S
 
 func (t *lookupSNATIPPoolTask) reference(state *NSXTInfraState) *Reference { return state.SNATIPPoolRef }
 
-func (t *lookupSNATIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) error {
+func (t *lookupSNATIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
 	name := spec.SNATIPPoolName
 	client := infra.NewDefaultIpPoolsClient(a.connector)
 	var cursor *string
@@ -192,13 +198,13 @@ func (t *lookupSNATIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSX
 	for {
 		result, err := client.List(cursor, nil, nil, nil, nil, nil)
 		if err != nil {
-			return nicerVAPIError(err)
+			return "", nicerVAPIError(err)
 		}
 		for _, item := range result.Results {
 			if *item.DisplayName == name {
 				// found
 				state.SNATIPPoolRef = &Reference{ID: *item.Id, Path: *item.Path}
-				return nil
+				return actionFound, nil
 			}
 		}
 		if cursor == nil {
@@ -206,7 +212,7 @@ func (t *lookupSNATIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSX
 		}
 		count += len(result.Results)
 		if count >= total {
-			return fmt.Errorf("not found: %s", name)
+			return "", fmt.Errorf("not found: %s", name)
 		}
 		cursor = result.Cursor
 	}
@@ -220,7 +226,7 @@ func newTier1GatewayTask() *tier1GatewayTask {
 
 func (t *tier1GatewayTask) reference(state *NSXTInfraState) *Reference { return state.Tier1GatewayRef }
 
-func (t *tier1GatewayTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) error {
+func (t *tier1GatewayTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
 	client := infra.NewDefaultTier1sClient(a.connector)
 
 	tier1 := model.Tier1{
@@ -246,8 +252,9 @@ func (t *tier1GatewayTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInf
 		if err != nil {
 			return readingErr(err)
 		}
-		if oldTier1.DisplayName != tier1.DisplayName ||
-			oldTier1.FailoverMode != tier1.FailoverMode ||
+		if *oldTier1.DisplayName != *tier1.DisplayName ||
+			oldTier1.FailoverMode == nil ||
+			*oldTier1.FailoverMode != *tier1.FailoverMode ||
 			oldTier1.Tier0Path == nil ||
 			*oldTier1.Tier0Path != *tier1.Tier0Path ||
 			!equalStrings(oldTier1.RouteAdvertisementTypes, tier1.RouteAdvertisementTypes) ||
@@ -256,8 +263,9 @@ func (t *tier1GatewayTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInf
 			if err != nil {
 				return updatingErr(err)
 			}
+			return actionUpdated, nil
 		}
-		return nil
+		return actionUnchanged, nil
 	}
 
 	id := generateID("tier1gw")
@@ -266,7 +274,7 @@ func (t *tier1GatewayTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInf
 		return creatingErr(err)
 	}
 	state.Tier1GatewayRef = &Reference{ID: *createdObj.Id, Path: *createdObj.Path}
-	return nil
+	return actionCreated, nil
 }
 
 func (t *tier1GatewayTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
@@ -292,7 +300,7 @@ func (t *tier1GatewayLocaleServiceTask) reference(state *NSXTInfraState) *Refere
 	return state.LocaleServiceRef
 }
 
-func (t *tier1GatewayLocaleServiceTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) error {
+func (t *tier1GatewayLocaleServiceTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
 	client := tier_1s.NewDefaultLocaleServicesClient(a.connector)
 
 	obj := model.LocaleServices{
@@ -311,7 +319,7 @@ func (t *tier1GatewayLocaleServiceTask) Ensure(a *ensurer, spec NSXTInfraSpec, s
 		if err != nil {
 			return readingErr(err)
 		}
-		if oldTier1.DisplayName != obj.DisplayName ||
+		if *oldTier1.DisplayName != *obj.DisplayName ||
 			oldTier1.EdgeClusterPath == nil ||
 			*oldTier1.EdgeClusterPath != *obj.EdgeClusterPath ||
 			!equalTags(oldTier1.Tags, obj.Tags) {
@@ -319,8 +327,9 @@ func (t *tier1GatewayLocaleServiceTask) Ensure(a *ensurer, spec NSXTInfraSpec, s
 			if err != nil {
 				return updatingErr(err)
 			}
+			return actionUpdated, nil
 		}
-		return nil
+		return actionUnchanged, nil
 	}
 	// The default ID of the locale service will be the Tier1 ID
 	id := state.Tier1GatewayRef.ID
@@ -329,7 +338,7 @@ func (t *tier1GatewayLocaleServiceTask) Ensure(a *ensurer, spec NSXTInfraSpec, s
 		return creatingErr(err)
 	}
 	state.LocaleServiceRef = &Reference{ID: id, Path: ""}
-	return nil
+	return actionCreated, nil
 }
 
 func (t *tier1GatewayLocaleServiceTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
@@ -353,18 +362,19 @@ func newSegmentTask() *segmentTask {
 
 func (t *segmentTask) reference(state *NSXTInfraState) *Reference { return state.SegmentRef }
 
-func (t *segmentTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) error {
+func (t *segmentTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
 	client := infra.NewDefaultSegmentsClient(a.connector)
 
 	gatewayAddr, err := cidrHostAndPrefix(spec.WorkersNetwork, 1)
 	if err != nil {
-		return errors.Wrapf(err, "gateway address")
+		return "", errors.Wrapf(err, "gateway address")
 	}
 	subnet := model.SegmentSubnet{
 		GatewayAddress: strptr(gatewayAddr),
 	}
+	displayName := spec.FullClusterName() + "-" + RandomString(8)
 	segment := model.Segment{
-		DisplayName:       strptr(spec.FullClusterName()),
+		DisplayName:       strptr(displayName),
 		Description:       strptr(description),
 		ConnectivityPath:  strptr(state.Tier1GatewayRef.Path),
 		TransportZonePath: strptr(state.TransportZoneRef.Path),
@@ -381,7 +391,7 @@ func (t *segmentTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraSta
 		if err != nil {
 			return readingErr(err)
 		}
-		if oldSegment.DisplayName != segment.DisplayName ||
+		if !strings.HasPrefix(*oldSegment.DisplayName, spec.FullClusterName()) ||
 			oldSegment.ConnectivityPath == nil ||
 			*oldSegment.ConnectivityPath != *segment.ConnectivityPath ||
 			oldSegment.TransportZonePath == nil ||
@@ -394,8 +404,9 @@ func (t *segmentTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraSta
 			if err != nil {
 				return updatingErr(err)
 			}
+			return actionUpdated, nil
 		}
-		return nil
+		return actionUnchanged, nil
 	}
 
 	id := generateID("segment")
@@ -404,7 +415,8 @@ func (t *segmentTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraSta
 		return creatingErr(err)
 	}
 	state.SegmentRef = &Reference{ID: *createdObj.Id, Path: *createdObj.Path}
-	return nil
+	state.SegmentName = createdObj.DisplayName
+	return actionCreated, nil
 }
 
 func (t *segmentTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
@@ -417,6 +429,7 @@ func (t *segmentTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfr
 		return false, nicerVAPIError(err)
 	}
 	state.SegmentRef = nil
+	state.SegmentName = nil
 	return true, nil
 }
 
@@ -430,7 +443,7 @@ func (t *snatIPAddressAllocationTask) reference(state *NSXTInfraState) *Referenc
 	return state.SNATIPAddressAllocRef
 }
 
-func (t *snatIPAddressAllocationTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) error {
+func (t *snatIPAddressAllocationTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
 	client := ip_pools.NewDefaultIpAllocationsClient(a.connector)
 
 	allocation := model.IpAddressAllocation{
@@ -443,7 +456,7 @@ func (t *snatIPAddressAllocationTask) Ensure(a *ensurer, spec NSXTInfraSpec, sta
 		_, err := client.Get(state.SNATIPPoolRef.ID, state.SNATIPAddressAllocRef.ID)
 		if err == nil {
 			// IP address allocation is never updated
-			return nil
+			return actionUnchanged, nil
 		}
 		if !isNotFoundError(err) {
 			return readingErr(err)
@@ -456,7 +469,7 @@ func (t *snatIPAddressAllocationTask) Ensure(a *ensurer, spec NSXTInfraSpec, sta
 		return creatingErr(err)
 	}
 	state.SNATIPAddressAllocRef = &Reference{ID: *createdObj.Id, Path: *createdObj.Path}
-	return nil
+	return actionCreated, nil
 }
 
 func (t *snatIPAddressAllocationTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
@@ -469,6 +482,7 @@ func (t *snatIPAddressAllocationTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec,
 		return false, err
 	}
 	state.SNATIPAddressAllocRef = nil
+	state.SNATIPAddress = nil
 	return true, nil
 }
 
@@ -482,13 +496,13 @@ func (t *snatIPAddressRealizationTask) reference(state *NSXTInfraState) *Referen
 	return toReference(state.SNATIPAddress)
 }
 
-func (t *snatIPAddressRealizationTask) Ensure(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) error {
+func (t *snatIPAddressRealizationTask) Ensure(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (string, error) {
 	ipAddress, err := getRealizedIPAddress(a.connector, state.SNATIPAddressAllocRef.Path, 15*time.Second)
 	if err != nil {
-		return err
+		return "", err
 	}
 	state.SNATIPAddress = ipAddress
-	return nil
+	return actionFound, nil
 }
 
 type snatRuleTask struct{ baseTask }
@@ -499,7 +513,7 @@ func newSNATRuleTask() *snatRuleTask {
 
 func (t *snatRuleTask) reference(state *NSXTInfraState) *Reference { return state.SNATRuleRef }
 
-func (t *snatRuleTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) error {
+func (t *snatRuleTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
 	client := t1nat.NewDefaultNatRulesClient(a.connector)
 
 	rule := model.PolicyNatRule{
@@ -524,7 +538,7 @@ func (t *snatRuleTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraSt
 		if err != nil {
 			return readingErr(err)
 		}
-		if oldRule.DisplayName != rule.DisplayName ||
+		if *oldRule.DisplayName != *rule.DisplayName ||
 			oldRule.Action != rule.Action ||
 			oldRule.Enabled == nil ||
 			*oldRule.Enabled != *rule.Enabled ||
@@ -542,8 +556,9 @@ func (t *snatRuleTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraSt
 			if err != nil {
 				return updatingErr(err)
 			}
+			return actionUpdated, nil
 		}
-		return nil
+		return actionUnchanged, nil
 	}
 
 	id := generateID("snatrule")
@@ -552,7 +567,7 @@ func (t *snatRuleTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraSt
 		return creatingErr(err)
 	}
 	state.SNATRuleRef = &Reference{ID: *createdObj.Id, Path: *createdObj.Path}
-	return nil
+	return actionCreated, nil
 }
 
 func (t *snatRuleTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
@@ -698,16 +713,16 @@ func equalTags(a, b []model.Tag) bool {
 	return true
 }
 
-func readingErr(err error) error {
-	return errors.Wrapf(nicerVAPIError(err), "reading")
+func readingErr(err error) (string, error) {
+	return "", errors.Wrapf(nicerVAPIError(err), "reading")
 }
 
-func updatingErr(err error) error {
-	return errors.Wrapf(nicerVAPIError(err), "updating")
+func updatingErr(err error) (string, error) {
+	return "", errors.Wrapf(nicerVAPIError(err), "updating")
 }
 
-func creatingErr(err error) error {
-	return errors.Wrapf(nicerVAPIError(err), "creating")
+func creatingErr(err error) (string, error) {
+	return "", errors.Wrapf(nicerVAPIError(err), "creating")
 }
 
 func toReference(s *string) *Reference {

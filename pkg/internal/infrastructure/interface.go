@@ -34,26 +34,26 @@ type Reference struct {
 }
 
 type NSXTInfraState struct {
-	EdgeClusterRef        *Reference        `json:"edgeClusterRef,omitEmpty"`
-	TransportZoneRef      *Reference        `json:"transportZoneRef,omitEmpty"`
-	Tier0GatewayRef       *Reference        `json:"tier0GatewayRef,omitEmpty"`
-	SNATIPPoolRef         *Reference        `json:"snatIPPoolRef,omitEmpty"`
-	Tier1GatewayRef       *Reference        `json:"tier1GatewayRef,omitEmpty"`
-	LocaleServiceRef      *Reference        `json:"localeServiceRef,omitEmpty"`
-	SegmentRef            *Reference        `json:"segmentRef,omitEmpty"`
-	SNATIPAddressAllocRef *Reference        `json:"snatIPAddressAllocRef,omitEmpty"`
-	SNATRuleRef           *Reference        `json:"snatRuleRef,omitEmpty"`
-	SNATIPAddress         *string           `json:"snatIPAddress,omitEmpty"`
+	EdgeClusterRef        *Reference        `json:"edgeClusterRef,omitempty"`
+	TransportZoneRef      *Reference        `json:"transportZoneRef,omitempty"`
+	Tier0GatewayRef       *Reference        `json:"tier0GatewayRef,omitempty"`
+	SNATIPPoolRef         *Reference        `json:"snatIPPoolRef,omitempty"`
+	Tier1GatewayRef       *Reference        `json:"tier1GatewayRef,omitempty"`
+	LocaleServiceRef      *Reference        `json:"localeServiceRef,omitempty"`
+	SegmentRef            *Reference        `json:"segmentRef,omitempty"`
+	SNATIPAddressAllocRef *Reference        `json:"snatIPAddressAllocRef,omitempty"`
+	SNATRuleRef           *Reference        `json:"snatRuleRef,omitempty"`
+	SNATIPAddress         *string           `json:"snatIPAddress,omitempty"`
+	SegmentName           *string           `json:"networkName,omitempty"`
 	AdvancedDHCP          AdvancedDHCPState `json:"advancedDHCP"`
 }
 
 type AdvancedDHCPState struct {
-	EdgeClusterID   *string `json:"edgeClusterID,omitEmpty"`
-	LogicalSwitchID *string `json:"logicalSwitchID,omitEmpty"`
-	ProfileID       *string `json:"profileID,omitEmpty"`
-	ServerID        *string `json:"serverID,omitEmpty"`
-	PortID          *string `json:"portID,omitEmpty"`
-	IPPoolID        *string `json:"ipPoolID,omitEmpty"`
+	LogicalSwitchID *string `json:"logicalSwitchID,omitempty"`
+	ProfileID       *string `json:"profileID,omitempty"`
+	ServerID        *string `json:"serverID,omitempty"`
+	PortID          *string `json:"portID,omitempty"`
+	IPPoolID        *string `json:"ipPoolID,omitempty"`
 }
 
 // NsxtConfig contains the NSX-T specific configuration
