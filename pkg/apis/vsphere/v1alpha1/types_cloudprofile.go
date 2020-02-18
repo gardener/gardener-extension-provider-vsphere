@@ -159,7 +159,8 @@ type MachineImageVersion struct {
 	// Path is the path of the VM template.
 	Path string `json:"path"`
 	// GuestID is the optional guestId to overwrite the guestId of the VM template.
-	GuestID string `json:"guestId,omitempty"`
+	// +optional
+	GuestID *string `json:"guestId,omitempty"`
 }
 
 // LoadBalancerConfig contains the constraints for usable load balancer classes
@@ -176,4 +177,10 @@ type LoadBalancerClass struct {
 	Name string `json:"name"`
 	// IPPoolName is the name of the NSX-T IP pool.
 	IPPoolName string `json:"ipPoolName"`
+	// TCPAppProfileName is the profile name of the load balaner profile for TCP
+	// +optional
+	TCPAppProfileName *string `json:"tcpAppProfileName,omitempty"`
+	// UDPAppProfileName is the profile name of the load balaner profile for UDP
+	// +optional
+	UDPAppProfileName *string `json:"udpAppProfileName,omitempty"`
 }

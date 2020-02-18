@@ -16,26 +16,31 @@ package infrastructure
 
 import (
 	"context"
-	"fmt"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/internal"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/internal/infrastructure"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+
 	extensionscontroller "github.com/gardener/gardener-extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 )
 
 func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
-	creds, err := infrastructure.GetCredentialsFromInfrastructure(ctx, a.Client(), infra)
+	prepared, err := a.prepare(ctx, infra, cluster)
 	if err != nil {
 		return err
 	}
 
-	tf, err := internal.NewTerraformer(a.RESTConfig(), creds, vsphere.TerraformerPurposeInfra, infra.Namespace, infra.Name)
-	if err != nil {
-		return fmt.Errorf("could not create the Terraformer: %+v", err)
+	if prepared.state == nil {
+		// no state => nothing to do
+		return nil
 	}
 
-	return tf.
-		SetVariablesEnvironment(internal.TerraformerVariablesEnvironmentFromCredentials(creds)).
-		Destroy()
+	state := prepared.state
+	err = prepared.ensurer.EnsureInfrastructureDeleted(prepared.spec, state)
+	if err != nil {
+		err2 := a.saveStateToConfigMap(ctx, infra.Namespace, state)
+		if err2 != nil {
+			a.logFailedSaveState(err2, state)
+		}
+		return err
+	}
+
+	return a.deleteStateFromConfigMap(ctx, infra.Namespace)
 }

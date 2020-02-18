@@ -372,6 +372,9 @@ func (vp *valuesProvider) getConfigChartValues(
 			defaultClass = &class0
 		}
 	}
+	if defaultClass == nil {
+		return nil, fmt.Errorf("no load balancer classes defined in cloud profile config")
+	}
 outer:
 	for _, cpClass := range cpConfig.LoadBalancerClasses {
 		lbClass := map[string]interface{}{
@@ -402,13 +405,19 @@ outer:
 	if cpConfig.LoadBalancerSize != nil && *cpConfig.LoadBalancerSize != "" {
 		lbSize = *cpConfig.LoadBalancerSize
 	}
-	loadBalancers := map[string]interface{}{
+	loadBalancer := map[string]interface{}{
 		"ipPoolName": defaultClass.IPPoolName,
 		"size":       lbSize,
 		"classes":    loadBalancersClasses,
 	}
-	if infraStatus.LogicalRouterId != "" {
-		loadBalancers["logicalRouterId"] = infraStatus.LogicalRouterId
+	if defaultClass.TCPAppProfileName != nil {
+		loadBalancer["tcpAppProfileName"] = *defaultClass.TCPAppProfileName
+	}
+	if defaultClass.UDPAppProfileName != nil {
+		loadBalancer["udpAppProfileName"] = *defaultClass.UDPAppProfileName
+	}
+	if infraStatus.Tier1GatewayPath != "" {
+		loadBalancer["tier1GatewayPath"] = infraStatus.Tier1GatewayPath
 	}
 
 	// Collect config chart values
@@ -419,7 +428,7 @@ outer:
 		"datacenters":  strings.Join(apishelper.CollectDatacenters(region), ","),
 		"username":     credentials.VsphereUsername,
 		"password":     credentials.VspherePassword,
-		"loadbalancer": loadBalancers,
+		"loadbalancer": loadBalancer,
 		"nsxt": map[string]interface{}{
 			"host":         region.NSXTHost,
 			"insecureFlag": region.VsphereInsecureSSL,

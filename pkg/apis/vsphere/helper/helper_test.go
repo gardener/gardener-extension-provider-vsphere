@@ -104,6 +104,7 @@ func expectResults(result, expected interface{}, err error, expectErr bool) {
 }
 
 func makeProfileMachineImages(name, version string) []api.MachineImages {
+	s := someGuestId
 	return []api.MachineImages{
 		{
 			Name: name,
@@ -111,7 +112,7 @@ func makeProfileMachineImages(name, version string) []api.MachineImages {
 				{
 					Version: version,
 					Path:    somePath,
-					GuestID: someGuestId,
+					GuestID: &s,
 				},
 			},
 		},

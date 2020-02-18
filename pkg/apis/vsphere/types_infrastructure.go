@@ -57,9 +57,9 @@ type ZoneConfig struct {
 type InfrastructureStatus struct {
 	metav1.TypeMeta
 
-	Network         string
-	LogicalSwitchId string
-	LogicalRouterId string
+	SegmentName      string
+	SegmentPath      string
+	Tier1GatewayPath string
 
 	VsphereConfig VsphereConfig
 }

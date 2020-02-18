@@ -58,9 +58,9 @@ type ZoneConfig struct {
 type InfrastructureStatus struct {
 	metav1.TypeMeta `json:",inline"`
 
-	Network         string `json:"network"`
-	LogicalSwitchId string `json:"logicalSwitchId"`
-	LogicalRouterId string `json:"logicalRouterId"`
+	SegmentName      string `json:"segmentName"`
+	SegmentPath      string `json:"segmentPath"`
+	Tier1GatewayPath string `json:"tier1GatewayPath"`
 
 	VsphereConfig VsphereConfig `json:"vsphereConfig"`
 }

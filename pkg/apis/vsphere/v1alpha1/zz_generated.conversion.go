@@ -387,9 +387,9 @@ func Convert_vsphere_InfrastructureConfig_To_v1alpha1_InfrastructureConfig(in *v
 }
 
 func autoConvert_v1alpha1_InfrastructureStatus_To_vsphere_InfrastructureStatus(in *InfrastructureStatus, out *vsphere.InfrastructureStatus, s conversion.Scope) error {
-	out.Network = in.Network
-	out.LogicalSwitchId = in.LogicalSwitchId
-	out.LogicalRouterId = in.LogicalRouterId
+	out.SegmentName = in.SegmentName
+	out.SegmentPath = in.SegmentPath
+	out.Tier1GatewayPath = in.Tier1GatewayPath
 	if err := Convert_v1alpha1_VsphereConfig_To_vsphere_VsphereConfig(&in.VsphereConfig, &out.VsphereConfig, s); err != nil {
 		return err
 	}
@@ -402,9 +402,9 @@ func Convert_v1alpha1_InfrastructureStatus_To_vsphere_InfrastructureStatus(in *I
 }
 
 func autoConvert_vsphere_InfrastructureStatus_To_v1alpha1_InfrastructureStatus(in *vsphere.InfrastructureStatus, out *InfrastructureStatus, s conversion.Scope) error {
-	out.Network = in.Network
-	out.LogicalSwitchId = in.LogicalSwitchId
-	out.LogicalRouterId = in.LogicalRouterId
+	out.SegmentName = in.SegmentName
+	out.SegmentPath = in.SegmentPath
+	out.Tier1GatewayPath = in.Tier1GatewayPath
 	if err := Convert_vsphere_VsphereConfig_To_v1alpha1_VsphereConfig(&in.VsphereConfig, &out.VsphereConfig, s); err != nil {
 		return err
 	}
@@ -419,6 +419,8 @@ func Convert_vsphere_InfrastructureStatus_To_v1alpha1_InfrastructureStatus(in *v
 func autoConvert_v1alpha1_LoadBalancerClass_To_vsphere_LoadBalancerClass(in *LoadBalancerClass, out *vsphere.LoadBalancerClass, s conversion.Scope) error {
 	out.Name = in.Name
 	out.IPPoolName = in.IPPoolName
+	out.TCPAppProfileName = (*string)(unsafe.Pointer(in.TCPAppProfileName))
+	out.UDPAppProfileName = (*string)(unsafe.Pointer(in.UDPAppProfileName))
 	return nil
 }
 
@@ -430,6 +432,8 @@ func Convert_v1alpha1_LoadBalancerClass_To_vsphere_LoadBalancerClass(in *LoadBal
 func autoConvert_vsphere_LoadBalancerClass_To_v1alpha1_LoadBalancerClass(in *vsphere.LoadBalancerClass, out *LoadBalancerClass, s conversion.Scope) error {
 	out.Name = in.Name
 	out.IPPoolName = in.IPPoolName
+	out.TCPAppProfileName = (*string)(unsafe.Pointer(in.TCPAppProfileName))
+	out.UDPAppProfileName = (*string)(unsafe.Pointer(in.UDPAppProfileName))
 	return nil
 }
 
@@ -489,7 +493,7 @@ func Convert_vsphere_MachineImage_To_v1alpha1_MachineImage(in *vsphere.MachineIm
 func autoConvert_v1alpha1_MachineImageVersion_To_vsphere_MachineImageVersion(in *MachineImageVersion, out *vsphere.MachineImageVersion, s conversion.Scope) error {
 	out.Version = in.Version
 	out.Path = in.Path
-	out.GuestID = in.GuestID
+	out.GuestID = (*string)(unsafe.Pointer(in.GuestID))
 	return nil
 }
 
@@ -501,7 +505,7 @@ func Convert_v1alpha1_MachineImageVersion_To_vsphere_MachineImageVersion(in *Mac
 func autoConvert_vsphere_MachineImageVersion_To_v1alpha1_MachineImageVersion(in *vsphere.MachineImageVersion, out *MachineImageVersion, s conversion.Scope) error {
 	out.Version = in.Version
 	out.Path = in.Path
-	out.GuestID = in.GuestID
+	out.GuestID = (*string)(unsafe.Pointer(in.GuestID))
 	return nil
 }
 

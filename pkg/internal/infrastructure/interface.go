@@ -44,7 +44,7 @@ type NSXTInfraState struct {
 	SNATIPAddressAllocRef *Reference        `json:"snatIPAddressAllocRef,omitempty"`
 	SNATRuleRef           *Reference        `json:"snatRuleRef,omitempty"`
 	SNATIPAddress         *string           `json:"snatIPAddress,omitempty"`
-	SegmentName           *string           `json:"networkName,omitempty"`
+	SegmentName           *string           `json:"segmentName,omitempty"`
 	AdvancedDHCP          AdvancedDHCPState `json:"advancedDHCP"`
 }
 

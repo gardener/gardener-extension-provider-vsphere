@@ -18,12 +18,15 @@ package helper
 
 import (
 	"fmt"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
+
 	"github.com/gardener/gardener-extensions/pkg/controller"
 	"github.com/gardener/gardener-extensions/pkg/controller/common"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
 )
 
 func GetCloudProfileConfig(ctx *common.ClientContext, cluster *controller.Cluster) (*vsphere.CloudProfileConfig, error) {
@@ -53,7 +56,8 @@ func GetControlPlaneConfig(ctx *common.ClientContext, cluster *controller.Cluste
 
 func GetInfrastructureStatus(ctx *common.ClientContext, name string, extension *runtime.RawExtension) (*vsphere.InfrastructureStatus, error) {
 	infraStatus := &vsphere.InfrastructureStatus{}
-	if _, _, err := ctx.Decoder().Decode(extension.Raw, nil, infraStatus); err != nil {
+	gvk := v1alpha1.SchemeGroupVersion.WithKind("InfrastructureStatus")
+	if _, _, err := ctx.Decoder().Decode(extension.Raw, &gvk, infraStatus); err != nil {
 		return nil, errors.Wrapf(err, "could not decode infrastructureProviderStatus of controlplane '%s'", name)
 	}
 	return infraStatus, nil

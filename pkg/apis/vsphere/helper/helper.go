@@ -42,7 +42,11 @@ func FindImage(profileImages []api.MachineImages, imageName, imageVersion string
 			if machineImage.Name == imageName {
 				for _, version := range machineImage.Versions {
 					if imageVersion == version.Version {
-						return version.Path, version.GuestID, nil
+						guestID := ""
+						if version.GuestID != nil {
+							guestID = *version.GuestID
+						}
+						return version.Path, guestID, nil
 					}
 				}
 			}

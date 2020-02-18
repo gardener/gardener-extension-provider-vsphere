@@ -62,9 +62,6 @@ const (
 	// Password is a constant for the key in a cloud provider secret holding the NSX-T password
 	NSXTPassword = "nsxtPassword"
 
-	// TerraformerPurposeInfra is a constant for the complete Terraform setup with purpose 'infrastructure'.
-	TerraformerPurposeInfra = "infra"
-
 	// CloudProviderConfig is the name of the configmap containing the cloud provider config.
 	CloudProviderConfig = "cloud-provider-config"
 	// CloudProviderConfigMapKey is the key storing the cloud provider config as value in the cloud provider configmap.
@@ -80,6 +77,9 @@ const (
 
 	// CloudControllerManagerName is the constant for the name of the CloudController deployed by the control plane controller.
 	CloudControllerManagerName = "cloud-controller-manager"
+
+	// InfrastructureConfigMapName is the constant for the config map name for storing the persistent state of the infrastructure.
+	InfrastructureConfigMapName = "provider-vsphere-infrastructure-state"
 )
 
 var (

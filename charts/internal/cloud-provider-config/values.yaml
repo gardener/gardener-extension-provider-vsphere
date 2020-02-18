@@ -15,8 +15,10 @@ datacenters: dc
 loadbalancer:
   ipPoolName: gardener_lb_ip_pool
   size: MEDIUM
-  logicalRouterId: my.logical.t1.router
-  
+  tier1GatewayPath: mm/t1gateway/path
+  tcpAppProfileName: default-tcp-lb-app-profile
+  udpAppProfileName: default-udp-lb-app-profile
+
   classes:
     - name: public
     - name: private

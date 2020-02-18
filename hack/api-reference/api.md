@@ -465,7 +465,7 @@ string
 <tbody>
 <tr>
 <td>
-<code>network</code></br>
+<code>segmentName</code></br>
 <em>
 string
 </em>
@@ -475,7 +475,7 @@ string
 </tr>
 <tr>
 <td>
-<code>logicalSwitchId</code></br>
+<code>segmentPath</code></br>
 <em>
 string
 </em>
@@ -485,7 +485,7 @@ string
 </tr>
 <tr>
 <td>
-<code>logicalRouterId</code></br>
+<code>tier1GatewayPath</code></br>
 <em>
 string
 </em>
@@ -544,6 +544,30 @@ string
 </td>
 <td>
 <p>IPPoolName is the name of the NSX-T IP pool.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tcpAppProfileName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>TCPAppProfileName is the profile name of the load balaner profile for TCP</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>udpAppProfileName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>UDPAppProfileName is the profile name of the load balaner profile for UDP</p>
 </td>
 </tr>
 </tbody>
@@ -701,6 +725,7 @@ string
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>GuestID is the optional guestId to overwrite the guestId of the VM template.</p>
 </td>
 </tr>
