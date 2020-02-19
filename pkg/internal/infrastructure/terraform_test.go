@@ -17,6 +17,8 @@
 package infrastructure
 
 import (
+	"encoding/json"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -54,8 +56,10 @@ var _ = Describe("Terraform", func() {
 					Namespace: "foo",
 					Name:      "vsphere-credentials",
 				},
-				ProviderConfig: &runtime.RawExtension{
-					Object: config,
+				DefaultSpec: extensionsv1alpha1.DefaultSpec{
+					ProviderConfig: &runtime.RawExtension{
+						Raw: encode(config),
+					},
 				},
 			},
 		}
@@ -142,3 +146,8 @@ var _ = Describe("Terraform", func() {
 		})
 	})
 })
+
+func encode(obj runtime.Object) []byte {
+	data, _ := json.Marshal(obj)
+	return data
+}
