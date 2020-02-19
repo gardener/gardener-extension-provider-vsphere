@@ -221,6 +221,8 @@ func RegisterConversions(s *runtime.Scheme) error {
 func autoConvert_v1alpha1_CPLoadBalancerClass_To_vsphere_CPLoadBalancerClass(in *CPLoadBalancerClass, out *vsphere.CPLoadBalancerClass, s conversion.Scope) error {
 	out.Name = in.Name
 	out.IPPoolName = (*string)(unsafe.Pointer(in.IPPoolName))
+	out.TCPAppProfileName = (*string)(unsafe.Pointer(in.TCPAppProfileName))
+	out.UDPAppProfileName = (*string)(unsafe.Pointer(in.UDPAppProfileName))
 	return nil
 }
 
@@ -232,6 +234,8 @@ func Convert_v1alpha1_CPLoadBalancerClass_To_vsphere_CPLoadBalancerClass(in *CPL
 func autoConvert_vsphere_CPLoadBalancerClass_To_v1alpha1_CPLoadBalancerClass(in *vsphere.CPLoadBalancerClass, out *CPLoadBalancerClass, s conversion.Scope) error {
 	out.Name = in.Name
 	out.IPPoolName = (*string)(unsafe.Pointer(in.IPPoolName))
+	out.TCPAppProfileName = (*string)(unsafe.Pointer(in.TCPAppProfileName))
+	out.UDPAppProfileName = (*string)(unsafe.Pointer(in.UDPAppProfileName))
 	return nil
 }
 

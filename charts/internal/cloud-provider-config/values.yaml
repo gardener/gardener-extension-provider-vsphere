@@ -22,6 +22,10 @@ loadbalancer:
   classes:
     - name: public
     - name: private
+      #ipPoolName: gardener_lb_ip_pool_private
+      #tcpAppProfileName: tcp-app-profile-private
+      #udpAppProfileName: udp-app-profile-private
+
   tags: {}
     # myscope: mytagvalue
 nsxt:

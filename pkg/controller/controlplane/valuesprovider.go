@@ -375,26 +375,43 @@ func (vp *valuesProvider) getConfigChartValues(
 	if defaultClass == nil {
 		return nil, fmt.Errorf("no load balancer classes defined in cloud profile config")
 	}
-outer:
+
 	for _, cpClass := range cpConfig.LoadBalancerClasses {
 		lbClass := map[string]interface{}{
 			"name": cpClass.Name,
 		}
-		if cpClass.IPPoolName == nil || *cpClass.IPPoolName == "" {
-			for _, class := range cloudProfileConfig.Constraints.LoadBalancerConfig.Classes {
-				if class.Name == cpClass.Name {
-					if class.IPPoolName != "" {
-						lbClass["ipPoolName"] = class.IPPoolName
-					}
-					loadBalancersClasses = append(loadBalancersClasses, lbClass)
-					continue outer
-				}
+		var constraintClass *apisvsphere.LoadBalancerClass
+		for _, class := range cloudProfileConfig.Constraints.LoadBalancerConfig.Classes {
+			if class.Name == cpClass.Name {
+				constraintClass = &class
+				break
 			}
-			return nil, fmt.Errorf("load balancer class %q not found in cloud profile", cpClass.Name)
+		}
+		if cpClass.IPPoolName == nil || *cpClass.IPPoolName == "" {
+			//			if constraintClass == nil {
+			//				return nil, fmt.Errorf("load balancer class %q not found in cloud profile", cpClass.Name)
+			//			}
+			if constraintClass != nil && constraintClass.IPPoolName != "" {
+				lbClass["ipPoolName"] = constraintClass.IPPoolName
+			}
 		} else {
 			lbClass["ipPoolName"] = *cpClass.IPPoolName
-			loadBalancersClasses = append(loadBalancersClasses, lbClass)
 		}
+		if cpClass.TCPAppProfileName == nil || *cpClass.TCPAppProfileName == "" {
+			if constraintClass != nil && constraintClass.TCPAppProfileName != nil && *constraintClass.TCPAppProfileName != "" {
+				lbClass["tcpAppProfileName"] = *constraintClass.TCPAppProfileName
+			}
+		} else {
+			lbClass["tcpAppProfileName"] = *cpClass.TCPAppProfileName
+		}
+		if cpClass.UDPAppProfileName == nil || *cpClass.UDPAppProfileName == "" {
+			if constraintClass != nil && constraintClass.UDPAppProfileName != nil && *constraintClass.UDPAppProfileName != "" {
+				lbClass["udpAppProfileName"] = *constraintClass.UDPAppProfileName
+			}
+		} else {
+			lbClass["udpAppProfileName"] = *cpClass.UDPAppProfileName
+		}
+		loadBalancersClasses = append(loadBalancersClasses, lbClass)
 	}
 
 	if defaultClass.IPPoolName == "" {

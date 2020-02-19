@@ -49,6 +49,7 @@ var _ = Describe("Helper", func() {
 		dc := "scc01-DC"
 		ds := "A800_VMwareB"
 		cc := "scc01w01-DEV"
+		guestId := "coreos64Guest"
 		cluster = &controller.Cluster{
 			Shoot: &gardencorevbeta1.Shoot{
 				ObjectMeta: v1.ObjectMeta{Name: "test"},
@@ -140,7 +141,7 @@ machineImages:
 						{
 							Version: "2191.5.0",
 							Path:    "gardener/templates/coreos-2191.5.0",
-							GuestID: "coreos64Guest",
+							GuestID: &guestId,
 						},
 					},
 				},

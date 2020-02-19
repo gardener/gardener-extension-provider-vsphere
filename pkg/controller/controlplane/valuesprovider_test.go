@@ -19,12 +19,15 @@ package controlplane
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/gardener/gardener-extensions/pkg/controller/controlplane/genericactuator"
 
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	extensionscontroller "github.com/gardener/gardener-extensions/pkg/controller"
 	mockclient "github.com/gardener/gardener-extensions/pkg/mock/controller-runtime/client"
+
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	apisvspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
@@ -51,6 +54,7 @@ var _ = Describe("ValuesProvider", func() {
 		// Build scheme
 		scheme = runtime.NewScheme()
 		_      = apisvsphere.AddToScheme(scheme)
+		_      = apisvspherev1alpha1.AddToScheme(scheme)
 
 		cpConfig = &apisvsphere.ControlPlaneConfig{
 			CloudControllerManager: &apisvsphere.CloudControllerManagerConfig{
@@ -76,16 +80,13 @@ var _ = Describe("ValuesProvider", func() {
 				},
 				InfrastructureProviderStatus: &runtime.RawExtension{
 					Raw: encode(&apisvsphere.InfrastructureStatus{
-						Network: "gardener-test-network",
+						SegmentName: "gardener-test-network",
 					}),
 				},
 			},
 		}
 
 		cidr    = "10.250.0.0/19"
-		dc      = "scc01-DC"
-		ds      = "A800_VMwareB"
-		cc      = "scc01w01-DEV"
 		cluster = &extensionscontroller.Cluster{
 			CloudProfile: &gardencorev1beta1.CloudProfile{
 				Spec: gardencorev1beta1.CloudProfileSpec{
@@ -105,12 +106,12 @@ var _ = Describe("ValuesProvider", func() {
 										LogicalTier0Router: "lt0router",
 										EdgeCluster:        "edgecluster",
 										SNATIPPool:         "snatIpPool",
-										Datacenter:         &dc,
-										Datastore:          &ds,
+										Datacenter:         sp("scc01-DC"),
+										Datastore:          sp("A800_VMwareB"),
 										Zones: []apisvsphere.ZoneSpec{
 											{
 												Name:           "testzone",
-												ComputeCluster: &cc,
+												ComputeCluster: sp("scc01w01-DEV"),
 											},
 										},
 									},
@@ -125,8 +126,9 @@ var _ = Describe("ValuesProvider", func() {
 												IPPoolName: "lbpool",
 											},
 											{
-												Name:       "private",
-												IPPoolName: "lbpool2",
+												Name:              "private",
+												IPPoolName:        "lbpool2",
+												TCPAppProfileName: sp("tcpprof2"),
 											},
 										},
 									},
@@ -137,7 +139,7 @@ var _ = Describe("ValuesProvider", func() {
 											{
 												Version: "2191.5.0",
 												Path:    "gardener/templates/coreos-2191.5.0",
-												GuestID: "coreos64Guest",
+												GuestID: sp("coreos64Guest"),
 											},
 										},
 									},
@@ -210,8 +212,9 @@ var _ = Describe("ValuesProvider", func() {
 				"ipPoolName": "lbpool",
 				"classes": []map[string]interface{}{
 					{
-						"name":       "private",
-						"ipPoolName": "lbpool2",
+						"name":              "private",
+						"ipPoolName":        "lbpool2",
+						"tcpAppProfileName": "tcpprof2",
 					},
 				},
 			},
@@ -359,4 +362,8 @@ func clientGet(result runtime.Object) interface{} {
 		}
 		return nil
 	}
+}
+
+func sp(s string) *string {
+	return &s
 }

@@ -42,6 +42,12 @@ data:
     {{- if $class.ipPoolName }}
     ipPoolName="{{ $class.ipPoolName }}"
     {{- end }}
+    {{- if $class.tcpAppProfileName }}
+    tcpAppProfileName="{{ $class.tcpAppProfileName }}"
+    {{- end }}
+    {{- if $class.udpAppProfileName }}
+    udpAppProfileName="{{ $class.udpAppProfileName }}"
+    {{- end }}
     {{- end }}
 
     [Tags]

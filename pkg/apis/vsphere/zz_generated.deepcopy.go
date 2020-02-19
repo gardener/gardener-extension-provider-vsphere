@@ -32,6 +32,16 @@ func (in *CPLoadBalancerClass) DeepCopyInto(out *CPLoadBalancerClass) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.TCPAppProfileName != nil {
+		in, out := &in.TCPAppProfileName, &out.TCPAppProfileName
+		*out = new(string)
+		**out = **in
+	}
+	if in.UDPAppProfileName != nil {
+		in, out := &in.UDPAppProfileName, &out.UDPAppProfileName
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 

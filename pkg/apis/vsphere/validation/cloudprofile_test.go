@@ -31,6 +31,7 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 		ds := "ds"
 		mypool := "mypool"
 		cc := "cc"
+		guestId := "coreos64Guest"
 
 		BeforeEach(func() {
 			cloudProfileConfig = &apisvsphere.CloudProfileConfig{
@@ -74,7 +75,7 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 							{
 								Version: "2190.5.0",
 								Path:    "gardener/templates/coreos-2190.5.0",
-								GuestID: "coreos64Guest",
+								GuestID: &guestId,
 							},
 							{
 								Version: "2190.5.1",

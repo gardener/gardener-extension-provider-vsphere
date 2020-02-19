@@ -342,6 +342,30 @@ string
 <p>IPPoolName is the name of the NSX-T IP pool.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>tcpAppProfileName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>TCPAppProfileName is the profile name of the load balaner profile for TCP</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>udpAppProfileName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>UDPAppProfileName is the profile name of the load balaner profile for UDP</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.CloudControllerManagerConfig">CloudControllerManagerConfig

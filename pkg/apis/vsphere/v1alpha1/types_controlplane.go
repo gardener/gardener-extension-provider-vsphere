@@ -49,4 +49,10 @@ type CPLoadBalancerClass struct {
 	// IPPoolName is the name of the NSX-T IP pool.
 	// +optional
 	IPPoolName *string `json:"ipPoolName,omitempty"`
+	// TCPAppProfileName is the profile name of the load balaner profile for TCP
+	// +optional
+	TCPAppProfileName *string `json:"tcpAppProfileName,omitempty"`
+	// UDPAppProfileName is the profile name of the load balaner profile for UDP
+	// +optional
+	UDPAppProfileName *string `json:"udpAppProfileName,omitempty"`
 }
