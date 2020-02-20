@@ -22,6 +22,7 @@ type NSXTInfraSpec struct {
 	TransportZoneName string
 	Tier0GatewayName  string
 	SNATIPPoolName    string
+	GardenID          string
 	GardenName        string
 	ClusterName       string
 	WorkersNetwork    string

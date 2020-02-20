@@ -34,13 +34,15 @@ type AddOptions struct {
 	Controller controller.Options
 	// IgnoreOperationAnnotation specifies whether to ignore the operation annotation or not.
 	IgnoreOperationAnnotation bool
+	// GardenId is the Gardener garden identity
+	GardenId string
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
 // The opts.Reconciler is being set with a newly instantiated actuator.
 func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 	return infrastructure.Add(mgr, infrastructure.AddArgs{
-		Actuator:          NewActuator(),
+		Actuator:          NewActuator(opts.GardenId),
 		ControllerOptions: opts.Controller,
 		Predicates:        infrastructure.DefaultPredicates(opts.IgnoreOperationAnnotation),
 		Type:              vsphere.Type,

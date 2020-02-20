@@ -37,7 +37,7 @@ func (s NSXTInfraSpec) createCommonTags() []common.Tag {
 
 func (s NSXTInfraSpec) createTags() []model.Tag {
 	return []model.Tag{
-		{Scope: strptr(ScopeGarden), Tag: strptr(s.GardenName)},
+		{Scope: strptr(ScopeGarden), Tag: strptr(s.GardenID)},
 		{Scope: strptr(ScopeShoot), Tag: strptr(s.ClusterName)},
 	}
 }

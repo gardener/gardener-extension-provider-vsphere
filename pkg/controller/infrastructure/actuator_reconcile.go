@@ -78,6 +78,7 @@ func (a *actuator) prepare(ctx context.Context, infra *extensionsv1alpha1.Infras
 		TransportZoneName: region.TransportZone,
 		Tier0GatewayName:  region.LogicalTier0Router,
 		SNATIPPoolName:    region.SNATIPPool,
+		GardenID:          a.gardenID,
 		GardenName:        cloudProfileConfig.NamePrefix,
 		ClusterName:       infra.Namespace,
 		WorkersNetwork:    *cluster.Shoot.Spec.Networking.Nodes,

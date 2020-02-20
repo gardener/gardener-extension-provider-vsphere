@@ -426,6 +426,7 @@ func (vp *valuesProvider) getConfigChartValues(
 		"ipPoolName": defaultClass.IPPoolName,
 		"size":       lbSize,
 		"classes":    loadBalancersClasses,
+		"tags":       map[string]interface{}{"owner": vp.gardenId},
 	}
 	if defaultClass.TCPAppProfileName != nil {
 		loadBalancer["tcpAppProfileName"] = *defaultClass.TCPAppProfileName

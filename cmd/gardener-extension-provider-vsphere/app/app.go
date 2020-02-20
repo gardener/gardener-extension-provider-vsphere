@@ -140,6 +140,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 			configFileOpts.Completed().ApplyETCDStorage(&vspherecontrolplaneexposure.DefaultAddOptions.ETCDStorage)
 			configFileOpts.Completed().ApplyGardenId(&vspherecontrolplane.DefaultAddOptions.GardenId)
+			configFileOpts.Completed().ApplyGardenId(&vsphereinfrastructure.DefaultAddOptions.GardenId)
 			configFileOpts.Completed().ApplyHealthCheckConfig(&healthcheck.DefaultAddOptions.HealthCheckConfig)
 			healthCareCtrlOpts.Completed().Apply(&healthcheck.DefaultAddOptions.Controller)
 			controlPlaneCtrlOpts.Completed().Apply(&vspherecontrolplane.DefaultAddOptions.Controller)

@@ -26,14 +26,16 @@ import (
 )
 
 type actuator struct {
-	logger logr.Logger
 	common.ChartRendererContext
+	logger   logr.Logger
+	gardenID string
 }
 
 // NewActuator creates a new Actuator that updates the status of the handled Infrastructure resources.
-func NewActuator() infrastructure.Actuator {
+func NewActuator(gardenID string) infrastructure.Actuator {
 	return &actuator{
-		logger: log.Log.WithName("infrastructure-actuator"),
+		logger:   log.Log.WithName("infrastructure-actuator"),
+		gardenID: gardenID,
 	}
 }
 

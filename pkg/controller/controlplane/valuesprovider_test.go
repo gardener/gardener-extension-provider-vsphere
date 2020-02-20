@@ -217,6 +217,9 @@ var _ = Describe("ValuesProvider", func() {
 						"tcpAppProfileName": "tcpprof2",
 					},
 				},
+				"tags": map[string]interface{}{
+					"owner": "garden1234",
+				},
 			},
 			"nsxt": map[string]interface{}{
 				"password":     "nsxt-super-secret",
