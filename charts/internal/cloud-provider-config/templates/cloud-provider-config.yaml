@@ -29,7 +29,7 @@ data:
     {{- if .Values.labelZone }}
     zone = "{{ .Values.labelZone }}"
     {{- end }}
-  lb-cloudprovider.conf: |
+
     [LoadBalancer]
     ipPoolName = "{{ .Values.loadbalancer.ipPoolName }}"
     size = {{ .Values.loadbalancer.size }}

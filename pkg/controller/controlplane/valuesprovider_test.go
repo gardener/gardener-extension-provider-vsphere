@@ -245,17 +245,6 @@ var _ = Describe("ValuesProvider", func() {
 					"CustomResourceValidation": true,
 				},
 			},
-			"nsxt-lb-provider-manager": map[string]interface{}{
-				"podAnnotations": map[string]interface{}{
-					"checksum/secret-cloud-controller-manager":        "3d791b164a808638da9a8df03924be2a41e34cd664e42231c00fe369e3588272",
-					"checksum/secret-cloud-controller-manager-server": "6dff2a2e6f14444b66d8e4a351c049f7e89ee24ba3eaab95dbec40ba6bdebb52",
-					"checksum/secret-cloudprovider":                   "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
-					"checksum/configmap-cloud-provider-config":        "08a7bc7fe8f59b055f173145e211760a83f02cf89635cef26ebb351378635606",
-				},
-				"replicas":          1,
-				"clusterName":       "shoot--foo--bar-garden1234",
-				"kubernetesVersion": "1.14.0",
-			},
 			"csi-vsphere": map[string]interface{}{
 				"replicas":          1,
 				"kubernetesVersion": "1.14.0",

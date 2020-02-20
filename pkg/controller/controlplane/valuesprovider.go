@@ -160,14 +160,6 @@ var controlPlaneChart = &chart.Chart{
 			},
 		},
 		{
-			Name:   "nsxt-lb-provider-manager",
-			Images: []string{vsphere.NsxtLbProviderImageName},
-			Objects: []*chart.Object{
-				{Type: &corev1.Service{}, Name: "lb-controller-manager"},
-				{Type: &appsv1.Deployment{}, Name: "lb-controller-manager"},
-			},
-		},
-		{
 			Name: "csi-vsphere",
 			Images: []string{vsphere.CSIAttacherImageName, vsphere.CSIProvisionerImageName, vsphere.CSIControllerImageName,
 				vsphere.CSISyncerImageName, vsphere.LivenessProbeImageName},
@@ -506,17 +498,6 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"clusterName":       clusterId,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 			"podNetwork":        extensionscontroller.GetPodNetwork(cluster),
-			"podAnnotations": map[string]interface{}{
-				"checksum/secret-cloud-controller-manager":        checksums[vsphere.CloudControllerManagerName],
-				"checksum/secret-cloud-controller-manager-server": checksums[cloudControllerManagerServerName],
-				"checksum/secret-cloudprovider":                   checksums[v1alpha1constants.SecretNameCloudProvider],
-				"checksum/configmap-cloud-provider-config":        checksums[vsphere.CloudProviderConfig],
-			},
-		},
-		"nsxt-lb-provider-manager": map[string]interface{}{
-			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
-			"clusterName":       clusterId,
-			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 			"podAnnotations": map[string]interface{}{
 				"checksum/secret-cloud-controller-manager":        checksums[vsphere.CloudControllerManagerName],
 				"checksum/secret-cloud-controller-manager-server": checksums[cloudControllerManagerServerName],

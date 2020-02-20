@@ -23,9 +23,11 @@ images:
   tag: v1.3.1
   targetVersion: ">= 1.14"
 - name: vsphere-cloud-controller-manager
-  sourceRepository: github.com/kubernetes/cloud-provider-vsphere
-  repository: gcr.io/cloud-provider-vsphere/cpi/release/manager
-  tag: v1.0.0
+  sourceRepository: github.com/mandelsoft/cloud-provider-vsphere
+  repository: eu.gcr.io/gardener-project/test/cloud-provider-vsphere-mandelsoft
+  tag: v1.1.0-15-gc030376
+  #repository: gcr.io/cloud-provider-vsphere/cpi/release/manager
+  #tag: v1.0.0
 - name: machine-controller-manager
   #sourceRepository: github.com/gardener/machine-controller-manager
   sourceRepository: github.com/MartinWeindel/machine-controller-manager
@@ -36,10 +38,6 @@ images:
   sourceRepository: github.com/gardener/machine-controller-manager-provider-vsphere
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager-provider-vsphere
   tag: v0.2.0
-- name: nsxt-lb-provider-manager
-  sourceRepository: github.com/gardener/nsxt-lb-provider
-  repository: eu.gcr.io/gardener-project/gardener/nsxt-lb-provider-manager
-  tag: v0.3.0-dev-hybrid6
 - name: vsphere-csi-controller
   #sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   #repository: gcr.io/cloud-provider-vsphere/csi/release/driver

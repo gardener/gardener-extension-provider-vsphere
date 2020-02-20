@@ -30,8 +30,6 @@ const (
 	MCMProviderVsphereImageName = "machine-controller-manager-provider-vsphere"
 	// CloudControllerImageName is the name of the external vSphere CloudProvider image.
 	CloudControllerImageName = "vsphere-cloud-controller-manager"
-	// NsxtLbProviderImageName is the name of the external NSX-T Load Balancer Provider image.
-	NsxtLbProviderImageName = "nsxt-lb-provider-manager"
 
 	// CSIAttacherImageName is the name of the CSI attacher image.
 	CSIAttacherImageName = "csi-attacher"
