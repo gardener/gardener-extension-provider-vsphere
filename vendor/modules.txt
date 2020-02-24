@@ -100,7 +100,6 @@ github.com/gardener/gardener-extensions/pkg/log
 github.com/gardener/gardener-extensions/pkg/mock/controller-runtime/client
 github.com/gardener/gardener-extensions/pkg/mock/gardener/client/kubernetes
 github.com/gardener/gardener-extensions/pkg/predicate
-github.com/gardener/gardener-extensions/pkg/terraformer
 github.com/gardener/gardener-extensions/pkg/util
 github.com/gardener/gardener-extensions/pkg/webhook
 github.com/gardener/gardener-extensions/pkg/webhook/cmd
@@ -108,6 +107,7 @@ github.com/gardener/gardener-extensions/pkg/webhook/controlplane
 github.com/gardener/gardener-extensions/pkg/webhook/controlplane/genericmutator
 github.com/gardener/gardener-extensions/pkg/webhook/controlplane/test
 github.com/gardener/gardener-extensions/pkg/webhook/shoot
+github.com/gardener/gardener-extensions/test/tm/generator
 # github.com/gardener/gardener-resource-manager v0.9.1-0.20200124091350-6ea41bbae81f
 github.com/gardener/gardener-resource-manager/pkg/apis/resources
 github.com/gardener/gardener-resource-manager/pkg/apis/resources/v1alpha1
