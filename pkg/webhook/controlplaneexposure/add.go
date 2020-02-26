@@ -15,11 +15,13 @@
 package controlplaneexposure
 
 import (
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/config"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
 	extensionswebhook "github.com/gardener/gardener-extensions/pkg/webhook"
 	"github.com/gardener/gardener-extensions/pkg/webhook/controlplane"
 	"github.com/gardener/gardener-extensions/pkg/webhook/controlplane/genericmutator"
+
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/config"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -47,7 +49,7 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) (*extensionsw
 	return controlplane.Add(mgr, controlplane.AddArgs{
 		Kind:     controlplane.KindSeed,
 		Provider: vsphere.Type,
-		Types:    []runtime.Object{&appsv1.Deployment{}, &corev1.Service{}, &appsv1.StatefulSet{}},
+		Types:    []runtime.Object{&appsv1.Deployment{}, &corev1.Service{}, &druidv1alpha1.Etcd{}},
 		Mutator:  genericmutator.NewMutator(NewEnsurer(&opts.ETCDStorage, logger), nil, nil, nil, logger),
 	})
 }

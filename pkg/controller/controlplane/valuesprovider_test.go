@@ -75,8 +75,10 @@ var _ = Describe("ValuesProvider", func() {
 					Name:      v1beta1constants.SecretNameCloudProvider,
 					Namespace: namespace,
 				},
-				ProviderConfig: &runtime.RawExtension{
-					Raw: encode(cpConfig),
+				DefaultSpec: extensionsv1alpha1.DefaultSpec{
+					ProviderConfig: &runtime.RawExtension{
+						Raw: encode(cpConfig),
+					},
 				},
 				InfrastructureProviderStatus: &runtime.RawExtension{
 					Raw: encode(&apisvsphere.InfrastructureStatus{
