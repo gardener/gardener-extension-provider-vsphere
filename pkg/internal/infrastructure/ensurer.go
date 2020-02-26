@@ -95,10 +95,10 @@ func (e *ensurer) EnsureInfrastructure(spec NSXTInfraSpec, state *NSXTInfraState
 	return nil
 }
 
-func (e *ensurer) EnsureInfrastructureDeleted(spec NSXTInfraSpec, state *NSXTInfraState) error {
+func (e *ensurer) EnsureInfrastructureDeleted(state *NSXTInfraState) error {
 	for i := len(e.tasks) - 1; i >= 0; i-- {
 		task := e.tasks[i]
-		deleted, err := task.EnsureDeleted(e, spec, state)
+		deleted, err := task.EnsureDeleted(e, state)
 		if err != nil {
 			return errors.Wrapf(err, "deleting "+task.Label()+" failed")
 		}

@@ -53,7 +53,7 @@ const (
 type task interface {
 	Label() string
 	Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (action string, err error)
-	EnsureDeleted(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (deleted bool, err error)
+	EnsureDeleted(a *ensurer, state *NSXTInfraState) (deleted bool, err error)
 	name(spec NSXTInfraSpec) *string
 	reference(state *NSXTInfraState) *Reference
 }
@@ -70,7 +70,7 @@ func (t *baseTask) Ensure(_ *ensurer, _ NSXTInfraSpec, _ *NSXTInfraState) (actio
 	return "", nil
 }
 
-func (t *baseTask) EnsureDeleted(_ *ensurer, _ NSXTInfraSpec, _ *NSXTInfraState) (deleted bool, err error) {
+func (t *baseTask) EnsureDeleted(_ *ensurer, _ *NSXTInfraState) (deleted bool, err error) {
 	return false, nil
 }
 
@@ -277,7 +277,7 @@ func (t *tier1GatewayTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInf
 	return actionCreated, nil
 }
 
-func (t *tier1GatewayTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
+func (t *tier1GatewayTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
 	client := infra.NewDefaultTier1sClient(a.connector)
 	if state.Tier1GatewayRef == nil {
 		return false, nil
@@ -341,7 +341,7 @@ func (t *tier1GatewayLocaleServiceTask) Ensure(a *ensurer, spec NSXTInfraSpec, s
 	return actionCreated, nil
 }
 
-func (t *tier1GatewayLocaleServiceTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
+func (t *tier1GatewayLocaleServiceTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
 	client := tier_1s.NewDefaultLocaleServicesClient(a.connector)
 	if state.LocaleServiceRef == nil {
 		return false, nil
@@ -419,7 +419,7 @@ func (t *segmentTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraSta
 	return actionCreated, nil
 }
 
-func (t *segmentTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
+func (t *segmentTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
 	client := infra.NewDefaultSegmentsClient(a.connector)
 	if state.SegmentRef == nil {
 		return false, nil
@@ -472,7 +472,7 @@ func (t *snatIPAddressAllocationTask) Ensure(a *ensurer, spec NSXTInfraSpec, sta
 	return actionCreated, nil
 }
 
-func (t *snatIPAddressAllocationTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
+func (t *snatIPAddressAllocationTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
 	client := ip_pools.NewDefaultIpAllocationsClient(a.connector)
 	if state.SNATIPAddressAllocRef == nil {
 		return false, nil
@@ -570,7 +570,7 @@ func (t *snatRuleTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraSt
 	return actionCreated, nil
 }
 
-func (t *snatRuleTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
+func (t *snatRuleTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
 	client := t1nat.NewDefaultNatRulesClient(a.connector)
 	if state.SNATRuleRef == nil {
 		return false, nil

@@ -108,7 +108,7 @@ func (t *advancedDHCPProfileTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *
 	return actionCreated, nil
 }
 
-func (t *advancedDHCPProfileTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
+func (t *advancedDHCPProfileTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
 	if state.AdvancedDHCP.ProfileID == nil {
 		return false, nil
 	}
@@ -196,7 +196,7 @@ func (t *advancedDHCPServerTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 	return actionCreated, nil
 }
 
-func (t *advancedDHCPServerTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
+func (t *advancedDHCPServerTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
 	if state.AdvancedDHCP.ServerID == nil {
 		return false, nil
 	}
@@ -275,7 +275,7 @@ func (t *advancedDHCPPortTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSX
 	return actionCreated, nil
 }
 
-func (t *advancedDHCPPortTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
+func (t *advancedDHCPPortTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
 	if state.AdvancedDHCP.PortID == nil {
 		return false, nil
 	}
@@ -372,7 +372,7 @@ func (t *advancedDHCPIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 	return actionCreated, nil
 }
 
-func (t *advancedDHCPIPPoolTask) EnsureDeleted(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (bool, error) {
+func (t *advancedDHCPIPPoolTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
 	if state.AdvancedDHCP.IPPoolID == nil {
 		return false, nil
 	}

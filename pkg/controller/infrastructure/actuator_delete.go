@@ -33,7 +33,7 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 	}
 
 	state := prepared.state
-	err = prepared.ensurer.EnsureInfrastructureDeleted(prepared.spec, state)
+	err = prepared.ensurer.EnsureInfrastructureDeleted(state)
 	if err != nil {
 		err2 := a.saveStateToConfigMap(ctx, infra.Namespace, state)
 		if err2 != nil {
