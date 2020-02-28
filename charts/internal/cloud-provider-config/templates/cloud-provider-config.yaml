@@ -36,8 +36,10 @@ data:
     tier1GatewayPath = "{{ .Values.loadbalancer.tier1GatewayPath }}"
     tcpAppProfileName = "{{ .Values.loadbalancer.tcpAppProfileName }}"
     udpAppProfileName = "{{ .Values.loadbalancer.udpAppProfileName }}"
+    tags = { {{ template "tags" .Values.loadbalancer.tags }} }
 
     {{- range $i, $class := .Values.loadbalancer.classes }}
+
     [LoadBalancerClass {{ $class.name | quote }}]
     {{- if $class.ipPoolName }}
     ipPoolName="{{ $class.ipPoolName }}"
@@ -48,11 +50,6 @@ data:
     {{- if $class.udpAppProfileName }}
     udpAppProfileName="{{ $class.udpAppProfileName }}"
     {{- end }}
-    {{- end }}
-
-    [Tags]
-    {{- range $scope, $tag := .Values.loadbalancer.tags }}
-    {{ $scope }} = "{{ $tag }}"
     {{- end }}
 
     [NSX-T]

@@ -28,6 +28,7 @@ loadbalancer:
 
   tags: {}
     # myscope: mytagvalue
+
 nsxt:
   host: my.nsxt.server.ip.or.fqdn
   username: admin
