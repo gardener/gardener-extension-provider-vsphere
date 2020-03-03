@@ -34,13 +34,9 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 
 	state := prepared.state
 	err = prepared.ensurer.EnsureInfrastructureDeleted(state)
+	errUpdate := a.createAndUpdateProviderInfrastructureStatus(ctx, infra, state, prepared.cloudProfileConfig, prepared.region)
 	if err != nil {
-		err2 := a.saveStateToConfigMap(ctx, infra.Namespace, state)
-		if err2 != nil {
-			a.logFailedSaveState(err2, state)
-		}
 		return err
 	}
-
-	return a.deleteStateFromConfigMap(ctx, infra.Namespace)
+	return errUpdate
 }

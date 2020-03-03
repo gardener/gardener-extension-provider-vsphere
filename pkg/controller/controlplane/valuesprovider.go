@@ -386,14 +386,14 @@ func (vp *valuesProvider) getConfigChartValues(
 		} else {
 			lbClass["ipPoolName"] = *cpClass.IPPoolName
 		}
-		if !utils.IsEmptyString(cpClass.TCPAppProfileName) {
+		if utils.IsEmptyString(cpClass.TCPAppProfileName) {
 			if constraintClass != nil && !utils.IsEmptyString(constraintClass.TCPAppProfileName) {
 				lbClass["tcpAppProfileName"] = *constraintClass.TCPAppProfileName
 			}
 		} else {
 			lbClass["tcpAppProfileName"] = *cpClass.TCPAppProfileName
 		}
-		if !utils.IsEmptyString(cpClass.UDPAppProfileName) {
+		if utils.IsEmptyString(cpClass.UDPAppProfileName) {
 			if constraintClass != nil && !utils.IsEmptyString(constraintClass.UDPAppProfileName) {
 				lbClass["udpAppProfileName"] = *constraintClass.UDPAppProfileName
 			}
@@ -423,8 +423,8 @@ func (vp *valuesProvider) getConfigChartValues(
 	if !utils.IsEmptyString(defaultClass.UDPAppProfileName) {
 		loadBalancer["udpAppProfileName"] = *defaultClass.UDPAppProfileName
 	}
-	if infraStatus.Tier1GatewayPath != "" {
-		loadBalancer["tier1GatewayPath"] = infraStatus.Tier1GatewayPath
+	if infraStatus.NSXTInfraState != nil && infraStatus.NSXTInfraState.Tier1GatewayRef != nil {
+		loadBalancer["tier1GatewayPath"] = infraStatus.NSXTInfraState.Tier1GatewayRef.Path
 	}
 
 	// Collect config chart values

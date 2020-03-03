@@ -27,6 +27,8 @@ import (
 
 type actuator struct {
 	common.ChartRendererContext
+	common.ClientContext
+
 	logger   logr.Logger
 	gardenID string
 }

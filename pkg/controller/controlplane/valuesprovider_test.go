@@ -80,7 +80,10 @@ var _ = Describe("ValuesProvider", func() {
 				},
 				InfrastructureProviderStatus: &runtime.RawExtension{
 					Raw: encode(&apisvsphere.InfrastructureStatus{
-						SegmentName: "gardener-test-network",
+						NSXTInfraState: &apisvsphere.NSXTInfraState{
+							SegmentName:  sp("gardener-test-network"),
+							AdvancedDHCP: apisvsphere.AdvancedDHCPState{},
+						},
 					}),
 				},
 			},

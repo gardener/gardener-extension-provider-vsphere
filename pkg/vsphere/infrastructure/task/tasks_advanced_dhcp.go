@@ -25,6 +25,7 @@ import (
 	"github.com/vmware/go-vmware-nsxt/common"
 	"github.com/vmware/go-vmware-nsxt/manager"
 
+	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 )
 
@@ -34,11 +35,11 @@ func NewAdvancedLookupLogicalSwitchTask() Task {
 	return &advancedLookupLogicalSwitchTask{baseTask{label: "logical switch lookup (Advanced API)"}}
 }
 
-func (t *advancedLookupLogicalSwitchTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
+func (t *advancedLookupLogicalSwitchTask) Reference(state *api.NSXTInfraState) *api.Reference {
 	return toReference(state.AdvancedDHCP.LogicalSwitchID)
 }
 
-func (t *advancedLookupLogicalSwitchTask) Ensure(a EnsurerContext, _ vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
+func (t *advancedLookupLogicalSwitchTask) Ensure(a EnsurerContext, _ vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
 	result, resp, err := a.NSXTClient().LogicalSwitchingApi.ListLogicalSwitches(a.NSXTClient().Context, nil)
 	if err != nil {
 		return "", err
@@ -63,11 +64,11 @@ func NewAdvancedDHCPProfileTask() Task {
 	return &advancedDHCPProfileTask{baseTask{label: "DHCP profile (Advanced API)"}}
 }
 
-func (t *advancedDHCPProfileTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
+func (t *advancedDHCPProfileTask) Reference(state *api.NSXTInfraState) *api.Reference {
 	return toReference(state.AdvancedDHCP.ProfileID)
 }
 
-func (t *advancedDHCPProfileTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
+func (t *advancedDHCPProfileTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
 	profile := manager.DhcpProfile{
 		DisplayName:   spec.FullClusterName(),
 		Description:   description,
@@ -110,7 +111,7 @@ func (t *advancedDHCPProfileTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfra
 	return actionCreated, nil
 }
 
-func (t *advancedDHCPProfileTask) EnsureDeleted(a EnsurerContext, state *vinfra.NSXTInfraState) (bool, error) {
+func (t *advancedDHCPProfileTask) EnsureDeleted(a EnsurerContext, state *api.NSXTInfraState) (bool, error) {
 	if state.AdvancedDHCP.ProfileID == nil {
 		return false, nil
 	}
@@ -132,11 +133,11 @@ func NewAdvancedDHCPServerTask() Task {
 	return &advancedDHCPServerTask{baseTask{label: "DHCP server (Advanced API)"}}
 }
 
-func (t *advancedDHCPServerTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
+func (t *advancedDHCPServerTask) Reference(state *api.NSXTInfraState) *api.Reference {
 	return toReference(state.AdvancedDHCP.ServerID)
 }
 
-func (t *advancedDHCPServerTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
+func (t *advancedDHCPServerTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
 	dhcpServerIP, err := cidrHostAndPrefix(spec.WorkersNetwork, 2)
 	if err != nil {
 		return "", errors.Wrapf(err, "DHCP server IP")
@@ -198,7 +199,7 @@ func (t *advancedDHCPServerTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraS
 	return actionCreated, nil
 }
 
-func (t *advancedDHCPServerTask) EnsureDeleted(a EnsurerContext, state *vinfra.NSXTInfraState) (bool, error) {
+func (t *advancedDHCPServerTask) EnsureDeleted(a EnsurerContext, state *api.NSXTInfraState) (bool, error) {
 	if state.AdvancedDHCP.ServerID == nil {
 		return false, nil
 	}
@@ -220,11 +221,11 @@ func NewAdvancedDHCPPortTask() Task {
 	return &advancedDHCPPortTask{baseTask{label: "DHCP port (Advanced API)"}}
 }
 
-func (t *advancedDHCPPortTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
+func (t *advancedDHCPPortTask) Reference(state *api.NSXTInfraState) *api.Reference {
 	return toReference(state.AdvancedDHCP.PortID)
 }
 
-func (t *advancedDHCPPortTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
+func (t *advancedDHCPPortTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
 	attachment := manager.LogicalPortAttachment{
 		AttachmentType: "DHCP_SERVICE",
 		Id:             *state.AdvancedDHCP.ServerID,
@@ -277,7 +278,7 @@ func (t *advancedDHCPPortTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpe
 	return actionCreated, nil
 }
 
-func (t *advancedDHCPPortTask) EnsureDeleted(a EnsurerContext, state *vinfra.NSXTInfraState) (bool, error) {
+func (t *advancedDHCPPortTask) EnsureDeleted(a EnsurerContext, state *api.NSXTInfraState) (bool, error) {
 	if state.AdvancedDHCP.PortID == nil {
 		return false, nil
 	}
@@ -301,11 +302,11 @@ func NewAdvancedDHCPIPPoolTask() Task {
 	return &advancedDHCPIPPoolTask{baseTask{label: "DHCP IP pool (Advanced API)"}}
 }
 
-func (t *advancedDHCPIPPoolTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
+func (t *advancedDHCPIPPoolTask) Reference(state *api.NSXTInfraState) *api.Reference {
 	return toReference(state.AdvancedDHCP.IPPoolID)
 }
 
-func (t *advancedDHCPIPPoolTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
+func (t *advancedDHCPIPPoolTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
 	gatewayIP, err := cidrHost(spec.WorkersNetwork, 1)
 	if err != nil {
 		return "", errors.Wrapf(err, "gateway IP")
@@ -374,7 +375,7 @@ func (t *advancedDHCPIPPoolTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraS
 	return actionCreated, nil
 }
 
-func (t *advancedDHCPIPPoolTask) EnsureDeleted(a EnsurerContext, state *vinfra.NSXTInfraState) (bool, error) {
+func (t *advancedDHCPIPPoolTask) EnsureDeleted(a EnsurerContext, state *api.NSXTInfraState) (bool, error) {
 	if state.AdvancedDHCP.IPPoolID == nil {
 		return false, nil
 	}

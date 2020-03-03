@@ -207,7 +207,6 @@ var _ = Describe("Machines", func() {
 						Region: region,
 						InfrastructureProviderStatus: &runtime.RawExtension{
 							Raw: encode(&apiv1alpha1.InfrastructureStatus{
-								SegmentName: networkName,
 								VsphereConfig: apiv1alpha1.VsphereConfig{
 									Folder: folder,
 									Region: region,
@@ -223,6 +222,10 @@ var _ = Describe("Machines", func() {
 											ResourcePool: resourcePool2,
 										},
 									},
+								},
+								NSXTInfraState: &apiv1alpha1.NSXTInfraState{
+									SegmentName:  &networkName,
+									AdvancedDHCP: apiv1alpha1.AdvancedDHCPState{},
 								},
 							}),
 						},

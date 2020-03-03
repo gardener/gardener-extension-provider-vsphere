@@ -17,6 +17,8 @@
 
 package infrastructure
 
+import api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+
 type NSXTInfraSpec struct {
 	EdgeClusterName   string   `json:"edgeClusterName"`
 	TransportZoneName string   `json:"transportZoneName"`
@@ -27,34 +29,6 @@ type NSXTInfraSpec struct {
 	ClusterName       string   `json:"clusterName"`
 	WorkersNetwork    string   `json:"workersNetwork"`
 	DNSServers        []string `json:"dnsServers"`
-}
-
-type Reference struct {
-	ID   string `json:"id"`
-	Path string `json:"path"`
-}
-
-type NSXTInfraState struct {
-	EdgeClusterRef        *Reference        `json:"edgeClusterRef,omitempty"`
-	TransportZoneRef      *Reference        `json:"transportZoneRef,omitempty"`
-	Tier0GatewayRef       *Reference        `json:"tier0GatewayRef,omitempty"`
-	SNATIPPoolRef         *Reference        `json:"snatIPPoolRef,omitempty"`
-	Tier1GatewayRef       *Reference        `json:"tier1GatewayRef,omitempty"`
-	LocaleServiceRef      *Reference        `json:"localeServiceRef,omitempty"`
-	SegmentRef            *Reference        `json:"segmentRef,omitempty"`
-	SNATIPAddressAllocRef *Reference        `json:"snatIPAddressAllocRef,omitempty"`
-	SNATRuleRef           *Reference        `json:"snatRuleRef,omitempty"`
-	SNATIPAddress         *string           `json:"snatIPAddress,omitempty"`
-	SegmentName           *string           `json:"segmentName,omitempty"`
-	AdvancedDHCP          AdvancedDHCPState `json:"advancedDHCP"`
-}
-
-type AdvancedDHCPState struct {
-	LogicalSwitchID *string `json:"logicalSwitchID,omitempty"`
-	ProfileID       *string `json:"profileID,omitempty"`
-	ServerID        *string `json:"serverID,omitempty"`
-	PortID          *string `json:"portID,omitempty"`
-	IPPoolID        *string `json:"ipPoolID,omitempty"`
 }
 
 // NSXTConfig contains the NSX-T specific configuration
@@ -76,6 +50,6 @@ type NSXTConfig struct {
 }
 
 type NSXTInfrastructureEnsurer interface {
-	EnsureInfrastructure(spec NSXTInfraSpec, state *NSXTInfraState) error
-	EnsureInfrastructureDeleted(state *NSXTInfraState) error
+	EnsureInfrastructure(spec NSXTInfraSpec, state *api.NSXTInfraState) error
+	EnsureInfrastructureDeleted(state *api.NSXTInfraState) error
 }

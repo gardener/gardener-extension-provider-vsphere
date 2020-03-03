@@ -22,6 +22,7 @@ import (
 	"github.com/vmware/go-vmware-nsxt"
 	vapiclient "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 
+	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 )
 
@@ -35,8 +36,8 @@ type EnsurerContext interface {
 
 type Task interface {
 	Label() string
-	Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (action string, err error)
-	EnsureDeleted(ctx EnsurerContext, state *vinfra.NSXTInfraState) (deleted bool, err error)
+	Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (action string, err error)
+	EnsureDeleted(ctx EnsurerContext, state *api.NSXTInfraState) (deleted bool, err error)
 	Name(spec vinfra.NSXTInfraSpec) *string
-	Reference(state *vinfra.NSXTInfraState) *vinfra.Reference
+	Reference(state *api.NSXTInfraState) *api.Reference
 }

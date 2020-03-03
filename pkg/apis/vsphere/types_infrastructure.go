@@ -51,15 +51,44 @@ type ZoneConfig struct {
 	DatastoreCluster string
 }
 
+// Reference holds a NSXT object reference managed with the NSX-T simplified / intent-based API
+type Reference struct {
+	ID   string
+	Path string
+}
+
+// AdvancedDHCPState holds IDs of objects managed with the NSX-T Advanced API
+type AdvancedDHCPState struct {
+	LogicalSwitchID *string
+	ProfileID       *string
+	ServerID        *string
+	PortID          *string
+	IPPoolID        *string
+}
+
+// NSXTInfraState holds the state of the infrastructure created with NSX-T
+type NSXTInfraState struct {
+	EdgeClusterRef        *Reference
+	TransportZoneRef      *Reference
+	Tier0GatewayRef       *Reference
+	SNATIPPoolRef         *Reference
+	Tier1GatewayRef       *Reference
+	LocaleServiceRef      *Reference
+	SegmentRef            *Reference
+	SNATIPAddressAllocRef *Reference
+	SNATRuleRef           *Reference
+	SNATIPAddress         *string
+	SegmentName           *string
+	AdvancedDHCP          AdvancedDHCPState
+}
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // InfrastructureStatus contains information about created infrastructure resources.
 type InfrastructureStatus struct {
 	metav1.TypeMeta
 
-	SegmentName      string
-	SegmentPath      string
-	Tier1GatewayPath string
-
 	VsphereConfig VsphereConfig
+
+	NSXTInfraState *NSXTInfraState
 }

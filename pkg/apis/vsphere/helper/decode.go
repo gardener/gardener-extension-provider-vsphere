@@ -55,6 +55,9 @@ func GetControlPlaneConfig(ctx *common.ClientContext, cluster *controller.Cluste
 }
 
 func GetInfrastructureStatus(ctx *common.ClientContext, name string, extension *runtime.RawExtension) (*vsphere.InfrastructureStatus, error) {
+	if extension == nil || extension.Raw == nil {
+		return nil, nil
+	}
 	infraStatus := &vsphere.InfrastructureStatus{}
 	gvk := v1alpha1.SchemeGroupVersion.WithKind("InfrastructureStatus")
 	if _, _, err := ctx.Decoder().Decode(extension.Raw, &gvk, infraStatus); err != nil {

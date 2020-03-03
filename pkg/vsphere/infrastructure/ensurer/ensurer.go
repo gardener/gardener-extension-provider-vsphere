@@ -26,6 +26,7 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/log"
 	vapiclient "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 
+	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
 )
@@ -90,7 +91,7 @@ func NewNSXTInfrastructureEnsurer(logger logr.Logger, nsxtConfig *vinfra.NSXTCon
 	}, nil
 }
 
-func (e *ensurer) EnsureInfrastructure(spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) error {
+func (e *ensurer) EnsureInfrastructure(spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) error {
 	for _, task := range e.tasks {
 		action, err := task.Ensure(e, spec, state)
 		if err != nil {
@@ -111,7 +112,7 @@ func (e *ensurer) EnsureInfrastructure(spec vinfra.NSXTInfraSpec, state *vinfra.
 	return nil
 }
 
-func (e *ensurer) EnsureInfrastructureDeleted(state *vinfra.NSXTInfraState) error {
+func (e *ensurer) EnsureInfrastructureDeleted(state *api.NSXTInfraState) error {
 	for i := len(e.tasks) - 1; i >= 0; i-- {
 		task := e.tasks[i]
 		deleted, err := task.EnsureDeleted(e, state)

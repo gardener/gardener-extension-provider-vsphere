@@ -31,6 +31,7 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/realized_state"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 
+	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 )
 
@@ -56,11 +57,11 @@ func (t *baseTask) Label() string {
 	return t.label
 }
 
-func (t *baseTask) Ensure(_ EnsurerContext, _ vinfra.NSXTInfraSpec, _ *vinfra.NSXTInfraState) (action string, err error) {
+func (t *baseTask) Ensure(_ EnsurerContext, _ vinfra.NSXTInfraSpec, _ *api.NSXTInfraState) (action string, err error) {
 	return "", nil
 }
 
-func (t *baseTask) EnsureDeleted(_ EnsurerContext, _ *vinfra.NSXTInfraState) (deleted bool, err error) {
+func (t *baseTask) EnsureDeleted(_ EnsurerContext, _ *api.NSXTInfraState) (deleted bool, err error) {
 	return false, nil
 }
 
@@ -68,7 +69,7 @@ func (t *baseTask) Name(_ vinfra.NSXTInfraSpec) *string {
 	return nil
 }
 
-func (t *baseTask) Reference(_ *vinfra.NSXTInfraState) *vinfra.Reference {
+func (t *baseTask) Reference(_ *api.NSXTInfraState) *api.Reference {
 	return nil
 }
 
@@ -214,9 +215,9 @@ func creatingErr(err error) (string, error) {
 	return "", errors.Wrapf(nicerVAPIError(err), "creating")
 }
 
-func toReference(s *string) *vinfra.Reference {
+func toReference(s *string) *api.Reference {
 	if s == nil {
 		return nil
 	}
-	return &vinfra.Reference{ID: *s}
+	return &api.Reference{ID: *s}
 }

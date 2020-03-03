@@ -31,7 +31,6 @@ import (
 
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-	vspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
@@ -101,10 +100,12 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		return err
 	}
 
-	infrastructureStatus := &apisvsphere.InfrastructureStatus{}
-	gvk := vspherev1alpha1.SchemeGroupVersion.WithKind("InfrastructureStatus")
-	if _, _, err := w.Decoder().Decode(w.worker.Spec.InfrastructureProviderStatus.Raw, &gvk, infrastructureStatus); err != nil {
+	infrastructureStatus, err := helper.GetInfrastructureStatus(&w.ClientContext, w.worker.Namespace, w.worker.Spec.InfrastructureProviderStatus)
+	if err != nil {
 		return err
+	}
+	if infrastructureStatus.NSXTInfraState == nil || infrastructureStatus.NSXTInfraState.SegmentName == nil {
+		return fmt.Errorf("SegmentName not set in nsxtInfraState")
 	}
 
 	if len(w.worker.Spec.SSHPublicKey) == 0 {
@@ -142,7 +143,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 				"region":     infrastructureStatus.VsphereConfig.Region,
 				"sshKeys":    []string{string(w.worker.Spec.SSHPublicKey)},
 				"datacenter": zoneConfig.Datacenter,
-				"network":    infrastructureStatus.SegmentName,
+				"network":    *infrastructureStatus.NSXTInfraState.SegmentName,
 				"templateVM": machineImagePath,
 				"numCpus":    numCpus,
 				"memory":     memoryInMB,

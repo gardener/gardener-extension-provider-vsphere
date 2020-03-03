@@ -18,6 +18,7 @@ package infrastructure
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,7 +41,7 @@ type preparedReconcile struct {
 	cloudProfileConfig *apisvsphere.CloudProfileConfig
 	region             *apisvsphere.RegionSpec
 	spec               infrastructure.NSXTInfraSpec
-	state              *infrastructure.NSXTInfraState
+	state              *apisvsphere.NSXTInfraState
 	ensurer            infrastructure.NSXTInfrastructureEnsurer
 }
 
@@ -91,18 +92,21 @@ func (a *actuator) prepare(ctx context.Context, infra *extensionsv1alpha1.Infras
 		return nil, err
 	}
 
-	state, err := a.loadStateFromConfigMap(ctx, infra.Namespace)
+	infraStatus, err := apishelper.GetInfrastructureStatus(&a.ClientContext, infra.Namespace, infra.Status.ProviderStatus)
 	if err != nil {
 		return nil, err
 	}
 
-	return &preparedReconcile{
+	prepared := &preparedReconcile{
 		cloudProfileConfig: cloudProfileConfig,
 		region:             region,
 		ensurer:            ensurer,
 		spec:               spec,
-		state:              state,
-	}, nil
+	}
+	if infraStatus != nil {
+		prepared.state = infraStatus.NSXTInfraState
+	}
+	return prepared, nil
 }
 
 func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
@@ -113,32 +117,37 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 
 	state := prepared.state
 	if state == nil {
-		state = &infrastructure.NSXTInfraState{}
+		state = &apisvsphere.NSXTInfraState{}
 	}
 	err = prepared.ensurer.EnsureInfrastructure(prepared.spec, state)
-
-	err2 := a.saveStateToConfigMap(ctx, infra.Namespace, state)
-	if err2 != nil {
-		a.logFailedSaveState(err2, state)
-	}
+	errUpdate := a.createAndUpdateProviderInfrastructureStatus(ctx, infra, state, prepared.cloudProfileConfig, prepared.region)
 	if err != nil {
 		return err
 	}
-	if err2 != nil {
-		return err2
-	}
-
-	status, err := a.createProviderInfrastructureStatus(state, prepared.cloudProfileConfig, prepared.region)
-	if err != nil {
-		return err
-	}
-	return a.updateProviderStatus(ctx, infra, status)
+	return errUpdate
 }
 
 // Helper functions
 
+func (a *actuator) createAndUpdateProviderInfrastructureStatus(
+	ctx context.Context,
+	infra *extensionsv1alpha1.Infrastructure,
+	newState *apisvsphere.NSXTInfraState,
+	cloudProfileConfig *apisvsphere.CloudProfileConfig,
+	region *apisvsphere.RegionSpec,
+) error {
+	status, err := a.createProviderInfrastructureStatus(newState, cloudProfileConfig, region)
+	if err == nil {
+		err = a.updateProviderStatus(ctx, infra, status)
+	}
+	if err != nil {
+		a.logFailedSaveState(err, newState)
+	}
+	return err
+}
+
 func (a *actuator) createProviderInfrastructureStatus(
-	state *infrastructure.NSXTInfraState,
+	state *apisvsphere.NSXTInfraState,
 	cloudProfileConfig *apisvsphere.CloudProfileConfig,
 	region *apisvsphere.RegionSpec,
 ) (*apisvsphere.InfrastructureStatus, error) {
@@ -147,12 +156,6 @@ func (a *actuator) createProviderInfrastructureStatus(
 			return ""
 		}
 		return *s
-	}
-	safePathFromRef := func(ref *infrastructure.Reference) string {
-		if ref == nil {
-			return ""
-		}
-		return ref.Path
 	}
 
 	zoneConfigs := map[string]apisvsphere.ZoneConfig{}
@@ -187,14 +190,12 @@ func (a *actuator) createProviderInfrastructureStatus(
 			APIVersion: api.SchemeGroupVersion.String(),
 			Kind:       "InfrastructureStatus",
 		},
-		SegmentName:      safe(state.SegmentName),
-		SegmentPath:      safePathFromRef(state.SegmentRef),
-		Tier1GatewayPath: safePathFromRef(state.Tier1GatewayRef),
 		VsphereConfig: apisvsphere.VsphereConfig{
 			Folder:      cloudProfileConfig.Folder,
 			Region:      region.Name,
 			ZoneConfigs: zoneConfigs,
 		},
+		NSXTInfraState: state,
 	}
 	return status, nil
 }
@@ -215,4 +216,15 @@ func (a *actuator) updateProviderStatus(
 		infra.Status.ProviderStatus = &runtime.RawExtension{Object: statusV1alpha1}
 		return nil
 	})
+}
+
+func (a *actuator) logFailedSaveState(err error, state *apisvsphere.NSXTInfraState) {
+	bytes, err2 := json.Marshal(state)
+	stateString := ""
+	if err2 == nil {
+		stateString = string(bytes)
+	} else {
+		stateString = err2.Error()
+	}
+	a.logger.Error(err, "persisting infrastructure state failed", "state", stateString)
 }

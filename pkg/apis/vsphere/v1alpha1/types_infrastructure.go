@@ -52,15 +52,44 @@ type ZoneConfig struct {
 	DatastoreCluster string `json:"datastoreCluster,omitempty"`
 }
 
+// Reference holds a NSXT object reference managed with the NSX-T simplified / intent-based API
+type Reference struct {
+	ID   string `json:"id"`
+	Path string `json:"path"`
+}
+
+// AdvancedDHCPState holds IDs of objects managed with the NSX-T Advanced API
+type AdvancedDHCPState struct {
+	LogicalSwitchID *string `json:"logicalSwitchID,omitempty"`
+	ProfileID       *string `json:"profileID,omitempty"`
+	ServerID        *string `json:"serverID,omitempty"`
+	PortID          *string `json:"portID,omitempty"`
+	IPPoolID        *string `json:"ipPoolID,omitempty"`
+}
+
+// NSXTInfraState holds the state of the infrastructure created with NSX-T
+type NSXTInfraState struct {
+	EdgeClusterRef        *Reference        `json:"edgeClusterRef,omitempty"`
+	TransportZoneRef      *Reference        `json:"transportZoneRef,omitempty"`
+	Tier0GatewayRef       *Reference        `json:"tier0GatewayRef,omitempty"`
+	SNATIPPoolRef         *Reference        `json:"snatIPPoolRef,omitempty"`
+	Tier1GatewayRef       *Reference        `json:"tier1GatewayRef,omitempty"`
+	LocaleServiceRef      *Reference        `json:"localeServiceRef,omitempty"`
+	SegmentRef            *Reference        `json:"segmentRef,omitempty"`
+	SNATIPAddressAllocRef *Reference        `json:"snatIPAddressAllocRef,omitempty"`
+	SNATRuleRef           *Reference        `json:"snatRuleRef,omitempty"`
+	SNATIPAddress         *string           `json:"snatIPAddress,omitempty"`
+	SegmentName           *string           `json:"segmentName,omitempty"`
+	AdvancedDHCP          AdvancedDHCPState `json:"advancedDHCP"`
+}
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // InfrastructureStatus contains information about created infrastructure resources.
 type InfrastructureStatus struct {
 	metav1.TypeMeta `json:",inline"`
 
-	SegmentName      string `json:"segmentName"`
-	SegmentPath      string `json:"segmentPath"`
-	Tier1GatewayPath string `json:"tier1GatewayPath"`
-
 	VsphereConfig VsphereConfig `json:"vsphereConfig"`
+
+	NSXTInfraState *NSXTInfraState `json:"nsxtInfraState,omitempty"`
 }
