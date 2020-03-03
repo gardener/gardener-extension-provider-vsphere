@@ -26,8 +26,8 @@ import (
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	infrainternal "github.com/gardener/gardener-extension-provider-vsphere/pkg/internal/infrastructure"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	infra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 )
 
 const (
@@ -36,7 +36,7 @@ const (
 	stateKey       = "state"
 )
 
-func (a *actuator) loadStateFromConfigMap(ctx context.Context, namespace string) (*infrainternal.NSXTInfraState, error) {
+func (a *actuator) loadStateFromConfigMap(ctx context.Context, namespace string) (*infra.NSXTInfraState, error) {
 	obj := &v1.ConfigMap{}
 	key := client.ObjectKey{
 		Namespace: namespace,
@@ -58,7 +58,7 @@ func (a *actuator) loadStateFromConfigMap(ctx context.Context, namespace string)
 	if stateJson == "" {
 		return nil, fmt.Errorf("state not found in config map (%s) : %s != %s", key, version, currentVersion)
 	}
-	state := &infrainternal.NSXTInfraState{}
+	state := &infra.NSXTInfraState{}
 	err = json.Unmarshal([]byte(stateJson), state)
 	if err != nil {
 		return nil, errors2.Wrapf(err, "unmarshalling state config map (%s) failed", key)
@@ -66,7 +66,7 @@ func (a *actuator) loadStateFromConfigMap(ctx context.Context, namespace string)
 	return state, nil
 }
 
-func (a *actuator) saveStateToConfigMap(ctx context.Context, namespace string, state *infrainternal.NSXTInfraState) error {
+func (a *actuator) saveStateToConfigMap(ctx context.Context, namespace string, state *infra.NSXTInfraState) error {
 	bytes, err := json.Marshal(state)
 	if err != nil {
 		return errors2.Wrapf(err, "marshalling state failed")
@@ -104,7 +104,7 @@ func (a *actuator) deleteStateFromConfigMap(ctx context.Context, namespace strin
 	return a.Client().Delete(ctx, obj)
 }
 
-func (a *actuator) logFailedSaveState(err error, state *infrainternal.NSXTInfraState) {
+func (a *actuator) logFailedSaveState(err error, state *infra.NSXTInfraState) {
 	bytes, err2 := json.Marshal(state)
 	stateString := ""
 	if err2 == nil {

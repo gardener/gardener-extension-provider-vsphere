@@ -15,29 +15,44 @@
  *
  */
 
-package infrastructure
+package ensurer
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/vmware/go-vmware-nsxt/common"
-	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+	"github.com/go-logr/logr"
 )
 
-func (s NSXTInfraSpec) FullClusterName() string {
-	return fmt.Sprintf("%s_%s", s.GardenName, s.ClusterName)
+type logrBridge struct {
+	logger logr.Logger
 }
 
-func (s NSXTInfraSpec) createCommonTags() []common.Tag {
-	return []common.Tag{
-		{Scope: ScopeGarden, Tag: s.GardenName},
-		{Scope: ScopeShoot, Tag: s.ClusterName},
-	}
+func NewLogrBridge(logger logr.Logger) logrBridge {
+	return logrBridge{logger: logger}
 }
 
-func (s NSXTInfraSpec) createTags() []model.Tag {
-	return []model.Tag{
-		{Scope: strptr(ScopeGarden), Tag: strptr(s.GardenID)},
-		{Scope: strptr(ScopeShoot), Tag: strptr(s.ClusterName)},
-	}
+func (d logrBridge) Error(args ...interface{}) {
+	d.logger.Error(errors.New(fmt.Sprint(args...)), "")
+
+}
+
+func (d logrBridge) Errorf(a string, args ...interface{}) {
+	d.logger.Error(fmt.Errorf(a, args...), "")
+}
+
+func (d logrBridge) Info(args ...interface{}) {
+	d.logger.Info(fmt.Sprint(args...))
+}
+
+func (d logrBridge) Infof(a string, args ...interface{}) {
+	d.logger.Info(fmt.Sprintf(a, args...))
+}
+
+func (d logrBridge) Debug(args ...interface{}) {
+	d.logger.V(4).Info(fmt.Sprint(args...))
+}
+
+func (d logrBridge) Debugf(a string, args ...interface{}) {
+	d.logger.V(4).Info(fmt.Sprintf(a, args...))
 }

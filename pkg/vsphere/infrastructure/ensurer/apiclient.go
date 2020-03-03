@@ -15,13 +15,15 @@
  *
  */
 
-package infrastructure
+package ensurer
 
 import (
 	nsxt "github.com/vmware/go-vmware-nsxt"
+
+	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 )
 
-func createNSXClient(nsxtConfig *NsxtConfig) (*nsxt.APIClient, error) {
+func createNSXClient(nsxtConfig *vinfra.NSXTConfig) (*nsxt.APIClient, error) {
 	retriesConfig := nsxt.ClientRetriesConfiguration{
 		MaxRetries:    30,
 		RetryMinDelay: 500,

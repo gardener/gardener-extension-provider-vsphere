@@ -15,7 +15,7 @@
  *
  */
 
-package infrastructure
+package task
 
 import (
 	"fmt"
@@ -24,20 +24,22 @@ import (
 	"github.com/pkg/errors"
 	"github.com/vmware/go-vmware-nsxt/common"
 	"github.com/vmware/go-vmware-nsxt/manager"
+
+	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 )
 
 type advancedLookupLogicalSwitchTask struct{ baseTask }
 
-func newAdvancedLookupLogicalSwitchTask() *advancedLookupLogicalSwitchTask {
+func NewAdvancedLookupLogicalSwitchTask() Task {
 	return &advancedLookupLogicalSwitchTask{baseTask{label: "logical switch lookup (Advanced API)"}}
 }
 
-func (t *advancedLookupLogicalSwitchTask) reference(state *NSXTInfraState) *Reference {
+func (t *advancedLookupLogicalSwitchTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
 	return toReference(state.AdvancedDHCP.LogicalSwitchID)
 }
 
-func (t *advancedLookupLogicalSwitchTask) Ensure(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (string, error) {
-	result, resp, err := a.nsxClient.LogicalSwitchingApi.ListLogicalSwitches(a.nsxClient.Context, nil)
+func (t *advancedLookupLogicalSwitchTask) Ensure(a EnsurerContext, _ vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
+	result, resp, err := a.NSXTClient().LogicalSwitchingApi.ListLogicalSwitches(a.NSXTClient().Context, nil)
 	if err != nil {
 		return "", err
 	}
@@ -57,24 +59,24 @@ func (t *advancedLookupLogicalSwitchTask) Ensure(a *ensurer, _ NSXTInfraSpec, st
 
 type advancedDHCPProfileTask struct{ baseTask }
 
-func newAdvancedDHCPProfileTask() *advancedDHCPProfileTask {
+func NewAdvancedDHCPProfileTask() Task {
 	return &advancedDHCPProfileTask{baseTask{label: "DHCP profile (Advanced API)"}}
 }
 
-func (t *advancedDHCPProfileTask) reference(state *NSXTInfraState) *Reference {
+func (t *advancedDHCPProfileTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
 	return toReference(state.AdvancedDHCP.ProfileID)
 }
 
-func (t *advancedDHCPProfileTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
+func (t *advancedDHCPProfileTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
 	profile := manager.DhcpProfile{
 		DisplayName:   spec.FullClusterName(),
 		Description:   description,
 		EdgeClusterId: state.EdgeClusterRef.ID,
-		Tags:          spec.createCommonTags(),
+		Tags:          spec.CreateCommonTags(),
 	}
 
 	if state.AdvancedDHCP.ProfileID != nil {
-		oldProfile, resp, err := a.nsxClient.ServicesApi.ReadDhcpProfile(a.nsxClient.Context, *state.AdvancedDHCP.ProfileID)
+		oldProfile, resp, err := a.NSXTClient().ServicesApi.ReadDhcpProfile(a.NSXTClient().Context, *state.AdvancedDHCP.ProfileID)
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			state.AdvancedDHCP.ProfileID = nil
 			return t.Ensure(a, spec, state)
@@ -85,7 +87,7 @@ func (t *advancedDHCPProfileTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *
 		if oldProfile.DisplayName != profile.DisplayName ||
 			oldProfile.EdgeClusterId != profile.EdgeClusterId ||
 			!equalCommonTags(oldProfile.Tags, profile.Tags) {
-			_, resp, err := a.nsxClient.ServicesApi.UpdateDhcpProfile(a.nsxClient.Context, *state.AdvancedDHCP.ProfileID, profile)
+			_, resp, err := a.NSXTClient().ServicesApi.UpdateDhcpProfile(a.NSXTClient().Context, *state.AdvancedDHCP.ProfileID, profile)
 			if err != nil {
 				return updatingErr(err)
 			}
@@ -97,7 +99,7 @@ func (t *advancedDHCPProfileTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *
 		return actionUnchanged, nil
 	}
 
-	createdProfile, resp, err := a.nsxClient.ServicesApi.CreateDhcpProfile(a.nsxClient.Context, profile)
+	createdProfile, resp, err := a.NSXTClient().ServicesApi.CreateDhcpProfile(a.NSXTClient().Context, profile)
 	if err != nil {
 		return creatingErr(err)
 	}
@@ -108,11 +110,11 @@ func (t *advancedDHCPProfileTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *
 	return actionCreated, nil
 }
 
-func (t *advancedDHCPProfileTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
+func (t *advancedDHCPProfileTask) EnsureDeleted(a EnsurerContext, state *vinfra.NSXTInfraState) (bool, error) {
 	if state.AdvancedDHCP.ProfileID == nil {
 		return false, nil
 	}
-	resp, err := a.nsxClient.ServicesApi.DeleteDhcpProfile(a.nsxClient.Context, *state.AdvancedDHCP.ProfileID)
+	resp, err := a.NSXTClient().ServicesApi.DeleteDhcpProfile(a.NSXTClient().Context, *state.AdvancedDHCP.ProfileID)
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		state.AdvancedDHCP.ProfileID = nil
 		return false, nil
@@ -126,15 +128,15 @@ func (t *advancedDHCPProfileTask) EnsureDeleted(a *ensurer, state *NSXTInfraStat
 
 type advancedDHCPServerTask struct{ baseTask }
 
-func newAdvancedDHCPServerTask() *advancedDHCPServerTask {
+func NewAdvancedDHCPServerTask() Task {
 	return &advancedDHCPServerTask{baseTask{label: "DHCP server (Advanced API)"}}
 }
 
-func (t *advancedDHCPServerTask) reference(state *NSXTInfraState) *Reference {
+func (t *advancedDHCPServerTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
 	return toReference(state.AdvancedDHCP.ServerID)
 }
 
-func (t *advancedDHCPServerTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
+func (t *advancedDHCPServerTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
 	dhcpServerIP, err := cidrHostAndPrefix(spec.WorkersNetwork, 2)
 	if err != nil {
 		return "", errors.Wrapf(err, "DHCP server IP")
@@ -152,13 +154,13 @@ func (t *advancedDHCPServerTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 	server := manager.LogicalDhcpServer{
 		Description:    description,
 		DisplayName:    spec.FullClusterName(),
-		Tags:           spec.createCommonTags(),
+		Tags:           spec.CreateCommonTags(),
 		DhcpProfileId:  *state.AdvancedDHCP.ProfileID,
 		Ipv4DhcpServer: &ipv4DhcpServer,
 	}
 
 	if state.AdvancedDHCP.ServerID != nil {
-		oldServer, resp, err := a.nsxClient.ServicesApi.ReadDhcpServer(a.nsxClient.Context, *state.AdvancedDHCP.ServerID)
+		oldServer, resp, err := a.NSXTClient().ServicesApi.ReadDhcpServer(a.NSXTClient().Context, *state.AdvancedDHCP.ServerID)
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			state.AdvancedDHCP.ServerID = nil
 			return t.Ensure(a, spec, state)
@@ -173,7 +175,7 @@ func (t *advancedDHCPServerTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 			oldServer.Ipv4DhcpServer.GatewayIp != server.Ipv4DhcpServer.GatewayIp ||
 			!equalOrderedStrings(oldServer.Ipv4DhcpServer.DnsNameservers, server.Ipv4DhcpServer.DnsNameservers) ||
 			!equalCommonTags(oldServer.Tags, server.Tags) {
-			_, resp, err := a.nsxClient.ServicesApi.UpdateDhcpServer(a.nsxClient.Context, *state.AdvancedDHCP.ServerID, server)
+			_, resp, err := a.NSXTClient().ServicesApi.UpdateDhcpServer(a.NSXTClient().Context, *state.AdvancedDHCP.ServerID, server)
 			if err != nil {
 				return updatingErr(err)
 			}
@@ -185,7 +187,7 @@ func (t *advancedDHCPServerTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 		return actionUnchanged, nil
 	}
 
-	createdServer, resp, err := a.nsxClient.ServicesApi.CreateDhcpServer(a.nsxClient.Context, server)
+	createdServer, resp, err := a.NSXTClient().ServicesApi.CreateDhcpServer(a.NSXTClient().Context, server)
 	if err != nil {
 		return creatingErr(err)
 	}
@@ -196,11 +198,11 @@ func (t *advancedDHCPServerTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 	return actionCreated, nil
 }
 
-func (t *advancedDHCPServerTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
+func (t *advancedDHCPServerTask) EnsureDeleted(a EnsurerContext, state *vinfra.NSXTInfraState) (bool, error) {
 	if state.AdvancedDHCP.ServerID == nil {
 		return false, nil
 	}
-	resp, err := a.nsxClient.ServicesApi.DeleteDhcpServer(a.nsxClient.Context, *state.AdvancedDHCP.ServerID)
+	resp, err := a.NSXTClient().ServicesApi.DeleteDhcpServer(a.NSXTClient().Context, *state.AdvancedDHCP.ServerID)
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		state.AdvancedDHCP.ServerID = nil
 		return false, nil
@@ -214,15 +216,15 @@ func (t *advancedDHCPServerTask) EnsureDeleted(a *ensurer, state *NSXTInfraState
 
 type advancedDHCPPortTask struct{ baseTask }
 
-func newAdvancedDHCPPortTask() *advancedDHCPPortTask {
+func NewAdvancedDHCPPortTask() Task {
 	return &advancedDHCPPortTask{baseTask{label: "DHCP port (Advanced API)"}}
 }
 
-func (t *advancedDHCPPortTask) reference(state *NSXTInfraState) *Reference {
+func (t *advancedDHCPPortTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
 	return toReference(state.AdvancedDHCP.PortID)
 }
 
-func (t *advancedDHCPPortTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
+func (t *advancedDHCPPortTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
 	attachment := manager.LogicalPortAttachment{
 		AttachmentType: "DHCP_SERVICE",
 		Id:             *state.AdvancedDHCP.ServerID,
@@ -232,12 +234,12 @@ func (t *advancedDHCPPortTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSX
 		Description:     description,
 		LogicalSwitchId: *state.AdvancedDHCP.LogicalSwitchID,
 		AdminState:      "UP",
-		Tags:            spec.createCommonTags(),
+		Tags:            spec.CreateCommonTags(),
 		Attachment:      &attachment,
 	}
 
 	if state.AdvancedDHCP.PortID != nil {
-		oldPort, resp, err := a.nsxClient.LogicalSwitchingApi.GetLogicalPort(a.nsxClient.Context, *state.AdvancedDHCP.PortID)
+		oldPort, resp, err := a.NSXTClient().LogicalSwitchingApi.GetLogicalPort(a.NSXTClient().Context, *state.AdvancedDHCP.PortID)
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			state.AdvancedDHCP.PortID = nil
 			return t.Ensure(a, spec, state)
@@ -252,7 +254,7 @@ func (t *advancedDHCPPortTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSX
 			oldPort.Attachment.AttachmentType != port.Attachment.AttachmentType ||
 			oldPort.Attachment.Id != port.Attachment.Id ||
 			!equalCommonTags(oldPort.Tags, port.Tags) {
-			_, resp, err := a.nsxClient.LogicalSwitchingApi.UpdateLogicalPort(a.nsxClient.Context, *state.AdvancedDHCP.PortID, port)
+			_, resp, err := a.NSXTClient().LogicalSwitchingApi.UpdateLogicalPort(a.NSXTClient().Context, *state.AdvancedDHCP.PortID, port)
 			if err != nil {
 				return updatingErr(err)
 			}
@@ -264,7 +266,7 @@ func (t *advancedDHCPPortTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSX
 		return actionUnchanged, nil
 	}
 
-	createdPort, resp, err := a.nsxClient.LogicalSwitchingApi.CreateLogicalPort(a.nsxClient.Context, port)
+	createdPort, resp, err := a.NSXTClient().LogicalSwitchingApi.CreateLogicalPort(a.NSXTClient().Context, port)
 	if err != nil {
 		return creatingErr(err)
 	}
@@ -275,13 +277,13 @@ func (t *advancedDHCPPortTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSX
 	return actionCreated, nil
 }
 
-func (t *advancedDHCPPortTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
+func (t *advancedDHCPPortTask) EnsureDeleted(a EnsurerContext, state *vinfra.NSXTInfraState) (bool, error) {
 	if state.AdvancedDHCP.PortID == nil {
 		return false, nil
 	}
 	localVarOptionals := make(map[string]interface{})
 	localVarOptionals["detach"] = true
-	resp, err := a.nsxClient.LogicalSwitchingApi.DeleteLogicalPort(a.nsxClient.Context, *state.AdvancedDHCP.PortID, localVarOptionals)
+	resp, err := a.NSXTClient().LogicalSwitchingApi.DeleteLogicalPort(a.NSXTClient().Context, *state.AdvancedDHCP.PortID, localVarOptionals)
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		state.AdvancedDHCP.PortID = nil
 		return false, nil
@@ -295,15 +297,15 @@ func (t *advancedDHCPPortTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) 
 
 type advancedDHCPIPPoolTask struct{ baseTask }
 
-func newAdvancedDHCPIPPoolTask() *advancedDHCPIPPoolTask {
+func NewAdvancedDHCPIPPoolTask() Task {
 	return &advancedDHCPIPPoolTask{baseTask{label: "DHCP IP pool (Advanced API)"}}
 }
 
-func (t *advancedDHCPIPPoolTask) reference(state *NSXTInfraState) *Reference {
+func (t *advancedDHCPIPPoolTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
 	return toReference(state.AdvancedDHCP.IPPoolID)
 }
 
-func (t *advancedDHCPIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
+func (t *advancedDHCPIPPoolTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
 	gatewayIP, err := cidrHost(spec.WorkersNetwork, 1)
 	if err != nil {
 		return "", errors.Wrapf(err, "gateway IP")
@@ -328,11 +330,11 @@ func (t *advancedDHCPIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 		ErrorThreshold:   98,
 		WarningThreshold: 70,
 		AllocationRanges: []manager.IpPoolRange{ipPoolRange},
-		Tags:             spec.createCommonTags(),
+		Tags:             spec.CreateCommonTags(),
 	}
 
 	if state.AdvancedDHCP.IPPoolID != nil {
-		oldPool, resp, err := a.nsxClient.ServicesApi.ReadDhcpIpPool(a.nsxClient.Context, *state.AdvancedDHCP.ServerID, *state.AdvancedDHCP.IPPoolID)
+		oldPool, resp, err := a.NSXTClient().ServicesApi.ReadDhcpIpPool(a.NSXTClient().Context, *state.AdvancedDHCP.ServerID, *state.AdvancedDHCP.IPPoolID)
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			state.AdvancedDHCP.IPPoolID = nil
 			return t.Ensure(a, spec, state)
@@ -349,7 +351,7 @@ func (t *advancedDHCPIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 			oldPool.AllocationRanges[0].Start != pool.AllocationRanges[0].Start ||
 			oldPool.AllocationRanges[0].End != pool.AllocationRanges[0].End ||
 			!equalCommonTags(oldPool.Tags, pool.Tags) {
-			_, resp, err := a.nsxClient.ServicesApi.UpdateDhcpIpPool(a.nsxClient.Context, *state.AdvancedDHCP.ServerID, *state.AdvancedDHCP.IPPoolID, pool)
+			_, resp, err := a.NSXTClient().ServicesApi.UpdateDhcpIpPool(a.NSXTClient().Context, *state.AdvancedDHCP.ServerID, *state.AdvancedDHCP.IPPoolID, pool)
 			if err != nil {
 				return updatingErr(err)
 			}
@@ -361,7 +363,7 @@ func (t *advancedDHCPIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 		return actionUnchanged, nil
 	}
 
-	createdPool, resp, err := a.nsxClient.ServicesApi.CreateDhcpIpPool(a.nsxClient.Context, *state.AdvancedDHCP.ServerID, pool)
+	createdPool, resp, err := a.NSXTClient().ServicesApi.CreateDhcpIpPool(a.NSXTClient().Context, *state.AdvancedDHCP.ServerID, pool)
 	if err != nil {
 		return creatingErr(err)
 	}
@@ -372,11 +374,11 @@ func (t *advancedDHCPIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 	return actionCreated, nil
 }
 
-func (t *advancedDHCPIPPoolTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
+func (t *advancedDHCPIPPoolTask) EnsureDeleted(a EnsurerContext, state *vinfra.NSXTInfraState) (bool, error) {
 	if state.AdvancedDHCP.IPPoolID == nil {
 		return false, nil
 	}
-	resp, err := a.nsxClient.ServicesApi.DeleteDhcpIpPool(a.nsxClient.Context, *state.AdvancedDHCP.ServerID, *state.AdvancedDHCP.IPPoolID)
+	resp, err := a.NSXTClient().ServicesApi.DeleteDhcpIpPool(a.NSXTClient().Context, *state.AdvancedDHCP.ServerID, *state.AdvancedDHCP.IPPoolID)
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		state.AdvancedDHCP.IPPoolID = nil
 		return false, nil

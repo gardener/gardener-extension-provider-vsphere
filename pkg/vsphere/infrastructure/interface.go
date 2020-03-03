@@ -18,15 +18,15 @@
 package infrastructure
 
 type NSXTInfraSpec struct {
-	EdgeClusterName   string
-	TransportZoneName string
-	Tier0GatewayName  string
-	SNATIPPoolName    string
-	GardenID          string
-	GardenName        string
-	ClusterName       string
-	WorkersNetwork    string
-	DNSServers        []string
+	EdgeClusterName   string   `json:"edgeClusterName"`
+	TransportZoneName string   `json:"transportZoneName"`
+	Tier0GatewayName  string   `json:"tier0GatewayName"`
+	SNATIPPoolName    string   `json:"snatIPPoolName"`
+	GardenID          string   `json:"gardenID"`
+	GardenName        string   `json:"gardenName"`
+	ClusterName       string   `json:"clusterName"`
+	WorkersNetwork    string   `json:"workersNetwork"`
+	DNSServers        []string `json:"dnsServers"`
 }
 
 type Reference struct {
@@ -57,8 +57,8 @@ type AdvancedDHCPState struct {
 	IPPoolID        *string `json:"ipPoolID,omitempty"`
 }
 
-// NsxtConfig contains the NSX-T specific configuration
-type NsxtConfig struct {
+// NSXTConfig contains the NSX-T specific configuration
+type NSXTConfig struct {
 	// NSX-T username.
 	User string `json:"user"`
 	// NSX-T password in clear text.

@@ -15,88 +15,41 @@
  *
  */
 
-package infrastructure
+package task
 
 import (
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std"
-	vapierrors "github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
-	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
-	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
-	vapiclient "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/ip_pools"
-	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/realized_state"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/sites/enforcement_points"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/tier_1s"
 	t1nat "github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/tier_1s/nat"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+
+	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 )
-
-const (
-	description                  = "created by gardener-extension-provider-vsphere"
-	defaultSite                  = "default"
-	policyEnforcementPoint       = "default"
-	defaultPolicyLocaleServiceID = "default"
-
-	actionCreated   = "created"
-	actionUpdated   = "updated"
-	actionUnchanged = "unchanged"
-	actionFound     = "found"
-)
-
-type task interface {
-	Label() string
-	Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (action string, err error)
-	EnsureDeleted(a *ensurer, state *NSXTInfraState) (deleted bool, err error)
-	name(spec NSXTInfraSpec) *string
-	reference(state *NSXTInfraState) *Reference
-}
-
-type baseTask struct {
-	label string
-}
-
-func (t *baseTask) Label() string {
-	return t.label
-}
-
-func (t *baseTask) Ensure(_ *ensurer, _ NSXTInfraSpec, _ *NSXTInfraState) (action string, err error) {
-	return "", nil
-}
-
-func (t *baseTask) EnsureDeleted(_ *ensurer, _ *NSXTInfraState) (deleted bool, err error) {
-	return false, nil
-}
-
-func (t *baseTask) name(_ NSXTInfraSpec) *string {
-	return nil
-}
-
-func (t *baseTask) reference(_ *NSXTInfraState) *Reference {
-	return nil
-}
 
 type lookupTier0GatewayTask struct{ baseTask }
 
-func newLookupTier0GatewayTask() *lookupTier0GatewayTask {
+func NewLookupTier0GatewayTask() Task {
 	return &lookupTier0GatewayTask{baseTask{label: "tier-0 gateway lookup"}}
 }
 
-func (t *lookupTier0GatewayTask) name(spec NSXTInfraSpec) *string { return &spec.Tier0GatewayName }
+func (t *lookupTier0GatewayTask) Name(spec vinfra.NSXTInfraSpec) *string {
+	return &spec.Tier0GatewayName
+}
 
-func (t *lookupTier0GatewayTask) reference(state *NSXTInfraState) *Reference {
+func (t *lookupTier0GatewayTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
 	return state.Tier0GatewayRef
 }
 
-func (t *lookupTier0GatewayTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
+func (t *lookupTier0GatewayTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
 	name := spec.Tier0GatewayName
-	client := infra.NewDefaultTier0sClient(a.connector)
+	client := infra.NewDefaultTier0sClient(a.Connector())
 	var cursor *string
 	total := 0
 	count := 0
@@ -108,7 +61,7 @@ func (t *lookupTier0GatewayTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 		for _, item := range result.Results {
 			if *item.DisplayName == name {
 				// found
-				state.Tier0GatewayRef = &Reference{ID: *item.Id, Path: *item.Path}
+				state.Tier0GatewayRef = &vinfra.Reference{ID: *item.Id, Path: *item.Path}
 				return actionFound, nil
 			}
 		}
@@ -125,26 +78,26 @@ func (t *lookupTier0GatewayTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *N
 
 type lookupEdgeClusterTask struct{ baseTask }
 
-func newLookupEdgeClusterTask() *lookupEdgeClusterTask {
+func NewLookupEdgeClusterTask() Task {
 	return &lookupEdgeClusterTask{baseTask{label: "edge cluster lookup"}}
 }
 
-func (t *lookupEdgeClusterTask) name(spec NSXTInfraSpec) *string { return &spec.EdgeClusterName }
+func (t *lookupEdgeClusterTask) Name(spec vinfra.NSXTInfraSpec) *string { return &spec.EdgeClusterName }
 
-func (t *lookupEdgeClusterTask) reference(state *NSXTInfraState) *Reference {
+func (t *lookupEdgeClusterTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
 	return state.EdgeClusterRef
 }
 
-func (t *lookupEdgeClusterTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
+func (t *lookupEdgeClusterTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
 	name := spec.EdgeClusterName
-	client := enforcement_points.NewDefaultEdgeClustersClient(a.connector)
+	client := enforcement_points.NewDefaultEdgeClustersClient(a.Connector())
 	result, err := client.List(defaultSite, policyEnforcementPoint, nil, nil, nil, nil, nil, nil)
 	if err != nil {
 		return "", nicerVAPIError(err)
 	}
 	for _, item := range result.Results {
 		if *item.DisplayName == name {
-			state.EdgeClusterRef = &Reference{ID: *item.Id, Path: *item.Path}
+			state.EdgeClusterRef = &vinfra.Reference{ID: *item.Id, Path: *item.Path}
 			return actionFound, nil
 		}
 	}
@@ -153,26 +106,28 @@ func (t *lookupEdgeClusterTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NS
 
 type lookupTransportZoneTask struct{ baseTask }
 
-func newLookupTransportZoneTask() *lookupTransportZoneTask {
+func NewLookupTransportZoneTask() Task {
 	return &lookupTransportZoneTask{baseTask{label: "transport zone lookup"}}
 }
 
-func (t *lookupTransportZoneTask) name(spec NSXTInfraSpec) *string { return &spec.TransportZoneName }
+func (t *lookupTransportZoneTask) Name(spec vinfra.NSXTInfraSpec) *string {
+	return &spec.TransportZoneName
+}
 
-func (t *lookupTransportZoneTask) reference(state *NSXTInfraState) *Reference {
+func (t *lookupTransportZoneTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
 	return state.TransportZoneRef
 }
 
-func (t *lookupTransportZoneTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
+func (t *lookupTransportZoneTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
 	name := spec.TransportZoneName
-	client := enforcement_points.NewDefaultTransportZonesClient(a.connector)
+	client := enforcement_points.NewDefaultTransportZonesClient(a.Connector())
 	result, err := client.List(defaultSite, policyEnforcementPoint, nil, nil, nil, nil, nil, nil)
 	if err != nil {
 		return "", nicerVAPIError(err)
 	}
 	for _, item := range result.Results {
 		if *item.DisplayName == name {
-			state.TransportZoneRef = &Reference{ID: *item.Id, Path: *item.Path}
+			state.TransportZoneRef = &vinfra.Reference{ID: *item.Id, Path: *item.Path}
 			return actionFound, nil
 		}
 	}
@@ -181,17 +136,19 @@ func (t *lookupTransportZoneTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *
 
 type lookupSNATIPPoolTask struct{ baseTask }
 
-func newLookupSNATIPPoolTask() *lookupSNATIPPoolTask {
+func NewLookupSNATIPPoolTask() Task {
 	return &lookupSNATIPPoolTask{baseTask{label: "SNAT IP pool lookup"}}
 }
 
-func (t *lookupSNATIPPoolTask) name(spec NSXTInfraSpec) *string { return &spec.SNATIPPoolName }
+func (t *lookupSNATIPPoolTask) Name(spec vinfra.NSXTInfraSpec) *string { return &spec.SNATIPPoolName }
 
-func (t *lookupSNATIPPoolTask) reference(state *NSXTInfraState) *Reference { return state.SNATIPPoolRef }
+func (t *lookupSNATIPPoolTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
+	return state.SNATIPPoolRef
+}
 
-func (t *lookupSNATIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
+func (t *lookupSNATIPPoolTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
 	name := spec.SNATIPPoolName
-	client := infra.NewDefaultIpPoolsClient(a.connector)
+	client := infra.NewDefaultIpPoolsClient(a.Connector())
 	var cursor *string
 	total := 0
 	count := 0
@@ -203,7 +160,7 @@ func (t *lookupSNATIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSX
 		for _, item := range result.Results {
 			if *item.DisplayName == name {
 				// found
-				state.SNATIPPoolRef = &Reference{ID: *item.Id, Path: *item.Path}
+				state.SNATIPPoolRef = &vinfra.Reference{ID: *item.Id, Path: *item.Path}
 				return actionFound, nil
 			}
 		}
@@ -220,20 +177,22 @@ func (t *lookupSNATIPPoolTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSX
 
 type tier1GatewayTask struct{ baseTask }
 
-func newTier1GatewayTask() *tier1GatewayTask {
+func NewTier1GatewayTask() Task {
 	return &tier1GatewayTask{baseTask{label: "tier-1 gateway"}}
 }
 
-func (t *tier1GatewayTask) reference(state *NSXTInfraState) *Reference { return state.Tier1GatewayRef }
+func (t *tier1GatewayTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
+	return state.Tier1GatewayRef
+}
 
-func (t *tier1GatewayTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
-	client := infra.NewDefaultTier1sClient(a.connector)
+func (t *tier1GatewayTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
+	client := infra.NewDefaultTier1sClient(a.Connector())
 
 	tier1 := model.Tier1{
 		DisplayName:  strptr(spec.FullClusterName()),
 		Description:  strptr(description),
 		FailoverMode: strptr(model.Tier1_FAILOVER_MODE_PREEMPTIVE),
-		Tags:         spec.createTags(),
+		Tags:         spec.CreateTags(),
 		RouteAdvertisementTypes: []string{
 			model.Tier1_ROUTE_ADVERTISEMENT_TYPES_STATIC_ROUTES,
 			model.Tier1_ROUTE_ADVERTISEMENT_TYPES_NAT,
@@ -273,12 +232,12 @@ func (t *tier1GatewayTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInf
 	if err != nil {
 		return creatingErr(err)
 	}
-	state.Tier1GatewayRef = &Reference{ID: *createdObj.Id, Path: *createdObj.Path}
+	state.Tier1GatewayRef = &vinfra.Reference{ID: *createdObj.Id, Path: *createdObj.Path}
 	return actionCreated, nil
 }
 
-func (t *tier1GatewayTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
-	client := infra.NewDefaultTier1sClient(a.connector)
+func (t *tier1GatewayTask) EnsureDeleted(a EnsurerContext, state *vinfra.NSXTInfraState) (bool, error) {
+	client := infra.NewDefaultTier1sClient(a.Connector())
 	if state.Tier1GatewayRef == nil {
 		return false, nil
 	}
@@ -292,22 +251,22 @@ func (t *tier1GatewayTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (boo
 
 type tier1GatewayLocaleServiceTask struct{ baseTask }
 
-func newTier1GatewayLocaleServiceTask() *tier1GatewayLocaleServiceTask {
+func NewTier1GatewayLocaleServiceTask() Task {
 	return &tier1GatewayLocaleServiceTask{baseTask{label: "tier-1 gateway local service"}}
 }
 
-func (t *tier1GatewayLocaleServiceTask) reference(state *NSXTInfraState) *Reference {
+func (t *tier1GatewayLocaleServiceTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
 	return state.LocaleServiceRef
 }
 
-func (t *tier1GatewayLocaleServiceTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
-	client := tier_1s.NewDefaultLocaleServicesClient(a.connector)
+func (t *tier1GatewayLocaleServiceTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
+	client := tier_1s.NewDefaultLocaleServicesClient(a.Connector())
 
 	obj := model.LocaleServices{
 		DisplayName:     strptr(spec.FullClusterName()),
 		Description:     strptr(description),
 		EdgeClusterPath: &state.EdgeClusterRef.Path,
-		Tags:            spec.createTags(),
+		Tags:            spec.CreateTags(),
 	}
 
 	if state.LocaleServiceRef != nil {
@@ -337,12 +296,12 @@ func (t *tier1GatewayLocaleServiceTask) Ensure(a *ensurer, spec NSXTInfraSpec, s
 	if err != nil {
 		return creatingErr(err)
 	}
-	state.LocaleServiceRef = &Reference{ID: id, Path: ""}
+	state.LocaleServiceRef = &vinfra.Reference{ID: id, Path: ""}
 	return actionCreated, nil
 }
 
-func (t *tier1GatewayLocaleServiceTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
-	client := tier_1s.NewDefaultLocaleServicesClient(a.connector)
+func (t *tier1GatewayLocaleServiceTask) EnsureDeleted(a EnsurerContext, state *vinfra.NSXTInfraState) (bool, error) {
+	client := tier_1s.NewDefaultLocaleServicesClient(a.Connector())
 	if state.LocaleServiceRef == nil {
 		return false, nil
 	}
@@ -356,14 +315,16 @@ func (t *tier1GatewayLocaleServiceTask) EnsureDeleted(a *ensurer, state *NSXTInf
 
 type segmentTask struct{ baseTask }
 
-func newSegmentTask() *segmentTask {
+func NewSegmentTask() Task {
 	return &segmentTask{baseTask{label: "segment"}}
 }
 
-func (t *segmentTask) reference(state *NSXTInfraState) *Reference { return state.SegmentRef }
+func (t *segmentTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
+	return state.SegmentRef
+}
 
-func (t *segmentTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
-	client := infra.NewDefaultSegmentsClient(a.connector)
+func (t *segmentTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
+	client := infra.NewDefaultSegmentsClient(a.Connector())
 
 	gatewayAddr, err := cidrHostAndPrefix(spec.WorkersNetwork, 1)
 	if err != nil {
@@ -378,7 +339,7 @@ func (t *segmentTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraSta
 		Description:       strptr(description),
 		ConnectivityPath:  strptr(state.Tier1GatewayRef.Path),
 		TransportZonePath: strptr(state.TransportZoneRef.Path),
-		Tags:              spec.createTags(),
+		Tags:              spec.CreateTags(),
 		Subnets:           []model.SegmentSubnet{subnet},
 	}
 
@@ -414,13 +375,13 @@ func (t *segmentTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraSta
 	if err != nil {
 		return creatingErr(err)
 	}
-	state.SegmentRef = &Reference{ID: *createdObj.Id, Path: *createdObj.Path}
+	state.SegmentRef = &vinfra.Reference{ID: *createdObj.Id, Path: *createdObj.Path}
 	state.SegmentName = createdObj.DisplayName
 	return actionCreated, nil
 }
 
-func (t *segmentTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
-	client := infra.NewDefaultSegmentsClient(a.connector)
+func (t *segmentTask) EnsureDeleted(a EnsurerContext, state *vinfra.NSXTInfraState) (bool, error) {
+	client := infra.NewDefaultSegmentsClient(a.Connector())
 	if state.SegmentRef == nil {
 		return false, nil
 	}
@@ -435,21 +396,21 @@ func (t *segmentTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, er
 
 type snatIPAddressAllocationTask struct{ baseTask }
 
-func newSNATIPAddressAllocationTask() *snatIPAddressAllocationTask {
+func NewSNATIPAddressAllocationTask() Task {
 	return &snatIPAddressAllocationTask{baseTask{label: "SNAT IP address allocation"}}
 }
 
-func (t *snatIPAddressAllocationTask) reference(state *NSXTInfraState) *Reference {
+func (t *snatIPAddressAllocationTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
 	return state.SNATIPAddressAllocRef
 }
 
-func (t *snatIPAddressAllocationTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
-	client := ip_pools.NewDefaultIpAllocationsClient(a.connector)
+func (t *snatIPAddressAllocationTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
+	client := ip_pools.NewDefaultIpAllocationsClient(a.Connector())
 
 	allocation := model.IpAddressAllocation{
 		DisplayName: strptr(spec.FullClusterName() + "_SNAT"),
 		Description: strptr("SNAT IP address for all nodes. " + description),
-		Tags:        spec.createTags(),
+		Tags:        spec.CreateTags(),
 	}
 
 	if state.SNATIPAddressAllocRef != nil {
@@ -468,12 +429,12 @@ func (t *snatIPAddressAllocationTask) Ensure(a *ensurer, spec NSXTInfraSpec, sta
 	if err != nil {
 		return creatingErr(err)
 	}
-	state.SNATIPAddressAllocRef = &Reference{ID: *createdObj.Id, Path: *createdObj.Path}
+	state.SNATIPAddressAllocRef = &vinfra.Reference{ID: *createdObj.Id, Path: *createdObj.Path}
 	return actionCreated, nil
 }
 
-func (t *snatIPAddressAllocationTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
-	client := ip_pools.NewDefaultIpAllocationsClient(a.connector)
+func (t *snatIPAddressAllocationTask) EnsureDeleted(a EnsurerContext, state *vinfra.NSXTInfraState) (bool, error) {
+	client := ip_pools.NewDefaultIpAllocationsClient(a.Connector())
 	if state.SNATIPAddressAllocRef == nil {
 		return false, nil
 	}
@@ -488,16 +449,16 @@ func (t *snatIPAddressAllocationTask) EnsureDeleted(a *ensurer, state *NSXTInfra
 
 type snatIPAddressRealizationTask struct{ baseTask }
 
-func newSNATIPAddressRealizationTask() *snatIPAddressRealizationTask {
+func NewSNATIPAddressRealizationTask() Task {
 	return &snatIPAddressRealizationTask{baseTask{label: "SNAT IP address realization"}}
 }
 
-func (t *snatIPAddressRealizationTask) reference(state *NSXTInfraState) *Reference {
+func (t *snatIPAddressRealizationTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
 	return toReference(state.SNATIPAddress)
 }
 
-func (t *snatIPAddressRealizationTask) Ensure(a *ensurer, _ NSXTInfraSpec, state *NSXTInfraState) (string, error) {
-	ipAddress, err := getRealizedIPAddress(a.connector, state.SNATIPAddressAllocRef.Path, 15*time.Second)
+func (t *snatIPAddressRealizationTask) Ensure(a EnsurerContext, _ vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
+	ipAddress, err := getRealizedIPAddress(a.Connector(), state.SNATIPAddressAllocRef.Path, 15*time.Second)
 	if err != nil {
 		return "", err
 	}
@@ -507,14 +468,16 @@ func (t *snatIPAddressRealizationTask) Ensure(a *ensurer, _ NSXTInfraSpec, state
 
 type snatRuleTask struct{ baseTask }
 
-func newSNATRuleTask() *snatRuleTask {
+func NewSNATRuleTask() Task {
 	return &snatRuleTask{baseTask{label: "SNAT rule"}}
 }
 
-func (t *snatRuleTask) reference(state *NSXTInfraState) *Reference { return state.SNATRuleRef }
+func (t *snatRuleTask) Reference(state *vinfra.NSXTInfraState) *vinfra.Reference {
+	return state.SNATRuleRef
+}
 
-func (t *snatRuleTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraState) (string, error) {
-	client := t1nat.NewDefaultNatRulesClient(a.connector)
+func (t *snatRuleTask) Ensure(a EnsurerContext, spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) (string, error) {
+	client := t1nat.NewDefaultNatRulesClient(a.Connector())
 
 	rule := model.PolicyNatRule{
 		DisplayName:    strptr(spec.FullClusterName()),
@@ -523,7 +486,7 @@ func (t *snatRuleTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraSt
 		Enabled:        boolptr(true),
 		Logging:        boolptr(true),
 		SequenceNumber: int64ptr(100),
-		Tags:           spec.createTags(),
+		Tags:           spec.CreateTags(),
 
 		SourceNetwork:     strptr(spec.WorkersNetwork),
 		TranslatedNetwork: strptr(fmt.Sprintf("%s/32", *state.SNATIPAddress)),
@@ -566,12 +529,12 @@ func (t *snatRuleTask) Ensure(a *ensurer, spec NSXTInfraSpec, state *NSXTInfraSt
 	if err != nil {
 		return creatingErr(err)
 	}
-	state.SNATRuleRef = &Reference{ID: *createdObj.Id, Path: *createdObj.Path}
+	state.SNATRuleRef = &vinfra.Reference{ID: *createdObj.Id, Path: *createdObj.Path}
 	return actionCreated, nil
 }
 
-func (t *snatRuleTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, error) {
-	client := t1nat.NewDefaultNatRulesClient(a.connector)
+func (t *snatRuleTask) EnsureDeleted(a EnsurerContext, state *vinfra.NSXTInfraState) (bool, error) {
+	client := t1nat.NewDefaultNatRulesClient(a.Connector())
 	if state.SNATRuleRef == nil {
 		return false, nil
 	}
@@ -581,153 +544,4 @@ func (t *snatRuleTask) EnsureDeleted(a *ensurer, state *NSXTInfraState) (bool, e
 	}
 	state.SNATRuleRef = nil
 	return true, nil
-}
-
-func generateID(prefix string) string {
-	return fmt.Sprintf("%s-%s", prefix, uuid.New())
-}
-
-func getRealizedIPAddress(connector vapiclient.Connector, ipAllocationPath string, timeout time.Duration) (*string, error) {
-	client := realized_state.NewDefaultRealizedEntitiesClient(connector)
-
-	// wait for realized state
-	limit := time.Now().Add(timeout)
-	sleepIncr := 100 * time.Millisecond
-	sleepMax := 1000 * time.Millisecond
-	sleep := sleepIncr
-	for time.Now().Before(limit) {
-		time.Sleep(sleep)
-		sleep += sleepIncr
-		if sleep > sleepMax {
-			sleep = sleepMax
-		}
-		list, err := client.List(ipAllocationPath)
-		if err != nil {
-			return nil, nicerVAPIError(err)
-		}
-		for _, realizedResource := range list.Results {
-			for _, attr := range realizedResource.ExtendedAttributes {
-				if *attr.Key == "allocation_ip" {
-					return &attr.Values[0], nil
-				}
-			}
-		}
-	}
-	return nil, fmt.Errorf("timeout of wait for realized state of IP allocation")
-}
-
-func nicerVAPIError(err error) error {
-	switch vapiError := err.(type) {
-	case vapierrors.InvalidRequest:
-		// Connection errors end up here
-		return nicerVapiErrorData("InvalidRequest", vapiError.Data, vapiError.Messages)
-	case vapierrors.NotFound:
-		return nicerVapiErrorData("NotFound", vapiError.Data, vapiError.Messages)
-	case vapierrors.Unauthorized:
-		return nicerVapiErrorData("Unauthorized", vapiError.Data, vapiError.Messages)
-	case vapierrors.Unauthenticated:
-		return nicerVapiErrorData("Unauthenticated", vapiError.Data, vapiError.Messages)
-	case vapierrors.InternalServerError:
-		return nicerVapiErrorData("InternalServerError", vapiError.Data, vapiError.Messages)
-	case vapierrors.ServiceUnavailable:
-		return nicerVapiErrorData("ServiceUnavailable", vapiError.Data, vapiError.Messages)
-	}
-
-	return err
-}
-
-func nicerVapiErrorData(errorMsg string, apiErrorDataValue *data.StructValue, messages []std.LocalizableMessage) error {
-	if apiErrorDataValue == nil {
-		if len(messages) > 0 {
-			return fmt.Errorf("%s (%s)", errorMsg, messages[0].DefaultMessage)
-		}
-		return fmt.Errorf("%s (no additional details provided)", errorMsg)
-	}
-
-	var typeConverter = bindings.NewTypeConverter()
-	typeConverter.SetMode(bindings.REST)
-	rawData, err := typeConverter.ConvertToGolang(apiErrorDataValue, model.ApiErrorBindingType())
-
-	if err != nil {
-		return fmt.Errorf("%s (failed to extract additional details due to %s)", errorMsg, err)
-	}
-	apiError := rawData.(model.ApiError)
-	details := fmt.Sprintf(" %s: %s (code %v)", errorMsg, *apiError.ErrorMessage, *apiError.ErrorCode)
-
-	if len(apiError.RelatedErrors) > 0 {
-		details += "\nRelated errors:\n"
-		for _, relatedErr := range apiError.RelatedErrors {
-			details += fmt.Sprintf("%s (code %v)", *relatedErr.ErrorMessage, relatedErr.ErrorCode)
-		}
-	}
-	return fmt.Errorf(details)
-}
-
-func equalOrderedStrings(a []string, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
-func equalStrings(a []string, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for _, ai := range a {
-		found := false
-		for _, bi := range b {
-			if ai == bi {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-	return true
-}
-
-func equalTags(a, b []model.Tag) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for _, ai := range a {
-		found := false
-		for _, bi := range b {
-			if *ai.Scope == *bi.Scope && *ai.Tag == *bi.Tag {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-	return true
-}
-
-func readingErr(err error) (string, error) {
-	return "", errors.Wrapf(nicerVAPIError(err), "reading")
-}
-
-func updatingErr(err error) (string, error) {
-	return "", errors.Wrapf(nicerVAPIError(err), "updating")
-}
-
-func creatingErr(err error) (string, error) {
-	return "", errors.Wrapf(nicerVAPIError(err), "creating")
-}
-
-func toReference(s *string) *Reference {
-	if s == nil {
-		return nil
-	}
-	return &Reference{ID: *s}
 }

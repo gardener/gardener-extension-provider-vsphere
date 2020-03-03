@@ -15,7 +15,7 @@
  *
  */
 
-package infrastructure
+package ensurer
 
 import (
 	"fmt"
@@ -25,19 +25,35 @@ import (
 	"github.com/vmware/go-vmware-nsxt"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/log"
 	vapiclient "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
+
+	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
 )
 
 type ensurer struct {
 	logger logr.Logger
-
 	// connector for simplified API (NSXT policy)
 	connector vapiclient.Connector
-	// NSX Manager client - based on go-vmware-nsxt SDK (Advanced API)
-	nsxClient *nsxt.APIClient
-	tasks     []task
+	// nsxtClient is the NSX Manager client - based on go-vmware-nsxt SDK (Advanced API)
+	nsxtClient *nsxt.APIClient
+	tasks      []task.Task
 }
 
-func NewNSXTInfrastructureEnsurer(logger logr.Logger, nsxtConfig *NsxtConfig) (NSXTInfrastructureEnsurer, error) {
+var _ task.EnsurerContext = &ensurer{}
+
+func (e *ensurer) Logger() logr.Logger {
+	return e.logger
+}
+
+func (e *ensurer) Connector() vapiclient.Connector {
+	return e.connector
+}
+
+func (e *ensurer) NSXTClient() *nsxt.APIClient {
+	return e.nsxtClient
+}
+
+func NewNSXTInfrastructureEnsurer(logger logr.Logger, nsxtConfig *vinfra.NSXTConfig) (vinfra.NSXTInfrastructureEnsurer, error) {
 	log.SetLogger(NewLogrBridge(logger))
 	connector, err := createConnector(nsxtConfig)
 	if err != nil {
@@ -48,44 +64,44 @@ func NewNSXTInfrastructureEnsurer(logger logr.Logger, nsxtConfig *NsxtConfig) (N
 		return nil, errors.Wrapf(err, "creating NSX-T client failed")
 	}
 
-	tasks := []task{
-		newLookupTier0GatewayTask(),
-		newLookupTransportZoneTask(),
-		newLookupEdgeClusterTask(),
-		newLookupSNATIPPoolTask(),
-		newTier1GatewayTask(),
-		newTier1GatewayLocaleServiceTask(),
-		newSegmentTask(),
-		newSNATIPAddressAllocationTask(),
-		newSNATIPAddressRealizationTask(),
-		newSNATRuleTask(),
-		newAdvancedLookupLogicalSwitchTask(),
-		newAdvancedDHCPProfileTask(),
-		newAdvancedDHCPServerTask(),
-		newAdvancedDHCPPortTask(),
-		newAdvancedDHCPIPPoolTask(),
+	tasks := []task.Task{
+		task.NewLookupTier0GatewayTask(),
+		task.NewLookupTransportZoneTask(),
+		task.NewLookupEdgeClusterTask(),
+		task.NewLookupSNATIPPoolTask(),
+		task.NewTier1GatewayTask(),
+		task.NewTier1GatewayLocaleServiceTask(),
+		task.NewSegmentTask(),
+		task.NewSNATIPAddressAllocationTask(),
+		task.NewSNATIPAddressRealizationTask(),
+		task.NewSNATRuleTask(),
+		task.NewAdvancedLookupLogicalSwitchTask(),
+		task.NewAdvancedDHCPProfileTask(),
+		task.NewAdvancedDHCPServerTask(),
+		task.NewAdvancedDHCPPortTask(),
+		task.NewAdvancedDHCPIPPoolTask(),
 	}
 
 	return &ensurer{
-		logger:    logger,
-		connector: connector,
-		nsxClient: nsxClient,
-		tasks:     tasks,
+		logger:     logger,
+		connector:  connector,
+		nsxtClient: nsxClient,
+		tasks:      tasks,
 	}, nil
 }
 
-func (e *ensurer) EnsureInfrastructure(spec NSXTInfraSpec, state *NSXTInfraState) error {
+func (e *ensurer) EnsureInfrastructure(spec vinfra.NSXTInfraSpec, state *vinfra.NSXTInfraState) error {
 	for _, task := range e.tasks {
 		action, err := task.Ensure(e, spec, state)
 		if err != nil {
 			return errors.Wrapf(err, task.Label()+" failed")
 		}
 		keysAndVals := []interface{}{}
-		name := task.name(spec)
+		name := task.Name(spec)
 		if name != nil {
 			keysAndVals = append(keysAndVals, "name", *name)
 		}
-		ref := task.reference(state)
+		ref := task.Reference(state)
 		if ref != nil {
 			keysAndVals = append(keysAndVals, "id", ref.ID)
 		}
@@ -95,7 +111,7 @@ func (e *ensurer) EnsureInfrastructure(spec NSXTInfraSpec, state *NSXTInfraState
 	return nil
 }
 
-func (e *ensurer) EnsureInfrastructureDeleted(state *NSXTInfraState) error {
+func (e *ensurer) EnsureInfrastructureDeleted(state *vinfra.NSXTInfraState) error {
 	for i := len(e.tasks) - 1; i >= 0; i-- {
 		task := e.tasks[i]
 		deleted, err := task.EnsureDeleted(e, state)

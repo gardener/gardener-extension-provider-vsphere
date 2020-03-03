@@ -32,7 +32,6 @@ import (
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	vspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/internal"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
@@ -72,7 +71,7 @@ func (w *workerDelegate) generateMachineClassSecretData(ctx context.Context) (ma
 		return nil, err
 	}
 
-	credentials, err := internal.ExtractCredentials(secret)
+	credentials, err := vsphere.ExtractCredentials(secret)
 	if err != nil {
 		return nil, err
 	}

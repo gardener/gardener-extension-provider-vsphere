@@ -20,19 +20,20 @@ import (
 	"context"
 	"fmt"
 
-	extensionscontroller "github.com/gardener/gardener-extensions/pkg/controller"
-	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd/api"
 	"k8s.io/client-go/util/retry"
 
+	extensionscontroller "github.com/gardener/gardener-extensions/pkg/controller"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	apishelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	apisvspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/internal"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/internal/helper"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/internal/infrastructure"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
 )
 
 type preparedReconcile struct {
@@ -44,12 +45,12 @@ type preparedReconcile struct {
 }
 
 func (a *actuator) prepare(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) (*preparedReconcile, error) {
-	cloudProfileConfig, err := helper.GetCloudProfileConfig(&a.ClientContext, cluster)
+	cloudProfileConfig, err := apishelper.GetCloudProfileConfig(&a.ClientContext, cluster)
 	if err != nil {
 		return nil, err
 	}
 
-	creds, err := internal.GetCredentials(ctx, a.Client(), infra.Spec.SecretRef)
+	creds, err := vsphere.GetCredentials(ctx, a.Client(), infra.Spec.SecretRef)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +67,7 @@ func (a *actuator) prepare(ctx context.Context, infra *extensionsv1alpha1.Infras
 		dnsServers = region.DNSServers
 	}
 
-	nsxtConfig := &infrastructure.NsxtConfig{
+	nsxtConfig := &infrastructure.NSXTConfig{
 		User:         creds.NSXTUsername,
 		Password:     creds.NSXTPassword,
 		Host:         region.NSXTHost,
@@ -85,7 +86,7 @@ func (a *actuator) prepare(ctx context.Context, infra *extensionsv1alpha1.Infras
 		DNSServers:        dnsServers,
 	}
 
-	ensurer, err := infrastructure.NewNSXTInfrastructureEnsurer(a.logger, nsxtConfig)
+	ensurer, err := ensurer.NewNSXTInfrastructureEnsurer(a.logger, nsxtConfig)
 	if err != nil {
 		return nil, err
 	}

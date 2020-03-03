@@ -15,7 +15,7 @@
  *
  */
 
-package infrastructure
+package ensurer
 
 import (
 	"crypto/tls"
@@ -31,9 +31,11 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/security"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra"
+
+	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 )
 
-func createConnector(nsxtConfig *NsxtConfig) (client.Connector, error) {
+func createConnector(nsxtConfig *vinfra.NSXTConfig) (client.Connector, error) {
 	url := fmt.Sprintf("https://%s", nsxtConfig.Host)
 	securityCtx := core.NewSecurityContextImpl()
 	securityContextNeeded := true

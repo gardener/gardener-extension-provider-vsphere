@@ -16,6 +16,8 @@ package helper
 
 import (
 	"fmt"
+
+	"github.com/gardener/controller-manager-library/pkg/utils"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
@@ -39,15 +41,13 @@ func FindMachineImage(configImages []api.MachineImage, imageName, imageVersion s
 func FindImage(profileImages []api.MachineImages, imageName, imageVersion string) (string, string, error) {
 	for _, machineImage := range profileImages {
 		if machineImage.Name == imageName {
-			if machineImage.Name == imageName {
-				for _, version := range machineImage.Versions {
-					if imageVersion == version.Version {
-						guestID := ""
-						if version.GuestID != nil {
-							guestID = *version.GuestID
-						}
-						return version.Path, guestID, nil
+			for _, version := range machineImage.Versions {
+				if imageVersion == version.Version {
+					guestID := ""
+					if version.GuestID != nil {
+						guestID = *version.GuestID
 					}
+					return version.Path, guestID, nil
 				}
 			}
 		}
@@ -69,11 +69,11 @@ func FindRegion(name string, cloudProfileConfig *api.CloudProfileConfig) *api.Re
 // CollectDatacenters collects all datacenters used in the region and its zones
 func CollectDatacenters(region *api.RegionSpec) []string {
 	dcSet := sets.NewString()
-	if region.Datacenter != nil && *region.Datacenter != "" {
+	if !utils.IsEmptyString(region.Datacenter) {
 		dcSet.Insert(*region.Datacenter)
 	}
 	for _, zone := range region.Zones {
-		if zone.Datacenter != nil && *zone.Datacenter != "" {
+		if !utils.IsEmptyString(zone.Datacenter) {
 			dcSet.Insert(*zone.Datacenter)
 		}
 	}

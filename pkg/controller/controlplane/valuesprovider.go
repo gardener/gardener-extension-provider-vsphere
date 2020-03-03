@@ -23,26 +23,26 @@ import (
 	"strconv"
 	"strings"
 
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	apishelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/internal"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/internal/helper"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-	extensionscontroller "github.com/gardener/gardener-extensions/pkg/controller"
-	"github.com/gardener/gardener-extensions/pkg/controller/common"
-	"github.com/gardener/gardener-extensions/pkg/controller/controlplane"
-	"github.com/gardener/gardener-extensions/pkg/controller/controlplane/genericactuator"
-
-	v1alpha1constants "github.com/gardener/gardener/pkg/apis/core/v1alpha1/constants"
-	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/gardener/gardener/pkg/utils/chart"
-	"github.com/gardener/gardener/pkg/utils/secrets"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apiserver/pkg/authentication/user"
+
+	"github.com/gardener/controller-manager-library/pkg/utils"
+	extensionscontroller "github.com/gardener/gardener-extensions/pkg/controller"
+	"github.com/gardener/gardener-extensions/pkg/controller/common"
+	"github.com/gardener/gardener-extensions/pkg/controller/controlplane"
+	"github.com/gardener/gardener-extensions/pkg/controller/controlplane/genericactuator"
+	v1alpha1constants "github.com/gardener/gardener/pkg/apis/core/v1alpha1/constants"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/gardener/gardener/pkg/utils/chart"
+	"github.com/gardener/gardener/pkg/utils/secrets"
+
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
 // Object names
@@ -236,7 +236,7 @@ func (vp *valuesProvider) GetConfigChartValues(
 	}
 
 	// Get credentials
-	credentials, err := internal.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
+	credentials, err := vsphere.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get vSphere credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
 	}
@@ -259,7 +259,7 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	}
 
 	// Get credentials
-	credentials, err := internal.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
+	credentials, err := vsphere.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get vSphere credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
 	}
@@ -276,7 +276,7 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 	checksums map[string]string,
 ) (map[string]interface{}, error) {
 	// Get credentials
-	credentials, err := internal.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
+	credentials, err := vsphere.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get vSphere credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
 	}
@@ -325,7 +325,7 @@ func (vp *valuesProvider) getConfigChartValues(
 	cp *extensionsv1alpha1.ControlPlane,
 	cpConfig *apisvsphere.ControlPlaneConfig,
 	cluster *extensionscontroller.Cluster,
-	credentials *internal.Credentials,
+	credentials *vsphere.Credentials,
 ) (map[string]interface{}, error) {
 
 	cloudProfileConfig, err := helper.GetCloudProfileConfig(&vp.ClientContext, cluster)
@@ -333,7 +333,7 @@ func (vp *valuesProvider) getConfigChartValues(
 		return nil, err
 	}
 
-	region := apishelper.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
+	region := helper.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
 	if region == nil {
 		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
 	}
@@ -379,25 +379,22 @@ func (vp *valuesProvider) getConfigChartValues(
 				break
 			}
 		}
-		if cpClass.IPPoolName == nil || *cpClass.IPPoolName == "" {
-			//			if constraintClass == nil {
-			//				return nil, fmt.Errorf("load balancer class %q not found in cloud profile", cpClass.Name)
-			//			}
+		if utils.IsEmptyString(cpClass.IPPoolName) {
 			if constraintClass != nil && constraintClass.IPPoolName != "" {
 				lbClass["ipPoolName"] = constraintClass.IPPoolName
 			}
 		} else {
 			lbClass["ipPoolName"] = *cpClass.IPPoolName
 		}
-		if cpClass.TCPAppProfileName == nil || *cpClass.TCPAppProfileName == "" {
-			if constraintClass != nil && constraintClass.TCPAppProfileName != nil && *constraintClass.TCPAppProfileName != "" {
+		if !utils.IsEmptyString(cpClass.TCPAppProfileName) {
+			if constraintClass != nil && !utils.IsEmptyString(constraintClass.TCPAppProfileName) {
 				lbClass["tcpAppProfileName"] = *constraintClass.TCPAppProfileName
 			}
 		} else {
 			lbClass["tcpAppProfileName"] = *cpClass.TCPAppProfileName
 		}
-		if cpClass.UDPAppProfileName == nil || *cpClass.UDPAppProfileName == "" {
-			if constraintClass != nil && constraintClass.UDPAppProfileName != nil && *constraintClass.UDPAppProfileName != "" {
+		if !utils.IsEmptyString(cpClass.UDPAppProfileName) {
+			if constraintClass != nil && !utils.IsEmptyString(constraintClass.UDPAppProfileName) {
 				lbClass["udpAppProfileName"] = *constraintClass.UDPAppProfileName
 			}
 		} else {
@@ -420,10 +417,10 @@ func (vp *valuesProvider) getConfigChartValues(
 		"classes":    loadBalancersClasses,
 		"tags":       map[string]interface{}{"owner": vp.gardenId},
 	}
-	if defaultClass.TCPAppProfileName != nil {
+	if !utils.IsEmptyString(defaultClass.TCPAppProfileName) {
 		loadBalancer["tcpAppProfileName"] = *defaultClass.TCPAppProfileName
 	}
-	if defaultClass.UDPAppProfileName != nil {
+	if !utils.IsEmptyString(defaultClass.UDPAppProfileName) {
 		loadBalancer["udpAppProfileName"] = *defaultClass.UDPAppProfileName
 	}
 	if infraStatus.Tier1GatewayPath != "" {
@@ -435,7 +432,7 @@ func (vp *valuesProvider) getConfigChartValues(
 		"serverName":   serverName,
 		"serverPort":   port,
 		"insecureFlag": insecureFlag,
-		"datacenters":  strings.Join(apishelper.CollectDatacenters(region), ","),
+		"datacenters":  strings.Join(helper.CollectDatacenters(region), ","),
 		"username":     credentials.VsphereUsername,
 		"password":     credentials.VspherePassword,
 		"loadbalancer": loadBalancer,
@@ -447,10 +444,10 @@ func (vp *valuesProvider) getConfigChartValues(
 		},
 	}
 
-	if region.CaFile != nil && *region.CaFile != "" {
+	if !utils.IsEmptyString(region.CaFile) {
 		values["caFile"] = *region.CaFile
 	}
-	if region.Thumbprint != nil && *region.Thumbprint != "" {
+	if !utils.IsEmptyString(region.Thumbprint) {
 		values["thumbprint"] = *region.Thumbprint
 	}
 	if cloudProfileConfig.FailureDomainLabels != nil {
@@ -466,7 +463,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	cpConfig *apisvsphere.ControlPlaneConfig,
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
-	credentials *internal.Credentials,
+	credentials *vsphere.Credentials,
 	checksums map[string]string,
 	scaledDown bool,
 ) (map[string]interface{}, error) {
@@ -476,7 +473,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 		return nil, err
 	}
 
-	region := apishelper.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
+	region := helper.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
 	if region == nil {
 		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
 	}
@@ -513,7 +510,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"username":          credentials.VsphereUsername,
 			"password":          credentials.VspherePassword,
 			"serverPort":        port,
-			"datacenters":       strings.Join(apishelper.CollectDatacenters(region), ","),
+			"datacenters":       strings.Join(helper.CollectDatacenters(region), ","),
 			"insecureFlag":      insecureFlag,
 			"podAnnotations": map[string]interface{}{
 				"checksum/secret-csi-attacher":              checksums["csi-attacher"],
@@ -537,7 +534,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 func (vp *valuesProvider) getControlPlaneShootChartValues(
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
-	credentials *internal.Credentials,
+	credentials *vsphere.Credentials,
 ) (map[string]interface{}, error) {
 
 	cloudProfileConfig, err := helper.GetCloudProfileConfig(&vp.ClientContext, cluster)
@@ -545,7 +542,7 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 		return nil, err
 	}
 
-	region := apishelper.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
+	region := helper.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
 	if region == nil {
 		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
 	}
@@ -568,7 +565,7 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 			"username":          credentials.VsphereUsername,
 			"password":          credentials.VspherePassword,
 			"serverPort":        port,
-			"datacenters":       strings.Join(apishelper.CollectDatacenters(region), ","),
+			"datacenters":       strings.Join(helper.CollectDatacenters(region), ","),
 			"insecureFlag":      insecureFlag,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 		},
