@@ -21,6 +21,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 )
 
 var _ = Describe("Helpers", func() {
@@ -58,4 +59,29 @@ var _ = Describe("Helpers", func() {
 			Expect(s1).NotTo(Equal(s2))
 		})
 	})
+	Describe("#containsTags", func() {
+		It("should check for tags", func() {
+			tags1 := []model.Tag{
+				{Scope: sp("owner"), Tag: sp("o1")},
+				{Scope: sp("cluster"), Tag: sp("c1")},
+			}
+			tags2 := []model.Tag{
+				{Scope: sp("owner"), Tag: sp("o1")},
+				{Scope: sp("cluster"), Tag: sp("c2")},
+			}
+			itemTags := []model.Tag{
+				{Scope: sp("owner"), Tag: sp("o1")},
+				{Scope: sp("cluster"), Tag: sp("c1")},
+				{Scope: sp("foo"), Tag: sp("bla")},
+			}
+			Expect(containsTags(tags1, tags1)).To(Equal(true))
+			Expect(containsTags(itemTags, tags1)).To(Equal(true))
+			Expect(containsTags(itemTags, tags2)).To(Equal(false))
+			Expect(containsTags(tags1, itemTags)).To(Equal(false))
+		})
+	})
 })
+
+func sp(s string) *string {
+	return &s
+}

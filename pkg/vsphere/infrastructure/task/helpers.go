@@ -25,6 +25,7 @@ import (
 	"time"
 
 	vapi_errors "github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
@@ -112,4 +113,21 @@ func cidrHostAndPrefix(cidr string, index int) (string, error) {
 		return "", fmt.Errorf("splitting cidr failed: %s", cidr)
 	}
 	return fmt.Sprintf("%s/%s", host, parts[1]), nil
+}
+
+func containsTags(itemTags []model.Tag, tags []model.Tag) bool {
+outer:
+	for _, tag := range tags {
+		for _, t := range itemTags {
+			if *t.Scope == *tag.Scope {
+				if *t.Tag == *tag.Tag {
+					continue outer
+				} else {
+					return false
+				}
+			}
+		}
+		return false
+	}
+	return true
 }

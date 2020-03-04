@@ -32,6 +32,8 @@ type EnsurerContext interface {
 	Connector() vapiclient.Connector
 	// NSXTClient NSX Manager client - based on go-vmware-nsxt SDK (Advanced API)
 	NSXTClient() *nsxt.APIClient
+	// TryRecover returns is NSX-T object should be searched by tag if no reference is set in state
+	TryRecover() bool
 }
 
 type Task interface {

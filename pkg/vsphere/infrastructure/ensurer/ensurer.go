@@ -54,6 +54,10 @@ func (e *ensurer) NSXTClient() *nsxt.APIClient {
 	return e.nsxtClient
 }
 
+func (e *ensurer) TryRecover() bool {
+	return true
+}
+
 func NewNSXTInfrastructureEnsurer(logger logr.Logger, nsxtConfig *vinfra.NSXTConfig) (vinfra.NSXTInfrastructureEnsurer, error) {
 	log.SetLogger(NewLogrBridge(logger))
 	connector, err := createConnector(nsxtConfig)
