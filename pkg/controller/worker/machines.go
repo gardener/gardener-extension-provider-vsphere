@@ -100,7 +100,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		return err
 	}
 
-	infrastructureStatus, err := helper.GetInfrastructureStatus(&w.ClientContext, w.worker.Namespace, w.worker.Spec.InfrastructureProviderStatus)
+	infrastructureStatus, err := helper.GetInfrastructureStatus(w.worker.Namespace, w.worker.Spec.InfrastructureProviderStatus)
 	if err != nil {
 		return err
 	}

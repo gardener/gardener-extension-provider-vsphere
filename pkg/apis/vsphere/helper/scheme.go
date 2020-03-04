@@ -18,18 +18,78 @@
 package helper
 
 import (
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
+	"fmt"
 
+	"github.com/gardener/gardener-extensions/pkg/controller"
+	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
 )
 
 var (
 	// Scheme is a scheme with the types relevant for vSphere actuators.
 	Scheme *runtime.Scheme
+
+	decoder runtime.Decoder
 )
 
 func init() {
 	Scheme = runtime.NewScheme()
 	utilruntime.Must(install.AddToScheme(Scheme))
+
+	decoder = serializer.NewCodecFactory(Scheme).UniversalDecoder()
+}
+
+func GetCloudProfileConfig(cluster *controller.Cluster) (*vsphere.CloudProfileConfig, error) {
+	var cloudProfileConfig *vsphere.CloudProfileConfig
+	if cluster != nil && cluster.CloudProfile != nil && cluster.CloudProfile.Spec.ProviderConfig != nil && cluster.CloudProfile.Spec.ProviderConfig.Raw != nil {
+		cloudProfileConfig = &vsphere.CloudProfileConfig{}
+		if _, _, err := decoder.Decode(cluster.CloudProfile.Spec.ProviderConfig.Raw, nil, cloudProfileConfig); err != nil {
+			return nil, errors.Wrapf(err, "could not decode providerConfig of cloudProfile for '%s'", cluster.Shoot.Name)
+		}
+		// TODO validate cloud profile on admission instead
+		if errs := validation.ValidateCloudProfileConfig(cloudProfileConfig); len(errs) > 0 {
+			return nil, errors.Wrap(errs.ToAggregate(), fmt.Sprintf("validation of providerConfig of cloud profile %q failed", cluster.CloudProfile.Name))
+		}
+	}
+	return cloudProfileConfig, nil
+}
+
+func GetControlPlaneConfig(cluster *controller.Cluster) (*vsphere.ControlPlaneConfig, error) {
+	cpConfig := &vsphere.ControlPlaneConfig{}
+	if cluster.Shoot.Spec.Provider.ControlPlaneConfig != nil {
+		if _, _, err := decoder.Decode(cluster.Shoot.Spec.Provider.ControlPlaneConfig.Raw, nil, cpConfig); err != nil {
+			return nil, errors.Wrapf(err, "could not decode providerConfig of controlplane '%s'", cluster.Shoot.Name)
+		}
+	}
+	return cpConfig, nil
+}
+
+func GetInfrastructureStatus(name string, extension *runtime.RawExtension) (*vsphere.InfrastructureStatus, error) {
+	if extension == nil || extension.Raw == nil {
+		return nil, nil
+	}
+	infraStatus := &vsphere.InfrastructureStatus{}
+	if _, _, err := decoder.Decode(extension.Raw, nil, infraStatus); err != nil {
+		return nil, errors.Wrapf(err, "could not decode infrastructureProviderStatus of controlplane '%s'", name)
+	}
+	return infraStatus, nil
+}
+
+// InfrastructureConfigFromInfrastructure extracts the InfrastructureConfig from the
+// ProviderConfig section of the given Infrastructure.
+func GetInfrastructureConfig(cluster *controller.Cluster) (*vsphere.InfrastructureConfig, error) {
+	config := &vsphere.InfrastructureConfig{}
+	if source := cluster.Shoot.Spec.Provider.InfrastructureConfig; source != nil && source.Raw != nil {
+		if _, _, err := decoder.Decode(source.Raw, nil, config); err != nil {
+			return nil, err
+		}
+		return config, nil
+	}
+	return config, nil
 }

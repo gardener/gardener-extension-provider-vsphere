@@ -109,7 +109,7 @@ func NewWorkerDelegate(
 	worker *extensionsv1alpha1.Worker,
 	cluster *extensionscontroller.Cluster,
 ) (genericactuator.WorkerDelegate, error) {
-	config, err := helper.GetCloudProfileConfig(&clientContext, cluster)
+	config, err := helper.GetCloudProfileConfig(cluster)
 	if err != nil {
 		return nil, err
 	}

@@ -230,7 +230,7 @@ func (vp *valuesProvider) GetConfigChartValues(
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	cpConfig, err := helper.GetControlPlaneConfig(&vp.ClientContext, cluster)
+	cpConfig, err := helper.GetControlPlaneConfig(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -253,7 +253,7 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	checksums map[string]string,
 	scaledDown bool,
 ) (map[string]interface{}, error) {
-	cpConfig, err := helper.GetControlPlaneConfig(&vp.ClientContext, cluster)
+	cpConfig, err := helper.GetControlPlaneConfig(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -292,7 +292,7 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
 
-	cloudProfileConfig, err := helper.GetCloudProfileConfig(&vp.ClientContext, cluster)
+	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -328,7 +328,7 @@ func (vp *valuesProvider) getConfigChartValues(
 	credentials *vsphere.Credentials,
 ) (map[string]interface{}, error) {
 
-	cloudProfileConfig, err := helper.GetCloudProfileConfig(&vp.ClientContext, cluster)
+	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -348,7 +348,7 @@ func (vp *valuesProvider) getConfigChartValues(
 		return nil, err
 	}
 
-	infraStatus, err := helper.GetInfrastructureStatus(&vp.ClientContext, cp.Name, cp.Spec.InfrastructureProviderStatus)
+	infraStatus, err := helper.GetInfrastructureStatus(cp.Name, cp.Spec.InfrastructureProviderStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -468,7 +468,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	scaledDown bool,
 ) (map[string]interface{}, error) {
 
-	cloudProfileConfig, err := helper.GetCloudProfileConfig(&vp.ClientContext, cluster)
+	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -537,7 +537,7 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 	credentials *vsphere.Credentials,
 ) (map[string]interface{}, error) {
 
-	cloudProfileConfig, err := helper.GetCloudProfileConfig(&vp.ClientContext, cluster)
+	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
 	if err != nil {
 		return nil, err
 	}

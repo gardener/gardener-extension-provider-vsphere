@@ -207,6 +207,10 @@ var _ = Describe("Machines", func() {
 						Region: region,
 						InfrastructureProviderStatus: &runtime.RawExtension{
 							Raw: encode(&apiv1alpha1.InfrastructureStatus{
+								TypeMeta: metav1.TypeMeta{
+									APIVersion: "vsphere.provider.extensions.gardener.cloud/v1alpha1",
+									Kind:       "InfrastructureStatus",
+								},
 								VsphereConfig: apiv1alpha1.VsphereConfig{
 									Folder: folder,
 									Region: region,

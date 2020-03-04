@@ -46,7 +46,7 @@ type preparedReconcile struct {
 }
 
 func (a *actuator) prepare(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) (*preparedReconcile, error) {
-	cloudProfileConfig, err := apishelper.GetCloudProfileConfig(&a.ClientContext, cluster)
+	cloudProfileConfig, err := apishelper.GetCloudProfileConfig(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (a *actuator) prepare(ctx context.Context, infra *extensionsv1alpha1.Infras
 		return nil, err
 	}
 
-	infraStatus, err := apishelper.GetInfrastructureStatus(&a.ClientContext, infra.Namespace, infra.Status.ProviderStatus)
+	infraStatus, err := apishelper.GetInfrastructureStatus(infra.Namespace, infra.Status.ProviderStatus)
 	if err != nil {
 		return nil, err
 	}
