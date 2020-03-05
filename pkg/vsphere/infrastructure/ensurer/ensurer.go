@@ -54,7 +54,7 @@ func (e *ensurer) NSXTClient() *nsxt.APIClient {
 	return e.nsxtClient
 }
 
-func (e *ensurer) TryRecover() bool {
+func (e *ensurer) IsTryRecoverEnabled() bool {
 	return true
 }
 
@@ -96,35 +96,71 @@ func NewNSXTInfrastructureEnsurer(logger logr.Logger, nsxtConfig *vinfra.NSXTCon
 }
 
 func (e *ensurer) EnsureInfrastructure(spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) error {
-	for _, task := range e.tasks {
-		action, err := task.Ensure(e, spec, state)
+	for _, tsk := range e.tasks {
+		_ = e.tryRecover(spec, state, tsk, false)
+
+		action, err := tsk.Ensure(e, spec, state)
 		if err != nil {
-			return errors.Wrapf(err, task.Label()+" failed")
+			return errors.Wrapf(err, tsk.Label()+" failed")
 		}
 		keysAndVals := []interface{}{}
-		name := task.Name(spec)
+		name := tsk.NameToLog(spec)
 		if name != nil {
 			keysAndVals = append(keysAndVals, "name", *name)
 		}
-		ref := task.Reference(state)
+		ref := tsk.Reference(state)
 		if ref != nil {
 			keysAndVals = append(keysAndVals, "id", ref.ID)
 		}
-		e.logger.Info(fmt.Sprintf("%s %s", task.Label(), action), keysAndVals...)
+		e.logger.Info(fmt.Sprintf("%s %s", tsk.Label(), action), keysAndVals...)
 	}
 
 	return nil
 }
 
-func (e *ensurer) EnsureInfrastructureDeleted(state *api.NSXTInfraState) error {
+// tryRecover tries if the NSX-T reference has for some reason been lost and not be stored in the state.
+// It then tries to find the object by the garden and shoot tag to restore the reference.
+func (e *ensurer) tryRecover(spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState, tsk task.Task, lookup bool) error {
+	if e.IsTryRecoverEnabled() && tsk.Reference(state) == nil {
+		if rt, ok := tsk.(task.RecoverableTask); ok {
+			task.TryRecover(e, state, rt, spec.CreateTags())
+		} else if rt, ok := tsk.(task.RecoverableAdvancedTask); ok {
+			rt.TryRecover(e, state, spec.CreateCommonTags())
+		} else if lookup {
+			// not recoverable tasks are lookup tasks which may be needed for recover
+			var err error
+			_, err = tsk.Ensure(e, spec, state)
+			return err
+		}
+	}
+	return nil
+}
+
+func (e *ensurer) EnsureInfrastructureDeleted(spec *vinfra.NSXTInfraSpec, state *api.NSXTInfraState) error {
+	if spec != nil {
+		// tryRecover needs the order of creation
+		for _, tsk := range e.tasks {
+			err := e.tryRecover(*spec, state, tsk, true)
+			if err != nil {
+				keysAndVals := []interface{}{}
+				name := tsk.NameToLog(*spec)
+				if name != nil {
+					keysAndVals = append(keysAndVals, "name", *name)
+				}
+				e.logger.Info("try recover failed", keysAndVals...)
+			}
+		}
+	}
+
 	for i := len(e.tasks) - 1; i >= 0; i-- {
-		task := e.tasks[i]
-		deleted, err := task.EnsureDeleted(e, state)
+		tsk := e.tasks[i]
+
+		deleted, err := tsk.EnsureDeleted(e, state)
 		if err != nil {
-			return errors.Wrapf(err, "deleting "+task.Label()+" failed")
+			return errors.Wrapf(err, "deleting "+tsk.Label()+" failed")
 		}
 		if deleted {
-			e.logger.Info(task.Label() + " deleted")
+			e.logger.Info(tsk.Label() + " deleted")
 		}
 	}
 	return nil

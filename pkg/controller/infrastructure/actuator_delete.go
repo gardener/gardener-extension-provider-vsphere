@@ -22,7 +22,7 @@ import (
 )
 
 func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
-	prepared, err := a.prepare(ctx, infra, cluster)
+	prepared, err := a.prepareReconcile(ctx, infra, cluster)
 	if err != nil {
 		return err
 	}
@@ -33,8 +33,8 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 	}
 
 	state := prepared.state
-	err = prepared.ensurer.EnsureInfrastructureDeleted(state)
-	errUpdate := a.createAndUpdateProviderInfrastructureStatus(ctx, infra, state, prepared.cloudProfileConfig, prepared.region)
+	err = prepared.ensurer.EnsureInfrastructureDeleted(&prepared.spec, state)
+	errUpdate := a.updateProviderStatus(ctx, infra, state, prepared.cloudProfileConfig, prepared.region)
 	if err != nil {
 		return err
 	}

@@ -45,7 +45,7 @@ type preparedReconcile struct {
 	ensurer            infrastructure.NSXTInfrastructureEnsurer
 }
 
-func (a *actuator) prepare(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) (*preparedReconcile, error) {
+func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) (*preparedReconcile, error) {
 	cloudProfileConfig, err := apishelper.GetCloudProfileConfig(cluster)
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (a *actuator) prepare(ctx context.Context, infra *extensionsv1alpha1.Infras
 }
 
 func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
-	prepared, err := a.prepare(ctx, infra, cluster)
+	prepared, err := a.prepareReconcile(ctx, infra, cluster)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 		state = &apisvsphere.NSXTInfraState{}
 	}
 	err = prepared.ensurer.EnsureInfrastructure(prepared.spec, state)
-	errUpdate := a.createAndUpdateProviderInfrastructureStatus(ctx, infra, state, prepared.cloudProfileConfig, prepared.region)
+	errUpdate := a.updateProviderStatus(ctx, infra, state, prepared.cloudProfileConfig, prepared.region)
 	if err != nil {
 		return err
 	}
@@ -129,16 +129,16 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 
 // Helper functions
 
-func (a *actuator) createAndUpdateProviderInfrastructureStatus(
+func (a *actuator) updateProviderStatus(
 	ctx context.Context,
 	infra *extensionsv1alpha1.Infrastructure,
 	newState *apisvsphere.NSXTInfraState,
 	cloudProfileConfig *apisvsphere.CloudProfileConfig,
 	region *apisvsphere.RegionSpec,
 ) error {
-	status, err := a.createProviderInfrastructureStatus(newState, cloudProfileConfig, region)
+	status, err := a.makeProviderInfrastructureStatus(newState, cloudProfileConfig, region)
 	if err == nil {
-		err = a.updateProviderStatus(ctx, infra, status)
+		err = a.doUpdateProviderStatus(ctx, infra, status)
 	}
 	if err != nil {
 		a.logFailedSaveState(err, newState)
@@ -146,7 +146,7 @@ func (a *actuator) createAndUpdateProviderInfrastructureStatus(
 	return err
 }
 
-func (a *actuator) createProviderInfrastructureStatus(
+func (a *actuator) makeProviderInfrastructureStatus(
 	state *apisvsphere.NSXTInfraState,
 	cloudProfileConfig *apisvsphere.CloudProfileConfig,
 	region *apisvsphere.RegionSpec,
@@ -200,7 +200,7 @@ func (a *actuator) createProviderInfrastructureStatus(
 	return status, nil
 }
 
-func (a *actuator) updateProviderStatus(
+func (a *actuator) doUpdateProviderStatus(
 	ctx context.Context,
 	infra *extensionsv1alpha1.Infrastructure,
 	status *apisvsphere.InfrastructureStatus,

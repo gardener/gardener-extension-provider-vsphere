@@ -75,9 +75,6 @@ const (
 
 	// CloudControllerManagerName is the constant for the name of the CloudController deployed by the control plane controller.
 	CloudControllerManagerName = "cloud-controller-manager"
-
-	// InfrastructureConfigMapName is the constant for the config map name for storing the persistent state of the infrastructure.
-	InfrastructureConfigMapName = "provider-vsphere-infrastructure-state"
 )
 
 var (

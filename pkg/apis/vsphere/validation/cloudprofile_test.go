@@ -27,11 +27,6 @@ import (
 var _ = Describe("ValidateCloudProfileConfig", func() {
 	Describe("#ValidateCloudProfileConfig", func() {
 		var cloudProfileConfig *apisvsphere.CloudProfileConfig
-		dc := "dc"
-		ds := "ds"
-		mypool := "mypool"
-		cc := "cc"
-		guestId := "coreos64Guest"
 
 		BeforeEach(func() {
 			cloudProfileConfig = &apisvsphere.CloudProfileConfig{
@@ -61,9 +56,9 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 						Zones: []apisvsphere.ZoneSpec{
 							{
 								Name:         "rz1",
-								Datacenter:   &dc,
-								Datastore:    &ds,
-								ResourcePool: &mypool,
+								Datacenter:   sp("dc"),
+								Datastore:    sp("ds"),
+								ResourcePool: sp("mypool"),
 							},
 						},
 					},
@@ -75,7 +70,7 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 							{
 								Version: "2190.5.0",
 								Path:    "gardener/templates/coreos-2190.5.0",
-								GuestID: &guestId,
+								GuestID: sp("coreos64Guest"),
 							},
 							{
 								Version: "2190.5.1",
@@ -168,7 +163,7 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 			It("should have a valid compute cluster/resource pool/host system", func() {
 				cloudProfileConfig.Regions[0].Zones[0].ResourcePool = nil
 
-				cloudProfileConfig.Regions[0].Zones[0].ComputeCluster = &cc
+				cloudProfileConfig.Regions[0].Zones[0].ComputeCluster = sp("cc")
 				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
 				Expect(errorList).To(ConsistOf())
 
@@ -193,7 +188,7 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 
 			It("should have a valid datacenter", func() {
 				cloudProfileConfig.Regions[0].Zones[0].Datacenter = nil
-				cloudProfileConfig.Regions[0].Datacenter = &dc
+				cloudProfileConfig.Regions[0].Datacenter = sp("dc")
 
 				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
 				Expect(errorList).To(ConsistOf())
@@ -208,3 +203,7 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 		})
 	})
 })
+
+func sp(s string) *string {
+	return &s
+}

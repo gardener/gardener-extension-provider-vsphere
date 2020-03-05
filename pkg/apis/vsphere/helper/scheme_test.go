@@ -15,10 +15,11 @@
  *
  */
 
-package helper
+package helper_test
 
 import (
 	vsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
 	"github.com/gardener/gardener-extensions/pkg/controller"
 	"github.com/gardener/gardener-extensions/pkg/controller/common"
@@ -47,10 +48,6 @@ var _ = Describe("Helper (decode)", func() {
 			panic(err)
 		}
 
-		dc := "scc01-DC"
-		ds := "A800_VMwareB"
-		cc := "scc01w01-DEV"
-		guestId := "coreos64Guest"
 		cluster = &controller.Cluster{
 			Shoot: &gardencorevbeta1.Shoot{
 				ObjectMeta: v1.ObjectMeta{Name: "test"},
@@ -114,12 +111,12 @@ machineImages:
 					LogicalTier0Router: "lt0router",
 					EdgeCluster:        "edgecluster",
 					SNATIPPool:         "snatIpPool",
-					Datacenter:         &dc,
-					Datastore:          &ds,
+					Datacenter:         sp("scc01-DC"),
+					Datastore:          sp("A800_VMwareB"),
 					Zones: []vsphere.ZoneSpec{
 						{
 							Name:           "testzone",
-							ComputeCluster: &cc,
+							ComputeCluster: sp("scc01w01-DEV"),
 						},
 					},
 				},
@@ -142,7 +139,7 @@ machineImages:
 						{
 							Version: "2191.5.0",
 							Path:    "gardener/templates/coreos-2191.5.0",
-							GuestID: &guestId,
+							GuestID: sp("coreos64Guest"),
 						},
 					},
 				},
@@ -152,7 +149,7 @@ machineImages:
 
 	Describe("#GetCloudProfileConfig", func() {
 		It("should decode the CloudProfileConfig", func() {
-			result, err := GetCloudProfileConfig(cluster)
+			result, err := helper.GetCloudProfileConfig(cluster)
 			Expect(err).To(BeNil())
 
 			Expect(result).To(Equal(cloudProfileConfig))

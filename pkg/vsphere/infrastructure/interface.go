@@ -51,5 +51,5 @@ type NSXTConfig struct {
 
 type NSXTInfrastructureEnsurer interface {
 	EnsureInfrastructure(spec NSXTInfraSpec, state *api.NSXTInfraState) error
-	EnsureInfrastructureDeleted(state *api.NSXTInfraState) error
+	EnsureInfrastructureDeleted(spec *NSXTInfraSpec, state *api.NSXTInfraState) error
 }

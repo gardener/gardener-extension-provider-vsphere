@@ -19,6 +19,7 @@ package task
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/google/uuid"
@@ -65,7 +66,7 @@ func (t *baseTask) EnsureDeleted(_ EnsurerContext, _ *api.NSXTInfraState) (delet
 	return false, nil
 }
 
-func (t *baseTask) Name(_ vinfra.NSXTInfraSpec) *string {
+func (t *baseTask) NameToLog(_ vinfra.NSXTInfraSpec) *string {
 	return nil
 }
 
@@ -220,4 +221,48 @@ func toReference(s *string) *api.Reference {
 		return nil
 	}
 	return &api.Reference{ID: *s}
+}
+
+func TryRecover(ctx EnsurerContext, state *api.NSXTInfraState, rt RecoverableTask, tags []model.Tag) bool {
+	return reflectTryRecover(ctx, state, rt, tags)
+}
+
+func reflectTryRecover(ctx EnsurerContext, state *api.NSXTInfraState, rt RecoverableTask, tags []model.Tag) bool {
+	var cursor *string
+	total := 0
+	count := 0
+	for {
+		result, err := rt.ListAll(ctx, state, cursor)
+		if err != nil {
+			return false
+		}
+		vresult := reflect.ValueOf(result)
+		fieldResults := vresult.FieldByName("Results")
+		fieldResultCount := vresult.FieldByName("ResultCount")
+		fieldCursor := vresult.FieldByName("Cursor")
+		items := fieldResults.Len()
+		for i := 0; i < items; i++ {
+			vitem := fieldResults.Index(i)
+			fieldTags := vitem.FieldByName("Tags")
+			itemTags := (fieldTags.Interface()).([]model.Tag)
+			if containsTags(itemTags, tags) {
+				// found
+				id := vitem.FieldByName("Id").Elem().String()
+				path := vitem.FieldByName("Path").Elem().String()
+				pName := vitem.FieldByName("DisplayName").Interface().(*string)
+				pRef := &api.Reference{ID: id, Path: path}
+				rt.SetRecoveredReference(state, pRef, pName)
+				return true
+			}
+		}
+		if cursor == nil {
+			total = int(fieldResultCount.Elem().Int())
+		}
+		count += items
+		if count >= total || items == 0 {
+			return false
+		}
+		s := fieldCursor.Elem().String()
+		cursor = &s
+	}
 }

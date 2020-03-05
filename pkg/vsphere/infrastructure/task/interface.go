@@ -20,6 +20,7 @@ package task
 import (
 	"github.com/go-logr/logr"
 	"github.com/vmware/go-vmware-nsxt"
+	"github.com/vmware/go-vmware-nsxt/common"
 	vapiclient "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 
 	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
@@ -32,14 +33,25 @@ type EnsurerContext interface {
 	Connector() vapiclient.Connector
 	// NSXTClient NSX Manager client - based on go-vmware-nsxt SDK (Advanced API)
 	NSXTClient() *nsxt.APIClient
-	// TryRecover returns is NSX-T object should be searched by tag if no reference is set in state
-	TryRecover() bool
+	// IsTryRecoverEnabled returns if NSX-T object should be searched by tag if no reference is set in state
+	IsTryRecoverEnabled() bool
 }
 
 type Task interface {
 	Label() string
 	Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (action string, err error)
 	EnsureDeleted(ctx EnsurerContext, state *api.NSXTInfraState) (deleted bool, err error)
-	Name(spec vinfra.NSXTInfraSpec) *string
+	NameToLog(spec vinfra.NSXTInfraSpec) *string
 	Reference(state *api.NSXTInfraState) *api.Reference
+}
+
+type RecoverableTask interface {
+	Reference(state *api.NSXTInfraState) *api.Reference
+	ListAll(a EnsurerContext, state *api.NSXTInfraState, cursor *string) (interface{}, error)
+	SetRecoveredReference(state *api.NSXTInfraState, ref *api.Reference, displayName *string)
+}
+
+type RecoverableAdvancedTask interface {
+	Reference(state *api.NSXTInfraState) *api.Reference
+	TryRecover(ctx EnsurerContext, state *api.NSXTInfraState, tags []common.Tag) bool
 }

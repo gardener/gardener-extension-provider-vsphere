@@ -17,17 +17,18 @@ package infrastructure
 import (
 	"context"
 
-	extensionscontroller "github.com/gardener/gardener-extensions/pkg/controller"
+	"github.com/go-logr/logr"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+
 	"github.com/gardener/gardener-extensions/pkg/controller/common"
 	"github.com/gardener/gardener-extensions/pkg/controller/infrastructure"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/go-logr/logr"
-	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	extensionscontroller "github.com/gardener/gardener-extensions/pkg/controller"
 )
 
 type actuator struct {
 	common.ChartRendererContext
-	common.ClientContext
 
 	logger   logr.Logger
 	gardenID string
