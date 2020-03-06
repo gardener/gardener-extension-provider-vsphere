@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"os"
 
+	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
+
 	vsphereinstall "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
 	vspherecmd "github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd"
 	vspherecontrolplane "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/controlplane"
@@ -128,6 +130,10 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			}
 
 			if err := vsphereinstall.AddToScheme(scheme); err != nil {
+				controllercmd.LogErrAndExit(err, "Could not update manager scheme")
+			}
+
+			if err := druidv1alpha1.AddToScheme(scheme); err != nil {
 				controllercmd.LogErrAndExit(err, "Could not update manager scheme")
 			}
 
