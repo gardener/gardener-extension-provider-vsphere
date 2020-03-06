@@ -19,19 +19,19 @@ package worker
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
 	"path/filepath"
 	"strconv"
 
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/internal"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	extensionscontroller "github.com/gardener/gardener-extensions/pkg/controller"
 	"github.com/gardener/gardener-extensions/pkg/controller/worker"
 	corev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
 // MachineClassKind yields the name of the vSphere machine class.
@@ -70,7 +70,7 @@ func (w *workerDelegate) generateMachineClassSecretData(ctx context.Context) (ma
 		return nil, err
 	}
 
-	credentials, err := internal.ExtractCredentials(secret)
+	credentials, err := vsphere.ExtractCredentials(secret)
 	if err != nil {
 		return nil, err
 	}
@@ -100,9 +100,12 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		return err
 	}
 
-	infrastructureStatus := &apisvsphere.InfrastructureStatus{}
-	if _, _, err := w.Decoder().Decode(w.worker.Spec.InfrastructureProviderStatus.Raw, nil, infrastructureStatus); err != nil {
+	infrastructureStatus, err := helper.GetInfrastructureStatus(w.worker.Namespace, w.worker.Spec.InfrastructureProviderStatus)
+	if err != nil {
 		return err
+	}
+	if infrastructureStatus.NSXTInfraState == nil || infrastructureStatus.NSXTInfraState.SegmentName == nil {
+		return fmt.Errorf("SegmentName not set in nsxtInfraState")
 	}
 
 	if len(w.worker.Spec.SSHPublicKey) == 0 {
@@ -140,7 +143,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 				"region":     infrastructureStatus.VsphereConfig.Region,
 				"sshKeys":    []string{string(w.worker.Spec.SSHPublicKey)},
 				"datacenter": zoneConfig.Datacenter,
-				"network":    infrastructureStatus.Network,
+				"network":    *infrastructureStatus.NSXTInfraState.SegmentName,
 				"templateVM": machineImagePath,
 				"numCpus":    numCpus,
 				"memory":     memoryInMB,

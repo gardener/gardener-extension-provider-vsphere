@@ -206,12 +206,15 @@ var _ = Describe("Machines", func() {
 						},
 						Region: region,
 						InfrastructureProviderStatus: &runtime.RawExtension{
-							Raw: encode(&api.InfrastructureStatus{
-								Network: networkName,
-								VsphereConfig: api.VsphereConfig{
+							Raw: encode(&apiv1alpha1.InfrastructureStatus{
+								TypeMeta: metav1.TypeMeta{
+									APIVersion: "vsphere.provider.extensions.gardener.cloud/v1alpha1",
+									Kind:       "InfrastructureStatus",
+								},
+								VsphereConfig: apiv1alpha1.VsphereConfig{
 									Folder: folder,
 									Region: region,
-									ZoneConfigs: map[string]api.ZoneConfig{
+									ZoneConfigs: map[string]apiv1alpha1.ZoneConfig{
 										"testregion-a": {
 											Datacenter:   datacenter,
 											Datastore:    datastore,
@@ -223,6 +226,10 @@ var _ = Describe("Machines", func() {
 											ResourcePool: resourcePool2,
 										},
 									},
+								},
+								NSXTInfraState: &apiv1alpha1.NSXTInfraState{
+									SegmentName:  &networkName,
+									AdvancedDHCP: apiv1alpha1.AdvancedDHCPState{},
 								},
 							}),
 						},

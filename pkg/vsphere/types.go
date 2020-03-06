@@ -30,8 +30,6 @@ const (
 	MCMProviderVsphereImageName = "machine-controller-manager-provider-vsphere"
 	// CloudControllerImageName is the name of the external vSphere CloudProvider image.
 	CloudControllerImageName = "vsphere-cloud-controller-manager"
-	// NsxtLbProviderImageName is the name of the external NSX-T Load Balancer Provider image.
-	NsxtLbProviderImageName = "nsxt-lb-provider-manager"
 
 	// CSIAttacherImageName is the name of the CSI attacher image.
 	CSIAttacherImageName = "csi-attacher"
@@ -61,9 +59,6 @@ const (
 	NSXTUsername = "nsxtUsername"
 	// Password is a constant for the key in a cloud provider secret holding the NSX-T password
 	NSXTPassword = "nsxtPassword"
-
-	// TerraformerPurposeInfra is a constant for the complete Terraform setup with purpose 'infrastructure'.
-	TerraformerPurposeInfra = "infra"
 
 	// CloudProviderConfig is the name of the configmap containing the cloud provider config.
 	CloudProviderConfig = "cloud-provider-config"

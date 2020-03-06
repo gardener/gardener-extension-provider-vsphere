@@ -29,22 +29,27 @@ data:
     {{- if .Values.labelZone }}
     zone = "{{ .Values.labelZone }}"
     {{- end }}
-  lb-cloudprovider.conf: |
+
     [LoadBalancer]
     ipPoolName = "{{ .Values.loadbalancer.ipPoolName }}"
     size = {{ .Values.loadbalancer.size }}
-    logicalRouterId = "{{ .Values.loadbalancer.logicalRouterId }}"
+    tier1GatewayPath = "{{ .Values.loadbalancer.tier1GatewayPath }}"
+    tcpAppProfileName = "{{ .Values.loadbalancer.tcpAppProfileName }}"
+    udpAppProfileName = "{{ .Values.loadbalancer.udpAppProfileName }}"
+    tags = { {{ template "tags" .Values.loadbalancer.tags }} }
 
     {{- range $i, $class := .Values.loadbalancer.classes }}
+
     [LoadBalancerClass {{ $class.name | quote }}]
     {{- if $class.ipPoolName }}
     ipPoolName="{{ $class.ipPoolName }}"
     {{- end }}
+    {{- if $class.tcpAppProfileName }}
+    tcpAppProfileName="{{ $class.tcpAppProfileName }}"
     {{- end }}
-
-    [Tags]
-    {{- range $scope, $tag := .Values.loadbalancer.tags }}
-    {{ $scope }} = "{{ $tag }}"
+    {{- if $class.udpAppProfileName }}
+    udpAppProfileName="{{ $class.udpAppProfileName }}"
+    {{- end }}
     {{- end }}
 
     [NSX-T]

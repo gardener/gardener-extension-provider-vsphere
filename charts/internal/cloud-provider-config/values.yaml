@@ -15,13 +15,20 @@ datacenters: dc
 loadbalancer:
   ipPoolName: gardener_lb_ip_pool
   size: MEDIUM
-  logicalRouterId: my.logical.t1.router
-  
+  tier1GatewayPath: mm/t1gateway/path
+  tcpAppProfileName: default-tcp-lb-app-profile
+  udpAppProfileName: default-udp-lb-app-profile
+
   classes:
     - name: public
     - name: private
+      #ipPoolName: gardener_lb_ip_pool_private
+      #tcpAppProfileName: tcp-app-profile-private
+      #udpAppProfileName: udp-app-profile-private
+
   tags: {}
     # myscope: mytagvalue
+
 nsxt:
   host: my.nsxt.server.ip.or.fqdn
   username: admin

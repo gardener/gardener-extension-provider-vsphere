@@ -19,12 +19,15 @@ package controlplane
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/gardener/gardener-extensions/pkg/controller/controlplane/genericactuator"
 
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	extensionscontroller "github.com/gardener/gardener-extensions/pkg/controller"
 	mockclient "github.com/gardener/gardener-extensions/pkg/mock/controller-runtime/client"
+
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	apisvspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
@@ -51,6 +54,7 @@ var _ = Describe("ValuesProvider", func() {
 		// Build scheme
 		scheme = runtime.NewScheme()
 		_      = apisvsphere.AddToScheme(scheme)
+		_      = apisvspherev1alpha1.AddToScheme(scheme)
 
 		cpConfig = &apisvsphere.ControlPlaneConfig{
 			CloudControllerManager: &apisvsphere.CloudControllerManagerConfig{
@@ -76,16 +80,16 @@ var _ = Describe("ValuesProvider", func() {
 				},
 				InfrastructureProviderStatus: &runtime.RawExtension{
 					Raw: encode(&apisvsphere.InfrastructureStatus{
-						Network: "gardener-test-network",
+						NSXTInfraState: &apisvsphere.NSXTInfraState{
+							SegmentName:  sp("gardener-test-network"),
+							AdvancedDHCP: apisvsphere.AdvancedDHCPState{},
+						},
 					}),
 				},
 			},
 		}
 
 		cidr    = "10.250.0.0/19"
-		dc      = "scc01-DC"
-		ds      = "A800_VMwareB"
-		cc      = "scc01w01-DEV"
 		cluster = &extensionscontroller.Cluster{
 			CloudProfile: &gardencorev1beta1.CloudProfile{
 				Spec: gardencorev1beta1.CloudProfileSpec{
@@ -105,12 +109,12 @@ var _ = Describe("ValuesProvider", func() {
 										LogicalTier0Router: "lt0router",
 										EdgeCluster:        "edgecluster",
 										SNATIPPool:         "snatIpPool",
-										Datacenter:         &dc,
-										Datastore:          &ds,
+										Datacenter:         sp("scc01-DC"),
+										Datastore:          sp("A800_VMwareB"),
 										Zones: []apisvsphere.ZoneSpec{
 											{
 												Name:           "testzone",
-												ComputeCluster: &cc,
+												ComputeCluster: sp("scc01w01-DEV"),
 											},
 										},
 									},
@@ -125,8 +129,9 @@ var _ = Describe("ValuesProvider", func() {
 												IPPoolName: "lbpool",
 											},
 											{
-												Name:       "private",
-												IPPoolName: "lbpool2",
+												Name:              "private",
+												IPPoolName:        "lbpool2",
+												TCPAppProfileName: sp("tcpprof2"),
 											},
 										},
 									},
@@ -137,7 +142,7 @@ var _ = Describe("ValuesProvider", func() {
 											{
 												Version: "2191.5.0",
 												Path:    "gardener/templates/coreos-2191.5.0",
-												GuestID: "coreos64Guest",
+												GuestID: sp("coreos64Guest"),
 											},
 										},
 									},
@@ -210,9 +215,13 @@ var _ = Describe("ValuesProvider", func() {
 				"ipPoolName": "lbpool",
 				"classes": []map[string]interface{}{
 					{
-						"name":       "private",
-						"ipPoolName": "lbpool2",
+						"name":              "private",
+						"ipPoolName":        "lbpool2",
+						"tcpAppProfileName": "tcpprof2",
 					},
+				},
+				"tags": map[string]interface{}{
+					"owner": "garden1234",
 				},
 			},
 			"nsxt": map[string]interface{}{
@@ -238,17 +247,6 @@ var _ = Describe("ValuesProvider", func() {
 				"featureGates": map[string]bool{
 					"CustomResourceValidation": true,
 				},
-			},
-			"nsxt-lb-provider-manager": map[string]interface{}{
-				"podAnnotations": map[string]interface{}{
-					"checksum/secret-cloud-controller-manager":        "3d791b164a808638da9a8df03924be2a41e34cd664e42231c00fe369e3588272",
-					"checksum/secret-cloud-controller-manager-server": "6dff2a2e6f14444b66d8e4a351c049f7e89ee24ba3eaab95dbec40ba6bdebb52",
-					"checksum/secret-cloudprovider":                   "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
-					"checksum/configmap-cloud-provider-config":        "08a7bc7fe8f59b055f173145e211760a83f02cf89635cef26ebb351378635606",
-				},
-				"replicas":          1,
-				"clusterName":       "shoot--foo--bar-garden1234",
-				"kubernetesVersion": "1.14.0",
 			},
 			"csi-vsphere": map[string]interface{}{
 				"replicas":          1,
@@ -359,4 +357,8 @@ func clientGet(result runtime.Object) interface{} {
 		}
 		return nil
 	}
+}
+
+func sp(s string) *string {
+	return &s
 }

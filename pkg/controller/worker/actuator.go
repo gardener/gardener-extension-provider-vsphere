@@ -19,10 +19,6 @@ package worker
 import (
 	"context"
 
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/imagevector"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/internal/helper"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	extensionscontroller "github.com/gardener/gardener-extensions/pkg/controller"
 	"github.com/gardener/gardener-extensions/pkg/controller/common"
 	"github.com/gardener/gardener-extensions/pkg/controller/worker"
@@ -33,6 +29,11 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/imagevector"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
 type delegateFactory struct {
@@ -108,7 +109,7 @@ func NewWorkerDelegate(
 	worker *extensionsv1alpha1.Worker,
 	cluster *extensionscontroller.Cluster,
 ) (genericactuator.WorkerDelegate, error) {
-	config, err := helper.GetCloudProfileConfig(&clientContext, cluster)
+	config, err := helper.GetCloudProfileConfig(cluster)
 	if err != nil {
 		return nil, err
 	}
