@@ -37,13 +37,17 @@ import (
 
 var (
 	// Used for flags.
-	stateFile       string
-	outputStateFile string
-	specFile        string
-	cfgFile         string
-	clusterName     string
-	ipPoolName      string
-	owner           string
+	stateFile        string
+	outputStateFile  string
+	specFile         string
+	cfgFile          string
+	clusterName      string
+	ipPoolName       string
+	owner            string
+	kubeconfig       string
+	cloudProfileName string
+	region           string
+	outputConfigFile string
 
 	config *infrastructure.NSXTConfig
 
@@ -59,6 +63,9 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file with NSX-T configuration")
+	rootCmd.PersistentFlags().StringVar(&kubeconfig, "kubeconfig", "", "kubeconfig of virtual garden")
+	rootCmd.PersistentFlags().StringVar(&cloudProfileName, "cloudprofile", "", "name of the vSphere cloud profile")
+	rootCmd.PersistentFlags().StringVar(&region, "region", "", "region of the vSphere cloud profile")
 
 	destroyCmd := &cobra.Command{
 		Use:   "destroy",
@@ -96,12 +103,26 @@ func init() {
 	createCmd.Flags().StringVar(&outputStateFile, "outputState", "", "filename to store the state")
 	createCmd.Run = createInfra
 	rootCmd.AddCommand(createCmd)
+
+	createConfigFileCmd := &cobra.Command{
+		Use:   "createConfigFile",
+		Short: "create config file with NSX-T configuration by reading from cloud profile",
+		Long:  `Creates the NSX-T config file by reading the cloud profile and secret on the virtual garden.`,
+	}
+	createConfigFileCmd.Flags().StringVar(&outputConfigFile, "outputConfigFile", "", "filename to store the config file")
+	createConfigFileCmd.Run = createConfigFile
+	rootCmd.AddCommand(createConfigFileCmd)
 }
 
 func initConfig() {
 	if cfgFile == "" {
-		panic("missing config file")
+		if kubeconfig == "" || cloudProfileName == "" {
+			panic("missing config file (or alternatively provide kubeconfig and cloudprofile name)")
+		}
+		initConfigFromVirtualGarden()
+		return
 	}
+
 	cfgContent, err := ioutil.ReadFile(cfgFile)
 	if err != nil {
 		panic(err)
@@ -112,6 +133,20 @@ func initConfig() {
 	if err != nil {
 		panic(errors.Wrapf(err, "unmarshalling config file failed"))
 	}
+}
+
+func initConfigFromVirtualGarden() {
+	if kubeconfig == "" {
+		panic("missing kubeconfig")
+	}
+	if cloudProfileName == "" {
+		panic("missing cloudprofile name")
+	}
+	cfg, err := infra_cli.BuildConfigFile(kubeconfig, cloudProfileName, region)
+	if err != nil {
+		panic(errors.Wrapf(err, "BuildConfigFile failed"))
+	}
+	config = cfg
 }
 
 func destroyInfra(cmd *cobra.Command, args []string) {
@@ -139,7 +174,7 @@ func destroyInfra(cmd *cobra.Command, args []string) {
 	}
 	resultingState, err := infra_cli.DestroyInfrastructure(logger, config, stateString, specString)
 	if resultingState != nil {
-		err2 := saveState(stateFile, *resultingState)
+		err2 := saveFile(stateFile, *resultingState)
 		if err2 != nil {
 			logger.Error(err2, "saving state failed, please save it yourself from the console output!")
 		}
@@ -162,7 +197,7 @@ func createInfra(cmd *cobra.Command, args []string) {
 	}
 	resultingState, err := infra_cli.CreateInfrastructure(logger, config, string(spec))
 	if resultingState != nil {
-		err2 := saveState(outputStateFile, *resultingState)
+		err2 := saveFile(outputStateFile, *resultingState)
 		if err2 != nil {
 			logger.Error(err2, "saving state failed, please save it yourself from the console output!")
 		}
@@ -172,14 +207,29 @@ func createInfra(cmd *cobra.Command, args []string) {
 	}
 }
 
-func saveState(filename, stateContents string) error {
+func createConfigFile(cmd *cobra.Command, args []string) {
+	if outputConfigFile == "" {
+		panic("missing output config file name")
+	}
+	bytes, err := yaml.Marshal(&config)
+	if err != nil {
+		panic(err)
+	}
+	err = saveFile(outputConfigFile, string(bytes))
+	if err != nil {
+		panic(err)
+	}
+	logger.Info("written config file to " + outputConfigFile)
+}
+
+func saveFile(filename, contents string) error {
 	if fileExists(filename) {
 		err := os.Rename(filename, filename+".bak")
 		if err != nil {
 			return err
 		}
 	}
-	return ioutil.WriteFile(filename, []byte(stateContents), 0644)
+	return ioutil.WriteFile(filename, []byte(contents), 0644)
 }
 
 func fileExists(filename string) bool {
