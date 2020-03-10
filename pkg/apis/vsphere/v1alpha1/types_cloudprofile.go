@@ -114,7 +114,7 @@ type RegionSpec struct {
 // A zone in a region consists of a data center (if not specified in the region), a computer cluster,
 // and optionally a resource zone or host system.
 type ZoneSpec struct {
-	// Nmae is the name of the zone
+	// Name is the name of the zone
 	Name string `json:"name"`
 	// Datacenter is the name of the vSphere data center (data center can either be defined at region or zone level)
 	// +optional

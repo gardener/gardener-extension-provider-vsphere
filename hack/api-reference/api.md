@@ -1436,7 +1436,7 @@ string
 </em>
 </td>
 <td>
-<p>Nmae is the name of the zone</p>
+<p>Name is the name of the zone</p>
 </td>
 </tr>
 <tr>
