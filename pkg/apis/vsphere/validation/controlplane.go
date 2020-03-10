@@ -15,26 +15,24 @@
 package validation
 
 import (
-	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	"fmt"
+
+	"github.com/gardener/controller-manager-library/pkg/utils"
+	"k8s.io/apimachinery/pkg/api/equality"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 
-	"k8s.io/apimachinery/pkg/util/validation/field"
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 )
 
 // ValidateControlPlaneConfig validates a ControlPlaneConfig object.
-func ValidateControlPlaneConfig(controlPlaneConfig *apisvsphere.ControlPlaneConfig, region string, regions []gardencorev1beta1.Region, constraints apisvsphere.Constraints) field.ErrorList {
+func ValidateControlPlaneConfig(controlPlaneConfig *apisvsphere.ControlPlaneConfig, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
-	knownClassNames := map[string]bool{}
-	for _, cls := range constraints.LoadBalancerConfig.Classes {
-		knownClassNames[cls.Name] = true
-	}
 	for _, lbclass := range controlPlaneConfig.LoadBalancerClasses {
 		if lbclass.Name == "" {
-			allErrs = append(allErrs, field.Required(field.NewPath("loadBalancerClasses", "name"), "name of load balancer class must be set"))
-		} else if _, ok := knownClassNames[lbclass.Name]; !ok {
-			allErrs = append(allErrs, field.Invalid(field.NewPath("loadBalancerClasses", "name"), lbclass.Name, "must be defined in in cloud profile constraints"))
+			allErrs = append(allErrs, field.Required(fldPath.Child("loadBalancerClasses", "name"), "name of load balancer class must be set"))
 		}
 	}
 
@@ -49,7 +47,126 @@ func ValidateControlPlaneConfig(controlPlaneConfig *apisvsphere.ControlPlaneConf
 }
 
 // ValidateControlPlaneConfigUpdate validates a ControlPlaneConfig object.
-func ValidateControlPlaneConfigUpdate(oldConfig, newConfig *apisvsphere.ControlPlaneConfig, region string, regions []gardencorev1beta1.Region) field.ErrorList {
+func ValidateControlPlaneConfigUpdate(oldConfig, newConfig *apisvsphere.ControlPlaneConfig, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
+
+	// load balancer size overwrite is immutable
+	if isSet(oldConfig.LoadBalancerSize) != isSet(newConfig.LoadBalancerSize) ||
+		isSet(oldConfig.LoadBalancerSize) && *oldConfig.LoadBalancerSize != *newConfig.LoadBalancerSize {
+		allErrs = append(allErrs, field.Forbidden(fldPath.Child("loadBalancerSize"), "load balancer size cannot be changed"))
+	}
+
+	// default load balancer class overwrite is immutable
+	constraintsClasses := []apisvsphere.LoadBalancerClass{
+		{Name: apisvsphere.LoadBalancerDefaultClassName, IPPoolName: sp("dummy")},
+	}
+	oldDefault, _, err := OverwriteLoadBalancerClasses(constraintsClasses, oldConfig)
+	if err != nil {
+		allErrs = append(allErrs, field.InternalError(fldPath.Child("loadBalancerClasses"), err))
+		return allErrs
+	}
+	newDefault, _, err := OverwriteLoadBalancerClasses(constraintsClasses, newConfig)
+	if err != nil {
+		allErrs = append(allErrs, field.InternalError(fldPath.Child("loadBalancerClasses"), err))
+		return allErrs
+	}
+	if safeStr(oldDefault.IPPoolName) != safeStr(newDefault.IPPoolName) {
+		allErrs = append(allErrs, field.Forbidden(fldPath.Child("loadBalancerClasses", "ipPoolName"), fmt.Sprintf("default class %s is immutable", apisvsphere.LoadBalancerDefaultClassName)))
+	}
+	if safeStr(oldDefault.TCPAppProfileName) != safeStr(newDefault.TCPAppProfileName) {
+		allErrs = append(allErrs, field.Forbidden(fldPath.Child("loadBalancerClasses", "tcpAppProfileName"), fmt.Sprintf("default class %s is immutable", apisvsphere.LoadBalancerDefaultClassName)))
+	}
+	if safeStr(oldDefault.UDPAppProfileName) != safeStr(newDefault.UDPAppProfileName) {
+		allErrs = append(allErrs, field.Forbidden(fldPath.Child("loadBalancerClasses", "udpAppProfileName"), fmt.Sprintf("default class %s is immutable", apisvsphere.LoadBalancerDefaultClassName)))
+	}
 	return allErrs
+}
+
+// ValidateControlPlaneConfigAgainstCloudProfile validates the given ControlPlaneConfig against constraints in the given CloudProfile.
+func ValidateControlPlaneConfigAgainstCloudProfile(cpConfig *apisvsphere.ControlPlaneConfig, shootRegion string, cloudProfile *gardencorev1beta1.CloudProfile, cloudProfileConfig *apisvsphere.CloudProfileConfig, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+
+	_, _, err := OverwriteLoadBalancerClasses(cloudProfileConfig.Constraints.LoadBalancerConfig.Classes, cpConfig)
+	if err != nil {
+		allErrs = append(allErrs, field.InternalError(fldPath.Child("loadBalancerClasses"), err))
+	}
+
+	return allErrs
+}
+
+func HasRelevantControlPlaneConfigUpdates(oldCpConfig *apisvsphere.ControlPlaneConfig, newCpConfig *apisvsphere.ControlPlaneConfig) bool {
+	constraintsClasses := []apisvsphere.LoadBalancerClass{
+		{Name: apisvsphere.LoadBalancerDefaultClassName, IPPoolName: sp("dummy")},
+	}
+
+	oldDefaultClass, _, _ := OverwriteLoadBalancerClasses(constraintsClasses, oldCpConfig)
+	newDefaultClass, _, _ := OverwriteLoadBalancerClasses(constraintsClasses, newCpConfig)
+
+	return oldDefaultClass == nil || newDefaultClass == nil ||
+		!equality.Semantic.DeepEqual(*oldDefaultClass, *newDefaultClass)
+}
+
+// OverwriteLoadBalancerClasses uses load balancer constraints classes as defaults for cpConfig load balancer classes
+func OverwriteLoadBalancerClasses(constraintsClasses []apisvsphere.LoadBalancerClass, cpConfig *apisvsphere.ControlPlaneConfig) (*apisvsphere.LoadBalancerClass, []apisvsphere.LoadBalancerClass, error) {
+	var defaultClass *apisvsphere.LoadBalancerClass
+	loadBalancersClasses := []apisvsphere.LoadBalancerClass{}
+	if len(cpConfig.LoadBalancerClasses) == 0 {
+		cpConfig.LoadBalancerClasses = []apisvsphere.CPLoadBalancerClass{{Name: apisvsphere.LoadBalancerDefaultClassName}}
+	}
+	for i, class := range constraintsClasses {
+		if i == 0 || class.Name == apisvsphere.LoadBalancerDefaultClassName {
+			class0 := class
+			defaultClass = &class0
+		}
+	}
+	if defaultClass == nil {
+		return nil, nil, fmt.Errorf("no load balancer classes defined in cloud profile config")
+	}
+
+	for _, cpClass := range cpConfig.LoadBalancerClasses {
+		lbClass := apisvsphere.LoadBalancerClass{Name: cpClass.Name}
+		var constraintClass *apisvsphere.LoadBalancerClass
+		for _, class := range constraintsClasses {
+			if class.Name == cpClass.Name {
+				constraintClass = &class
+				break
+			}
+		}
+		if !utils.IsEmptyString(cpClass.IPPoolName) {
+			lbClass.IPPoolName = cpClass.IPPoolName
+		} else if constraintClass != nil && !utils.IsEmptyString(constraintClass.IPPoolName) {
+			lbClass.IPPoolName = constraintClass.IPPoolName
+		}
+		if !utils.IsEmptyString(cpClass.TCPAppProfileName) {
+			lbClass.TCPAppProfileName = cpClass.TCPAppProfileName
+		} else if constraintClass != nil && !utils.IsEmptyString(constraintClass.TCPAppProfileName) {
+			lbClass.TCPAppProfileName = constraintClass.TCPAppProfileName
+		}
+		if !utils.IsEmptyString(cpClass.UDPAppProfileName) {
+			lbClass.UDPAppProfileName = cpClass.UDPAppProfileName
+		} else if constraintClass != nil && !utils.IsEmptyString(constraintClass.UDPAppProfileName) {
+			lbClass.UDPAppProfileName = constraintClass.UDPAppProfileName
+		}
+		loadBalancersClasses = append(loadBalancersClasses, lbClass)
+		if lbClass.Name == defaultClass.Name {
+			defaultClass = &lbClass
+		}
+	}
+
+	if utils.IsEmptyString(defaultClass.IPPoolName) {
+		return nil, nil, fmt.Errorf("load balancer default class %q must specify ipPoolName in cloud profile", defaultClass.Name)
+	}
+
+	return defaultClass, loadBalancersClasses, nil
+}
+
+func sp(s string) *string {
+	return &s
+}
+
+func safeStr(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }

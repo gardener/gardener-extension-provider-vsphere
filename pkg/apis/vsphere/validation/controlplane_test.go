@@ -15,52 +15,27 @@
 package validation_test
 
 import (
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	. "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
-
-	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+
+	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	. "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
 )
 
 var _ = Describe("ControlPlaneConfig validation", func() {
 	var (
-		region = "foo"
-		zone   = "some-zone"
+		nilPath *field.Path
 
-		regions = []gardencorev1beta1.Region{
-			{
-				Name: region,
-				Zones: []gardencorev1beta1.AvailabilityZone{
-					{Name: zone},
-				},
-			},
-		}
-
-		constraints = apisvsphere.Constraints{
-			LoadBalancerConfig: apisvsphere.LoadBalancerConfig{
-				Size: "MEDIUM",
-				Classes: []apisvsphere.LoadBalancerClass{
-					{
-						Name:       "default",
-						IPPoolName: "lbpool",
-					},
-					{
-						Name:       "public",
-						IPPoolName: "lbpool2",
-					},
-				},
-			},
-		}
-
-		controlPlane *apisvsphere.ControlPlaneConfig
+		controlPlane *api.ControlPlaneConfig
 	)
 
 	BeforeEach(func() {
-		controlPlane = &apisvsphere.ControlPlaneConfig{
-			LoadBalancerClasses: []apisvsphere.CPLoadBalancerClass{
+		controlPlane = &api.ControlPlaneConfig{
+			LoadBalancerClasses: []api.CPLoadBalancerClass{
 				{Name: "default"},
 			},
 		}
@@ -68,13 +43,13 @@ var _ = Describe("ControlPlaneConfig validation", func() {
 
 	Describe("#ValidateControlPlaneConfig", func() {
 		It("should return no errors for a valid configuration", func() {
-			Expect(ValidateControlPlaneConfig(controlPlane, region, regions, constraints)).To(BeEmpty())
+			Expect(ValidateControlPlaneConfig(controlPlane, nilPath)).To(BeEmpty())
 		})
 
 		It("should require the name of a load balancer class", func() {
 			controlPlane.LoadBalancerClasses[0].Name = ""
 
-			errorList := ValidateControlPlaneConfig(controlPlane, region, regions, constraints)
+			errorList := ValidateControlPlaneConfig(controlPlane, nilPath)
 
 			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 				"Type":  Equal(field.ErrorTypeRequired),
@@ -82,26 +57,15 @@ var _ = Describe("ControlPlaneConfig validation", func() {
 			}))))
 		})
 
-		It("should require the name to be defined in the constraints", func() {
-			controlPlane.LoadBalancerClasses[0].Name = "bar"
-
-			errorList := ValidateControlPlaneConfig(controlPlane, region, regions, constraints)
-
-			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
-				"Type":  Equal(field.ErrorTypeInvalid),
-				"Field": Equal("loadBalancerClasses.name"),
-			}))))
-		})
-
 		It("should check valid value for load balancer size", func() {
 			s := "LARGE"
 			controlPlane.LoadBalancerSize = &s
-			errorList := ValidateControlPlaneConfig(controlPlane, region, regions, constraints)
-			Expect(errorList).To(ConsistOf())
+			errorList := ValidateControlPlaneConfig(controlPlane, nilPath)
+			Expect(errorList).To(BeEmpty())
 
 			s2 := "foo"
 			controlPlane.LoadBalancerSize = &s2
-			errorList = ValidateControlPlaneConfig(controlPlane, region, regions, constraints)
+			errorList = ValidateControlPlaneConfig(controlPlane, nilPath)
 			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 				"Type":  Equal(field.ErrorTypeNotSupported),
 				"Field": Equal("loadBalancerSize"),
@@ -111,7 +75,99 @@ var _ = Describe("ControlPlaneConfig validation", func() {
 
 	Describe("#ValidateControlPlaneConfigUpdate", func() {
 		It("should return no errors for an unchanged config", func() {
-			Expect(ValidateControlPlaneConfigUpdate(controlPlane, controlPlane, region, regions)).To(BeEmpty())
+			Expect(ValidateControlPlaneConfigUpdate(controlPlane, controlPlane, nilPath)).To(BeEmpty())
 		})
+
+		It("should not allow to change the load balancer size", func() {
+			newControlPlane := &api.ControlPlaneConfig{
+				LoadBalancerClasses: []api.CPLoadBalancerClass{
+					{Name: "default"},
+				},
+				LoadBalancerSize: sp("LARGE"),
+			}
+			Expect(ValidateControlPlaneConfigUpdate(controlPlane, newControlPlane, nilPath)).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+				"Type":  Equal(field.ErrorTypeForbidden),
+				"Field": Equal("loadBalancerSize"),
+			}))))
+		})
+
+		It("should not allow to change the default load balancer class", func() {
+			oldControlPlane := &api.ControlPlaneConfig{
+				LoadBalancerClasses: []api.CPLoadBalancerClass{
+					{Name: "default", IPPoolName: sp("oldpool"), TCPAppProfileName: sp("tcpprof")},
+				},
+			}
+			newControlPlane := &api.ControlPlaneConfig{
+				LoadBalancerClasses: []api.CPLoadBalancerClass{
+					{Name: "default", IPPoolName: sp("newpool"), UDPAppProfileName: sp("udpprof")},
+				},
+			}
+			Expect(ValidateControlPlaneConfigUpdate(oldControlPlane, newControlPlane, nilPath)).To(ConsistOf(
+				PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeForbidden),
+					"Field": Equal("loadBalancerClasses.ipPoolName"),
+				})),
+				PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeForbidden),
+					"Field": Equal("loadBalancerClasses.tcpAppProfileName"),
+				})),
+				PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeForbidden),
+					"Field": Equal("loadBalancerClasses.udpAppProfileName"),
+				})),
+			))
+		})
+	})
+
+	Describe("#ValidateControlPlaneConfigAgainstCloudProfile", func() {
+		var (
+			region = "foo"
+			zone   = "some-zone"
+
+			cloudProfileConfig *api.CloudProfileConfig
+			cloudProfile       *gardencorev1beta1.CloudProfile
+		)
+
+		BeforeEach(func() {
+			cloudProfile = &gardencorev1beta1.CloudProfile{
+				Spec: gardencorev1beta1.CloudProfileSpec{
+					Regions: []gardencorev1beta1.Region{
+						{
+							Name: region,
+							Zones: []gardencorev1beta1.AvailabilityZone{
+								{Name: zone},
+							},
+						},
+					},
+				},
+			}
+
+			cloudProfileConfig = &api.CloudProfileConfig{
+				Constraints: api.Constraints{
+					LoadBalancerConfig: api.LoadBalancerConfig{
+						Size: "MEDIUM",
+						Classes: []api.LoadBalancerClass{
+							{
+								Name:       "default",
+								IPPoolName: sp("lbpool"),
+							},
+							{
+								Name:       "public",
+								IPPoolName: sp("lbpool2"),
+							},
+						},
+					},
+				},
+			}
+		})
+
+		It("should return no errors if the name is not defined in the constraints", func() {
+			controlPlane.LoadBalancerClasses[0].Name = "bar"
+
+			errorList := ValidateControlPlaneConfigAgainstCloudProfile(controlPlane, "testRegion", cloudProfile, cloudProfileConfig, nilPath)
+
+			Expect(errorList).To(BeEmpty())
+		})
+
 	})
 })

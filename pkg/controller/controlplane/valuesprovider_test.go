@@ -97,10 +97,14 @@ var _ = Describe("ValuesProvider", func() {
 				Spec: gardencorev1beta1.CloudProfileSpec{
 					ProviderConfig: &gardencorev1beta1.ProviderConfig{
 						RawExtension: runtime.RawExtension{
-							Raw: encode(&apisvsphere.CloudProfileConfig{
+							Raw: encode(&apisvspherev1alpha1.CloudProfileConfig{
+								TypeMeta: metav1.TypeMeta{
+									APIVersion: "vsphere.provider.extensions.gardener.cloud/v1alpha1",
+									Kind:       "CloudProfileConfig",
+								},
 								NamePrefix:                    "nameprefix",
 								DefaultClassStoragePolicyName: "mypolicy",
-								Regions: []apisvsphere.RegionSpec{
+								Regions: []apisvspherev1alpha1.RegionSpec{
 									{
 										Name:               "testregion",
 										VsphereHost:        "vsphere.host.internal",
@@ -113,7 +117,7 @@ var _ = Describe("ValuesProvider", func() {
 										SNATIPPool:         "snatIpPool",
 										Datacenter:         sp("scc01-DC"),
 										Datastore:          sp("A800_VMwareB"),
-										Zones: []apisvsphere.ZoneSpec{
+										Zones: []apisvspherev1alpha1.ZoneSpec{
 											{
 												Name:           "testzone",
 												ComputeCluster: sp("scc01w01-DEV"),
@@ -122,25 +126,25 @@ var _ = Describe("ValuesProvider", func() {
 									},
 								},
 								DNSServers: []string{"1.2.3.4"},
-								Constraints: apisvsphere.Constraints{
-									LoadBalancerConfig: apisvsphere.LoadBalancerConfig{
+								Constraints: apisvspherev1alpha1.Constraints{
+									LoadBalancerConfig: apisvspherev1alpha1.LoadBalancerConfig{
 										Size: "MEDIUM",
-										Classes: []apisvsphere.LoadBalancerClass{
+										Classes: []apisvspherev1alpha1.LoadBalancerClass{
 											{
 												Name:       "default",
-												IPPoolName: "lbpool",
+												IPPoolName: sp("lbpool"),
 											},
 											{
 												Name:              "private",
-												IPPoolName:        "lbpool2",
+												IPPoolName:        sp("lbpool2"),
 												TCPAppProfileName: sp("tcpprof2"),
 											},
 										},
 									},
 								},
-								MachineImages: []apisvsphere.MachineImages{
+								MachineImages: []apisvspherev1alpha1.MachineImages{
 									{Name: "coreos",
-										Versions: []apisvsphere.MachineImageVersion{
+										Versions: []apisvspherev1alpha1.MachineImageVersion{
 											{
 												Version: "2191.5.0",
 												Path:    "gardener/templates/coreos-2191.5.0",

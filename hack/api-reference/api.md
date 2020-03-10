@@ -618,7 +618,8 @@ string
 </em>
 </td>
 <td>
-<p>IPPoolName is the name of the NSX-T IP pool.</p>
+<em>(Optional)</em>
+<p>IPPoolName is the name of the NSX-T IP pool (must be set for the default load balancer class).</p>
 </td>
 </tr>
 <tr>

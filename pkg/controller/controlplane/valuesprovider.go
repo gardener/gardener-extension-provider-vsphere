@@ -42,6 +42,7 @@ import (
 
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
@@ -287,8 +288,8 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 
 // GetStorageClassesChartValues returns the values for the shoot storageclasses chart applied by the generic actuator.
 func (vp *valuesProvider) GetStorageClassesChartValues(
-	ctx context.Context,
-	cp *extensionsv1alpha1.ControlPlane,
+	_ context.Context,
+	_ *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
 
@@ -353,58 +354,25 @@ func (vp *valuesProvider) getConfigChartValues(
 		return nil, err
 	}
 
-	var defaultClass *apisvsphere.LoadBalancerClass
-	loadBalancersClasses := []map[string]interface{}{}
-	if len(cpConfig.LoadBalancerClasses) == 0 {
-		cpConfig.LoadBalancerClasses = []apisvsphere.CPLoadBalancerClass{{Name: apisvsphere.LoadBalancerDefaultClassName}}
+	defaultClass, loadBalancersClasses, err := validation.OverwriteLoadBalancerClasses(cloudProfileConfig.Constraints.LoadBalancerConfig.Classes, cpConfig)
+	if err != nil {
+		return nil, err
 	}
-	for i, class := range cloudProfileConfig.Constraints.LoadBalancerConfig.Classes {
-		if i == 0 || class.Name == apisvsphere.LoadBalancerDefaultClassName {
-			class0 := class
-			defaultClass = &class0
-		}
-	}
-	if defaultClass == nil {
-		return nil, fmt.Errorf("no load balancer classes defined in cloud profile config")
-	}
-
-	for _, cpClass := range cpConfig.LoadBalancerClasses {
+	loadBalancersClassesMap := []map[string]interface{}{}
+	for _, cpClass := range loadBalancersClasses {
 		lbClass := map[string]interface{}{
 			"name": cpClass.Name,
 		}
-		var constraintClass *apisvsphere.LoadBalancerClass
-		for _, class := range cloudProfileConfig.Constraints.LoadBalancerConfig.Classes {
-			if class.Name == cpClass.Name {
-				constraintClass = &class
-				break
-			}
-		}
-		if utils.IsEmptyString(cpClass.IPPoolName) {
-			if constraintClass != nil && constraintClass.IPPoolName != "" {
-				lbClass["ipPoolName"] = constraintClass.IPPoolName
-			}
-		} else {
+		if !utils.IsEmptyString(cpClass.IPPoolName) {
 			lbClass["ipPoolName"] = *cpClass.IPPoolName
 		}
-		if utils.IsEmptyString(cpClass.TCPAppProfileName) {
-			if constraintClass != nil && !utils.IsEmptyString(constraintClass.TCPAppProfileName) {
-				lbClass["tcpAppProfileName"] = *constraintClass.TCPAppProfileName
-			}
-		} else {
+		if !utils.IsEmptyString(cpClass.TCPAppProfileName) {
 			lbClass["tcpAppProfileName"] = *cpClass.TCPAppProfileName
 		}
-		if utils.IsEmptyString(cpClass.UDPAppProfileName) {
-			if constraintClass != nil && !utils.IsEmptyString(constraintClass.UDPAppProfileName) {
-				lbClass["udpAppProfileName"] = *constraintClass.UDPAppProfileName
-			}
-		} else {
+		if !utils.IsEmptyString(cpClass.UDPAppProfileName) {
 			lbClass["udpAppProfileName"] = *cpClass.UDPAppProfileName
 		}
-		loadBalancersClasses = append(loadBalancersClasses, lbClass)
-	}
-
-	if defaultClass.IPPoolName == "" {
-		return nil, fmt.Errorf("load balancer default class %q must specify both ipPoolName and size in cloud profile", defaultClass.Name)
+		loadBalancersClassesMap = append(loadBalancersClassesMap, lbClass)
 	}
 
 	lbSize := cloudProfileConfig.Constraints.LoadBalancerConfig.Size
@@ -412,9 +380,9 @@ func (vp *valuesProvider) getConfigChartValues(
 		lbSize = *cpConfig.LoadBalancerSize
 	}
 	loadBalancer := map[string]interface{}{
-		"ipPoolName": defaultClass.IPPoolName,
+		"ipPoolName": *defaultClass.IPPoolName,
 		"size":       lbSize,
-		"classes":    loadBalancersClasses,
+		"classes":    loadBalancersClassesMap,
 		"tags":       map[string]interface{}{"owner": vp.gardenId},
 	}
 	if !utils.IsEmptyString(defaultClass.TCPAppProfileName) {

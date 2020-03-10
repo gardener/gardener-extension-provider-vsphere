@@ -20,12 +20,16 @@ package helper
 import (
 	"fmt"
 
-	"github.com/gardener/gardener-extensions/pkg/controller"
-	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/util/validation/field"
+
+	"github.com/gardener/gardener-extensions/pkg/controller"
+	"github.com/gardener/gardener-extensions/pkg/util"
+	"github.com/gardener/gardener/pkg/apis/core"
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
@@ -46,7 +50,7 @@ func init() {
 	decoder = serializer.NewCodecFactory(Scheme).UniversalDecoder()
 }
 
-func GetCloudProfileConfigFromProfile(profile *v1beta1.CloudProfile) (*vsphere.CloudProfileConfig, error) {
+func GetCloudProfileConfigFromProfile(profile *gardencorev1beta1.CloudProfile) (*vsphere.CloudProfileConfig, error) {
 	var cloudProfileConfig *vsphere.CloudProfileConfig
 	if profile.Spec.ProviderConfig != nil && profile.Spec.ProviderConfig.Raw != nil {
 		cloudProfileConfig = &vsphere.CloudProfileConfig{}
@@ -107,4 +111,31 @@ func GetInfrastructureConfig(cluster *controller.Cluster) (*vsphere.Infrastructu
 		return config, nil
 	}
 	return config, nil
+}
+
+func DecodeControlPlaneConfig(cp *core.ProviderConfig, fldPath *field.Path) (*vsphere.ControlPlaneConfig, error) {
+	controlPlaneConfig := &vsphere.ControlPlaneConfig{}
+	if err := util.Decode(decoder, cp.Raw, controlPlaneConfig); err != nil {
+		return nil, field.Invalid(fldPath, string(cp.Raw), "cannot be decoded")
+	}
+
+	return controlPlaneConfig, nil
+}
+
+func DecodeInfrastructureConfig(infra *core.ProviderConfig, fldPath *field.Path) (*vsphere.InfrastructureConfig, error) {
+	infraConfig := &vsphere.InfrastructureConfig{}
+	if err := util.Decode(decoder, infra.Raw, infraConfig); err != nil {
+		return nil, fmt.Errorf("cannot be decoded")
+	}
+
+	return infraConfig, nil
+}
+
+func DecodeCloudProfileConfig(config *gardencorev1beta1.ProviderConfig, fldPath *field.Path) (*vsphere.CloudProfileConfig, error) {
+	cloudProfileConfig := &vsphere.CloudProfileConfig{}
+	if err := util.Decode(decoder, config.Raw, cloudProfileConfig); err != nil {
+		return nil, field.Invalid(fldPath, string(config.Raw), "cannot be decoded")
+	}
+
+	return cloudProfileConfig, nil
 }
