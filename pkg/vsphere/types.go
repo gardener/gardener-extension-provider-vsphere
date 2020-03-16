@@ -22,8 +22,6 @@ const (
 	// Name is the name of the vSphere provider controller.
 	Name = "provider-vsphere"
 
-	// TerraformerImageName is the name of the Terraformer image.
-	TerraformerImageName = "terraformer"
 	// MachineControllerManagerImageName is the name of the MachineControllerManager image.
 	MachineControllerManagerImageName = "machine-controller-manager"
 	// MCMProviderVsphereImageName is the namne of the vSphere provider plugin image.
