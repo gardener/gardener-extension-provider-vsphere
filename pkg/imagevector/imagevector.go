@@ -21,8 +21,6 @@ package imagevector
 import (
 	"strings"
 
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-
 	"github.com/gardener/gardener/pkg/utils/imagevector"
 	"github.com/gobuffalo/packr/v2"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -46,11 +44,4 @@ func init() {
 // ImageVector is the image vector that contains all the needed images.
 func ImageVector() imagevector.ImageVector {
 	return imageVector
-}
-
-// TerraformerImage retrieves the Terraformer image.
-func TerraformerImage() string {
-	image, err := imageVector.FindImage(vsphere.TerraformerImageName)
-	runtime.Must(err)
-	return image.String()
 }
