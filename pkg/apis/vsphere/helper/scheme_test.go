@@ -127,7 +127,7 @@ machineImages:
 					Classes: []vsphere.LoadBalancerClass{
 						{
 							Name:       "default",
-							IPPoolName: "lbpool",
+							IPPoolName: sp("lbpool"),
 						},
 					},
 				},

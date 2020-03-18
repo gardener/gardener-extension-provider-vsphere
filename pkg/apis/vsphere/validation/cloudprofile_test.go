@@ -38,7 +38,7 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 						Classes: []apisvsphere.LoadBalancerClass{
 							{
 								Name:       "default",
-								IPPoolName: "lbpool",
+								IPPoolName: sp("lbpool"),
 							},
 						},
 					},

@@ -487,10 +487,6 @@ func expectGetSecretCallToWork(c *mockclient.MockClient, username, password stri
 }
 
 func createCluster(cloudProfileName, shootVersion string, images []apiv1alpha1.MachineImages) *extensionscontroller.Cluster {
-	dc := "scc01-DC"
-	ds := "A800_VMwareB"
-	ccA := "scc01w01-DEV-A"
-	ccB := "scc01w01-DEV-B"
 	cloudProfileConfig := &apiv1alpha1.CloudProfileConfig{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: apiv1alpha1.SchemeGroupVersion.String(),
@@ -510,16 +506,16 @@ func createCluster(cloudProfileName, shootVersion string, images []apiv1alpha1.M
 				LogicalTier0Router: "lt0router",
 				EdgeCluster:        "edgecluster",
 				SNATIPPool:         "snatIpPool",
-				Datacenter:         &dc,
-				Datastore:          &ds,
+				Datacenter:         sp("scc01-DC"),
+				Datastore:          sp("A800_VMwareB"),
 				Zones: []apiv1alpha1.ZoneSpec{
 					{
 						Name:           "testregion-a",
-						ComputeCluster: &ccA,
+						ComputeCluster: sp("scc01w01-DEV-A"),
 					},
 					{
 						Name:           "testregion-b",
-						ComputeCluster: &ccB,
+						ComputeCluster: sp("scc01w01-DEV-B"),
 					},
 				},
 			},
@@ -530,7 +526,7 @@ func createCluster(cloudProfileName, shootVersion string, images []apiv1alpha1.M
 				Classes: []apiv1alpha1.LoadBalancerClass{
 					{
 						Name:       "default",
-						IPPoolName: "lbpool",
+						IPPoolName: sp("lbpool"),
 					},
 				},
 			},
@@ -596,4 +592,8 @@ func prepareMachineClass(defaultMachineClass map[string]interface{}, machineClas
 	out["secret"].(map[string]interface{})[vsphere.InsecureSSL] = strconv.FormatBool(insecureSSL)
 
 	return out
+}
+
+func sp(s string) *string {
+	return &s
 }

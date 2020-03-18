@@ -175,8 +175,9 @@ type LoadBalancerConfig struct {
 type LoadBalancerClass struct {
 	// Name is the name of the LB class
 	Name string `json:"name"`
-	// IPPoolName is the name of the NSX-T IP pool.
-	IPPoolName string `json:"ipPoolName"`
+	// IPPoolName is the name of the NSX-T IP pool (must be set for the default load balancer class).
+	// +optional
+	IPPoolName *string `json:"ipPoolName"`
 	// TCPAppProfileName is the profile name of the load balaner profile for TCP
 	// +optional
 	TCPAppProfileName *string `json:"tcpAppProfileName,omitempty"`

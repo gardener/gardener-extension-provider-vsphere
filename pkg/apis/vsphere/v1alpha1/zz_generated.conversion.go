@@ -476,7 +476,7 @@ func Convert_vsphere_InfrastructureStatus_To_v1alpha1_InfrastructureStatus(in *v
 
 func autoConvert_v1alpha1_LoadBalancerClass_To_vsphere_LoadBalancerClass(in *LoadBalancerClass, out *vsphere.LoadBalancerClass, s conversion.Scope) error {
 	out.Name = in.Name
-	out.IPPoolName = in.IPPoolName
+	out.IPPoolName = (*string)(unsafe.Pointer(in.IPPoolName))
 	out.TCPAppProfileName = (*string)(unsafe.Pointer(in.TCPAppProfileName))
 	out.UDPAppProfileName = (*string)(unsafe.Pointer(in.UDPAppProfileName))
 	return nil
@@ -489,7 +489,7 @@ func Convert_v1alpha1_LoadBalancerClass_To_vsphere_LoadBalancerClass(in *LoadBal
 
 func autoConvert_vsphere_LoadBalancerClass_To_v1alpha1_LoadBalancerClass(in *vsphere.LoadBalancerClass, out *LoadBalancerClass, s conversion.Scope) error {
 	out.Name = in.Name
-	out.IPPoolName = in.IPPoolName
+	out.IPPoolName = (*string)(unsafe.Pointer(in.IPPoolName))
 	out.TCPAppProfileName = (*string)(unsafe.Pointer(in.TCPAppProfileName))
 	out.UDPAppProfileName = (*string)(unsafe.Pointer(in.UDPAppProfileName))
 	return nil

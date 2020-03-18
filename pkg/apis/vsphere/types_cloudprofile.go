@@ -163,8 +163,8 @@ const (
 type LoadBalancerClass struct {
 	// Name is the name of the LB class
 	Name string
-	// IPPoolName is the name of the NSX-T IP pool.
-	IPPoolName string
+	// IPPoolName is the name of the NSX-T IP pool (must be set for the default load balancer class).
+	IPPoolName *string
 	// TCPAppProfileName is the profile name of the load balaner profile for TCP
 	TCPAppProfileName *string
 	// UDPAppProfileName is the profile name of the load balaner profile for UDP

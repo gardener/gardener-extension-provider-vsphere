@@ -12,6 +12,11 @@ gardener-extension-provider-vsphere:
             image: 'eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere'
             dockerfile: 'Dockerfile'
             target: gardener-extension-provider-vsphere
+          gardener-extension-validator-vsphere:
+            registry: 'gcr-readwrite'
+            image: 'eu.gcr.io/gardener-project/gardener/extensions/validator-vsphere'
+            dockerfile: 'Dockerfile'
+            target: gardener-extension-validator-vsphere
     steps: ~
   jobs:
     head-update:
@@ -44,4 +49,6 @@ gardener-extension-provider-vsphere:
         publish:
           dockerimages:
             gardener-extension-provider-vsphere:
+              tag_as_latest: true
+            gardener-extension-validator-vsphere:
               tag_as_latest: true
