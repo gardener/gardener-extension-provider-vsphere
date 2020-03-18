@@ -46,12 +46,10 @@ type Task interface {
 }
 
 type RecoverableTask interface {
-	Reference(state *api.NSXTInfraState) *api.Reference
 	ListAll(a EnsurerContext, state *api.NSXTInfraState, cursor *string) (interface{}, error)
 	SetRecoveredReference(state *api.NSXTInfraState, ref *api.Reference, displayName *string)
 }
 
 type RecoverableAdvancedTask interface {
-	Reference(state *api.NSXTInfraState) *api.Reference
 	TryRecover(ctx EnsurerContext, state *api.NSXTInfraState, tags []common.Tag) bool
 }

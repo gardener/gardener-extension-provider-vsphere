@@ -21,6 +21,7 @@ import (
 	"fmt"
 
 	"github.com/gardener/gardener-extensions/pkg/controller"
+	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -45,17 +46,31 @@ func init() {
 	decoder = serializer.NewCodecFactory(Scheme).UniversalDecoder()
 }
 
-func GetCloudProfileConfig(cluster *controller.Cluster) (*vsphere.CloudProfileConfig, error) {
+func GetCloudProfileConfigFromProfile(profile *v1beta1.CloudProfile) (*vsphere.CloudProfileConfig, error) {
 	var cloudProfileConfig *vsphere.CloudProfileConfig
-	if cluster != nil && cluster.CloudProfile != nil && cluster.CloudProfile.Spec.ProviderConfig != nil && cluster.CloudProfile.Spec.ProviderConfig.Raw != nil {
+	if profile.Spec.ProviderConfig != nil && profile.Spec.ProviderConfig.Raw != nil {
 		cloudProfileConfig = &vsphere.CloudProfileConfig{}
-		if _, _, err := decoder.Decode(cluster.CloudProfile.Spec.ProviderConfig.Raw, nil, cloudProfileConfig); err != nil {
-			return nil, errors.Wrapf(err, "could not decode providerConfig of cloudProfile for '%s'", cluster.Shoot.Name)
+		if _, _, err := decoder.Decode(profile.Spec.ProviderConfig.Raw, nil, cloudProfileConfig); err != nil {
+			return nil, errors.Wrapf(err, "could not decode providerConfig of cloudProfile")
 		}
 		// TODO validate cloud profile on admission instead
 		if errs := validation.ValidateCloudProfileConfig(cloudProfileConfig); len(errs) > 0 {
-			return nil, errors.Wrap(errs.ToAggregate(), fmt.Sprintf("validation of providerConfig of cloud profile %q failed", cluster.CloudProfile.Name))
+			return nil, errors.Wrap(errs.ToAggregate(), fmt.Sprintf("validation of providerConfig failed"))
 		}
+	}
+	return cloudProfileConfig, nil
+}
+
+func GetCloudProfileConfig(cluster *controller.Cluster) (*vsphere.CloudProfileConfig, error) {
+	if cluster == nil {
+		return nil, nil
+	}
+	if cluster.CloudProfile == nil {
+		return nil, fmt.Errorf("missing cluster cloud profile")
+	}
+	cloudProfileConfig, err := GetCloudProfileConfigFromProfile(cluster.CloudProfile)
+	if err != nil {
+		return nil, errors.Wrapf(err, "shoot '%s'", cluster.Shoot.Name)
 	}
 	return cloudProfileConfig, nil
 }

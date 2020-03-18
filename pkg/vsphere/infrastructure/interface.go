@@ -34,19 +34,19 @@ type NSXTInfraSpec struct {
 // NSXTConfig contains the NSX-T specific configuration
 type NSXTConfig struct {
 	// NSX-T username.
-	User string `json:"user"`
+	User string `json:"user,omitempty"`
 	// NSX-T password in clear text.
-	Password string `json:"password"`
+	Password string `json:"password,omitempty"`
 	// NSX-T host.
-	Host string `json:"host"`
+	Host string `json:"host,omitempty"`
 	// InsecureFlag is to be set to true if NSX-T uses self-signed cert.
-	InsecureFlag bool `json:"insecure-flag"`
+	InsecureFlag bool `json:"insecure-flag,omitempty"`
 
-	VMCAccessToken     string `json:"vmcAccessToken"`
-	VMCAuthHost        string `json:"vmcAuthHost"`
-	ClientAuthCertFile string `json:"client-auth-cert-file"`
-	ClientAuthKeyFile  string `json:"client-auth-key-file"`
-	CAFile             string `json:"ca-file"`
+	VMCAccessToken     string `json:"vmcAccessToken,omitempty"`
+	VMCAuthHost        string `json:"vmcAuthHost,omitempty"`
+	ClientAuthCertFile string `json:"client-auth-cert-file,omitempty"`
+	ClientAuthKeyFile  string `json:"client-auth-key-file,omitempty"`
+	CAFile             string `json:"ca-file,omitempty"`
 }
 
 type NSXTInfrastructureEnsurer interface {
