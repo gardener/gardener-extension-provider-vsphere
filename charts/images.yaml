@@ -25,7 +25,7 @@ images:
   sourceRepository: github.com/MartinWeindel/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
   # "prelease" from cmi-client branch
-  tag: v0.26.0-cmiclient1
+  tag: "v0.26.0-cmiclient2"
 - name: machine-controller-manager-provider-vsphere
   sourceRepository: github.com/gardener/machine-controller-manager-provider-vsphere
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager-provider-vsphere
