@@ -176,6 +176,8 @@ type DNS struct {
 type DNSProvider struct {
 	// Domains contains information about which domains shall be included/excluded for this provider.
 	Domains *DNSIncludeExclude
+	// Primary indicates that this DNSProvider is used for shoot related domains.
+	Primary *bool
 	// SecretName is a name of a secret containing credentials for the stated domain and the
 	// provider. When not specified, the Gardener will use the cloud provider credentials referenced
 	// by the Shoot and try to find respective credentials there. Specifying this field may override
@@ -261,13 +263,13 @@ type Kubernetes struct {
 
 // ClusterAutoscaler contains the configration flags for the Kubernetes cluster autoscaler.
 type ClusterAutoscaler struct {
-	// ScaleDownDelayAfterAdd defines how long after scale up that scale down evaluation resumes (default: 10 mins).
+	// ScaleDownDelayAfterAdd defines how long after scale up that scale down evaluation resumes (default: 1 hour).
 	ScaleDownDelayAfterAdd *metav1.Duration
 	// ScaleDownDelayAfterDelete how long after node deletion that scale down evaluation resumes, defaults to scanInterval (defaults to ScanInterval).
 	ScaleDownDelayAfterDelete *metav1.Duration
 	// ScaleDownDelayAfterFailure how long after scale down failure that scale down evaluation resumes (default: 3 mins).
 	ScaleDownDelayAfterFailure *metav1.Duration
-	// ScaleDownUnneededTime defines how long a node should be unneeded before it is eligible for scale down (default: 10 mins).
+	// ScaleDownUnneededTime defines how long a node should be unneeded before it is eligible for scale down (default: 30 mins).
 	ScaleDownUnneededTime *metav1.Duration
 	// ScaleDownUtilizationThreshold defines the threshold in % under which a node is being removed
 	ScaleDownUtilizationThreshold *float64
@@ -289,8 +291,7 @@ type KubeAPIServerConfig struct {
 	AdmissionPlugins []AdmissionPlugin
 	// APIAudiences are the identifiers of the API. The service account token authenticator will
 	// validate that tokens used against the API are bound to at least one of these audiences.
-	// If `serviceAccountConfig.issuer` is configured and this is not, this defaults to a single
-	// element list containing the issuer URL.
+	// Defaults to ["kubernetes"].
 	APIAudiences []string
 	// AuditConfig contains configuration settings for the audit of the kube-apiserver.
 	AuditConfig *AuditConfig
@@ -309,10 +310,11 @@ type KubeAPIServerConfig struct {
 type ServiceAccountConfig struct {
 	// Issuer is the identifier of the service account token issuer. The issuer will assert this
 	// identifier in "iss" claim of issued tokens. This value is a string or URI.
+	// Defaults to URI of the API server.
 	Issuer *string
-	// SigningKeySecret is a reference to a secret that contains the current private key of the
+	// SigningKeySecret is a reference to a secret that contains an optional private key of the
 	// service account token issuer. The issuer will sign issued ID tokens with this private key.
-	// (Requires the 'TokenRequest' feature gate.)
+	// Only useful if service account tokens are also issued by another external system.
 	SigningKeySecret *corev1.LocalObjectReference
 }
 
@@ -490,6 +492,9 @@ type KubeletConfig struct {
 	MaxPods *int32
 	// PodPIDsLimit is the maximum number of process IDs per pod allowed by the kubelet.
 	PodPIDsLimit *int64
+	// ImagePullProgressDeadline describes the time limit under which if no pulling progress is made, the image pulling will be cancelled.
+	// Default: 1m
+	ImagePullProgressDeadline *metav1.Duration
 }
 
 // KubeletConfigEviction contains kubelet eviction thresholds supporting either a resource.Quantity or a percentage based value.
@@ -631,6 +636,8 @@ type Worker struct {
 	Annotations map[string]string
 	// CABundle is a certificate bundle which will be installed onto every machine of this worker pool.
 	CABundle *string
+	// CRI contains configurations of CRI support of every machine in the worker pool
+	CRI *CRI
 	// Kubernetes contains configuration for Kubernetes components related to this worker pool.
 	Kubernetes *WorkerKubernetes
 	// Labels is a map of key/value pairs for labels for all the `Node` objects in this worker pool.
@@ -699,6 +706,19 @@ type Volume struct {
 	// Encrypted determines if the volume should be encrypted.
 	Encrypted *bool
 }
+
+// CRI contains information about the Container Runtimes.
+type CRI struct {
+	// The name of the CRI library
+	Name CRIName
+}
+
+// CRIName is a type alias for the CRI name string.
+type CRIName string
+
+const (
+	CRINameContainerD CRIName = "containerd"
+)
 
 var (
 	// DefaultWorkerMaxSurge is the default value for Worker MaxSurge.
