@@ -45,18 +45,26 @@ var (
 // RegisterHealthChecks registers health checks for each extension resource
 // HealthChecks are grouped by extension (e.g worker), extension.type (e.g vsphere) and  Health Check Type (e.g SystemComponentsHealthy)
 func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) error {
-	normalPredicates := []predicate.Predicate{extensionspredicate.HasPurpose(extensionsv1alpha1.Normal)}
 	if err := healthcheck.DefaultRegistration(
 		vsphere.Type,
 		extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.ControlPlaneResource),
 		func() runtime.Object { return &extensionsv1alpha1.ControlPlane{} },
 		mgr,
 		opts,
-		normalPredicates,
-		map[healthcheck.HealthCheck]string{
-			general.NewSeedDeploymentHealthChecker(vsphere.CloudControllerManagerName):                   string(gardencorev1beta1.ShootControlPlaneHealthy),
-			general.CheckManagedResource(genericcontrolplaneactuator.ControlPlaneShootChartResourceName): string(gardencorev1beta1.ShootSystemComponentsHealthy),
-			general.CheckManagedResource(genericcontrolplaneactuator.StorageClassesChartResourceName):    string(gardencorev1beta1.ShootSystemComponentsHealthy),
+		[]predicate.Predicate{extensionspredicate.HasPurpose(extensionsv1alpha1.Normal)},
+		[]healthcheck.ConditionTypeToHealthCheck{
+			{
+				ConditionType: string(gardencorev1beta1.ShootControlPlaneHealthy),
+				HealthCheck:   general.NewSeedDeploymentHealthChecker(vsphere.CloudControllerManagerName),
+			},
+			{
+				ConditionType: string(gardencorev1beta1.ShootSystemComponentsHealthy),
+				HealthCheck:   general.CheckManagedResource(genericcontrolplaneactuator.ControlPlaneShootChartResourceName),
+			},
+			{
+				ConditionType: string(gardencorev1beta1.ShootSystemComponentsHealthy),
+				HealthCheck:   general.CheckManagedResource(genericcontrolplaneactuator.StorageClassesChartResourceName),
+			},
 		}); err != nil {
 		return err
 	}
@@ -68,10 +76,19 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 		mgr,
 		opts,
 		nil,
-		map[healthcheck.HealthCheck]string{
-			general.CheckManagedResource(genericworkeractuator.McmShootResourceName):     string(gardencorev1beta1.ShootSystemComponentsHealthy),
-			general.NewSeedDeploymentHealthChecker(vsphere.MachineControllerManagerName): string(gardencorev1beta1.ShootControlPlaneHealthy),
-			worker.NewSufficientNodesChecker():                                           string(gardencorev1beta1.ShootEveryNodeReady),
+		[]healthcheck.ConditionTypeToHealthCheck{
+			{
+				ConditionType: string(gardencorev1beta1.ShootSystemComponentsHealthy),
+				HealthCheck:   general.CheckManagedResource(genericworkeractuator.McmShootResourceName),
+			},
+			{
+				ConditionType: string(gardencorev1beta1.ShootControlPlaneHealthy),
+				HealthCheck:   general.NewSeedDeploymentHealthChecker(vsphere.MachineControllerManagerName),
+			},
+			{
+				ConditionType: string(gardencorev1beta1.ShootEveryNodeReady),
+				HealthCheck:   worker.NewSufficientNodesChecker(),
+			},
 		})
 }
 
