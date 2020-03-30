@@ -452,6 +452,7 @@ func autoConvert_v1alpha1_InfrastructureStatus_To_vsphere_InfrastructureStatus(i
 	if err := Convert_v1alpha1_VsphereConfig_To_vsphere_VsphereConfig(&in.VsphereConfig, &out.VsphereConfig, s); err != nil {
 		return err
 	}
+	out.CreationStarted = (*bool)(unsafe.Pointer(in.CreationStarted))
 	out.NSXTInfraState = (*vsphere.NSXTInfraState)(unsafe.Pointer(in.NSXTInfraState))
 	return nil
 }
@@ -465,6 +466,7 @@ func autoConvert_vsphere_InfrastructureStatus_To_v1alpha1_InfrastructureStatus(i
 	if err := Convert_vsphere_VsphereConfig_To_v1alpha1_VsphereConfig(&in.VsphereConfig, &out.VsphereConfig, s); err != nil {
 		return err
 	}
+	out.CreationStarted = (*bool)(unsafe.Pointer(in.CreationStarted))
 	out.NSXTInfraState = (*NSXTInfraState)(unsafe.Pointer(in.NSXTInfraState))
 	return nil
 }

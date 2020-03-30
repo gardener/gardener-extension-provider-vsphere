@@ -41,7 +41,6 @@ type preparedReconcile struct {
 	cloudProfileConfig *apisvsphere.CloudProfileConfig
 	region             *apisvsphere.RegionSpec
 	spec               infrastructure.NSXTInfraSpec
-	state              *apisvsphere.NSXTInfraState
 	ensurer            infrastructure.NSXTInfrastructureEnsurer
 }
 
@@ -87,12 +86,7 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 		DNSServers:        dnsServers,
 	}
 
-	ensurer, err := ensurer.NewNSXTInfrastructureEnsurer(a.logger, nsxtConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	infraStatus, err := apishelper.GetInfrastructureStatus(infra.Namespace, infra.Status.ProviderStatus)
+	infraEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(a.logger, nsxtConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -100,27 +94,54 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 	prepared := &preparedReconcile{
 		cloudProfileConfig: cloudProfileConfig,
 		region:             region,
-		ensurer:            ensurer,
 		spec:               spec,
-	}
-	if infraStatus != nil {
-		prepared.state = infraStatus.NSXTInfraState
+		ensurer:            infraEnsurer,
 	}
 	return prepared, nil
 }
 
+func (a *actuator) getInfrastructureState(infra *extensionsv1alpha1.Infrastructure) (*apisvsphere.NSXTInfraState, *bool, error) {
+	infraStatus, err := apishelper.GetInfrastructureStatus(infra.Namespace, infra.Status.ProviderStatus)
+	if err != nil {
+		return nil, nil, err
+	}
+	if infraStatus == nil {
+		return nil, nil, nil
+	}
+	return infraStatus.NSXTInfraState, infraStatus.CreationStarted, nil
+}
+
 func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
-	prepared, err := a.prepareReconcile(ctx, infra, cluster)
+	state, creationStarted, err := a.getInfrastructureState(infra)
 	if err != nil {
 		return err
 	}
 
-	state := prepared.state
+	prepared, err := a.prepareReconcile(ctx, infra, cluster)
+	if creationStarted == nil || !*creationStarted {
+		// early status update to allow deletion on wrong credentials
+		if err == nil {
+			err = prepared.ensurer.CheckConnection()
+		}
+		b := err == nil
+		creationStarted = &b
+		errUpdate := a.updateProviderStatus(ctx, infra, state, prepared, creationStarted)
+		if err != nil {
+			return err
+		}
+		if errUpdate != nil {
+			return errUpdate
+		}
+	}
+	if err != nil {
+		return err
+	}
+
 	if state == nil {
 		state = &apisvsphere.NSXTInfraState{}
 	}
 	err = prepared.ensurer.EnsureInfrastructure(prepared.spec, state)
-	errUpdate := a.updateProviderStatus(ctx, infra, state, prepared.cloudProfileConfig, prepared.region)
+	errUpdate := a.updateProviderStatus(ctx, infra, state, prepared, creationStarted)
 	if err != nil {
 		return err
 	}
@@ -133,10 +154,10 @@ func (a *actuator) updateProviderStatus(
 	ctx context.Context,
 	infra *extensionsv1alpha1.Infrastructure,
 	newState *apisvsphere.NSXTInfraState,
-	cloudProfileConfig *apisvsphere.CloudProfileConfig,
-	region *apisvsphere.RegionSpec,
+	prepared *preparedReconcile,
+	creationStarted *bool,
 ) error {
-	status, err := a.makeProviderInfrastructureStatus(newState, cloudProfileConfig, region)
+	status, err := a.makeProviderInfrastructureStatus(newState, prepared, creationStarted)
 	if err == nil {
 		err = a.doUpdateProviderStatus(ctx, infra, status)
 	}
@@ -148,8 +169,8 @@ func (a *actuator) updateProviderStatus(
 
 func (a *actuator) makeProviderInfrastructureStatus(
 	state *apisvsphere.NSXTInfraState,
-	cloudProfileConfig *apisvsphere.CloudProfileConfig,
-	region *apisvsphere.RegionSpec,
+	prepared *preparedReconcile,
+	creationStarted *bool,
 ) (*apisvsphere.InfrastructureStatus, error) {
 	safe := func(s *string) string {
 		if s == nil {
@@ -158,45 +179,52 @@ func (a *actuator) makeProviderInfrastructureStatus(
 		return *s
 	}
 
-	zoneConfigs := map[string]apisvsphere.ZoneConfig{}
-	for _, z := range region.Zones {
-		datacenter := region.Datacenter
-		if z.Datacenter != nil {
-			datacenter = z.Datacenter
-		}
-		if datacenter == nil {
-			return nil, fmt.Errorf("datacenter not set in zone %s", z.Name)
-		}
-		datastore := region.Datastore
-		datastoreCluster := region.DatastoreCluster
-		if z.Datastore != nil {
-			datastore = z.Datastore
-			datastoreCluster = nil
-		} else if z.DatastoreCluster != nil {
-			datastore = nil
-			datastoreCluster = z.DatastoreCluster
-		}
-		zoneConfigs[z.Name] = apisvsphere.ZoneConfig{
-			Datacenter:       safe(datacenter),
-			ComputeCluster:   safe(z.ComputeCluster),
-			ResourcePool:     safe(z.ResourcePool),
-			HostSystem:       safe(z.HostSystem),
-			Datastore:        safe(datastore),
-			DatastoreCluster: safe(datastoreCluster),
-		}
-	}
 	status := &apisvsphere.InfrastructureStatus{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: api.SchemeGroupVersion.String(),
 			Kind:       "InfrastructureStatus",
 		},
-		VsphereConfig: apisvsphere.VsphereConfig{
+		NSXTInfraState:  state,
+		CreationStarted: creationStarted,
+	}
+
+	if prepared != nil {
+		cloudProfileConfig := prepared.cloudProfileConfig
+		region := prepared.region
+		zoneConfigs := map[string]apisvsphere.ZoneConfig{}
+		for _, z := range region.Zones {
+			datacenter := region.Datacenter
+			if z.Datacenter != nil {
+				datacenter = z.Datacenter
+			}
+			if datacenter == nil {
+				return nil, fmt.Errorf("datacenter not set in zone %s", z.Name)
+			}
+			datastore := region.Datastore
+			datastoreCluster := region.DatastoreCluster
+			if z.Datastore != nil {
+				datastore = z.Datastore
+				datastoreCluster = nil
+			} else if z.DatastoreCluster != nil {
+				datastore = nil
+				datastoreCluster = z.DatastoreCluster
+			}
+			zoneConfigs[z.Name] = apisvsphere.ZoneConfig{
+				Datacenter:       safe(datacenter),
+				ComputeCluster:   safe(z.ComputeCluster),
+				ResourcePool:     safe(z.ResourcePool),
+				HostSystem:       safe(z.HostSystem),
+				Datastore:        safe(datastore),
+				DatastoreCluster: safe(datastoreCluster),
+			}
+		}
+		status.VsphereConfig = apisvsphere.VsphereConfig{
 			Folder:      cloudProfileConfig.Folder,
 			Region:      region.Name,
 			ZoneConfigs: zoneConfigs,
-		},
-		NSXTInfraState: state,
+		}
 	}
+
 	return status, nil
 }
 

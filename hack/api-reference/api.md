@@ -570,6 +570,16 @@ VsphereConfig
 </tr>
 <tr>
 <td>
+<code>creationStarted</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
 <code>nsxtInfraState</code></br>
 <em>
 <a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.NSXTInfraState">
