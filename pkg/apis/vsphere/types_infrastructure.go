@@ -90,5 +90,6 @@ type InfrastructureStatus struct {
 
 	VsphereConfig VsphereConfig
 
-	NSXTInfraState *NSXTInfraState
+	CreationStarted *bool
+	NSXTInfraState  *NSXTInfraState
 }

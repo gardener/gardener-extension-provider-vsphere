@@ -22,19 +22,22 @@ import (
 )
 
 func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
+	state, creationStarted, err := a.getInfrastructureState(infra)
+	if err != nil {
+		return err
+	}
+	if state == nil || creationStarted == nil || !*creationStarted {
+		// no state or creation has not started (e.g. wrong credentials) => nothing to do
+		return nil
+	}
+
 	prepared, err := a.prepareReconcile(ctx, infra, cluster)
 	if err != nil {
 		return err
 	}
 
-	if prepared.state == nil {
-		// no state => nothing to do
-		return nil
-	}
-
-	state := prepared.state
 	err = prepared.ensurer.EnsureInfrastructureDeleted(&prepared.spec, state)
-	errUpdate := a.updateProviderStatus(ctx, infra, state, prepared.cloudProfileConfig, prepared.region)
+	errUpdate := a.updateProviderStatus(ctx, infra, state, prepared, creationStarted)
 	if err != nil {
 		return err
 	}

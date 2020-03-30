@@ -274,6 +274,11 @@ func (in *InfrastructureStatus) DeepCopyInto(out *InfrastructureStatus) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.VsphereConfig.DeepCopyInto(&out.VsphereConfig)
+	if in.CreationStarted != nil {
+		in, out := &in.CreationStarted, &out.CreationStarted
+		*out = new(bool)
+		**out = **in
+	}
 	if in.NSXTInfraState != nil {
 		in, out := &in.NSXTInfraState, &out.NSXTInfraState
 		*out = new(NSXTInfraState)

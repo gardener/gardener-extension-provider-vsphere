@@ -49,7 +49,15 @@ type NSXTConfig struct {
 	CAFile             string `json:"ca-file,omitempty"`
 }
 
+// NSXTInfrastructureEnsurer ensures that infrastructure is completed created or deleted
 type NSXTInfrastructureEnsurer interface {
+	// CheckConnection checks if the NSX-T REST API is reachable with the given endpoint and credentials.
+	CheckConnection() error
+	// EnsureInfrastructure ensures that the infrastructure is complete
+	// It checks all infrastructure objects and creates missing one or updates them if important attributes have been changed.
+	// It can even recover objects not recorded in the state.
 	EnsureInfrastructure(spec NSXTInfraSpec, state *api.NSXTInfraState) error
+	// EnsureInfrastructureDeleted ensures that all infrastructure objects are deleted
+	// It even trys to recover objects not recorded in the state before deleting them.
 	EnsureInfrastructureDeleted(spec *NSXTInfraSpec, state *api.NSXTInfraState) error
 }

@@ -19,12 +19,14 @@ package ensurer
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	"github.com/vmware/go-vmware-nsxt"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/log"
 	vapiclient "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra"
 
 	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
@@ -62,7 +64,11 @@ func NewNSXTInfrastructureEnsurer(logger logr.Logger, nsxtConfig *vinfra.NSXTCon
 	log.SetLogger(NewLogrBridge(logger))
 	connector, err := createConnector(nsxtConfig)
 	if err != nil {
-		return nil, errors.Wrapf(err, "creating NSX-T connector failed")
+		submsg := ""
+		if strings.Contains(err.Error(), "com.vmware.vapi.std.errors.unauthorized") {
+			submsg = ". Please check credentials in provider-specific secret"
+		}
+		return nil, errors.Wrapf(err, "creating NSX-T connector failed%s", submsg)
 	}
 	nsxClient, err := createNSXClient(nsxtConfig)
 	if err != nil {
@@ -93,6 +99,12 @@ func NewNSXTInfrastructureEnsurer(logger logr.Logger, nsxtConfig *vinfra.NSXTCon
 		nsxtClient: nsxClient,
 		tasks:      tasks,
 	}, nil
+}
+
+func (e *ensurer) CheckConnection() error {
+	client := infra.NewDefaultTier0sClient(e.connector)
+	_, err := client.List(nil, nil, nil, nil, nil, nil)
+	return err
 }
 
 func (e *ensurer) EnsureInfrastructure(spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) error {

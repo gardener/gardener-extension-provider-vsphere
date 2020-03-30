@@ -91,5 +91,6 @@ type InfrastructureStatus struct {
 
 	VsphereConfig VsphereConfig `json:"vsphereConfig"`
 
-	NSXTInfraState *NSXTInfraState `json:"nsxtInfraState,omitempty"`
+	CreationStarted *bool           `json:"creationStarted,omitempty"`
+	NSXTInfraState  *NSXTInfraState `json:"nsxtInfraState,omitempty"`
 }
