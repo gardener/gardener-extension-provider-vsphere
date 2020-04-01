@@ -20,11 +20,11 @@ webhooks:
   namespaceSelector: {}
   clientConfig:
     {{- if .Values.global.virtualGarden.enabled }}
-    url: {{ printf "https://gardener-extension-validator-vsphere.%s/webhooks/validate-shoot" .Release.Namespace }}
+    url: {{ printf "https://%s.%s/webhooks/validate" (include "name" .) (.Release.Namespace) }}
     {{- else }}
     service:
       namespace: {{ .Release.Namespace }}
       name: {{ include "name" . }}
-      path: /webhooks/validate-shoot
+      path: /webhooks/validate
     {{- end }}
     caBundle: {{ required ".Values.webhookConfig.caBundle is required" (b64enc .Values.global.webhookConfig.caBundle) }}
