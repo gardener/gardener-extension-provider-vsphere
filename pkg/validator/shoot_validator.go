@@ -104,16 +104,17 @@ func (v *Shoot) validateShoot(context *validationContext) field.ErrorList {
 }
 
 func newValidationContext(ctx context.Context, c client.Client, shoot *core.Shoot) (*validationContext, error) {
-	if shoot.Spec.Provider.InfrastructureConfig == nil {
-		return nil, field.Required(infraConfigPath, "infrastructureConfig must be set for OpenStack shoots")
-	}
-	infraConfig, err := helper.DecodeInfrastructureConfig(shoot.Spec.Provider.InfrastructureConfig, infraConfigPath)
-	if err != nil {
-		return nil, err
+	infraConfig := &vsphere.InfrastructureConfig{}
+	if shoot.Spec.Provider.InfrastructureConfig != nil {
+		var err error
+		infraConfig, err = helper.DecodeInfrastructureConfig(shoot.Spec.Provider.InfrastructureConfig, infraConfigPath)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if shoot.Spec.Provider.ControlPlaneConfig == nil {
-		return nil, field.Required(cpConfigPath, "controlPlaneConfig must be set for OpenStack shoots")
+		return nil, field.Required(cpConfigPath, "controlPlaneConfig must be set for vSphere shoots")
 	}
 	cpConfig, err := helper.DecodeControlPlaneConfig(shoot.Spec.Provider.ControlPlaneConfig, cpConfigPath)
 	if err != nil {
