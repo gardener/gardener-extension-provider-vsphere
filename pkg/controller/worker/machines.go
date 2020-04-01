@@ -54,7 +54,6 @@ func (w *workerDelegate) DeployMachineClasses(ctx context.Context) error {
 		}
 	}
 	return w.seedChartApplier.Apply(ctx, filepath.Join(vsphere.InternalChartsPath, "machineclass"), w.worker.Namespace, "machineclass", kubernetes.Values(map[string]interface{}{"machineClasses": w.machineClasses}))
-
 }
 
 // GenerateMachineDeployments generates the configuration for the desired machine deployments.
@@ -116,6 +115,8 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 	}
 
 	for _, pool := range w.worker.Spec.Pools {
+		zoneLen := int32(len(pool.Zones))
+
 		workerPoolHash, err := worker.WorkerPoolHash(pool, w.cluster)
 		if err != nil {
 			return err
@@ -138,6 +139,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		}
 
 		for zoneIndex, zone := range pool.Zones {
+			zoneIdx := int32(zoneIndex)
 			zoneConfig, ok := infrastructureStatus.VsphereConfig.ZoneConfigs[zone]
 			if !ok {
 				return fmt.Errorf("zoneConfig not found for zone %s", zone)
@@ -183,10 +185,10 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 				Name:           deploymentName,
 				ClassName:      className,
 				SecretName:     className,
-				Minimum:        pool.Minimum,
-				Maximum:        pool.Maximum,
-				MaxSurge:       pool.MaxSurge,
-				MaxUnavailable: pool.MaxUnavailable,
+				Minimum:        worker.DistributeOverZones(zoneIdx, pool.Minimum, zoneLen),
+				Maximum:        worker.DistributeOverZones(zoneIdx, pool.Maximum, zoneLen),
+				MaxSurge:       worker.DistributePositiveIntOrPercent(zoneIdx, pool.MaxSurge, zoneLen, pool.Maximum),
+				MaxUnavailable: worker.DistributePositiveIntOrPercent(zoneIdx, pool.MaxUnavailable, zoneLen, pool.Minimum),
 				Labels:         pool.Labels,
 				Annotations:    pool.Annotations,
 				Taints:         pool.Taints,
