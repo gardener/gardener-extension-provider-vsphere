@@ -92,11 +92,6 @@ func (in *ETCDStorage) DeepCopyInto(out *ETCDStorage) {
 		x := (*in).DeepCopy()
 		*out = &x
 	}
-	if in.StoragePolicyName != nil {
-		in, out := &in.StoragePolicyName, &out.StoragePolicyName
-		*out = new(string)
-		**out = **in
-	}
 	return
 }
 
