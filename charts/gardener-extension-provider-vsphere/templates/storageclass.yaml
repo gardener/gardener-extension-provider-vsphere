@@ -8,5 +8,12 @@ metadata:
 provisioner: csi.vsphere.vmware.com
 allowVolumeExpansion: true
 parameters:
-  storagePolicyName: {{ .Values.config.etcd.storage.storagePolicyName }}
+  # volumeProvider name from seed object is used to specify storagePolicyName for etcd until better solution is in place
+  #storagePolicyName: {{ .Values.gardener.seed.volumeProvider }}
+  # temporary hard-coded
+  {{- if eq .Values.gardener.seed.region "rot1" }}
+  svStorageClass: gardener-fast-etcd-main
+  {{- else }}
+  storagePolicyName: gardener-fast-etcd-main
+  {{- end }}
 {{- end }}
