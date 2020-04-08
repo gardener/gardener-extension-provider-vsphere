@@ -26,7 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	"github.com/gardener/gardener-extensions/pkg/util"
+	"github.com/gardener/gardener/extensions/pkg/util"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )

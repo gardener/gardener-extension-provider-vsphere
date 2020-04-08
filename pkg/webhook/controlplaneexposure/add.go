@@ -16,9 +16,9 @@ package controlplaneexposure
 
 import (
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
-	extensionswebhook "github.com/gardener/gardener-extensions/pkg/webhook"
-	"github.com/gardener/gardener-extensions/pkg/webhook/controlplane"
-	"github.com/gardener/gardener-extensions/pkg/webhook/controlplane/genericmutator"
+	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
+	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane"
+	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/config"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"

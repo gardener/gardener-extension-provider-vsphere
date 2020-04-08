@@ -68,8 +68,8 @@ var _ = Describe("Shoot validation", func() {
 				{
 					Name: "worker1",
 					Volume: &core.Volume{
-						Type: pointer.StringPtr("Volume"),
-						Size: "30G",
+						Type:       pointer.StringPtr("Volume"),
+						VolumeSize: "30G",
 					},
 					Minimum: 1,
 					Maximum: 2,
@@ -78,8 +78,8 @@ var _ = Describe("Shoot validation", func() {
 				{
 					Name: "worker2",
 					Volume: &core.Volume{
-						Type: pointer.StringPtr("Volume"),
-						Size: "20G",
+						Type:       pointer.StringPtr("Volume"),
+						VolumeSize: "20G",
 					},
 					Minimum: 1,
 					Maximum: 2,

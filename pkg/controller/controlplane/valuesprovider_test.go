@@ -20,10 +20,10 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/gardener/gardener-extensions/pkg/controller/controlplane/genericactuator"
+	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 
-	extensionscontroller "github.com/gardener/gardener-extensions/pkg/controller"
-	mockclient "github.com/gardener/gardener-extensions/pkg/mock/controller-runtime/client"
+	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
 
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	apisvspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"

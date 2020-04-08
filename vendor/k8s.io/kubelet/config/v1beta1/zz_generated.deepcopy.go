@@ -280,11 +280,6 @@ func (in *KubeletConfiguration) DeepCopyInto(out *KubeletConfiguration) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
-	if in.AllowedUnsafeSysctls != nil {
-		in, out := &in.AllowedUnsafeSysctls, &out.AllowedUnsafeSysctls
-		*out = make([]string, len(*in))
-		copy(*out, *in)
-	}
 	return
 }
 

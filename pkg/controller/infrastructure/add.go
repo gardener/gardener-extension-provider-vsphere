@@ -18,7 +18,7 @@ package infrastructure
 
 import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-	"github.com/gardener/gardener-extensions/pkg/controller/infrastructure"
+	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
