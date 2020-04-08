@@ -19,9 +19,9 @@ package main
 import (
 	"github.com/gardener/gardener-extension-provider-vsphere/cmd/gardener-extension-provider-vsphere/app"
 
-	"github.com/gardener/gardener-extensions/pkg/controller"
-	controllercmd "github.com/gardener/gardener-extensions/pkg/controller/cmd"
-	"github.com/gardener/gardener-extensions/pkg/log"
+	"github.com/gardener/gardener/extensions/pkg/controller"
+	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
+	"github.com/gardener/gardener/extensions/pkg/log"
 	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
 )
 

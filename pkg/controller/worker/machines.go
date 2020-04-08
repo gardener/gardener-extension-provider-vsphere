@@ -22,18 +22,17 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/runtime"
-
-	extensionscontroller "github.com/gardener/gardener-extensions/pkg/controller"
-	"github.com/gardener/gardener-extensions/pkg/controller/worker"
-	corev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-	"github.com/gardener/gardener/pkg/client/kubernetes"
-	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+
+	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	"github.com/gardener/gardener/extensions/pkg/controller/worker"
+	corev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	"github.com/gardener/gardener/pkg/client/kubernetes"
+	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // MachineClassKind yields the name of the vSphere machine class.
@@ -242,9 +241,9 @@ func (w *workerDelegate) extractMachineValues(machineTypeName string) (numCpus, 
 
 	systemDiskSizeInGB = 20
 	if machineType.Storage != nil {
-		n, ok := machineType.Storage.Size.AsInt64()
+		n, ok := machineType.Storage.StorageSize.AsInt64()
 		if !ok {
-			err = fmt.Errorf("machine type %s has invalid storage size value %s", machineTypeName, machineType.Storage.Size.String())
+			err = fmt.Errorf("machine type %s has invalid storage size value %s", machineTypeName, machineType.Storage.StorageSize.String())
 			return
 		}
 		systemDiskSizeInGB = int(n) / (1024 * 1024 * 1024)

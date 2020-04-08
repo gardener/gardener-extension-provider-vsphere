@@ -15,6 +15,6 @@
 // +k8s:deepcopy-gen=package
 // +groupName="vsphere.provider.extensions.gardener.cloud"
 
-//go:generate ../../../hack/generate-code
+//go:generate ../../../hack/update-codegen.sh
 
 package vsphere // import "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"

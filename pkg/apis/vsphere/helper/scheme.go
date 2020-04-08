@@ -26,8 +26,8 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
-	"github.com/gardener/gardener-extensions/pkg/controller"
-	"github.com/gardener/gardener-extensions/pkg/util"
+	"github.com/gardener/gardener/extensions/pkg/controller"
+	"github.com/gardener/gardener/extensions/pkg/util"
 	"github.com/gardener/gardener/pkg/apis/core"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 
@@ -59,7 +59,7 @@ func GetCloudProfileConfigFromProfile(profile *gardencorev1beta1.CloudProfile) (
 		}
 		// TODO validate cloud profile on admission instead
 		if errs := validation.ValidateCloudProfileConfig(cloudProfileConfig); len(errs) > 0 {
-			return nil, errors.Wrap(errs.ToAggregate(), fmt.Sprintf("validation of providerConfig failed"))
+			return nil, errors.Wrap(errs.ToAggregate(), "validation of providerConfig failed")
 		}
 	}
 	return cloudProfileConfig, nil

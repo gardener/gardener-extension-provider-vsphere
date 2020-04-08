@@ -17,7 +17,6 @@ gardener-extension-provider-vsphere:
             image: 'eu.gcr.io/gardener-project/gardener/extensions/validator-vsphere'
             dockerfile: 'Dockerfile'
             target: gardener-extension-validator-vsphere
-    steps: ~
   jobs:
     head-update:
       traits:

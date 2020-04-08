@@ -14,7 +14,7 @@
  *
  */
 
-//go:generate ../../vendor/github.com/gardener/gardener-extensions/hack/generate-controller-registration.sh provider-vsphere . ../../VERSION ../../example/controller-registration.yaml ControlPlane:vsphere Infrastructure:vsphere Worker:vsphere
+//go:generate ../../vendor/github.com/gardener/gardener/extensions/hack/generate-controller-registration.sh provider-vsphere . ../../VERSION ../../example/controller-registration.yaml ControlPlane:vsphere Infrastructure:vsphere Worker:vsphere
 
 // Package chart enables go:generate support for generating the correct controller registration.
 package chart

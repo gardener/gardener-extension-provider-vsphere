@@ -21,7 +21,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/gardener/gardener-extensions/pkg/log"
+	"github.com/gardener/gardener/extensions/pkg/log"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
