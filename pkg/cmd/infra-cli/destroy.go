@@ -34,15 +34,21 @@ func DestroyInfrastructure(logger logr.Logger, cfg *infrastructure.NSXTConfig, s
 	if stateString == nil && specString == nil {
 		return nil, fmt.Errorf("Either state or spec is needed to destroy infrastructure")
 	}
-	ensurer, err := ensurer.NewNSXTInfrastructureEnsurer(logger, cfg)
+	infrastructureEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(logger, cfg)
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating ensurer failed")
 	}
-	state := &vsphere.NSXTInfraState{}
+	var state *vsphere.NSXTInfraState
 	if stateString != nil {
+		state = &vsphere.NSXTInfraState{}
 		err = json.Unmarshal([]byte(*stateString), state)
 		if err != nil {
 			return nil, errors.Wrapf(err, "unmarshalling state failed")
+		}
+	} else {
+		state, err = infrastructureEnsurer.NewStateWithVersion()
+		if err != nil {
+			return nil, errors.Wrapf(err, "NewStateWithVersion failed")
 		}
 	}
 	var spec *infrastructure.NSXTInfraSpec
@@ -53,7 +59,7 @@ func DestroyInfrastructure(logger logr.Logger, cfg *infrastructure.NSXTConfig, s
 			return nil, errors.Wrapf(err, "unmarshalling spec failed")
 		}
 	}
-	err = ensurer.EnsureInfrastructureDeleted(spec, state)
+	err = infrastructureEnsurer.EnsureInfrastructureDeleted(spec, state)
 	if err != nil {
 		resultingState := showState(logger, state)
 		return &resultingState, errors.Wrapf(err, "destroying infrastructure failed")

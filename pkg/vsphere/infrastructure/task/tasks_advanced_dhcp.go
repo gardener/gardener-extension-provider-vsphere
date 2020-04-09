@@ -20,8 +20,8 @@ package task
 import (
 	"fmt"
 	"net/http"
+	"reflect"
 
-	"github.com/pkg/errors"
 	"github.com/vmware/go-vmware-nsxt/common"
 	"github.com/vmware/go-vmware-nsxt/manager"
 
@@ -89,7 +89,7 @@ func (t *advancedDHCPProfileTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInf
 		}
 		if oldProfile.DisplayName != profile.DisplayName ||
 			oldProfile.EdgeClusterId != profile.EdgeClusterId ||
-			!equalCommonTags(oldProfile.Tags, profile.Tags) {
+			!containsCommonTags(oldProfile.Tags, profile.Tags) {
 			_, resp, err := ctx.NSXTClient().ServicesApi.UpdateDhcpProfile(ctx.NSXTClient().Context, *state.AdvancedDHCP.ProfileID, profile)
 			if err != nil {
 				return updatingErr(err)
@@ -156,18 +156,14 @@ func (t *advancedDHCPServerTask) Reference(state *api.NSXTInfraState) *api.Refer
 }
 
 func (t *advancedDHCPServerTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
-	dhcpServerIP, err := cidrHostAndPrefix(spec.WorkersNetwork, 2)
+	cfg, err := newDHCPConfig(spec)
 	if err != nil {
-		return "", errors.Wrapf(err, "DHCP server IP")
-	}
-	gatewayIP, err := cidrHost(spec.WorkersNetwork, 1)
-	if err != nil {
-		return "", errors.Wrapf(err, "gateway IP")
+		return "", err
 	}
 	ipv4DhcpServer := manager.IPv4DhcpServer{
-		DhcpServerIp:   dhcpServerIP,
-		DnsNameservers: spec.DNSServers,
-		GatewayIp:      gatewayIP,
+		DhcpServerIp:   cfg.DHCPServerAddress,
+		DnsNameservers: cfg.DNSServers,
+		GatewayIp:      cfg.GatewayIP,
 	}
 
 	server := manager.LogicalDhcpServer{
@@ -192,8 +188,8 @@ func (t *advancedDHCPServerTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfr
 			oldServer.Ipv4DhcpServer == nil ||
 			oldServer.Ipv4DhcpServer.DhcpServerIp != server.Ipv4DhcpServer.DhcpServerIp ||
 			oldServer.Ipv4DhcpServer.GatewayIp != server.Ipv4DhcpServer.GatewayIp ||
-			!equalOrderedStrings(oldServer.Ipv4DhcpServer.DnsNameservers, server.Ipv4DhcpServer.DnsNameservers) ||
-			!equalCommonTags(oldServer.Tags, server.Tags) {
+			!reflect.DeepEqual(oldServer.Ipv4DhcpServer.DnsNameservers, server.Ipv4DhcpServer.DnsNameservers) ||
+			!reflect.DeepEqual(oldServer.Tags, server.Tags) {
 			_, resp, err := ctx.NSXTClient().ServicesApi.UpdateDhcpServer(ctx.NSXTClient().Context, *state.AdvancedDHCP.ServerID, server)
 			if err != nil {
 				return updatingErr(err)
@@ -288,7 +284,7 @@ func (t *advancedDHCPPortTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraS
 			oldPort.Attachment == nil ||
 			oldPort.Attachment.AttachmentType != port.Attachment.AttachmentType ||
 			oldPort.Attachment.Id != port.Attachment.Id ||
-			!equalCommonTags(oldPort.Tags, port.Tags) {
+			!containsCommonTags(oldPort.Tags, port.Tags) {
 			_, resp, err := ctx.NSXTClient().LogicalSwitchingApi.UpdateLogicalPort(ctx.NSXTClient().Context, *state.AdvancedDHCP.PortID, port)
 			if err != nil {
 				return updatingErr(err)
@@ -357,27 +353,19 @@ func (t *advancedDHCPIPPoolTask) Reference(state *api.NSXTInfraState) *api.Refer
 }
 
 func (t *advancedDHCPIPPoolTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
-	gatewayIP, err := cidrHost(spec.WorkersNetwork, 1)
+	cfg, err := newDHCPConfig(spec)
 	if err != nil {
-		return "", errors.Wrapf(err, "gateway IP")
-	}
-	startIP, err := cidrHost(spec.WorkersNetwork, 10)
-	if err != nil {
-		return "", errors.Wrapf(err, "start IP of pool")
-	}
-	endIP, err := cidrHost(spec.WorkersNetwork, -1)
-	if err != nil {
-		return "", errors.Wrapf(err, "end IP of pool")
+		return "", err
 	}
 	ipPoolRange := manager.IpPoolRange{
-		Start: startIP,
-		End:   endIP,
+		Start: cfg.StartIP,
+		End:   cfg.EndIP,
 	}
 	pool := manager.DhcpIpPool{
 		DisplayName:      spec.FullClusterName(),
 		Description:      description,
-		GatewayIp:        gatewayIP,
-		LeaseTime:        7200,
+		GatewayIp:        cfg.GatewayIP,
+		LeaseTime:        cfg.LeaseTime,
 		ErrorThreshold:   98,
 		WarningThreshold: 70,
 		AllocationRanges: []manager.IpPoolRange{ipPoolRange},
@@ -401,7 +389,7 @@ func (t *advancedDHCPIPPoolTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfr
 			len(oldPool.AllocationRanges) != 1 ||
 			oldPool.AllocationRanges[0].Start != pool.AllocationRanges[0].Start ||
 			oldPool.AllocationRanges[0].End != pool.AllocationRanges[0].End ||
-			!equalCommonTags(oldPool.Tags, pool.Tags) {
+			!containsCommonTags(oldPool.Tags, pool.Tags) {
 			_, resp, err := ctx.NSXTClient().ServicesApi.UpdateDhcpIpPool(ctx.NSXTClient().Context, *state.AdvancedDHCP.ServerID, *state.AdvancedDHCP.IPPoolID, pool)
 			if err != nil {
 				return updatingErr(err)
@@ -456,25 +444,6 @@ func (t *advancedDHCPIPPoolTask) EnsureDeleted(ctx EnsurerContext, state *api.NS
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-func equalCommonTags(a, b []common.Tag) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for _, ai := range a {
-		found := false
-		for _, bi := range b {
-			if ai.Scope == bi.Scope && ai.Tag == bi.Tag {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-	return true
-}
 
 func updatingStateCode(statusCode int) (string, error) {
 	return "", fmt.Errorf("updating failed with unexpected HTTP status code %d", statusCode)

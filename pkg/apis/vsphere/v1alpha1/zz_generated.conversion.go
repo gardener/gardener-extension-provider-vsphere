@@ -597,6 +597,7 @@ func Convert_vsphere_MachineImages_To_v1alpha1_MachineImages(in *vsphere.Machine
 }
 
 func autoConvert_v1alpha1_NSXTInfraState_To_vsphere_NSXTInfraState(in *NSXTInfraState, out *vsphere.NSXTInfraState, s conversion.Scope) error {
+	out.Version = (*string)(unsafe.Pointer(in.Version))
 	out.EdgeClusterRef = (*vsphere.Reference)(unsafe.Pointer(in.EdgeClusterRef))
 	out.TransportZoneRef = (*vsphere.Reference)(unsafe.Pointer(in.TransportZoneRef))
 	out.Tier0GatewayRef = (*vsphere.Reference)(unsafe.Pointer(in.Tier0GatewayRef))
@@ -608,6 +609,7 @@ func autoConvert_v1alpha1_NSXTInfraState_To_vsphere_NSXTInfraState(in *NSXTInfra
 	out.SNATRuleRef = (*vsphere.Reference)(unsafe.Pointer(in.SNATRuleRef))
 	out.SNATIPAddress = (*string)(unsafe.Pointer(in.SNATIPAddress))
 	out.SegmentName = (*string)(unsafe.Pointer(in.SegmentName))
+	out.DHCPServerConfigRef = (*vsphere.Reference)(unsafe.Pointer(in.DHCPServerConfigRef))
 	if err := Convert_v1alpha1_AdvancedDHCPState_To_vsphere_AdvancedDHCPState(&in.AdvancedDHCP, &out.AdvancedDHCP, s); err != nil {
 		return err
 	}
@@ -620,6 +622,7 @@ func Convert_v1alpha1_NSXTInfraState_To_vsphere_NSXTInfraState(in *NSXTInfraStat
 }
 
 func autoConvert_vsphere_NSXTInfraState_To_v1alpha1_NSXTInfraState(in *vsphere.NSXTInfraState, out *NSXTInfraState, s conversion.Scope) error {
+	out.Version = (*string)(unsafe.Pointer(in.Version))
 	out.EdgeClusterRef = (*Reference)(unsafe.Pointer(in.EdgeClusterRef))
 	out.TransportZoneRef = (*Reference)(unsafe.Pointer(in.TransportZoneRef))
 	out.Tier0GatewayRef = (*Reference)(unsafe.Pointer(in.Tier0GatewayRef))
@@ -631,6 +634,7 @@ func autoConvert_vsphere_NSXTInfraState_To_v1alpha1_NSXTInfraState(in *vsphere.N
 	out.SNATRuleRef = (*Reference)(unsafe.Pointer(in.SNATRuleRef))
 	out.SNATIPAddress = (*string)(unsafe.Pointer(in.SNATIPAddress))
 	out.SegmentName = (*string)(unsafe.Pointer(in.SegmentName))
+	out.DHCPServerConfigRef = (*Reference)(unsafe.Pointer(in.DHCPServerConfigRef))
 	if err := Convert_vsphere_AdvancedDHCPState_To_v1alpha1_AdvancedDHCPState(&in.AdvancedDHCP, &out.AdvancedDHCP, s); err != nil {
 		return err
 	}

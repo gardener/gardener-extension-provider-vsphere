@@ -880,6 +880,16 @@ string
 <tbody>
 <tr>
 <td>
+<code>version</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
 <code>edgeClusterRef</code></br>
 <em>
 <a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.Reference">
@@ -1001,6 +1011,18 @@ string
 <code>segmentName</code></br>
 <em>
 string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>dhcpServerConfigRef</code></br>
+<em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.Reference">
+Reference
+</a>
 </em>
 </td>
 <td>

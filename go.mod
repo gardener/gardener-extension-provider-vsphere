@@ -21,7 +21,7 @@ require (
 	github.com/vmware/go-vmware-nsxt v0.0.0-20200114231430-33a5af043f2e
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.1.1
 	github.com/vmware/vsphere-automation-sdk-go/runtime v0.1.1
-	github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.1.1
+	github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.2.0
 	k8s.io/api v0.17.0
 	k8s.io/apiextensions-apiserver v0.17.0
 	k8s.io/apimachinery v0.17.0

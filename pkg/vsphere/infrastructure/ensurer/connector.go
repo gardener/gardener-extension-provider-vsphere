@@ -35,8 +35,23 @@ import (
 	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 )
 
-func createConnector(nsxtConfig *vinfra.NSXTConfig) (client.Connector, error) {
+func createHttpClient(nsxtConfig *vinfra.NSXTConfig) (*string, *http.Client, error) {
 	url := fmt.Sprintf("https://%s", nsxtConfig.Host)
+
+	tlsConfig, err := getConnectorTLSConfig(nsxtConfig.InsecureFlag, nsxtConfig.ClientAuthCertFile, nsxtConfig.ClientAuthKeyFile, nsxtConfig.CAFile)
+	if err != nil {
+		return nil, nil, err
+	}
+	httpClient := http.Client{
+		Transport: &http.Transport{
+			Proxy:           http.ProxyFromEnvironment,
+			TLSClientConfig: tlsConfig,
+		},
+	}
+	return &url, &httpClient, nil
+}
+
+func createSecurityContext(nsxtConfig *vinfra.NSXTConfig) (core.SecurityContext, error) {
 	securityCtx := core.NewSecurityContextImpl()
 	securityContextNeeded := true
 	if len(nsxtConfig.ClientAuthCertFile) > 0 {
@@ -70,17 +85,31 @@ func createConnector(nsxtConfig *vinfra.NSXTConfig) (client.Connector, error) {
 			securityCtx.SetProperty(security.PASSWORD_KEY, nsxtConfig.Password)
 		}
 	}
+	return securityCtx, nil
+}
 
-	tlsConfig, err := getConnectorTLSConfig(nsxtConfig.InsecureFlag, nsxtConfig.ClientAuthCertFile, nsxtConfig.ClientAuthKeyFile, nsxtConfig.CAFile)
+func createConnectorNiceError(nsxtConfig *vinfra.NSXTConfig) (client.Connector, error) {
+	connector, err := createConnector(nsxtConfig)
+	if err != nil {
+		submsg := ""
+		if strings.Contains(err.Error(), "com.vmware.vapi.std.errors.unauthorized") {
+			submsg = ". Please check credentials in provider-specific secret"
+		}
+		return nil, errors.Wrapf(err, "creating NSX-T connector failed%s", submsg)
+	}
+	return connector, nil
+}
+
+func createConnector(nsxtConfig *vinfra.NSXTConfig) (client.Connector, error) {
+	url, httpClient, err := createHttpClient(nsxtConfig)
 	if err != nil {
 		return nil, err
 	}
-	httpClient := http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: tlsConfig,
-		},
+	securityCtx, err := createSecurityContext(nsxtConfig)
+	if err != nil {
+		return nil, err
 	}
-	connector := client.NewRestConnector(url, httpClient)
+	connector := client.NewRestConnector(*url, *httpClient)
 	connector.SetSecurityContext(securityCtx)
 
 	// perform API call to check connector
@@ -119,8 +148,6 @@ func getConnectorTLSConfig(insecure bool, clientCertFile string, clientKeyFile s
 
 		tlsConfig.RootCAs = caCertPool
 	}
-
-	tlsConfig.BuildNameToCertificate()
 
 	return &tlsConfig, nil
 }

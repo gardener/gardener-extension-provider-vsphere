@@ -19,10 +19,13 @@ package task
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/ip_pools"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/sites/enforcement_points"
@@ -224,13 +227,11 @@ func (t *tier1GatewayTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec,
 		if err != nil {
 			return readingErr(err)
 		}
-		if *oldTier1.DisplayName != *tier1.DisplayName ||
-			oldTier1.FailoverMode == nil ||
-			*oldTier1.FailoverMode != *tier1.FailoverMode ||
-			oldTier1.Tier0Path == nil ||
-			*oldTier1.Tier0Path != *tier1.Tier0Path ||
+		if !reflect.DeepEqual(oldTier1.DisplayName, tier1.DisplayName) ||
+			!reflect.DeepEqual(oldTier1.FailoverMode, tier1.FailoverMode) ||
+			!reflect.DeepEqual(oldTier1.Tier0Path, tier1.Tier0Path) ||
 			!equalStrings(oldTier1.RouteAdvertisementTypes, tier1.RouteAdvertisementTypes) ||
-			!equalTags(oldTier1.Tags, tier1.Tags) {
+			!containsTags(oldTier1.Tags, tier1.Tags) {
 			err := client.Patch(state.Tier1GatewayRef.ID, tier1)
 			if err != nil {
 				return updatingErr(err)
@@ -302,10 +303,9 @@ func (t *tier1GatewayLocaleServiceTask) Ensure(ctx EnsurerContext, spec vinfra.N
 		if err != nil {
 			return readingErr(err)
 		}
-		if *oldTier1.DisplayName != *obj.DisplayName ||
-			oldTier1.EdgeClusterPath == nil ||
-			*oldTier1.EdgeClusterPath != *obj.EdgeClusterPath ||
-			!equalTags(oldTier1.Tags, obj.Tags) {
+		if !reflect.DeepEqual(oldTier1.DisplayName, obj.DisplayName) ||
+			!reflect.DeepEqual(oldTier1.EdgeClusterPath, obj.EdgeClusterPath) ||
+			!containsTags(oldTier1.Tags, obj.Tags) {
 			err := client.Patch(state.LocaleServiceRef.ID, defaultPolicyLocaleServiceID, obj)
 			if err != nil {
 				return updatingErr(err)
@@ -359,15 +359,52 @@ func (t *segmentTask) Reference(state *api.NSXTInfraState) *api.Reference {
 	return state.SegmentRef
 }
 
+func makeDhcpConfig(cfg *dhcpConfig) (*data.StructValue, error) {
+	config := model.SegmentDhcpV4Config{
+		ResourceType:  model.SegmentDhcpConfig_RESOURCE_TYPE_SEGMENTDHCPV4CONFIG,
+		DnsServers:    cfg.DNSServers,
+		ServerAddress: strptr(cfg.DHCPServerAddress),
+		LeaseTime:     &cfg.LeaseTime,
+	}
+
+	converter := bindings.NewTypeConverter()
+	converter.SetMode(bindings.REST)
+	dataValue, errs := converter.ConvertToVapi(config, model.SegmentDhcpV4ConfigBindingType())
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return dataValue.(*data.StructValue), nil
+}
+
+func createSegmentSubnet(cfg *dhcpConfig, nsxt3 bool) (*model.SegmentSubnet, error) {
+	subnet := model.SegmentSubnet{
+		GatewayAddress: strptr(cfg.GatewayAddress),
+		Network:        strptr(cfg.Network),
+	}
+
+	if nsxt3 {
+		subnet.DhcpRanges = []string{fmt.Sprintf("%s-%s", cfg.StartIP, cfg.EndIP)}
+		var err error
+		subnet.DhcpConfig, err = makeDhcpConfig(cfg)
+		if err != nil {
+			return nil, errors.Wrapf(err, "makeDhcpConfig")
+		}
+	}
+	return &subnet, nil
+}
+
 func (t *segmentTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
 	client := infra.NewDefaultSegmentsClient(ctx.Connector())
 
-	gatewayAddr, err := cidrHostAndPrefix(spec.WorkersNetwork, 1)
+	cfg, err := newDHCPConfig(spec)
 	if err != nil {
-		return "", errors.Wrapf(err, "gateway address")
+		return "", err
 	}
-	subnet := model.SegmentSubnet{
-		GatewayAddress: strptr(gatewayAddr),
+	nsxt3 := state.DHCPServerConfigRef != nil
+	subnet, err := createSegmentSubnet(cfg, nsxt3)
+	if err != nil {
+		return "", err
 	}
 	displayName := spec.FullClusterName() + "-" + RandomString(8)
 	segment := model.Segment{
@@ -376,7 +413,10 @@ func (t *segmentTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, stat
 		ConnectivityPath:  strptr(state.Tier1GatewayRef.Path),
 		TransportZonePath: strptr(state.TransportZoneRef.Path),
 		Tags:              spec.CreateTags(),
-		Subnets:           []model.SegmentSubnet{subnet},
+		Subnets:           []model.SegmentSubnet{*subnet},
+	}
+	if nsxt3 {
+		segment.DhcpConfigPath = strptr(state.DHCPServerConfigRef.Path)
 	}
 
 	if state.SegmentRef != nil {
@@ -389,14 +429,11 @@ func (t *segmentTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, stat
 			return readingErr(err)
 		}
 		if !strings.HasPrefix(*oldSegment.DisplayName, spec.FullClusterName()) ||
-			oldSegment.ConnectivityPath == nil ||
-			*oldSegment.ConnectivityPath != *segment.ConnectivityPath ||
-			oldSegment.TransportZonePath == nil ||
-			*oldSegment.TransportZonePath != *segment.TransportZonePath ||
-			len(oldSegment.Subnets) != 1 ||
-			oldSegment.Subnets[0].GatewayAddress == nil ||
-			*oldSegment.Subnets[0].GatewayAddress != *segment.Subnets[0].GatewayAddress ||
-			!equalTags(oldSegment.Tags, segment.Tags) {
+			!reflect.DeepEqual(oldSegment.ConnectivityPath, segment.ConnectivityPath) ||
+			!reflect.DeepEqual(oldSegment.TransportZonePath, segment.TransportZonePath) ||
+			!reflect.DeepEqual(oldSegment.DhcpConfigPath, segment.DhcpConfigPath) ||
+			!reflect.DeepEqual(oldSegment.Subnets, segment.Subnets) ||
+			!containsTags(oldSegment.Tags, segment.Tags) {
 			err := client.Patch(state.SegmentRef.ID, segment)
 			if err != nil {
 				return updatingErr(err)
@@ -562,20 +599,15 @@ func (t *snatRuleTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, sta
 		if err != nil {
 			return readingErr(err)
 		}
-		if *oldRule.DisplayName != *rule.DisplayName ||
+		if !reflect.DeepEqual(oldRule.DisplayName, rule.DisplayName) ||
 			oldRule.Action != rule.Action ||
-			oldRule.Enabled == nil ||
-			*oldRule.Enabled != *rule.Enabled ||
-			oldRule.Logging == nil ||
-			*oldRule.Logging != *rule.Logging ||
-			oldRule.SequenceNumber == nil ||
-			*oldRule.SequenceNumber != *rule.SequenceNumber ||
-			oldRule.SourceNetwork == nil ||
-			*oldRule.SourceNetwork != *rule.SourceNetwork ||
-			oldRule.TranslatedNetwork == nil ||
-			*oldRule.TranslatedNetwork != *rule.TranslatedNetwork ||
-			oldRule.DestinationNetwork != nil ||
-			!equalTags(oldRule.Tags, rule.Tags) {
+			!reflect.DeepEqual(oldRule.Enabled, rule.Enabled) ||
+			!reflect.DeepEqual(oldRule.Logging, rule.Logging) ||
+			!reflect.DeepEqual(oldRule.SequenceNumber, rule.SequenceNumber) ||
+			!reflect.DeepEqual(oldRule.SourceNetwork, rule.SourceNetwork) ||
+			!reflect.DeepEqual(oldRule.TranslatedNetwork, rule.TranslatedNetwork) ||
+			!reflect.DeepEqual(oldRule.DestinationNetwork, rule.DestinationNetwork) ||
+			!containsTags(oldRule.Tags, rule.Tags) {
 			err := client.Patch(state.Tier1GatewayRef.ID, model.PolicyNat_NAT_TYPE_USER, state.SNATRuleRef.ID, rule)
 			if err != nil {
 				return updatingErr(err)
@@ -613,5 +645,82 @@ func (t *snatRuleTask) EnsureDeleted(ctx EnsurerContext, state *api.NSXTInfraSta
 		return false, err
 	}
 	state.SNATRuleRef = nil
+	return true, nil
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+type dhcpServerConfigTask struct{ baseTask }
+
+func NewDHCPServerConfigTask() Task {
+	return &dhcpServerConfigTask{baseTask{label: "DHCP profile"}}
+}
+
+func (t *dhcpServerConfigTask) Reference(state *api.NSXTInfraState) *api.Reference {
+	return state.DHCPServerConfigRef
+}
+
+func (t *dhcpServerConfigTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
+	client := infra.NewDefaultDhcpServerConfigsClient(ctx.Connector())
+
+	serverConfig := model.DhcpServerConfig{
+		Description:     strptr(description),
+		DisplayName:     strptr(spec.FullClusterName()),
+		Tags:            spec.CreateTags(),
+		EdgeClusterPath: strptr(state.EdgeClusterRef.Path),
+	}
+
+	if state.DHCPServerConfigRef != nil {
+		oldServerConfig, err := client.Get(state.DHCPServerConfigRef.ID)
+		if isNotFoundError(err) {
+			state.DHCPServerConfigRef = nil
+			return t.Ensure(ctx, spec, state)
+		}
+		if err != nil {
+			return readingErr(err)
+		}
+		if !reflect.DeepEqual(oldServerConfig.DisplayName, serverConfig.DisplayName) ||
+			!reflect.DeepEqual(oldServerConfig.EdgeClusterPath, serverConfig.EdgeClusterPath) ||
+			!reflect.DeepEqual(oldServerConfig.LeaseTime, serverConfig.LeaseTime) ||
+			!reflect.DeepEqual(oldServerConfig.ServerAddress, serverConfig.ServerAddress) ||
+			!reflect.DeepEqual(oldServerConfig.ServerAddresses, serverConfig.ServerAddresses) ||
+			!containsTags(oldServerConfig.Tags, serverConfig.Tags) {
+			err := client.Patch(state.DHCPServerConfigRef.ID, serverConfig)
+			if err != nil {
+				return updatingErr(err)
+			}
+			return actionUpdated, nil
+		}
+		return actionUnchanged, nil
+	}
+
+	id := generateID("dhcpservercfg")
+	createdObj, err := client.Update(id, serverConfig)
+	if err != nil {
+		return creatingErr(err)
+	}
+	state.DHCPServerConfigRef = &api.Reference{ID: *createdObj.Id, Path: *createdObj.Path}
+	return actionCreated, nil
+}
+
+func (t *dhcpServerConfigTask) SetRecoveredReference(state *api.NSXTInfraState, ref *api.Reference, _ *string) {
+	state.DHCPServerConfigRef = ref
+}
+
+func (t *dhcpServerConfigTask) ListAll(ctx EnsurerContext, _ *api.NSXTInfraState, cursor *string) (interface{}, error) {
+	client := infra.NewDefaultDhcpServerConfigsClient(ctx.Connector())
+	return client.List(cursor, nil, nil, nil, nil, nil)
+}
+
+func (t *dhcpServerConfigTask) EnsureDeleted(ctx EnsurerContext, state *api.NSXTInfraState) (bool, error) {
+	client := infra.NewDefaultDhcpServerConfigsClient(ctx.Connector())
+	if state.DHCPServerConfigRef == nil {
+		return false, nil
+	}
+	err := client.Delete(state.DHCPServerConfigRef.ID)
+	if err != nil {
+		return false, err
+	}
+	state.DHCPServerConfigRef = nil
 	return true, nil
 }

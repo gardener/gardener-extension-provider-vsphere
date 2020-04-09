@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd/api"
@@ -138,7 +139,10 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 	}
 
 	if state == nil {
-		state = &apisvsphere.NSXTInfraState{}
+		state, err = prepared.ensurer.NewStateWithVersion()
+		if err != nil {
+			return errors.Wrapf(err, "NewStateWithVersion failed")
+		}
 	}
 	err = prepared.ensurer.EnsureInfrastructure(prepared.spec, state)
 	errUpdate := a.updateProviderStatus(ctx, infra, state, prepared, creationStarted)

@@ -68,6 +68,7 @@ type AdvancedDHCPState struct {
 
 // NSXTInfraState holds the state of the infrastructure created with NSX-T
 type NSXTInfraState struct {
+	Version               *string
 	EdgeClusterRef        *Reference
 	TransportZoneRef      *Reference
 	Tier0GatewayRef       *Reference
@@ -79,6 +80,7 @@ type NSXTInfraState struct {
 	SNATRuleRef           *Reference
 	SNATIPAddress         *string
 	SegmentName           *string
+	DHCPServerConfigRef   *Reference
 	AdvancedDHCP          AdvancedDHCPState
 }
 

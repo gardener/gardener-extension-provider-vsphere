@@ -154,18 +154,6 @@ func nicerVapiErrorData(errorMsg string, apiErrorDataValue *data.StructValue, me
 	return fmt.Errorf(details)
 }
 
-func equalOrderedStrings(a []string, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
 func equalStrings(a []string, b []string) bool {
 	if len(a) != len(b) {
 		return false
@@ -174,25 +162,6 @@ func equalStrings(a []string, b []string) bool {
 		found := false
 		for _, bi := range b {
 			if ai == bi {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-	return true
-}
-
-func equalTags(a, b []model.Tag) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for _, ai := range a {
-		found := false
-		for _, bi := range b {
-			if *ai.Scope == *bi.Scope && *ai.Tag == *bi.Tag {
 				found = true
 				break
 			}
@@ -265,4 +234,48 @@ func reflectTryRecover(ctx EnsurerContext, state *api.NSXTInfraState, rt Recover
 		s := fieldCursor.Elem().String()
 		cursor = &s
 	}
+}
+
+type dhcpConfig struct {
+	GatewayIP         string
+	GatewayAddress    string
+	Network           string
+	DHCPServerAddress string
+	DNSServers        []string
+	StartIP           string
+	EndIP             string
+	LeaseTime         int64
+}
+
+func newDHCPConfig(spec vinfra.NSXTInfraSpec) (*dhcpConfig, error) {
+	gatewayIP, err := cidrHost(spec.WorkersNetwork, 1)
+	if err != nil {
+		return nil, errors.Wrapf(err, "gateway ip")
+	}
+	gatewayAddr, err := cidrHostAndPrefix(spec.WorkersNetwork, 1)
+	if err != nil {
+		return nil, errors.Wrapf(err, "gateway address")
+	}
+	dhcpServerAddress, err := cidrHostAndPrefix(spec.WorkersNetwork, 2)
+	if err != nil {
+		return nil, errors.Wrapf(err, "DHCP server IP")
+	}
+	startIP, err := cidrHost(spec.WorkersNetwork, 10)
+	if err != nil {
+		return nil, errors.Wrapf(err, "start IP of pool")
+	}
+	endIP, err := cidrHost(spec.WorkersNetwork, -1)
+	if err != nil {
+		return nil, errors.Wrapf(err, "end IP of pool")
+	}
+
+	return &dhcpConfig{
+		GatewayIP:         gatewayIP,
+		GatewayAddress:    gatewayAddr,
+		Network:           spec.WorkersNetwork,
+		DHCPServerAddress: dhcpServerAddress,
+		StartIP:           startIP,
+		EndIP:             endIP,
+		LeaseTime:         int64(2 * time.Hour.Seconds()),
+	}, nil
 }
