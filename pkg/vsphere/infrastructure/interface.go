@@ -53,6 +53,8 @@ type NSXTConfig struct {
 type NSXTInfrastructureEnsurer interface {
 	// CheckConnection checks if the NSX-T REST API is reachable with the given endpoint and credentials.
 	CheckConnection() error
+	// NewStateWithVersion creates empty state with version depending on NSX-T backend
+	NewStateWithVersion() (*api.NSXTInfraState, error)
 	// EnsureInfrastructure ensures that the infrastructure is complete
 	// It checks all infrastructure objects and creates missing one or updates them if important attributes have been changed.
 	// It can even recover objects not recorded in the state.

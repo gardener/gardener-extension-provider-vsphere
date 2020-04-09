@@ -4,7 +4,7 @@
 // Code generated. DO NOT EDIT.
 
 /*
- * Interface file for service: GmServiceInfo
+ * Interface file for service: OnboardingCheckCompatibility
  * Used by client-side stubs.
  */
 
@@ -14,14 +14,16 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 )
 
-type GmServiceInfoClient interface {
+type OnboardingCheckCompatibilityClient interface {
 
-    // Retrieve information about the global manager service connected to.
-    // @return com.vmware.nsx_policy.model.GmServiceInfo
+    // Create or fully replace a Site under Infra. Revision is optional for creation and required for update.
+    //
+    // @param siteNodeConnectionInfoParam (required)
+    // @return com.vmware.nsx_policy.model.CompatibilityCheckResult
     // @throws InvalidRequest  Bad Request, Precondition Failed
     // @throws Unauthorized  Forbidden
     // @throws ServiceUnavailable  Service Unavailable
     // @throws InternalServerError  Internal Server Error
     // @throws NotFound  Not Found
-	Get() (model.GmServiceInfo, error)
+	Create(siteNodeConnectionInfoParam model.SiteNodeConnectionInfo) (model.CompatibilityCheckResult, error)
 }

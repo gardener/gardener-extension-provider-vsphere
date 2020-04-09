@@ -69,6 +69,7 @@ type AdvancedDHCPState struct {
 
 // NSXTInfraState holds the state of the infrastructure created with NSX-T
 type NSXTInfraState struct {
+	Version               *string           `json:"version,omitempty"`
 	EdgeClusterRef        *Reference        `json:"edgeClusterRef,omitempty"`
 	TransportZoneRef      *Reference        `json:"transportZoneRef,omitempty"`
 	Tier0GatewayRef       *Reference        `json:"tier0GatewayRef,omitempty"`
@@ -80,6 +81,7 @@ type NSXTInfraState struct {
 	SNATRuleRef           *Reference        `json:"snatRuleRef,omitempty"`
 	SNATIPAddress         *string           `json:"snatIPAddress,omitempty"`
 	SegmentName           *string           `json:"segmentName,omitempty"`
+	DHCPServerConfigRef   *Reference        `json:"dhcpServerConfigRef,omitempty"`
 	AdvancedDHCP          AdvancedDHCPState `json:"advancedDHCP"`
 }
 

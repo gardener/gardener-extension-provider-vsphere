@@ -33,13 +33,17 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
 )
 
+const (
+	Version1_NSXT25 = "1"
+	Version2_NSXT30 = "2"
+)
+
 type ensurer struct {
 	logger logr.Logger
 	// connector for simplified API (NSXT policy)
 	connector vapiclient.Connector
 	// nsxtClient is the NSX Manager client - based on go-vmware-nsxt SDK (Advanced API)
 	nsxtClient *nsxt.APIClient
-	tasks      []task.Task
 }
 
 var _ task.EnsurerContext = &ensurer{}
@@ -62,43 +66,35 @@ func (e *ensurer) IsTryRecoverEnabled() bool {
 
 func NewNSXTInfrastructureEnsurer(logger logr.Logger, nsxtConfig *vinfra.NSXTConfig) (vinfra.NSXTInfrastructureEnsurer, error) {
 	log.SetLogger(NewLogrBridge(logger))
-	connector, err := createConnector(nsxtConfig)
+	connector, err := createConnectorNiceError(nsxtConfig)
 	if err != nil {
-		submsg := ""
-		if strings.Contains(err.Error(), "com.vmware.vapi.std.errors.unauthorized") {
-			submsg = ". Please check credentials in provider-specific secret"
-		}
-		return nil, errors.Wrapf(err, "creating NSX-T connector failed%s", submsg)
+		return nil, err
 	}
 	nsxClient, err := createNSXClient(nsxtConfig)
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating NSX-T client failed")
 	}
 
-	tasks := []task.Task{
-		task.NewLookupTier0GatewayTask(),
-		task.NewLookupTransportZoneTask(),
-		task.NewLookupEdgeClusterTask(),
-		task.NewLookupSNATIPPoolTask(),
-		task.NewTier1GatewayTask(),
-		task.NewTier1GatewayLocaleServiceTask(),
-		task.NewSegmentTask(),
-		task.NewSNATIPAddressAllocationTask(),
-		task.NewSNATIPAddressRealizationTask(),
-		task.NewSNATRuleTask(),
-		task.NewAdvancedLookupLogicalSwitchTask(),
-		task.NewAdvancedDHCPProfileTask(),
-		task.NewAdvancedDHCPServerTask(),
-		task.NewAdvancedDHCPPortTask(),
-		task.NewAdvancedDHCPIPPoolTask(),
-	}
-
 	return &ensurer{
 		logger:     logger,
 		connector:  connector,
 		nsxtClient: nsxClient,
-		tasks:      tasks,
 	}, nil
+}
+
+func (e *ensurer) NewStateWithVersion() (*api.NSXTInfraState, error) {
+	nsxtVersion, err := getNSXTVersion(e.connector)
+	if err != nil {
+		return nil, err
+	}
+	version := Version1_NSXT25
+	if strings.HasPrefix(*nsxtVersion, "3.") {
+		version = Version2_NSXT30
+	}
+	state := &api.NSXTInfraState{
+		Version: &version,
+	}
+	return state, nil
 }
 
 func (e *ensurer) CheckConnection() error {
@@ -107,8 +103,42 @@ func (e *ensurer) CheckConnection() error {
 	return err
 }
 
+func (e *ensurer) getTasks(state *api.NSXTInfraState) []task.Task {
+	nsxt3 := state.Version != nil && *state.Version != Version1_NSXT25
+	tasks := []task.Task{
+		task.NewLookupTier0GatewayTask(),
+		task.NewLookupTransportZoneTask(),
+		task.NewLookupEdgeClusterTask(),
+		task.NewLookupSNATIPPoolTask(),
+		task.NewTier1GatewayTask(),
+		task.NewTier1GatewayLocaleServiceTask(),
+	}
+	if nsxt3 {
+		tasks = append(tasks,
+			task.NewDHCPServerConfigTask(),
+		)
+	}
+	tasks = append(tasks,
+		task.NewSegmentTask(),
+		task.NewSNATIPAddressAllocationTask(),
+		task.NewSNATIPAddressRealizationTask(),
+		task.NewSNATRuleTask(),
+	)
+	if !nsxt3 {
+		tasks = append(tasks,
+			task.NewAdvancedLookupLogicalSwitchTask(),
+			task.NewAdvancedDHCPProfileTask(),
+			task.NewAdvancedDHCPServerTask(),
+			task.NewAdvancedDHCPPortTask(),
+			task.NewAdvancedDHCPIPPoolTask(),
+		)
+	}
+	return tasks
+}
+
 func (e *ensurer) EnsureInfrastructure(spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) error {
-	for _, tsk := range e.tasks {
+	tasks := e.getTasks(state)
+	for _, tsk := range tasks {
 		_ = e.tryRecover(spec, state, tsk, false)
 
 		action, err := tsk.Ensure(e, spec, state)
@@ -134,24 +164,29 @@ func (e *ensurer) EnsureInfrastructure(spec vinfra.NSXTInfraSpec, state *api.NSX
 // It then tries to find the object by the garden and shoot tag to restore the reference.
 func (e *ensurer) tryRecover(spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState, tsk task.Task, lookup bool) error {
 	if e.IsTryRecoverEnabled() && tsk.Reference(state) == nil {
+		recovered := false
 		if rt, ok := tsk.(task.RecoverableTask); ok {
-			task.TryRecover(e, state, rt, spec.CreateTags())
+			recovered = task.TryRecover(e, state, rt, spec.CreateTags())
 		} else if rt, ok := tsk.(task.RecoverableAdvancedTask); ok {
-			rt.TryRecover(e, state, spec.CreateCommonTags())
+			recovered = rt.TryRecover(e, state, spec.CreateCommonTags())
 		} else if lookup {
 			// not recoverable tasks are lookup tasks which may be needed for recover
 			var err error
 			_, err = tsk.Ensure(e, spec, state)
 			return err
 		}
+		if recovered {
+			e.logger.Info(fmt.Sprintf("%s state recovered", tsk.Label()))
+		}
 	}
 	return nil
 }
 
 func (e *ensurer) EnsureInfrastructureDeleted(spec *vinfra.NSXTInfraSpec, state *api.NSXTInfraState) error {
+	tasks := e.getTasks(state)
 	if spec != nil {
 		// tryRecover needs the order of creation
-		for _, tsk := range e.tasks {
+		for _, tsk := range tasks {
 			err := e.tryRecover(*spec, state, tsk, true)
 			if err != nil {
 				keysAndVals := []interface{}{}
@@ -164,8 +199,8 @@ func (e *ensurer) EnsureInfrastructureDeleted(spec *vinfra.NSXTInfraSpec, state 
 		}
 	}
 
-	for i := len(e.tasks) - 1; i >= 0; i-- {
-		tsk := e.tasks[i]
+	for i := len(tasks) - 1; i >= 0; i-- {
+		tsk := tasks[i]
 
 		deleted, err := tsk.EnsureDeleted(e, state)
 		if err != nil {

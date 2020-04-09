@@ -27,8 +27,8 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
 )
 
-func CreateInfrastructure(logger logr.Logger, cfg *infrastructure.NSXTConfig, specString string) (*string, error) {
-	ensurer, err := ensurer.NewNSXTInfrastructureEnsurer(logger, cfg)
+func CreateInfrastructure(logger logr.Logger, cfg *infrastructure.NSXTConfig, specString string, fixedVersion *string) (*string, error) {
+	infrastructureEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(logger, cfg)
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating ensurer failed")
 	}
@@ -37,12 +37,24 @@ func CreateInfrastructure(logger logr.Logger, cfg *infrastructure.NSXTConfig, sp
 	if err != nil {
 		return nil, errors.Wrapf(err, "unmarshalling spec failed")
 	}
-	state := &vsphere.NSXTInfraState{}
-	err = ensurer.EnsureInfrastructure(spec, state)
+	state := &vsphere.NSXTInfraState{
+		Version: fixedVersion,
+	}
+	if fixedVersion == nil {
+		state, err = infrastructureEnsurer.NewStateWithVersion()
+		if err != nil {
+			return nil, errors.Wrapf(err, "NewStateWithVersion failed")
+		}
+	}
+	err = infrastructureEnsurer.EnsureInfrastructure(spec, state)
 	stateString := showState(logger, state)
 	if err != nil {
 		return &stateString, errors.Wrapf(err, "creating infrastructure failed")
 	}
 	logger.Info("done")
 	return &stateString, nil
+}
+
+func GetNSXTVersion(cfg *infrastructure.NSXTConfig) (*string, error) {
+	return ensurer.GetNSXTVersion(cfg)
 }

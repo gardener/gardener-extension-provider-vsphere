@@ -18,6 +18,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -33,11 +34,13 @@ import (
 
 	infra_cli "github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd/infra-cli"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
 )
 
 var (
 	// Used for flags.
 	stateFile        string
+	stateVersion     string
 	outputStateFile  string
 	specFile         string
 	cfgFile          string
@@ -101,6 +104,7 @@ func init() {
 	}
 	createCmd.Flags().StringVar(&specFile, "spec", "", "file with infrastructure spec as json")
 	createCmd.Flags().StringVar(&outputStateFile, "outputState", "", "filename to store the state")
+	createCmd.Flags().StringVar(&stateVersion, "stateVersion", "", "optionally fix state version")
 	createCmd.Run = createInfra
 	rootCmd.AddCommand(createCmd)
 
@@ -112,6 +116,14 @@ func init() {
 	createConfigFileCmd.Flags().StringVar(&outputConfigFile, "outputConfigFile", "", "filename to store the config file")
 	createConfigFileCmd.Run = createConfigFile
 	rootCmd.AddCommand(createConfigFileCmd)
+
+	nsxtVersionCmd := &cobra.Command{
+		Use:   "nsxt-version",
+		Short: "prints nsxt-version",
+		Long:  ``,
+	}
+	nsxtVersionCmd.Run = nsxtVersion
+	rootCmd.AddCommand(nsxtVersionCmd)
 }
 
 func initConfig() {
@@ -195,7 +207,16 @@ func createInfra(cmd *cobra.Command, args []string) {
 	if outputStateFile == "" {
 		panic("missing outputState filename needed to store the state")
 	}
-	resultingState, err := infra_cli.CreateInfrastructure(logger, config, string(spec))
+	var fixedVersion *string
+	switch stateVersion {
+	case "":
+		fixedVersion = nil
+	case ensurer.Version1_NSXT25, ensurer.Version2_NSXT30:
+		fixedVersion = &stateVersion
+	default:
+		panic(fmt.Errorf("invalid stateVersion (allowed: '%s', '%s')", ensurer.Version1_NSXT25, ensurer.Version2_NSXT30))
+	}
+	resultingState, err := infra_cli.CreateInfrastructure(logger, config, string(spec), fixedVersion)
 	if resultingState != nil {
 		err2 := saveFile(outputStateFile, *resultingState)
 		if err2 != nil {
@@ -220,6 +241,17 @@ func createConfigFile(cmd *cobra.Command, args []string) {
 		panic(err)
 	}
 	logger.Info("written config file to " + outputConfigFile)
+}
+
+func nsxtVersion(cmd *cobra.Command, args []string) {
+	if cfgFile == "" {
+		panic("Missing `--config` option for config file with NSX-T configuration")
+	}
+	version, err := infra_cli.GetNSXTVersion(config)
+	if err != nil {
+		panic(err)
+	}
+	println("version", *version)
 }
 
 func saveFile(filename, contents string) error {
