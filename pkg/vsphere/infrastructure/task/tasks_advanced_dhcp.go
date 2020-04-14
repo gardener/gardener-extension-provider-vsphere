@@ -90,6 +90,7 @@ func (t *advancedDHCPProfileTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInf
 		if oldProfile.DisplayName != profile.DisplayName ||
 			oldProfile.EdgeClusterId != profile.EdgeClusterId ||
 			!containsCommonTags(oldProfile.Tags, profile.Tags) {
+			profile.Tags = mergeCommonTags(profile.Tags, oldProfile.Tags)
 			_, resp, err := ctx.NSXTClient().ServicesApi.UpdateDhcpProfile(ctx.NSXTClient().Context, *state.AdvancedDHCP.ProfileID, profile)
 			if err != nil {
 				return updatingErr(err)
@@ -189,7 +190,8 @@ func (t *advancedDHCPServerTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfr
 			oldServer.Ipv4DhcpServer.DhcpServerIp != server.Ipv4DhcpServer.DhcpServerIp ||
 			oldServer.Ipv4DhcpServer.GatewayIp != server.Ipv4DhcpServer.GatewayIp ||
 			!reflect.DeepEqual(oldServer.Ipv4DhcpServer.DnsNameservers, server.Ipv4DhcpServer.DnsNameservers) ||
-			!reflect.DeepEqual(oldServer.Tags, server.Tags) {
+			!containsCommonTags(oldServer.Tags, server.Tags) {
+			server.Tags = mergeCommonTags(server.Tags, oldServer.Tags)
 			_, resp, err := ctx.NSXTClient().ServicesApi.UpdateDhcpServer(ctx.NSXTClient().Context, *state.AdvancedDHCP.ServerID, server)
 			if err != nil {
 				return updatingErr(err)
@@ -285,6 +287,7 @@ func (t *advancedDHCPPortTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraS
 			oldPort.Attachment.AttachmentType != port.Attachment.AttachmentType ||
 			oldPort.Attachment.Id != port.Attachment.Id ||
 			!containsCommonTags(oldPort.Tags, port.Tags) {
+			port.Tags = mergeCommonTags(port.Tags, oldPort.Tags)
 			_, resp, err := ctx.NSXTClient().LogicalSwitchingApi.UpdateLogicalPort(ctx.NSXTClient().Context, *state.AdvancedDHCP.PortID, port)
 			if err != nil {
 				return updatingErr(err)
@@ -390,6 +393,7 @@ func (t *advancedDHCPIPPoolTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfr
 			oldPool.AllocationRanges[0].Start != pool.AllocationRanges[0].Start ||
 			oldPool.AllocationRanges[0].End != pool.AllocationRanges[0].End ||
 			!containsCommonTags(oldPool.Tags, pool.Tags) {
+			pool.Tags = mergeCommonTags(pool.Tags, oldPool.Tags)
 			_, resp, err := ctx.NSXTClient().ServicesApi.UpdateDhcpIpPool(ctx.NSXTClient().Context, *state.AdvancedDHCP.ServerID, *state.AdvancedDHCP.IPPoolID, pool)
 			if err != nil {
 				return updatingErr(err)
@@ -468,4 +472,19 @@ outer:
 		return false
 	}
 	return true
+}
+
+func mergeCommonTags(a []common.Tag, b []common.Tag) []common.Tag {
+	result := make([]common.Tag, len(a))
+	copy(result, a)
+outer:
+	for _, tag := range b {
+		for _, t := range a {
+			if t.Scope == tag.Scope {
+				continue outer
+			}
+		}
+		result = append(result, tag)
+	}
+	return result
 }

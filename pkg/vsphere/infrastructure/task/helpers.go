@@ -131,3 +131,19 @@ outer:
 	}
 	return true
 }
+
+// mergeTags merges two tag arrays using scope as key
+func mergeTags(a []model.Tag, b []model.Tag) []model.Tag {
+	result := make([]model.Tag, len(a))
+	copy(result, a)
+outer:
+	for _, tag := range b {
+		for _, t := range a {
+			if *t.Scope == *tag.Scope {
+				continue outer
+			}
+		}
+		result = append(result, tag)
+	}
+	return result
+}
