@@ -80,6 +80,29 @@ var _ = Describe("Helpers", func() {
 			Expect(containsTags(tags1, itemTags)).To(Equal(false))
 		})
 	})
+	Describe("#mergeTags", func() {
+		It("should merge tags", func() {
+			tags1 := []model.Tag{
+				{Scope: sp("owner"), Tag: sp("o1")},
+				{Scope: sp("cluster"), Tag: sp("c1")},
+			}
+			tags2 := []model.Tag{
+				{Scope: sp("owner"), Tag: sp("o1")},
+				{Scope: sp("cluster"), Tag: sp("c2")},
+			}
+			itemTags := []model.Tag{
+				{Scope: sp("owner"), Tag: sp("o1")},
+				{Scope: sp("cluster"), Tag: sp("c1")},
+				{Scope: sp("foo"), Tag: sp("bla")},
+				{Scope: sp("bar"), Tag: sp("xxx")},
+			}
+			Expect(mergeTags(tags1, tags1)).To(Equal(tags1))
+			Expect(mergeTags(tags1, tags2)).To(Equal(tags1))
+			Expect(mergeTags(tags2, tags1)).To(Equal(tags2))
+			Expect(mergeTags(itemTags, tags1)).To(Equal(itemTags))
+			Expect(mergeTags(tags1, itemTags)).To(Equal(itemTags))
+		})
+	})
 })
 
 func sp(s string) *string {

@@ -20,7 +20,6 @@ package task
 import (
 	"fmt"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -232,6 +231,7 @@ func (t *tier1GatewayTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec,
 			!reflect.DeepEqual(oldTier1.Tier0Path, tier1.Tier0Path) ||
 			!equalStrings(oldTier1.RouteAdvertisementTypes, tier1.RouteAdvertisementTypes) ||
 			!containsTags(oldTier1.Tags, tier1.Tags) {
+			tier1.Tags = mergeTags(tier1.Tags, oldTier1.Tags)
 			err := client.Patch(state.Tier1GatewayRef.ID, tier1)
 			if err != nil {
 				return updatingErr(err)
@@ -295,7 +295,7 @@ func (t *tier1GatewayLocaleServiceTask) Ensure(ctx EnsurerContext, spec vinfra.N
 	}
 
 	if state.LocaleServiceRef != nil {
-		oldTier1, err := client.Get(state.LocaleServiceRef.ID, defaultPolicyLocaleServiceID)
+		oldObj, err := client.Get(state.LocaleServiceRef.ID, defaultPolicyLocaleServiceID)
 		if isNotFoundError(err) {
 			state.Tier1GatewayRef = nil
 			return t.Ensure(ctx, spec, state)
@@ -303,9 +303,10 @@ func (t *tier1GatewayLocaleServiceTask) Ensure(ctx EnsurerContext, spec vinfra.N
 		if err != nil {
 			return readingErr(err)
 		}
-		if !reflect.DeepEqual(oldTier1.DisplayName, obj.DisplayName) ||
-			!reflect.DeepEqual(oldTier1.EdgeClusterPath, obj.EdgeClusterPath) ||
-			!containsTags(oldTier1.Tags, obj.Tags) {
+		if !reflect.DeepEqual(oldObj.DisplayName, obj.DisplayName) ||
+			!reflect.DeepEqual(oldObj.EdgeClusterPath, obj.EdgeClusterPath) ||
+			!containsTags(oldObj.Tags, obj.Tags) {
+			obj.Tags = mergeTags(obj.Tags, oldObj.Tags)
 			err := client.Patch(state.LocaleServiceRef.ID, defaultPolicyLocaleServiceID, obj)
 			if err != nil {
 				return updatingErr(err)
@@ -406,9 +407,7 @@ func (t *segmentTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, stat
 	if err != nil {
 		return "", err
 	}
-	displayName := spec.FullClusterName() + "-" + RandomString(8)
 	segment := model.Segment{
-		DisplayName:       strptr(displayName),
 		Description:       strptr(description),
 		ConnectivityPath:  strptr(state.Tier1GatewayRef.Path),
 		TransportZonePath: strptr(state.TransportZoneRef.Path),
@@ -420,20 +419,23 @@ func (t *segmentTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, stat
 	}
 
 	if state.SegmentRef != nil {
+		segment.DisplayName = state.SegmentName
 		oldSegment, err := client.Get(state.SegmentRef.ID)
 		if isNotFoundError(err) {
 			state.SegmentRef = nil
+			state.SegmentName = nil
 			return t.Ensure(ctx, spec, state)
 		}
 		if err != nil {
 			return readingErr(err)
 		}
-		if !strings.HasPrefix(*oldSegment.DisplayName, spec.FullClusterName()) ||
+		if !reflect.DeepEqual(oldSegment.DisplayName, segment.DisplayName) ||
 			!reflect.DeepEqual(oldSegment.ConnectivityPath, segment.ConnectivityPath) ||
 			!reflect.DeepEqual(oldSegment.TransportZonePath, segment.TransportZonePath) ||
 			!reflect.DeepEqual(oldSegment.DhcpConfigPath, segment.DhcpConfigPath) ||
 			!reflect.DeepEqual(oldSegment.Subnets, segment.Subnets) ||
 			!containsTags(oldSegment.Tags, segment.Tags) {
+			segment.Tags = mergeTags(segment.Tags, oldSegment.Tags)
 			err := client.Patch(state.SegmentRef.ID, segment)
 			if err != nil {
 				return updatingErr(err)
@@ -443,6 +445,8 @@ func (t *segmentTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, stat
 		return actionUnchanged, nil
 	}
 
+	displayName := spec.FullClusterName() + "-" + RandomString(8)
+	segment.DisplayName = strptr(displayName)
 	id := generateID("segment")
 	createdObj, err := client.Update(id, segment)
 	if err != nil {
@@ -608,6 +612,7 @@ func (t *snatRuleTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, sta
 			!reflect.DeepEqual(oldRule.TranslatedNetwork, rule.TranslatedNetwork) ||
 			!reflect.DeepEqual(oldRule.DestinationNetwork, rule.DestinationNetwork) ||
 			!containsTags(oldRule.Tags, rule.Tags) {
+			rule.Tags = mergeTags(rule.Tags, oldRule.Tags)
 			err := client.Patch(state.Tier1GatewayRef.ID, model.PolicyNat_NAT_TYPE_USER, state.SNATRuleRef.ID, rule)
 			if err != nil {
 				return updatingErr(err)
@@ -685,6 +690,7 @@ func (t *dhcpServerConfigTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraS
 			!reflect.DeepEqual(oldServerConfig.ServerAddress, serverConfig.ServerAddress) ||
 			!reflect.DeepEqual(oldServerConfig.ServerAddresses, serverConfig.ServerAddresses) ||
 			!containsTags(oldServerConfig.Tags, serverConfig.Tags) {
+			serverConfig.Tags = mergeTags(serverConfig.Tags, oldServerConfig.Tags)
 			err := client.Patch(state.DHCPServerConfigRef.ID, serverConfig)
 			if err != nil {
 				return updatingErr(err)
