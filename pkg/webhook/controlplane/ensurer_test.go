@@ -67,7 +67,6 @@ var _ = Describe("Ensurer", func() {
 		kubeControllerManagerLabels = map[string]string{
 			v1alpha1constants.LabelNetworkPolicyToPublicNetworks:  v1alpha1constants.LabelNetworkPolicyAllowed,
 			v1alpha1constants.LabelNetworkPolicyToPrivateNetworks: v1alpha1constants.LabelNetworkPolicyAllowed,
-			v1alpha1constants.LabelNetworkPolicyToBlockedCIDRs:    v1alpha1constants.LabelNetworkPolicyAllowed,
 		}
 	)
 
@@ -159,6 +158,11 @@ var _ = Describe("Ensurer", func() {
 					ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: v1alpha1constants.DeploymentNameKubeControllerManager},
 					Spec: appsv1.DeploymentSpec{
 						Template: corev1.PodTemplateSpec{
+							ObjectMeta: metav1.ObjectMeta{
+								Labels: map[string]string{
+									v1alpha1constants.LabelNetworkPolicyToBlockedCIDRs: v1alpha1constants.LabelNetworkPolicyAllowed,
+								},
+							},
 							Spec: corev1.PodSpec{
 								Containers: []corev1.Container{
 									{
@@ -192,6 +196,11 @@ var _ = Describe("Ensurer", func() {
 					ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: v1alpha1constants.DeploymentNameKubeControllerManager},
 					Spec: appsv1.DeploymentSpec{
 						Template: corev1.PodTemplateSpec{
+							ObjectMeta: metav1.ObjectMeta{
+								Labels: map[string]string{
+									v1alpha1constants.LabelNetworkPolicyToBlockedCIDRs: v1alpha1constants.LabelNetworkPolicyAllowed,
+								},
+							},
 							Spec: corev1.PodSpec{
 								Containers: []corev1.Container{
 									{

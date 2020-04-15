@@ -84,9 +84,11 @@ func ensureKubeAPIServerCommandLineArgs(c *corev1.Container) {
 }
 
 func ensureKubeControllerManagerAnnotations(t *corev1.PodTemplateSpec) {
+	// make sure to always remove this label
+	delete(t.Labels, v1alpha1constants.LabelNetworkPolicyToBlockedCIDRs)
+
 	t.Labels = extensionswebhook.EnsureAnnotationOrLabel(t.Labels, v1alpha1constants.LabelNetworkPolicyToPublicNetworks, v1alpha1constants.LabelNetworkPolicyAllowed)
 	t.Labels = extensionswebhook.EnsureAnnotationOrLabel(t.Labels, v1alpha1constants.LabelNetworkPolicyToPrivateNetworks, v1alpha1constants.LabelNetworkPolicyAllowed)
-	t.Labels = extensionswebhook.EnsureAnnotationOrLabel(t.Labels, v1alpha1constants.LabelNetworkPolicyToBlockedCIDRs, v1alpha1constants.LabelNetworkPolicyAllowed)
 }
 
 func (e *ensurer) ensureChecksumAnnotations(ctx context.Context, template *corev1.PodTemplateSpec, namespace string) error {
