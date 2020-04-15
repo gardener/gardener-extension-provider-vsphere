@@ -41,7 +41,7 @@ func DestroyInfrastructure(logger logr.Logger, cfg *infrastructure.NSXTConfig, s
 	var state *vsphere.NSXTInfraState
 	if stateString != nil {
 		state = &vsphere.NSXTInfraState{}
-		err = json.Unmarshal([]byte(*stateString), state)
+		err = yaml.Unmarshal([]byte(*stateString), state)
 		if err != nil {
 			return nil, errors.Wrapf(err, "unmarshalling state failed")
 		}
