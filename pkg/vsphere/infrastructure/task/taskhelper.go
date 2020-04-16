@@ -277,5 +277,6 @@ func newDHCPConfig(spec vinfra.NSXTInfraSpec) (*dhcpConfig, error) {
 		StartIP:           startIP,
 		EndIP:             endIP,
 		LeaseTime:         int64(2 * time.Hour.Seconds()),
+		DNSServers:        spec.DNSServers,
 	}, nil
 }

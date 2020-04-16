@@ -395,6 +395,33 @@ func createSegmentSubnet(cfg *dhcpConfig, nsxt3 bool) (*model.SegmentSubnet, err
 	return &subnet, nil
 }
 
+func equivalentSingleSubnet(a []model.SegmentSubnet, b []model.SegmentSubnet) bool {
+	if len(a) != 1 || len(b) != 1 {
+		return false
+	}
+
+	a0 := a[0]
+	b0 := b[0]
+
+	if !reflect.DeepEqual(a0.DhcpRanges, b0.DhcpRanges) ||
+		!reflect.DeepEqual(a0.GatewayAddress, b0.GatewayAddress) ||
+		!reflect.DeepEqual(a0.Network, b0.Network) {
+		return false
+	}
+
+	converter := bindings.NewTypeConverter()
+	converter.SetMode(bindings.REST)
+	cfga0, err := converter.ConvertToGolang(a0.DhcpConfig, model.SegmentDhcpV4ConfigBindingType())
+	if err != nil {
+		return false
+	}
+	cfgb0, err := converter.ConvertToGolang(b0.DhcpConfig, model.SegmentDhcpV4ConfigBindingType())
+	if err != nil {
+		return false
+	}
+	return reflect.DeepEqual(cfga0, cfgb0)
+}
+
 func (t *segmentTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
 	client := infra.NewDefaultSegmentsClient(ctx.Connector())
 
@@ -429,11 +456,12 @@ func (t *segmentTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, stat
 		if err != nil {
 			return readingErr(err)
 		}
+
 		if !reflect.DeepEqual(oldSegment.DisplayName, segment.DisplayName) ||
 			!reflect.DeepEqual(oldSegment.ConnectivityPath, segment.ConnectivityPath) ||
 			!reflect.DeepEqual(oldSegment.TransportZonePath, segment.TransportZonePath) ||
 			!reflect.DeepEqual(oldSegment.DhcpConfigPath, segment.DhcpConfigPath) ||
-			!reflect.DeepEqual(oldSegment.Subnets, segment.Subnets) ||
+			!equivalentSingleSubnet(oldSegment.Subnets, segment.Subnets) ||
 			!containsTags(oldSegment.Tags, segment.Tags) {
 			segment.Tags = mergeTags(segment.Tags, oldSegment.Tags)
 			err := client.Patch(state.SegmentRef.ID, segment)
@@ -558,6 +586,9 @@ func (t *snatIPAddressRealizationTask) Reference(state *api.NSXTInfraState) *api
 }
 
 func (t *snatIPAddressRealizationTask) Ensure(ctx EnsurerContext, _ vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
+	if state.SNATIPAddressAllocRef == nil {
+		return "", fmt.Errorf("No SNAT IP address allocation existing")
+	}
 	ipAddress, err := getRealizedIPAddress(ctx.Connector(), state.SNATIPAddressAllocRef.Path, 15*time.Second)
 	if err != nil {
 		return "", err
@@ -684,11 +715,9 @@ func (t *dhcpServerConfigTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraS
 		if err != nil {
 			return readingErr(err)
 		}
+
 		if !reflect.DeepEqual(oldServerConfig.DisplayName, serverConfig.DisplayName) ||
 			!reflect.DeepEqual(oldServerConfig.EdgeClusterPath, serverConfig.EdgeClusterPath) ||
-			!reflect.DeepEqual(oldServerConfig.LeaseTime, serverConfig.LeaseTime) ||
-			!reflect.DeepEqual(oldServerConfig.ServerAddress, serverConfig.ServerAddress) ||
-			!reflect.DeepEqual(oldServerConfig.ServerAddresses, serverConfig.ServerAddresses) ||
 			!containsTags(oldServerConfig.Tags, serverConfig.Tags) {
 			serverConfig.Tags = mergeTags(serverConfig.Tags, oldServerConfig.Tags)
 			err := client.Patch(state.DHCPServerConfigRef.ID, serverConfig)
