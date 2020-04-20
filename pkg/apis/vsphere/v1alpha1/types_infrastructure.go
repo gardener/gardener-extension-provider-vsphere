@@ -24,6 +24,10 @@ import (
 // InfrastructureConfig infrastructure configuration resource
 type InfrastructureConfig struct {
 	metav1.TypeMeta `json:",inline"`
+	// OverwriteNSXTInfraVersion allows to fix the ensurer version used to create the NSXT-T infrastructure.
+	// This is an advanced configuration to overwrite the automatic version selection.
+	// +optional
+	OverwriteNSXTInfraVersion *string `json:"overwriteNSXTInfraVersion,omitempty"`
 }
 
 // VsphereConfig holds information about vSphere resources to use.

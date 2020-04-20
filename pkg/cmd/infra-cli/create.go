@@ -22,7 +22,6 @@ import (
 	"github.com/pkg/errors"
 	"sigs.k8s.io/yaml"
 
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
 )
@@ -37,14 +36,9 @@ func CreateInfrastructure(logger logr.Logger, cfg *infrastructure.NSXTConfig, sp
 	if err != nil {
 		return nil, errors.Wrapf(err, "unmarshalling spec failed")
 	}
-	state := &vsphere.NSXTInfraState{
-		Version: fixedVersion,
-	}
-	if fixedVersion == nil {
-		state, err = infrastructureEnsurer.NewStateWithVersion()
-		if err != nil {
-			return nil, errors.Wrapf(err, "NewStateWithVersion failed")
-		}
+	state, err := infrastructureEnsurer.NewStateWithVersion(fixedVersion)
+	if err != nil {
+		return nil, errors.Wrapf(err, "NewStateWithVersion failed")
 	}
 	err = infrastructureEnsurer.EnsureInfrastructure(spec, state)
 	stateString := showState(logger, state)

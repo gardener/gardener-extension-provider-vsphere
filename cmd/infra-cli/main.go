@@ -32,9 +32,9 @@ import (
 
 	"k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere"
 
+	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	infra_cli "github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd/infra-cli"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
 )
 
 var (
@@ -211,10 +211,10 @@ func createInfra(cmd *cobra.Command, args []string) {
 	switch stateVersion {
 	case "":
 		fixedVersion = nil
-	case ensurer.Version1_NSXT25, ensurer.Version2_NSXT30:
+	case api.Ensurer_Version1_NSXT25, api.Ensurer_Version2_NSXT30:
 		fixedVersion = &stateVersion
 	default:
-		panic(fmt.Errorf("invalid stateVersion (allowed: '%s', '%s')", ensurer.Version1_NSXT25, ensurer.Version2_NSXT30))
+		panic(fmt.Errorf("invalid stateVersion (allowed: %v)", api.SupportedEnsurerVersions))
 	}
 	resultingState, err := infra_cli.CreateInfrastructure(logger, config, string(spec), fixedVersion)
 	if resultingState != nil {

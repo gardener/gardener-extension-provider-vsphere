@@ -431,6 +431,7 @@ func Convert_vsphere_FailureDomainLabels_To_v1alpha1_FailureDomainLabels(in *vsp
 }
 
 func autoConvert_v1alpha1_InfrastructureConfig_To_vsphere_InfrastructureConfig(in *InfrastructureConfig, out *vsphere.InfrastructureConfig, s conversion.Scope) error {
+	out.OverwriteNSXTInfraVersion = (*string)(unsafe.Pointer(in.OverwriteNSXTInfraVersion))
 	return nil
 }
 
@@ -440,6 +441,7 @@ func Convert_v1alpha1_InfrastructureConfig_To_vsphere_InfrastructureConfig(in *I
 }
 
 func autoConvert_vsphere_InfrastructureConfig_To_v1alpha1_InfrastructureConfig(in *vsphere.InfrastructureConfig, out *InfrastructureConfig, s conversion.Scope) error {
+	out.OverwriteNSXTInfraVersion = (*string)(unsafe.Pointer(in.OverwriteNSXTInfraVersion))
 	return nil
 }
 

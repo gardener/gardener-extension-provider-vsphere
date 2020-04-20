@@ -97,7 +97,7 @@ func (v *Shoot) validateShootUpdate(ctx context.Context, oldShoot, shoot *core.S
 func (v *Shoot) validateShoot(context *validationContext) field.ErrorList {
 	allErrs := field.ErrorList{}
 	allErrs = append(allErrs, vspherevalidation.ValidateNetworking(context.shoot.Spec.Networking, nwPath)...)
-	allErrs = append(allErrs, vspherevalidation.ValidateInfrastructureConfig(context.infraConfig, context.shoot.Spec.Networking.Nodes, infraConfigPath)...)
+	allErrs = append(allErrs, vspherevalidation.ValidateInfrastructureConfig(context.infraConfig, infraConfigPath)...)
 	allErrs = append(allErrs, vspherevalidation.ValidateControlPlaneConfig(context.cpConfig, cpConfigPath)...)
 	allErrs = append(allErrs, vspherevalidation.ValidateWorkers(context.shoot.Spec.Provider.Workers, workersPath)...)
 	return allErrs

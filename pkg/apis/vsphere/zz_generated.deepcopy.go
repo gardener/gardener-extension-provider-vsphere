@@ -248,6 +248,11 @@ func (in *FailureDomainLabels) DeepCopy() *FailureDomainLabels {
 func (in *InfrastructureConfig) DeepCopyInto(out *InfrastructureConfig) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
+	if in.OverwriteNSXTInfraVersion != nil {
+		in, out := &in.OverwriteNSXTInfraVersion, &out.OverwriteNSXTInfraVersion
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 
