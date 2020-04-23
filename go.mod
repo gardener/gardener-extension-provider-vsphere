@@ -49,7 +49,7 @@ replace (
 )
 
 // only needed for infra-cli
-replace k8s.io/cloud-provider-vsphere => k8s.io/cloud-provider-vsphere v1.1.1-0.20200304125347-7d77c09fef97
+replace k8s.io/cloud-provider-vsphere => k8s.io/cloud-provider-vsphere v1.1.1-0.20200422163815-b564eaebdc17
 
 replace (
 	// these replacements are needed for the cloud-provider-vsphere

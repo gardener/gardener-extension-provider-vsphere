@@ -1010,8 +1010,8 @@ k8s.io/autoscaler v0.0.0-20190805135949-100e91ba756e h1:5AX59ZgftHpbmNupSWosdtW4
 k8s.io/autoscaler v0.0.0-20190805135949-100e91ba756e/go.mod h1:QEXezc9uKPT91dwqhSJq3GNI3B1HxFRQHiku9kmrsSA=
 k8s.io/client-go v0.16.8 h1:CmsQXJpSWq1aUyQ5Lp/rRPiMK2OYfJv32Ftl0D1D42U=
 k8s.io/client-go v0.16.8/go.mod h1:WmPuN0yJTKHXoklExKxzo3jSXmr3EnN+65uaTb5VuNs=
-k8s.io/cloud-provider-vsphere v1.1.1-0.20200304125347-7d77c09fef97 h1:NHbLgefZZBV4yhTkiIeV9LrJCg/ky8VwEhcfVkqHVP0=
-k8s.io/cloud-provider-vsphere v1.1.1-0.20200304125347-7d77c09fef97/go.mod h1:nQH8reiSW+zHvU0F+xPfx9JDRKGndH5A3n44KljJo7I=
+k8s.io/cloud-provider-vsphere v1.1.1-0.20200422163815-b564eaebdc17 h1:Wm5mX6Cb8BN4ISgCgxO16Q6c9VLcrnQVRgY6d0oKFtE=
+k8s.io/cloud-provider-vsphere v1.1.1-0.20200422163815-b564eaebdc17/go.mod h1:nQH8reiSW+zHvU0F+xPfx9JDRKGndH5A3n44KljJo7I=
 k8s.io/code-generator v0.16.8 h1:R3NoYlz4AoTPvwOoDU0dTNV/P9uY3z8H8nLlz9nOo5M=
 k8s.io/code-generator v0.16.8/go.mod h1:wFdrXdVi/UC+xIfLi+4l9elsTT/uEF61IfcN2wOLULQ=
 k8s.io/gengo v0.0.0-20190116091435-f8a0810f38af/go.mod h1:ezvh/TsK7cY6rbqRK0oQQ8IAqLxYwwyPxAX1Pzy0ii0=

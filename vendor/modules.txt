@@ -958,7 +958,7 @@ k8s.io/client-go/util/workqueue
 # k8s.io/cloud-provider v0.0.0 => k8s.io/kubernetes/staging/src/k8s.io/cloud-provider v0.0.0-20190615005809-e8462b5b5dc2
 k8s.io/cloud-provider
 k8s.io/cloud-provider/node/helpers
-# k8s.io/cloud-provider-vsphere v1.1.0 => k8s.io/cloud-provider-vsphere v1.1.1-0.20200304125347-7d77c09fef97
+# k8s.io/cloud-provider-vsphere v1.1.0 => k8s.io/cloud-provider-vsphere v1.1.1-0.20200422163815-b564eaebdc17
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer/config
