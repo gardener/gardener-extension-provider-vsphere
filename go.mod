@@ -6,8 +6,8 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
 	github.com/gardener/controller-manager-library v0.1.1-0.20200204110458-c263b9bb97ad
-	github.com/gardener/etcd-druid v0.1.12
-	github.com/gardener/gardener v1.2.1-0.20200408030154-40b97d31d7f7
+	github.com/gardener/etcd-druid v0.1.15
+	github.com/gardener/gardener v1.2.1-0.20200505064036-175b017d8c5b
 	github.com/gardener/machine-controller-manager v0.27.0
 	github.com/go-logr/logr v0.1.0
 	github.com/gobuffalo/packr/v2 v2.8.0
@@ -22,7 +22,7 @@ require (
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.1.1
 	github.com/vmware/vsphere-automation-sdk-go/runtime v0.1.1
 	github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.2.0
-	k8s.io/api v0.17.0
+	k8s.io/api v0.16.8
 	k8s.io/apiextensions-apiserver v0.17.0
 	k8s.io/apimachinery v0.17.0
 	k8s.io/apiserver v0.16.8
