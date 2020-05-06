@@ -30,7 +30,7 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 
 		BeforeEach(func() {
 			cloudProfileConfig = &apisvsphere.CloudProfileConfig{
-				NamePrefix:                    "prefix",
+				NamePrefix:                    "prefix-1",
 				DefaultClassStoragePolicyName: "default-class",
 				Constraints: apisvsphere.Constraints{
 					LoadBalancerConfig: apisvsphere.LoadBalancerConfig{
@@ -136,7 +136,9 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 					"Field": Equal("machineImages[0].versions[0].path"),
 				}))))
 			})
+		})
 
+		Context("load balancer validation", func() {
 			It("should have a load balancer size", func() {
 				cloudProfileConfig.Constraints.LoadBalancerConfig.Size = ""
 
@@ -159,7 +161,9 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 					"Field": Equal("constraints.loadBalancerConfig.size"),
 				}))))
 			})
+		})
 
+		Context("resources validation", func() {
 			It("should have a valid compute cluster/resource pool/host system", func() {
 				cloudProfileConfig.Regions[0].Zones[0].ResourcePool = nil
 
@@ -198,6 +202,25 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 					"Type":  Equal(field.ErrorTypeRequired),
 					"Field": Equal("regions[0].zones[0].datacenter"),
+				}))))
+			})
+		})
+
+		Context("name prefix validation", func() {
+			It("should have a name prefix", func() {
+				cloudProfileConfig.NamePrefix = ""
+				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
+				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeRequired),
+					"Field": Equal("namePrefix"),
+				}))))
+			})
+			It("should have a valid name prefix", func() {
+				cloudProfileConfig.NamePrefix = "gardener_dev"
+				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
+				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeInvalid),
+					"Field": Equal("namePrefix"),
 				}))))
 			})
 		})
