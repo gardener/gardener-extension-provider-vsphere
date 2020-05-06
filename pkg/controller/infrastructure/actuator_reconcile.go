@@ -40,6 +40,7 @@ import (
 
 type preparedReconcile struct {
 	cloudProfileConfig *apisvsphere.CloudProfileConfig
+	infraConfig        *apisvsphere.InfrastructureConfig
 	region             *apisvsphere.RegionSpec
 	spec               infrastructure.NSXTInfraSpec
 	ensurer            infrastructure.NSXTInfrastructureEnsurer
@@ -47,6 +48,11 @@ type preparedReconcile struct {
 
 func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) (*preparedReconcile, error) {
 	cloudProfileConfig, err := apishelper.GetCloudProfileConfig(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	infraConfig, err := apishelper.GetInfrastructureConfig(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -94,6 +100,7 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 
 	prepared := &preparedReconcile{
 		cloudProfileConfig: cloudProfileConfig,
+		infraConfig:        infraConfig,
 		region:             region,
 		spec:               spec,
 		ensurer:            infraEnsurer,
@@ -139,7 +146,7 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 	}
 
 	if state == nil {
-		state, err = prepared.ensurer.NewStateWithVersion()
+		state, err = prepared.ensurer.NewStateWithVersion(prepared.infraConfig.OverwriteNSXTInfraVersion)
 		if err != nil {
 			return errors.Wrapf(err, "NewStateWithVersion failed")
 		}

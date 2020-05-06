@@ -18,11 +18,21 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	Ensurer_Version1_NSXT25 = "1"
+	Ensurer_Version2_NSXT30 = "2"
+)
+
+var SupportedEnsurerVersions = []string{Ensurer_Version1_NSXT25, Ensurer_Version2_NSXT30}
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // InfrastructureConfig infrastructure configuration resource
 type InfrastructureConfig struct {
 	metav1.TypeMeta
+	// OverwriteNSXTInfraVersion allows to fix the ensurer version used to create the NSXT-T infrastructure.
+	// This is an advanced configuration to overwrite the automatic version selection.
+	OverwriteNSXTInfraVersion *string
 }
 
 // VsphereConfig holds information about vSphere resources to use.

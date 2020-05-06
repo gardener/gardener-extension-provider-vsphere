@@ -27,15 +27,11 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/log"
 	vapiclient "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
-)
-
-const (
-	Version1_NSXT25 = "1"
-	Version2_NSXT30 = "2"
 )
 
 type ensurer struct {
@@ -82,14 +78,23 @@ func NewNSXTInfrastructureEnsurer(logger logr.Logger, nsxtConfig *vinfra.NSXTCon
 	}, nil
 }
 
-func (e *ensurer) NewStateWithVersion() (*api.NSXTInfraState, error) {
+func (e *ensurer) NewStateWithVersion(overwriteVersion *string) (*api.NSXTInfraState, error) {
+	if overwriteVersion != nil {
+		if !sets.NewString(api.SupportedEnsurerVersions...).Has(*overwriteVersion) {
+			return nil, fmt.Errorf("invalid overwrite version %s", *overwriteVersion)
+		}
+		return &api.NSXTInfraState{
+			Version: overwriteVersion,
+		}, nil
+	}
+
 	nsxtVersion, err := getNSXTVersion(e.connector)
 	if err != nil {
 		return nil, err
 	}
-	version := Version1_NSXT25
-	if strings.HasPrefix(*nsxtVersion, "3.") {
-		version = Version2_NSXT30
+	version := api.Ensurer_Version2_NSXT30
+	if strings.HasPrefix(*nsxtVersion, "2.") {
+		version = api.Ensurer_Version1_NSXT25
 	}
 	state := &api.NSXTInfraState{
 		Version: &version,
@@ -104,7 +109,7 @@ func (e *ensurer) CheckConnection() error {
 }
 
 func (e *ensurer) getTasks(state *api.NSXTInfraState) []task.Task {
-	nsxt3 := state.Version != nil && *state.Version != Version1_NSXT25
+	nsxt3 := state.Version != nil && *state.Version != api.Ensurer_Version1_NSXT25
 	tasks := []task.Task{
 		task.NewLookupTier0GatewayTask(),
 		task.NewLookupTransportZoneTask(),

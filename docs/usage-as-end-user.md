@@ -35,16 +35,26 @@ Here `base64(...)` are only a placeholders for the Base64 encoded values.
 The infrastructure configuration is currently not used. Nodes on all zones are using IP addresses from the common nodes
 network as the network is managed by NSX-T.
 
-An example `InfrastructureConfig` for the vSphere extension looks as follows (currently always empty):
+An example `InfrastructureConfig` for the vSphere extension looks as follows, but is currently only needed 
+to set advanced configuration values:
 
 ```yaml
 infrastructureConfig:
   apiVersion: vsphere.provider.extensions.gardener.cloud/v1alpha1
   kind: InfrastructureConfig
+  overwriteNSXTInfraVersion: '1'
 ```
 
 The infrastructure controller will create several network objects using NSX-T. A logical switch to be used as the network
-for the VMs (nodes), a tier-1 router, a DHCP server, and a SNAT for the nodes. 
+for the VMs (nodes), a tier-1 router, a DHCP server, and a SNAT for the nodes.
+
+### Advanced configuration settings
+
+The option `overwriteNSXTInfraVersion` can be used to change the network objects created during the initial infrastructure creation. 
+By default the infra-version is automatically selected according to the NSX-T version. The infra-version `'1'` is used 
+for NSX-T 2.5, and infra-version `'2'` for NSX-T versions >= 3.0. The difference is creation of the the logical DHCP server.
+For NSX-T 2.5, only the DHCP server of the "Advanced API" is usable. For NSX-T >= 3.0 the new DHCP server is default, 
+but for special purposes infra-version `'1'` is also allowed.
 
 ## `ControlPlaneConfig`
 
@@ -101,6 +111,7 @@ spec:
     #infrastructureConfig:
     #  apiVersion: vsphere.provider.extensions.gardener.cloud/v1alpha1
     #  kind: InfrastructureConfig
+    #  overwriteNSXTInfraVersion: '1'
 
     ## controlPlaneConfig has only optional parameters. Uncomment the following lines if needed
     #controlPlaneConfig:

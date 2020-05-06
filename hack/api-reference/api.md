@@ -251,6 +251,19 @@ string
 </td>
 <td><code>InfrastructureConfig</code></td>
 </tr>
+<tr>
+<td>
+<code>overwriteNSXTInfraVersion</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>OverwriteNSXTInfraVersion allows to fix the ensurer version used to create the NSXT-T infrastructure.
+This is an advanced configuration to overwrite the automatic version selection.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.WorkerStatus">WorkerStatus

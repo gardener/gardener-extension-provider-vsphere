@@ -22,6 +22,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/gstruct"
 
 	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	. "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
@@ -39,6 +40,24 @@ var _ = Describe("InfrastructureConfig validation", func() {
 	})
 
 	Describe("#ValidateInfrastructureConfig", func() {
+		It("should return no errors for a valid configuration", func() {
+			Expect(ValidateInfrastructureConfig(infrastructureConfig, nilPath)).To(BeEmpty())
+		})
+
+		It("should check valid value for OverwriteNSXTInfraVersion", func() {
+			s := api.Ensurer_Version1_NSXT25
+			infrastructureConfig.OverwriteNSXTInfraVersion = &s
+			errorList := ValidateInfrastructureConfig(infrastructureConfig, nilPath)
+			Expect(errorList).To(BeEmpty())
+
+			s2 := "3"
+			infrastructureConfig.OverwriteNSXTInfraVersion = &s2
+			errorList = ValidateInfrastructureConfig(infrastructureConfig, nilPath)
+			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+				"Type":  Equal(field.ErrorTypeNotSupported),
+				"Field": Equal("overwriteNSXTInfraVersion"),
+			}))))
+		})
 	})
 
 	Describe("#ValidateInfrastructureConfigUpdate", func() {

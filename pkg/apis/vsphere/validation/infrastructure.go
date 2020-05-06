@@ -18,15 +18,25 @@
 package validation
 
 import (
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
 	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 )
 
 // ValidateInfrastructureConfig validates a InfrastructureConfig object.
-func ValidateInfrastructureConfig(infra *api.InfrastructureConfig, nodesCIDR *string, fldPath *field.Path) field.ErrorList {
+func ValidateInfrastructureConfig(infra *api.InfrastructureConfig, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
+
+	if !isValidEnsurerVersion(infra.OverwriteNSXTInfraVersion) {
+		allErrs = append(allErrs, field.NotSupported(fldPath.Child("overwriteNSXTInfraVersion"),
+			*infra.OverwriteNSXTInfraVersion, api.SupportedEnsurerVersions))
+	}
 	return allErrs
+}
+
+func isValidEnsurerVersion(version *string) bool {
+	return version == nil || sets.NewString(api.SupportedEnsurerVersions...).Has(*version)
 }
 
 // ValidateInfrastructureConfigUpdate validates a InfrastructureConfig object.

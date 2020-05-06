@@ -46,7 +46,7 @@ func DestroyInfrastructure(logger logr.Logger, cfg *infrastructure.NSXTConfig, s
 			return nil, errors.Wrapf(err, "unmarshalling state failed")
 		}
 	} else {
-		state, err = infrastructureEnsurer.NewStateWithVersion()
+		state, err = infrastructureEnsurer.NewStateWithVersion(nil)
 		if err != nil {
 			return nil, errors.Wrapf(err, "NewStateWithVersion failed")
 		}
