@@ -46,17 +46,37 @@ const (
 
 	// Host is a constant for the key in a cloud provider secret holding the VSphere host name
 	Host = "vsphereHost"
-	// Username is a constant for the key in a cloud provider secret holding the VSphere user name
+	// Username is a constant for the key in a cloud provider secret holding the VSphere user name (optional, for all components)
 	Username = "vsphereUsername"
-	// Password is a constant for the key in a cloud provider secret holding the VSphere password
+	// Password is a constant for the key in a cloud provider secret holding the VSphere password (optional, for all components)
 	Password = "vspherePassword"
+	// Username is a constant for the key in a cloud provider secret holding the VSphere user name (specific for MachineControllerManager)
+	UsernameMCM = "vsphereUsernameMCM"
+	// Password is a constant for the key in a cloud provider secret holding the VSphere password (specific for MachineControllerManager)
+	PasswordMCM = "vspherePasswordMCM"
+	// Username is a constant for the key in a cloud provider secret holding the VSphere user name (specific for CloudControllerManager)
+	UsernameCCM = "vsphereUsernameCCM"
+	// Password is a constant for the key in a cloud provider secret holding the VSphere password (specific for CloudControllerManager)
+	PasswordCCM = "vspherePasswordCCM"
+	// Username is a constant for the key in a cloud provider secret holding the VSphere user name (specific for CSI)
+	UsernameCSI = "vsphereUsernameCSI"
+	// Password is a constant for the key in a cloud provider secret holding the VSphere password (specific for CSI)
+	PasswordCSI = "vspherePasswordCSI"
 	// InsecureSSL is a constant for the key in a cloud provider secret holding the boolean flag to allow insecure HTTPS connections to the VSphere host
 	InsecureSSL = "vsphereInsecureSSL"
 
-	// NSXTUsername is a constant for the key in a cloud provider secret holding the NSX-T user name
+	// NSXTUsername is a constant for the key in a cloud provider secret holding the NSX-T user name (optional, for all components)
 	NSXTUsername = "nsxtUsername"
-	// Password is a constant for the key in a cloud provider secret holding the NSX-T password
+	// Password is a constant for the key in a cloud provider secret holding the NSX-T password (optional, for all components)
 	NSXTPassword = "nsxtPassword"
+	// NSXTUsername is a constant for the key in a cloud provider secret holding the NSX-T user name (specific for CloudControllerManager)
+	NSXTUsernameCCM = "nsxtUsernameCCM"
+	// Password is a constant for the key in a cloud provider secret holding the NSX-T password (specific for CloudControllerManager)
+	NSXTPasswordCCM = "nsxtPasswordCCM"
+	// NSXTUsername is a constant for the key in a cloud provider secret holding the NSX-T user name (specific for infrastructure)
+	NSXTUsernameInfrastructure = "nsxtUsernameInfrastructure"
+	// Password is a constant for the key in a cloud provider secret holding the NSX-T password (specific for infrastructure)
+	NSXTPasswordInfrastructure = "nsxtPasswordInfrastructure"
 
 	// CloudProviderConfig is the name of the configmap containing the cloud provider config.
 	CloudProviderConfig = "cloud-provider-config"
