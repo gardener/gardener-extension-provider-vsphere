@@ -16,6 +16,7 @@ package validation
 
 import (
 	"fmt"
+	"regexp"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -25,6 +26,7 @@ import (
 )
 
 var validLoadBalancerSizeValues = sets.NewString("SMALL", "MEDIUM", "LARGE")
+var namePrefixPattern = regexp.MustCompile("^[a-z0-9]([-a-z0-9]*[a-z0-9])?$")
 
 // ValidateCloudProfileConfig validates a CloudProfileConfig object.
 func ValidateCloudProfileConfig(cloudProfile *apisvsphere.CloudProfileConfig) field.ErrorList {
@@ -42,6 +44,9 @@ func ValidateCloudProfileConfig(cloudProfile *apisvsphere.CloudProfileConfig) fi
 
 	if cloudProfile.NamePrefix == "" {
 		allErrs = append(allErrs, field.Required(field.NewPath("namePrefix"), "must provide name prefix for NSX-T resources"))
+	} else if !namePrefixPattern.MatchString(cloudProfile.NamePrefix) {
+		allErrs = append(allErrs, field.Invalid(field.NewPath("namePrefix"), cloudProfile.NamePrefix,
+			"must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character"))
 	}
 	if cloudProfile.DefaultClassStoragePolicyName == "" {
 		allErrs = append(allErrs, field.Required(field.NewPath("defaultClassStoragePolicyName"), "must provide defaultClassStoragePolicyName"))

@@ -409,6 +409,9 @@ func equivalentSingleSubnet(a []model.SegmentSubnet, b []model.SegmentSubnet) bo
 		return false
 	}
 
+	if a0.DhcpConfig == nil || b0.DhcpConfig == nil {
+		return a0.DhcpConfig == b0.DhcpConfig
+	}
 	converter := bindings.NewTypeConverter()
 	converter.SetMode(bindings.REST)
 	cfga0, err := converter.ConvertToGolang(a0.DhcpConfig, model.SegmentDhcpV4ConfigBindingType())

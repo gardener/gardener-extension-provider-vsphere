@@ -107,16 +107,14 @@ spec:
   provider:
     type: vsphere
    
-    ## infrastructureConfig is currently unused
     #infrastructureConfig:
     #  apiVersion: vsphere.provider.extensions.gardener.cloud/v1alpha1
     #  kind: InfrastructureConfig
     #  overwriteNSXTInfraVersion: '1'
 
-    ## controlPlaneConfig has only optional parameters. Uncomment the following lines if needed
-    #controlPlaneConfig:
-    #  apiVersion: vsphere.provider.extensions.gardener.cloud/v1alpha1
-    #  kind: ControlPlaneConfig
+    controlPlaneConfig:
+      apiVersion: vsphere.provider.extensions.gardener.cloud/v1alpha1
+      kind: ControlPlaneConfig
     #  loadBalancerClasses:
     #  - name: mylbclass
 

@@ -30,7 +30,7 @@ const (
 )
 
 func (s NSXTInfraSpec) FullClusterName() string {
-	return fmt.Sprintf("%s_%s", s.GardenName, s.ClusterName)
+	return fmt.Sprintf("%s--%s", s.GardenName, s.ClusterName)
 }
 
 func (s NSXTInfraSpec) CreateCommonTags() []common.Tag {
