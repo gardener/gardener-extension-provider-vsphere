@@ -83,8 +83,8 @@ func (w *workerDelegate) generateMachineClassSecretData(ctx context.Context) (ma
 
 	return map[string][]byte{
 		vsphere.Host:        []byte(region.VsphereHost),
-		vsphere.Username:    []byte(credentials.VsphereUsername),
-		vsphere.Password:    []byte(credentials.VspherePassword),
+		vsphere.Username:    []byte(credentials.VsphereMCM().Username),
+		vsphere.Password:    []byte(credentials.VsphereMCM().Password),
 		vsphere.InsecureSSL: []byte(strconv.FormatBool(region.VsphereInsecureSSL)),
 	}, nil
 }

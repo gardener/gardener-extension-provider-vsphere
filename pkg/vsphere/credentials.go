@@ -26,13 +26,56 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+type UserPass struct {
+	Username string
+	Password string
+}
+
 // Credentials contains the necessary vSphere credential information.
 type Credentials struct {
-	VsphereUsername string
-	VspherePassword string
+	vsphere    *UserPass
+	vsphereMCM *UserPass
+	vsphereCCM *UserPass
+	vsphereCSI *UserPass
 
-	NSXTUsername string
-	NSXTPassword string
+	nsxt               *UserPass
+	nsxtCCM            *UserPass
+	nsxtInfrastructure *UserPass
+}
+
+func (c *Credentials) VsphereMCM() UserPass {
+	if c.vsphereMCM != nil {
+		return *c.vsphereMCM
+	}
+	return *c.vsphere
+}
+
+func (c *Credentials) VsphereCCM() UserPass {
+	if c.vsphereCCM != nil {
+		return *c.vsphereCCM
+	}
+	return *c.vsphere
+}
+
+func (c *Credentials) VsphereCSI() UserPass {
+	if c.vsphereCSI != nil {
+		return *c.vsphereCSI
+	}
+	return *c.vsphere
+}
+
+func (c *Credentials) NSXT_CCM() UserPass {
+	if c.nsxtCCM != nil {
+		return *c.nsxtCCM
+	}
+	return *c.nsxt
+}
+
+func (c *Credentials) NSXT_Infrastructure() UserPass {
+	if c.nsxtInfrastructure != nil {
+		return *c.nsxtInfrastructure
+	}
+	return *c.nsxt
 }
 
 // GetCredentials computes for a given context and infrastructure the corresponding credentials object.
@@ -44,35 +87,61 @@ func GetCredentials(ctx context.Context, c client.Client, secretRef corev1.Secre
 	return ExtractCredentials(secret)
 }
 
+func extractUserPass(secret *corev1.Secret, usernameKey, passwordKey string) (*UserPass, error) {
+	username, ok := secret.Data[usernameKey]
+	if !ok {
+		return nil, fmt.Errorf("missing %q field in secret", usernameKey)
+	}
+
+	password, ok := secret.Data[passwordKey]
+	if !ok {
+		return nil, fmt.Errorf("missing %q field in secret", passwordKey)
+	}
+
+	return &UserPass{Username: string(username), Password: string(password)}, nil
+}
+
 // ExtractCredentials generates a credentials object for a given provider secret.
 func ExtractCredentials(secret *corev1.Secret) (*Credentials, error) {
 	if secret.Data == nil {
 		return nil, fmt.Errorf("secret does not contain any data")
 	}
-	username, ok := secret.Data[Username]
-	if !ok {
-		return nil, fmt.Errorf("missing %q field in secret", Username)
+
+	vsphere, vsphereErr := extractUserPass(secret, Username, Password)
+
+	mcm, err := extractUserPass(secret, UsernameMCM, PasswordMCM)
+	if err != nil && vsphereErr != nil {
+		return nil, fmt.Errorf("Need either common or machine controller manager specific vSphere account credentials: %s, %s", vsphereErr, err)
+	}
+	ccm, err := extractUserPass(secret, UsernameCCM, PasswordCCM)
+	if err != nil && vsphereErr != nil {
+		return nil, fmt.Errorf("Need either common or cloud controller manager specific vSphere account credentials: %s, %s", vsphereErr, err)
+	}
+	csi, err := extractUserPass(secret, UsernameCSI, PasswordCSI)
+	if err != nil && vsphereErr != nil {
+		return nil, fmt.Errorf("Need either common or CSI specific vSphere account credentials: %s, %s", vsphereErr, err)
 	}
 
-	password, ok := secret.Data[Password]
-	if !ok {
-		return nil, fmt.Errorf("missing %q field in secret", Password)
+	nsxt, nsxtErr := extractUserPass(secret, NSXTUsername, NSXTPassword)
+	if nsxtErr != nil {
+		return nil, nsxtErr
 	}
-
-	nsxtUsername, ok := secret.Data[NSXTUsername]
-	if !ok {
-		return nil, fmt.Errorf("missing %q field in secret", NSXTUsername)
+	nsxtCCM, err := extractUserPass(secret, NSXTUsernameCCM, NSXTPasswordCCM)
+	if err != nil && vsphereErr != nil {
+		return nil, fmt.Errorf("Need either common or cloud controller manager specific NSX-T account credentials: %s, %s", nsxtErr, err)
 	}
-
-	nsxtPassword, ok := secret.Data[NSXTPassword]
-	if !ok {
-		return nil, fmt.Errorf("missing %q field in secret", NSXTPassword)
+	nsxtInfra, err := extractUserPass(secret, NSXTUsernameInfrastructure, NSXTPasswordInfrastructure)
+	if err != nil && vsphereErr != nil {
+		return nil, fmt.Errorf("Need either common or infrastructure specific NSX-T account credentials: %s, %s", vsphereErr, err)
 	}
 
 	return &Credentials{
-		VsphereUsername: string(username),
-		VspherePassword: string(password),
-		NSXTUsername:    string(nsxtUsername),
-		NSXTPassword:    string(nsxtPassword),
+		vsphere:            vsphere,
+		vsphereMCM:         mcm,
+		vsphereCCM:         ccm,
+		vsphereCSI:         csi,
+		nsxt:               nsxt,
+		nsxtCCM:            nsxtCCM,
+		nsxtInfrastructure: nsxtInfra,
 	}, nil
 }
