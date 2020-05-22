@@ -252,8 +252,6 @@ github.com/google/uuid
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
-# github.com/gorilla/mux v1.7.3
-github.com/gorilla/mux
 # github.com/hashicorp/errwrap v1.0.0
 github.com/hashicorp/errwrap
 # github.com/hashicorp/go-multierror v1.0.0
@@ -424,11 +422,10 @@ github.com/vmware/govmomi/vim25/xml
 github.com/vmware/govmomi/vslm
 github.com/vmware/govmomi/vslm/methods
 github.com/vmware/govmomi/vslm/types
-# github.com/vmware/vsphere-automation-sdk-go/lib v0.1.1
+# github.com/vmware/vsphere-automation-sdk-go/lib v0.2.0
 github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std
 github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors
-# github.com/vmware/vsphere-automation-sdk-go/runtime v0.1.1
-github.com/vmware/vsphere-automation-sdk-go/runtime
+# github.com/vmware/vsphere-automation-sdk-go/runtime v0.2.0
 github.com/vmware/vsphere-automation-sdk-go/runtime/bindings
 github.com/vmware/vsphere-automation-sdk-go/runtime/common
 github.com/vmware/vsphere-automation-sdk-go/runtime/core
@@ -444,10 +441,11 @@ github.com/vmware/vsphere-automation-sdk-go/runtime/metadata
 github.com/vmware/vsphere-automation-sdk-go/runtime/metadata/info
 github.com/vmware/vsphere-automation-sdk-go/runtime/protocol
 github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client
+github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client/metadata
 github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/server
 github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/server/rpc/msg
 github.com/vmware/vsphere-automation-sdk-go/runtime/security
-# github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.2.0
+# github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.3.0
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/ip_pools
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/realized_state
@@ -482,13 +480,13 @@ golang.org/x/crypto/scrypt
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/lint v0.0.0-20200130185559-910be7a94367
+# golang.org/x/lint v0.0.0-20191125180803-fdd1cda4f05f
 golang.org/x/lint
 golang.org/x/lint/golint
 # golang.org/x/mod v0.2.0
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20200301022130-244492dfa37a
+# golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/html
@@ -505,7 +503,7 @@ golang.org/x/oauth2
 golang.org/x/oauth2/internal
 # golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20200317113312-5766fd39f98d
+# golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
 golang.org/x/sys/windows
@@ -548,10 +546,8 @@ golang.org/x/tools/go/ast/astutil
 golang.org/x/tools/go/ast/inspector
 golang.org/x/tools/go/buildutil
 golang.org/x/tools/go/gcexportdata
-golang.org/x/tools/go/internal/cgo
 golang.org/x/tools/go/internal/gcimporter
 golang.org/x/tools/go/internal/packagesdriver
-golang.org/x/tools/go/loader
 golang.org/x/tools/go/packages
 golang.org/x/tools/go/types/objectpath
 golang.org/x/tools/go/types/typeutil
@@ -657,33 +653,29 @@ gopkg.in/tomb.v1
 gopkg.in/warnings.v0
 # gopkg.in/yaml.v2 v2.2.8
 gopkg.in/yaml.v2
-# honnef.co/go/tools v0.0.1-2020.1.3
+# honnef.co/go/tools v0.0.1-2019.2.3
 honnef.co/go/tools/arg
 honnef.co/go/tools/cmd/staticcheck
-honnef.co/go/tools/code
 honnef.co/go/tools/config
 honnef.co/go/tools/deprecated
-honnef.co/go/tools/edit
 honnef.co/go/tools/facts
 honnef.co/go/tools/functions
 honnef.co/go/tools/go/types/typeutil
 honnef.co/go/tools/internal/cache
-honnef.co/go/tools/internal/passes/buildir
+honnef.co/go/tools/internal/passes/buildssa
 honnef.co/go/tools/internal/renameio
-honnef.co/go/tools/internal/robustio
 honnef.co/go/tools/internal/sharedcheck
-honnef.co/go/tools/ir
-honnef.co/go/tools/ir/irutil
 honnef.co/go/tools/lint
 honnef.co/go/tools/lint/lintdsl
 honnef.co/go/tools/lint/lintutil
 honnef.co/go/tools/lint/lintutil/format
 honnef.co/go/tools/loader
-honnef.co/go/tools/pattern
 honnef.co/go/tools/printf
-honnef.co/go/tools/report
 honnef.co/go/tools/simple
+honnef.co/go/tools/ssa
+honnef.co/go/tools/ssautil
 honnef.co/go/tools/staticcheck
+honnef.co/go/tools/staticcheck/vrp
 honnef.co/go/tools/stylecheck
 honnef.co/go/tools/unused
 honnef.co/go/tools/version
@@ -969,7 +961,7 @@ k8s.io/client-go/util/workqueue
 # k8s.io/cloud-provider v0.0.0 => k8s.io/kubernetes/staging/src/k8s.io/cloud-provider v0.0.0-20190615005809-e8462b5b5dc2
 k8s.io/cloud-provider
 k8s.io/cloud-provider/node/helpers
-# k8s.io/cloud-provider-vsphere v1.1.0 => k8s.io/cloud-provider-vsphere v1.1.1-0.20200422163815-b564eaebdc17
+# k8s.io/cloud-provider-vsphere v1.1.0 => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20200522092937-0ba091f72743
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer/config

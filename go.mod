@@ -19,9 +19,9 @@ require (
 	github.com/spf13/cobra v0.0.6
 	github.com/spf13/pflag v1.0.5
 	github.com/vmware/go-vmware-nsxt v0.0.0-20200114231430-33a5af043f2e
-	github.com/vmware/vsphere-automation-sdk-go/lib v0.1.1
-	github.com/vmware/vsphere-automation-sdk-go/runtime v0.1.1
-	github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.2.0
+	github.com/vmware/vsphere-automation-sdk-go/lib v0.2.0
+	github.com/vmware/vsphere-automation-sdk-go/runtime v0.2.0
+	github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.3.0
 	k8s.io/api v0.17.0
 	k8s.io/apiextensions-apiserver v0.17.0
 	k8s.io/apimachinery v0.17.0
@@ -49,7 +49,7 @@ replace (
 )
 
 // only needed for infra-cli
-replace k8s.io/cloud-provider-vsphere => k8s.io/cloud-provider-vsphere v1.1.1-0.20200422163815-b564eaebdc17
+replace k8s.io/cloud-provider-vsphere => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20200522092937-0ba091f72743
 
 replace (
 	// these replacements are needed for the cloud-provider-vsphere
@@ -67,6 +67,5 @@ replace (
 	k8s.io/kubelet => k8s.io/kubernetes/staging/src/k8s.io/kubelet v0.0.0-20190615005809-e8462b5b5dc2
 	k8s.io/legacy-cloud-providers => k8s.io/kubernetes/staging/src/k8s.io/legacy-cloud-providers v0.0.0-20190615005809-e8462b5b5dc2
 	k8s.io/metrics => k8s.io/kubernetes/staging/src/k8s.io/metrics v0.0.0-20190615005809-e8462b5b5dc2
-	k8s.io/node-api => k8s.io/kubernetes/staging/src/k8s.io/node-api v0.0.0-20190615005809-e8462b5b5dc2
 	k8s.io/sample-apiserver => k8s.io/kubernetes/staging/src/k8s.io/sample-apiserver v0.0.0-20190615005809-e8462b5b5dc2
 )
