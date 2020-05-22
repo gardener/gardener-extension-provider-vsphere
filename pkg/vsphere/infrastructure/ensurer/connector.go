@@ -35,6 +35,20 @@ import (
 	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 )
 
+type remoteBasicAuthHeaderProcessor struct {
+}
+
+func newRemoteBasicAuthHeaderProcessor() *remoteBasicAuthHeaderProcessor {
+	return &remoteBasicAuthHeaderProcessor{}
+}
+
+func (processor remoteBasicAuthHeaderProcessor) Process(req *http.Request) error {
+	oldAuthHeader := req.Header.Get("Authorization")
+	newAuthHeader := strings.Replace(oldAuthHeader, "Basic", "Remote", 1)
+	req.Header.Set("Authorization", newAuthHeader)
+	return nil
+}
+
 func createHttpClient(nsxtConfig *vinfra.NSXTConfig) (*string, *http.Client, error) {
 	url := fmt.Sprintf("https://%s", nsxtConfig.Host)
 
@@ -111,6 +125,9 @@ func createConnector(nsxtConfig *vinfra.NSXTConfig) (client.Connector, error) {
 	}
 	connector := client.NewRestConnector(*url, *httpClient)
 	connector.SetSecurityContext(securityCtx)
+	if nsxtConfig.RemoteAuth {
+		connector.AddRequestProcessor(newRemoteBasicAuthHeaderProcessor())
+	}
 
 	// perform API call to check connector
 	_, err = infra.NewDefaultLbMonitorProfilesClient(connector).List(nil, nil, nil, nil, nil, nil)

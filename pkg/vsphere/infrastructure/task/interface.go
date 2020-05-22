@@ -35,6 +35,8 @@ type EnsurerContext interface {
 	NSXTClient() *nsxt.APIClient
 	// IsTryRecoverEnabled returns if NSX-T object should be searched by tag if no reference is set in state
 	IsTryRecoverEnabled() bool
+	// GetNSXTVersion retrieves the NSX-T version
+	GetNSXTVersion() (*string, error)
 }
 
 type Task interface {

@@ -92,7 +92,7 @@ func getRealizedIPAddress(connector vapiclient.Connector, ipAllocationPath strin
 		if sleep > sleepMax {
 			sleep = sleepMax
 		}
-		list, err := client.List(ipAllocationPath)
+		list, err := client.List(ipAllocationPath, nil)
 		if err != nil {
 			return nil, nicerVAPIError(err)
 		}

@@ -676,6 +676,7 @@ func autoConvert_v1alpha1_RegionSpec_To_vsphere_RegionSpec(in *RegionSpec, out *
 	out.VsphereInsecureSSL = in.VsphereInsecureSSL
 	out.NSXTHost = in.NSXTHost
 	out.NSXTInsecureSSL = in.NSXTInsecureSSL
+	out.NSXTRemoteAuth = in.NSXTRemoteAuth
 	out.TransportZone = in.TransportZone
 	out.LogicalTier0Router = in.LogicalTier0Router
 	out.EdgeCluster = in.EdgeCluster
@@ -702,6 +703,7 @@ func autoConvert_vsphere_RegionSpec_To_v1alpha1_RegionSpec(in *vsphere.RegionSpe
 	out.VsphereInsecureSSL = in.VsphereInsecureSSL
 	out.NSXTHost = in.NSXTHost
 	out.NSXTInsecureSSL = in.NSXTInsecureSSL
+	out.NSXTRemoteAuth = in.NSXTRemoteAuth
 	out.TransportZone = in.TransportZone
 	out.LogicalTier0Router = in.LogicalTier0Router
 	out.EdgeCluster = in.EdgeCluster

@@ -56,6 +56,10 @@ func (e *ensurer) NSXTClient() *nsxt.APIClient {
 	return e.nsxtClient
 }
 
+func (e *ensurer) GetNSXTVersion() (*string, error) {
+	return getNSXTVersion(e.connector)
+}
+
 func (e *ensurer) IsTryRecoverEnabled() bool {
 	return true
 }

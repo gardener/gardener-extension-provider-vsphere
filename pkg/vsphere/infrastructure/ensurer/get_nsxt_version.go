@@ -46,6 +46,8 @@ func getNSXTVersion(connector client.Connector) (*string, error) {
 		pathParams := map[string]string{}
 		queryParams := map[string]string{}
 		headerParams := map[string]string{}
+		dispatchHeaderParams := map[string]string{}
+		bodyFieldsMap := map[string]string{}
 		resultHeaders := map[string]string{}
 		errorHeaders := map[string]string{}
 		return protocol.NewOperationRestMetadata(
@@ -55,12 +57,16 @@ func getNSXTVersion(connector client.Connector) (*string, error) {
 			pathParams,
 			queryParams,
 			headerParams,
+			dispatchHeaderParams,
+			bodyFieldsMap,
 			"",
 			"",
 			"GET",
 			"/api/v1/node/version",
+			"",
 			resultHeaders,
 			200,
+			"",
 			errorHeaders,
 			map[string]int{"InvalidRequest": 400, "Unauthorized": 403, "ServiceUnavailable": 503, "InternalServerError": 500, "NotFound": 404})
 	}

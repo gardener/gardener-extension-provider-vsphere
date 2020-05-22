@@ -618,7 +618,7 @@ func (t *snatRuleTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, sta
 	rule := model.PolicyNatRule{
 		DisplayName:    strptr(spec.FullClusterName()),
 		Description:    strptr(description),
-		Action:         model.PolicyNatRule_ACTION_SNAT,
+		Action:         strptr(model.PolicyNatRule_ACTION_SNAT),
 		Enabled:        boolptr(true),
 		Logging:        boolptr(true),
 		SequenceNumber: int64ptr(100),

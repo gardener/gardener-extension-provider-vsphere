@@ -68,6 +68,8 @@ type RegionSpec struct {
 	NSXTHost string
 	// NSXTInsecureSSL is a flag if insecure HTTPS is allowed for NSXTHost
 	NSXTInsecureSSL bool
+	// NSXTRemoteAuth is a flag if NSX-T uses remote authentication (authentication done through the vIDM).
+	NSXTRemoteAuth bool
 	// TransportZone is the NSX-T transport zone
 	TransportZone string
 	// LogicalTier0Router is the NSX-T logical tier 0 router

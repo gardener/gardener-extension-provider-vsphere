@@ -40,6 +40,7 @@ func createNSXClient(nsxtConfig *vinfra.NSXTConfig) (*nsxt.APIClient, error) {
 		ClientAuthKeyFile:    nsxtConfig.ClientAuthKeyFile,
 		CAFile:               nsxtConfig.CAFile,
 		Insecure:             nsxtConfig.InsecureFlag,
+		RemoteAuth:           nsxtConfig.RemoteAuth,
 		RetriesConfiguration: retriesConfig,
 	}
 	client, err := nsxt.NewAPIClient(&cfg)

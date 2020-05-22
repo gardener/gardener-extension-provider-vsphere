@@ -1171,6 +1171,17 @@ bool
 </tr>
 <tr>
 <td>
+<code>nsxtRemoteAuth</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>NSXTRemoteAuth is a flag if NSX-T uses remote authentication (authentication done through the vIDM).</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>transportZone</code></br>
 <em>
 string

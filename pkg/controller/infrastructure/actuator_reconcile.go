@@ -79,6 +79,7 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 		Password:     creds.NSXT_Infrastructure().Password,
 		Host:         region.NSXTHost,
 		InsecureFlag: region.NSXTInsecureSSL,
+		RemoteAuth:   region.NSXTRemoteAuth,
 	}
 
 	spec := infrastructure.NSXTInfraSpec{

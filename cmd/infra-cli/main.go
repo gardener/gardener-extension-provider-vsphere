@@ -51,6 +51,9 @@ var (
 	cloudProfileName string
 	region           string
 	outputConfigFile string
+	ipPoolRanges     string
+	ipPoolCidr       string
+	advancedAPI      bool
 
 	config *infrastructure.NSXTConfig
 
@@ -124,6 +127,28 @@ func init() {
 	}
 	nsxtVersionCmd.Run = nsxtVersion
 	rootCmd.AddCommand(nsxtVersionCmd)
+
+	createIPPoolCmd := &cobra.Command{
+		Use:   "createIPPool",
+		Short: "creates an IP pool for SNAT or load balancer VIPs",
+		Long:  `Creates an IP pool for this provider to allocate IPs for SNAT or load balancers`,
+	}
+	createIPPoolCmd.Flags().StringVar(&ipPoolName, "ipPoolName", "", "name of the IP pool")
+	createIPPoolCmd.Flags().StringVar(&ipPoolRanges, "ranges", "", "IP ranges in form '1.2.3.1-1.2.3.31,...'")
+	createIPPoolCmd.Flags().StringVar(&ipPoolCidr, "cidr", "", "cidr of IP pool")
+	createIPPoolCmd.Flags().BoolVar(&advancedAPI, "advancedAPI", false, "use Advanced API instead of Policy API")
+	createIPPoolCmd.Run = createIPPool
+	rootCmd.AddCommand(createIPPoolCmd)
+
+	deleteIPPoolCmd := &cobra.Command{
+		Use:   "deleteIPPool",
+		Short: "deletes an existing IP pool",
+		Long:  `Deletes an existing IP pool`,
+	}
+	deleteIPPoolCmd.Flags().StringVar(&ipPoolName, "ipPoolName", "", "name of the IP pool")
+	deleteIPPoolCmd.Flags().BoolVar(&advancedAPI, "advancedAPI", false, "use Advanced API instead of Policy API")
+	deleteIPPoolCmd.Run = deleteIPPool
+	rootCmd.AddCommand(deleteIPPoolCmd)
 }
 
 func initConfig() {
@@ -285,6 +310,32 @@ func destroyLoadBalancers(cmd *cobra.Command, args []string) {
 	err := infra_cli.DestroyLoadBalancers(config, clusterName, ipPoolName, owner)
 	if err != nil {
 		panic(errors.Wrapf(err, "DestroyInfrastructure failed"))
+	}
+}
+
+func createIPPool(cmd *cobra.Command, args []string) {
+	if ipPoolName == "" {
+		panic("missing ipPoolName for creating IP pool")
+	}
+	if ipPoolRanges == "" {
+		panic("missing ranges for creating IP pool")
+	}
+	if ipPoolCidr == "" {
+		panic("missing ranges for creating IP pool")
+	}
+	err := infra_cli.CreateIPPool(logger, config, ipPoolName, ipPoolRanges, ipPoolCidr, advancedAPI)
+	if err != nil {
+		panic(errors.Wrapf(err, "CreateIPPool failed"))
+	}
+}
+
+func deleteIPPool(cmd *cobra.Command, args []string) {
+	if ipPoolName == "" {
+		panic("missing ipPoolName for deleting IP pool")
+	}
+	err := infra_cli.DeleteIPPool(logger, config, ipPoolName, advancedAPI)
+	if err != nil {
+		panic(errors.Wrapf(err, "DeleteIPPool failed"))
 	}
 }
 
