@@ -18,6 +18,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/gardener/gardener/pkg/operation/botanist/component"
+	"github.com/gardener/gardener/pkg/operation/seed/istio"
 	"path/filepath"
 	"strings"
 
@@ -318,7 +320,10 @@ func deployCertificates(seed *Seed, k8sSeedClient kubernetes.Interface, existing
 
 // BootstrapCluster bootstraps a Seed cluster and deploys various required manifests.
 func BootstrapCluster(k8sGardenClient kubernetes.Interface, seed *Seed, config *config.GardenletConfiguration, secrets map[string]*corev1.Secret, imageVector imagevector.ImageVector, componentImageVectors imagevector.ComponentImageVectors) error {
-	const chartName = "seed-bootstrap"
+	const (
+		chartName      = "seed-bootstrap"
+		istioChartName = "istio"
+	)
 
 	k8sSeedClient, err := GetSeedClient(context.TODO(), k8sGardenClient.Client(), config.SeedClientConnection.ClientConnectionConfiguration, config.SeedSelector == nil, seed.Info.Name)
 	if err != nil {
@@ -473,7 +478,7 @@ func BootstrapCluster(k8sGardenClient kubernetes.Interface, seed *Seed, config *
 			parsers.WriteString(fmt.Sprintln(cm.Data[v1beta1constants.FluentBitConfigMapParser]))
 		}
 	} else {
-		if err := common.DeleteLoggingStack(context.TODO(), k8sSeedClient.Client(), v1beta1constants.GardenNamespace); err != nil && !apierrors.IsNotFound(err) {
+		if err := common.DeleteLoggingStack(context.TODO(), k8sSeedClient.Client(), v1beta1constants.GardenNamespace); client.IgnoreNotFound(err) != nil {
 			return err
 		}
 	}
@@ -482,7 +487,7 @@ func BootstrapCluster(k8sGardenClient kubernetes.Interface, seed *Seed, config *
 	var hvpaEnabled = gardenletfeatures.FeatureGate.Enabled(features.HVPA)
 
 	if !hvpaEnabled {
-		if err := common.DeleteHvpa(k8sSeedClient, v1beta1constants.GardenNamespace); err != nil && !apierrors.IsNotFound(err) {
+		if err := common.DeleteHvpa(k8sSeedClient, v1beta1constants.GardenNamespace); client.IgnoreNotFound(err) != nil {
 			return err
 		}
 	}
@@ -538,6 +543,12 @@ func BootstrapCluster(k8sGardenClient kubernetes.Interface, seed *Seed, config *
 	} else {
 		alertManagerConfig["enabled"] = false
 		if err := common.DeleteAlertmanager(context.TODO(), k8sSeedClient.Client(), v1beta1constants.GardenNamespace); err != nil {
+			return err
+		}
+	}
+
+	if !seed.Info.Spec.Settings.ExcessCapacityReservation.Enabled {
+		if err := common.DeleteReserveExcessCapacity(context.TODO(), k8sSeedClient.Client()); client.IgnoreNotFound(err) != nil {
 			return err
 		}
 	}
@@ -617,13 +628,52 @@ func BootstrapCluster(k8sGardenClient kubernetes.Interface, seed *Seed, config *
 		imageVectorOverwrites[name] = data
 	}
 
+	if gardenletfeatures.FeatureGate.Enabled(features.ManagedIstio) {
+		istiodImage, err := imageVector.FindImage(common.IstioIstiodImageName)
+		if err != nil {
+			return err
+		}
+
+		igwImage, err := imageVector.FindImage(common.IstioProxyImageName)
+		if err != nil {
+			return err
+		}
+
+		istioCRDs := istio.NewIstioCRD(chartApplier, "charts")
+		istiod := istio.NewIstiod(
+			&istio.IstiodValues{
+				TrustDomain: "cluster.local",
+				Image:       istiodImage.String(),
+			},
+			common.IstioNamespace,
+			chartApplier,
+			"charts",
+			k8sSeedClient.Client(),
+		)
+		igw := istio.NewIngressGateway(
+			&istio.IngressValues{
+				TrustDomain:     "cluster.local",
+				Image:           igwImage.String(),
+				IstiodNamespace: common.IstioNamespace,
+			},
+			common.IstioIngressGatewayNamespace,
+			chartApplier,
+			"charts",
+			k8sSeedClient.Client(),
+		)
+
+		if err := component.OpWaiter(istioCRDs, istiod, igw).Deploy(context.TODO()); err != nil {
+			return err
+		}
+	}
+
 	values := kubernetes.Values(map[string]interface{}{
 		"cloudProvider": seed.Info.Spec.Provider.Type,
 		"global": map[string]interface{}{
 			"images":                chart.ImageMapToValues(images),
 			"imageVectorOverwrites": imageVectorOverwrites,
 		},
-		"reserveExcessCapacity": seed.reserveExcessCapacity,
+		"reserveExcessCapacity": seed.Info.Spec.Settings.ExcessCapacityReservation.Enabled,
 		"replicas": map[string]interface{}{
 			"reserve-excess-capacity": DesiredExcessCapacity(),
 		},
@@ -779,11 +829,6 @@ func (s *Seed) CheckMinimumK8SVersion(ctx context.Context, k8sGardenClient clien
 		return "<unknown>", fmt.Errorf("the Kubernetes version of the Seed cluster must be at least %s", minSeedVersion)
 	}
 	return version, nil
-}
-
-// MustReserveExcessCapacity configures whether we have to reserve excess capacity in the Seed cluster.
-func (s *Seed) MustReserveExcessCapacity(must bool) {
-	s.reserveExcessCapacity = must
 }
 
 // GetValidVolumeSize is to get a valid volume size.
