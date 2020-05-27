@@ -20,10 +20,9 @@ import (
 
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
+	"github.com/gardener/gardener/pkg/operation/botanist/matchers"
 
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apiserver/pkg/admission/plugin/webhook"
 )
 
@@ -34,7 +33,8 @@ func shootHibernatedConstraint(condition gardencorev1beta1.Condition) gardencore
 // ConstraintsChecks conducts the constraints checks on all the given constraints.
 func (b *Botanist) ConstraintsChecks(ctx context.Context, initializeShootClients func() error, hibernation gardencorev1beta1.Condition) gardencorev1beta1.Condition {
 	hibernationPossible := b.constraintsChecks(ctx, initializeShootClients, hibernation)
-	return b.pardonCondition(hibernationPossible)
+	lastOp := b.Shoot.Info.Status.LastOperation
+	return PardonCondition(lastOp, hibernationPossible)
 }
 
 func (b *Botanist) constraintsChecks(ctx context.Context, initializeShootClients func() error, hibernationConstraint gardencorev1beta1.Condition) gardencorev1beta1.Condition {
@@ -122,15 +122,13 @@ func IsProblematicWebhook(w webhook.WebhookAccessor) bool {
 		return false
 	}
 
-	for _, rule := range w.GetRules() {
-		apiGroups := sets.NewString(rule.APIGroups...)
-		resources := sets.NewString(rule.Resources...)
+	objSelector := w.GetObjectSelector()
+	nsSelector := w.GetNamespaceSelector()
 
-		if apiGroups.Has(corev1.GroupName) && resources.HasAny("pods", "nodes") {
-			for _, op := range rule.Operations {
-				if op == admissionregistrationv1beta1.Create || op == admissionregistrationv1beta1.Update || op == admissionregistrationv1beta1.OperationAll {
-					return true
-				}
+	for _, rule := range w.GetRules() {
+		for _, matcher := range matchers.WebhookConstraintMatchers {
+			if matcher.Match(rule, objSelector, nsSelector) {
+				return true
 			}
 		}
 	}

@@ -21,7 +21,6 @@ import (
 
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	gardencoreinformers "github.com/gardener/gardener/pkg/client/core/informers/externalversions"
 	gardencorelisters "github.com/gardener/gardener/pkg/client/core/listers/core/v1beta1"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
@@ -266,7 +265,7 @@ func ReadGardenSecrets(k8sInformers kubeinformers.SharedInformerFactory, k8sGard
 		return nil, err
 	}
 	for _, seed := range seeds {
-		if gardencorev1beta1helper.TaintsHave(seed.Spec.Taints, gardencorev1beta1.SeedTaintDisableDNS) {
+		if !seed.Spec.Settings.ShootDNS.Enabled {
 			continue
 		}
 
@@ -342,7 +341,7 @@ func VerifyInternalDomainSecret(k8sGardenClient kubernetes.Interface, numberOfSh
 // BootstrapCluster bootstraps the Garden cluster and deploys various required manifests.
 func BootstrapCluster(k8sGardenClient kubernetes.Interface, gardenNamespace string, secrets map[string]*corev1.Secret) error {
 	// Check whether the Kubernetes version of the Garden cluster is at least 1.10 (least supported K8s version of Gardener).
-	minGardenVersion := "1.10"
+	minGardenVersion := "1.12"
 	gardenVersionOK, err := version.CompareVersions(k8sGardenClient.Version(), ">=", minGardenVersion)
 	if err != nil {
 		return err
