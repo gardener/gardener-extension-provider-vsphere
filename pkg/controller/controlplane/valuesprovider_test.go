@@ -111,6 +111,7 @@ var _ = Describe("ValuesProvider", func() {
 										VsphereInsecureSSL: true,
 										NSXTHost:           "nsxt.host.internal",
 										NSXTInsecureSSL:    true,
+										NSXTRemoteAuth:     true,
 										TransportZone:      "tz",
 										LogicalTier0Router: "lt0router",
 										EdgeCluster:        "edgecluster",
@@ -235,6 +236,7 @@ var _ = Describe("ValuesProvider", func() {
 				"host":         "nsxt.host.internal",
 				"insecureFlag": true,
 				"username":     "nsxt-admin",
+				"remoteAuth":   true,
 			},
 		}
 

@@ -413,6 +413,10 @@ func (vp *valuesProvider) getConfigChartValues(
 		},
 	}
 
+	if region.NSXTRemoteAuth {
+		values["nsxt"].(map[string]interface{})["remoteAuth"] = region.NSXTRemoteAuth
+	}
+
 	if !utils.IsEmptyString(region.CaFile) {
 		values["caFile"] = *region.CaFile
 	}
