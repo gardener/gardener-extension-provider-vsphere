@@ -57,3 +57,4 @@ data:
     password = "{{ .Values.nsxt.password }}"
     host = "{{ .Values.nsxt.host }}"
     insecure-flag = "{{ .Values.nsxt.insecureFlag }}"
+    remote-auth = "{{ .Values.nsxt.remoteAuth }}"

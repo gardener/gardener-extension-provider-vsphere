@@ -211,7 +211,7 @@ var _ = Describe("ValuesProvider", func() {
 		}
 
 		configChartValues = map[string]interface{}{
-			"insecureFlag": "1",
+			"insecureFlag": true,
 			"serverPort":   443,
 			"serverName":   "vsphere.host.internal",
 			"datacenters":  "scc01-DC",
