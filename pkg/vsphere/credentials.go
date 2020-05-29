@@ -127,12 +127,12 @@ func ExtractCredentials(secret *corev1.Secret) (*Credentials, error) {
 		return nil, nsxtErr
 	}
 	nsxtCCM, err := extractUserPass(secret, NSXTUsernameCCM, NSXTPasswordCCM)
-	if err != nil && vsphereErr != nil {
+	if err != nil && nsxtErr != nil {
 		return nil, fmt.Errorf("Need either common or cloud controller manager specific NSX-T account credentials: %s, %s", nsxtErr, err)
 	}
 	nsxtInfra, err := extractUserPass(secret, NSXTUsernameInfrastructure, NSXTPasswordInfrastructure)
-	if err != nil && vsphereErr != nil {
-		return nil, fmt.Errorf("Need either common or infrastructure specific NSX-T account credentials: %s, %s", vsphereErr, err)
+	if err != nil && nsxtErr != nil {
+		return nil, fmt.Errorf("Need either common or infrastructure specific NSX-T account credentials: %s, %s", nsxtErr, err)
 	}
 
 	return &Credentials{
