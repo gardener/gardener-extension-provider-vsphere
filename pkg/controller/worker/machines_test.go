@@ -304,8 +304,8 @@ var _ = Describe("Machines", func() {
 					"templateVM": machineImagePath,
 					"sshKeys":    []string{sshKey},
 					"tags": map[string]string{
-						fmt.Sprintf("kubernetes.io/cluster/%s", namespace): "1",
-						"kubernetes.io/role/node":                          "1",
+						"mcm.gardener.cloud/cluster": namespace,
+						"mcm.gardener.cloud/role":    "node",
 					},
 					"secret": map[string]interface{}{
 						"cloudConfig": string(userData),

@@ -155,8 +155,8 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 					"size": systenDiskSizeInGB,
 				},
 				"tags": map[string]string{
-					fmt.Sprintf("kubernetes.io/cluster/%s", w.worker.Namespace): "1",
-					"kubernetes.io/role/node":                                   "1",
+					"mcm.gardener.cloud/cluster": w.worker.Namespace,
+					"mcm.gardener.cloud/role":    "node",
 				},
 				"secret": map[string]interface{}{
 					"cloudConfig": string(pool.UserData),
