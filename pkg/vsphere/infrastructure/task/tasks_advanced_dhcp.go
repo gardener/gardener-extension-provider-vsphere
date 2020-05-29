@@ -418,14 +418,16 @@ func (t *advancedDHCPIPPoolTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfr
 }
 
 func (t *advancedDHCPIPPoolTask) TryRecover(ctx EnsurerContext, state *api.NSXTInfraState, tags []common.Tag) bool {
-	result, resp, err := ctx.NSXTClient().ServicesApi.ListDhcpIpPools(ctx.NSXTClient().Context, *state.AdvancedDHCP.ServerID, nil)
-	if err != nil || resp == nil || resp.StatusCode != http.StatusOK {
-		return false
-	}
-	for _, item := range result.Results {
-		if containsCommonTags(item.Tags, tags) {
-			state.AdvancedDHCP.IPPoolID = &item.Id
-			return true
+	if state.AdvancedDHCP.ServerID != nil {
+		result, resp, err := ctx.NSXTClient().ServicesApi.ListDhcpIpPools(ctx.NSXTClient().Context, *state.AdvancedDHCP.ServerID, nil)
+		if err != nil || resp == nil || resp.StatusCode != http.StatusOK {
+			return false
+		}
+		for _, item := range result.Results {
+			if containsCommonTags(item.Tags, tags) {
+				state.AdvancedDHCP.IPPoolID = &item.Id
+				return true
+			}
 		}
 	}
 	return false
