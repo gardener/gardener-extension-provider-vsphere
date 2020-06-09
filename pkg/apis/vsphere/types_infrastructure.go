@@ -59,6 +59,8 @@ type ZoneConfig struct {
 	Datastore string
 	// DatastoreCluster is the datastore cluster to store the cloned machine VM. Either Datastore or DatastoreCluster must be specified
 	DatastoreCluster string
+	// SwitchUUID is the UUID of the virtual distributed switch the network is assigned to (only needed if there are multiple vds)
+	SwitchUUID string
 }
 
 // Reference holds a NSXT object reference managed with the NSX-T simplified / intent-based API

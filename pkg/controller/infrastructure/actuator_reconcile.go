@@ -228,6 +228,7 @@ func (a *actuator) makeProviderInfrastructureStatus(
 				HostSystem:       safe(z.HostSystem),
 				Datastore:        safe(datastore),
 				DatastoreCluster: safe(datastoreCluster),
+				SwitchUUID:       safe(z.SwitchUUID),
 			}
 		}
 		status.VsphereConfig = apisvsphere.VsphereConfig{

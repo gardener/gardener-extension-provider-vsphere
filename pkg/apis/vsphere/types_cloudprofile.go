@@ -123,6 +123,9 @@ type ZoneSpec struct {
 	Datastore *string
 	// DatastoreCluster is the vSphere  datastore cluster to store the cloned machine VM. Either Datastore or DatastoreCluster must be specified at region or zones level.
 	DatastoreCluster *string
+
+	// SwitchUUID is the UUID of the virtual distributed switch the network is assigned to (only needed if there are multiple vds)
+	SwitchUUID *string
 }
 
 // Constraints is an object containing constraints for the shoots.

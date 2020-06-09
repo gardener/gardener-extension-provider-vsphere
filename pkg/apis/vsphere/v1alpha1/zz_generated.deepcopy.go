@@ -684,6 +684,11 @@ func (in *ZoneSpec) DeepCopyInto(out *ZoneSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.SwitchUUID != nil {
+		in, out := &in.SwitchUUID, &out.SwitchUUID
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 

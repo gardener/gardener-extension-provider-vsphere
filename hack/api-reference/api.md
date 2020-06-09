@@ -1464,6 +1464,17 @@ string
 <p>DatastoreCluster is the datastore  cluster to store the cloned machine VM. Either Datastore or DatastoreCluster must be specified</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>switchUuid</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>SwitchUUID is the UUID of the virtual distributed switch the network is assigned to (only needed if there are multiple vds)</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.ZoneSpec">ZoneSpec
@@ -1566,6 +1577,18 @@ string
 <td>
 <em>(Optional)</em>
 <p>DatastoreCluster is the vSphere  datastore cluster to store the cloned machine VM. Either Datastore or DatastoreCluster must be specified at region or zones level.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>switchUuid</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>SwitchUUID is the UUID of the virtual distributed switch the network is assigned to (only needed if there are multiple vds)</p>
 </td>
 </tr>
 </tbody>

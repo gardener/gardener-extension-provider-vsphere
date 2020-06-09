@@ -6,6 +6,7 @@ machineClasses:
   #resourcePool: pool1
   computeCluster: cluster1
   network: network1
+  #switchUuid: "11 22-33 44"
   folder: gardener
   datastore: datastore1
   #datastoreCluster: ds-cluster

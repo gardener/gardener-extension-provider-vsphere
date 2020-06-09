@@ -775,6 +775,7 @@ func autoConvert_v1alpha1_ZoneConfig_To_vsphere_ZoneConfig(in *ZoneConfig, out *
 	out.HostSystem = in.HostSystem
 	out.Datastore = in.Datastore
 	out.DatastoreCluster = in.DatastoreCluster
+	out.SwitchUUID = in.SwitchUUID
 	return nil
 }
 
@@ -790,6 +791,7 @@ func autoConvert_vsphere_ZoneConfig_To_v1alpha1_ZoneConfig(in *vsphere.ZoneConfi
 	out.HostSystem = in.HostSystem
 	out.Datastore = in.Datastore
 	out.DatastoreCluster = in.DatastoreCluster
+	out.SwitchUUID = in.SwitchUUID
 	return nil
 }
 
@@ -806,6 +808,7 @@ func autoConvert_v1alpha1_ZoneSpec_To_vsphere_ZoneSpec(in *ZoneSpec, out *vspher
 	out.HostSystem = (*string)(unsafe.Pointer(in.HostSystem))
 	out.Datastore = (*string)(unsafe.Pointer(in.Datastore))
 	out.DatastoreCluster = (*string)(unsafe.Pointer(in.DatastoreCluster))
+	out.SwitchUUID = (*string)(unsafe.Pointer(in.SwitchUUID))
 	return nil
 }
 
@@ -822,6 +825,7 @@ func autoConvert_vsphere_ZoneSpec_To_v1alpha1_ZoneSpec(in *vsphere.ZoneSpec, out
 	out.HostSystem = (*string)(unsafe.Pointer(in.HostSystem))
 	out.Datastore = (*string)(unsafe.Pointer(in.Datastore))
 	out.DatastoreCluster = (*string)(unsafe.Pointer(in.DatastoreCluster))
+	out.SwitchUUID = (*string)(unsafe.Pointer(in.SwitchUUID))
 	return nil
 }
 

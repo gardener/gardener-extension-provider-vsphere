@@ -127,6 +127,9 @@ var _ = Describe("Machines", func() {
 				zone1 string
 				zone2 string
 
+				switch1 string
+				switch2 string
+
 				workerPoolHash1 string
 				workerPoolHash2 string
 
@@ -180,6 +183,9 @@ var _ = Describe("Machines", func() {
 				zone1 = "testregion-a"
 				zone2 = "testregion-b"
 
+				switch1 = "switch1"
+				switch2 = "switch2"
+
 				shootVersionMajorMinor = "1.2"
 				shootVersion = shootVersionMajorMinor + ".3"
 
@@ -220,11 +226,13 @@ var _ = Describe("Machines", func() {
 											Datacenter:   datacenter,
 											Datastore:    datastore,
 											ResourcePool: resourcePool,
+											SwitchUUID:   switch1,
 										},
 										"testregion-b": {
 											Datacenter:   datacenter,
 											Datastore:    datastore2,
 											ResourcePool: resourcePool2,
+											SwitchUUID:   switch2,
 										},
 									},
 								},
@@ -317,10 +325,10 @@ var _ = Describe("Machines", func() {
 				machineClassNamePool2Zone1 := fmt.Sprintf("%s-%s-z1", namespace, namePool2)
 				machineClassNamePool2Zone2 := fmt.Sprintf("%s-%s-z2", namespace, namePool2)
 
-				machineClassPool1Zone1 := prepareMachineClass(defaultMachineClass, machineClassNamePool1Zone1, resourcePool, datastore, workerPoolHash1, host, username, password, insecureSSL)
-				machineClassPool1Zone2 := prepareMachineClass(defaultMachineClass, machineClassNamePool1Zone2, resourcePool2, datastore2, workerPoolHash1, host, username, password, insecureSSL)
-				machineClassPool2Zone1 := prepareMachineClass(defaultMachineClass, machineClassNamePool2Zone1, resourcePool, datastore, workerPoolHash2, host, username, password, insecureSSL)
-				machineClassPool2Zone2 := prepareMachineClass(defaultMachineClass, machineClassNamePool2Zone2, resourcePool2, datastore2, workerPoolHash2, host, username, password, insecureSSL)
+				machineClassPool1Zone1 := prepareMachineClass(defaultMachineClass, machineClassNamePool1Zone1, resourcePool, datastore, workerPoolHash1, switch1, host, username, password, insecureSSL)
+				machineClassPool1Zone2 := prepareMachineClass(defaultMachineClass, machineClassNamePool1Zone2, resourcePool2, datastore2, workerPoolHash1, switch2, host, username, password, insecureSSL)
+				machineClassPool2Zone1 := prepareMachineClass(defaultMachineClass, machineClassNamePool2Zone1, resourcePool, datastore, workerPoolHash2, switch1, host, username, password, insecureSSL)
+				machineClassPool2Zone2 := prepareMachineClass(defaultMachineClass, machineClassNamePool2Zone2, resourcePool2, datastore2, workerPoolHash2, switch2, host, username, password, insecureSSL)
 
 				machineClassWithHashPool1Zone1 := machineClassPool1Zone1["name"].(string)
 				machineClassWithHashPool1Zone2 := machineClassPool1Zone2["name"].(string)
@@ -576,7 +584,7 @@ func createCluster(cloudProfileName, shootVersion string, images []apiv1alpha1.M
 	return cluster
 }
 
-func prepareMachineClass(defaultMachineClass map[string]interface{}, machineClassName, resourcePool, datastore, workerPoolHash, host, username, password string, insecureSSL bool) map[string]interface{} {
+func prepareMachineClass(defaultMachineClass map[string]interface{}, machineClassName, resourcePool, datastore, workerPoolHash, switchUUID, host, username, password string, insecureSSL bool) map[string]interface{} {
 	out := make(map[string]interface{}, len(defaultMachineClass)+10)
 
 	for k, v := range defaultMachineClass {
@@ -586,6 +594,7 @@ func prepareMachineClass(defaultMachineClass map[string]interface{}, machineClas
 	out["resourcePool"] = resourcePool
 	out["datastore"] = datastore
 	out["name"] = fmt.Sprintf("%s-%s", machineClassName, workerPoolHash)
+	out["switchUuid"] = switchUUID
 	out["secret"].(map[string]interface{})[vsphere.Host] = host
 	out["secret"].(map[string]interface{})[vsphere.Username] = username
 	out["secret"].(map[string]interface{})[vsphere.Password] = password

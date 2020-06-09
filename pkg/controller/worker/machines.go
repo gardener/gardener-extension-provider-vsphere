@@ -174,6 +174,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 			addOptional("computeCluster", zoneConfig.ComputeCluster)
 			addOptional("datastore", zoneConfig.Datastore)
 			addOptional("datastoreCluster", zoneConfig.DatastoreCluster)
+			addOptional("switchUuid", zoneConfig.SwitchUUID)
 
 			var (
 				deploymentName = fmt.Sprintf("%s-%s-z%d", w.worker.Namespace, pool.Name, zoneIndex+1)
