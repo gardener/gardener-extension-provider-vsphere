@@ -39,12 +39,27 @@ spec:
       serviceAccountName: machine-controller-manager
       terminationGracePeriodSeconds: 5
       containers:
-      - name: cmi-plugin
+      - name: machine-controller-manager-provider-vsphere
         image: {{ index .Values.images "machine-controller-manager-provider-vsphere" }}
         imagePullPolicy: IfNotPresent
         command:
-          - ./cmi-plugin
-          - --endpoint=tcp://127.0.0.1:8080
+        - ./machine-controller
+        - --control-kubeconfig=inClusterConfig
+        - --target-kubeconfig=/var/lib/machine-controller-manager/kubeconfig
+        - --namespace={{ .Release.Namespace }}
+        - --port={{ .Values.metricsPort }}
+        - --machine-creation-timeout=20m
+        - --machine-drain-timeout=2h
+        - --machine-health-timeout=10m
+        - --machine-safety-apiserver-statuscheck-timeout=30s
+        - --machine-safety-apiserver-statuscheck-period=1m
+        - --machine-safety-orphan-vms-period=30m
+        - --port=10259
+        - --v=3
+        volumeMounts:
+        - mountPath: /var/lib/machine-controller-manager
+          name: machine-controller-manager
+          readOnly: true
       - name: machine-controller-manager
         image: {{ index .Values.images "machine-controller-manager" }}
         imagePullPolicy: IfNotPresent

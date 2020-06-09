@@ -22,15 +22,15 @@ images:
   #repository: gcr.io/cloud-provider-vsphere/cpi/release/manager
   #tag: v1.0.0
 - name: machine-controller-manager
-  #sourceRepository: github.com/gardener/machine-controller-manager
-  sourceRepository: github.com/MartinWeindel/machine-controller-manager
-  repository: eu.gcr.io/gardener-project/test/machine-controller-manager-martinweindel
-  # "prelease" from cmi-client branch
-  tag: v0.26.0-cmiclient2
+  sourceRepository: github.com/gardener/machine-controller-manager
+  repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
+  tag: v0.30.0
 - name: machine-controller-manager-provider-vsphere
   sourceRepository: github.com/gardener/machine-controller-manager-provider-vsphere
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager-provider-vsphere
-  tag: v0.2.0
+  # prelease of new OOT implementation
+  #tag: v0.3.0-dev-mw2
+  tag: v0.3.0-dev-4d47e092899966e42cea9b6126dfa7e3daef1526
 - name: vsphere-csi-controller
   sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   repository: gcr.io/cloud-provider-vsphere/csi/release/driver
