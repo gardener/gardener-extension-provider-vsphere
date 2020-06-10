@@ -331,6 +331,9 @@ func (t *tier1GatewayLocaleServiceTask) SetRecoveredReference(state *api.NSXTInf
 }
 
 func (t *tier1GatewayLocaleServiceTask) ListAll(ctx EnsurerContext, state *api.NSXTInfraState, cursor *string) (interface{}, error) {
+	if state.Tier1GatewayRef == nil {
+		return nil, fmt.Errorf("no Tier1GatewayRef")
+	}
 	client := tier_1s.NewDefaultLocaleServicesClient(ctx.Connector())
 	return client.List(state.Tier1GatewayRef.ID, cursor, nil, nil, nil, nil, nil)
 }
@@ -558,6 +561,9 @@ func (t *snatIPAddressAllocationTask) SetRecoveredReference(state *api.NSXTInfra
 }
 
 func (t *snatIPAddressAllocationTask) ListAll(ctx EnsurerContext, state *api.NSXTInfraState, cursor *string) (interface{}, error) {
+	if state.SNATIPPoolRef == nil {
+		return nil, fmt.Errorf("no SNATIPPoolRef")
+	}
 	client := ip_pools.NewDefaultIpAllocationsClient(ctx.Connector())
 	return client.List(state.SNATIPPoolRef.ID, cursor, nil, nil, nil, nil, nil)
 }
@@ -670,6 +676,9 @@ func (t *snatRuleTask) SetRecoveredReference(state *api.NSXTInfraState, ref *api
 }
 
 func (t *snatRuleTask) ListAll(ctx EnsurerContext, state *api.NSXTInfraState, cursor *string) (interface{}, error) {
+	if state.Tier1GatewayRef == nil {
+		return nil, fmt.Errorf("no Tier1GatewayRef")
+	}
 	client := t1nat.NewDefaultNatRulesClient(ctx.Connector())
 	return client.List(state.Tier1GatewayRef.ID, model.PolicyNat_NAT_TYPE_USER, cursor, nil, nil, nil, nil, nil)
 }
