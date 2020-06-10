@@ -123,9 +123,7 @@ func ExtractCredentials(secret *corev1.Secret) (*Credentials, error) {
 	}
 
 	nsxt, nsxtErr := extractUserPass(secret, NSXTUsername, NSXTPassword)
-	if nsxtErr != nil {
-		return nil, nsxtErr
-	}
+
 	nsxtCCM, err := extractUserPass(secret, NSXTUsernameCCM, NSXTPasswordCCM)
 	if err != nil && nsxtErr != nil {
 		return nil, fmt.Errorf("Need either common or cloud controller manager specific NSX-T account credentials: %s, %s", nsxtErr, err)
