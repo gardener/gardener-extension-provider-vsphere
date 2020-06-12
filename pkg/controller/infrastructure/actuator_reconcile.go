@@ -75,8 +75,8 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 	}
 
 	nsxtConfig := &infrastructure.NSXTConfig{
-		User:         creds.NSXT_Infrastructure().Username,
-		Password:     creds.NSXT_Infrastructure().Password,
+		User:         creds.NSXT_NetworkEngineer().Username,
+		Password:     creds.NSXT_NetworkEngineer().Password,
 		Host:         region.NSXTHost,
 		InsecureFlag: region.NSXTInsecureSSL,
 		RemoteAuth:   region.NSXTRemoteAuth,

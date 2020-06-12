@@ -189,8 +189,10 @@ var _ = Describe("ValuesProvider", func() {
 			Data: map[string][]byte{
 				"vsphereUsername": []byte("admin"),
 				"vspherePassword": []byte("super-secret"),
-				"nsxtUsername":    []byte("nsxt-admin"),
-				"nsxtPassword":    []byte("nsxt-super-secret"),
+				"nsxtUsername":    []byte("nsxt-lbadmin"),
+				"nsxtPassword":    []byte("nsxt-lbadmin-pw"),
+				"nsxtUsernameNE":  []byte("nsxt-ne"),
+				"nsxtPasswordNE":  []byte("nsxt-ne-pw"),
 			},
 		}
 
@@ -228,10 +230,12 @@ var _ = Describe("ValuesProvider", func() {
 				},
 			},
 			"nsxt": map[string]interface{}{
-				"password":     "nsxt-super-secret",
+				"password":     "nsxt-lbadmin-pw",
+				"passwordNE":   "nsxt-ne-pw",
 				"host":         "nsxt.host.internal",
 				"insecureFlag": true,
-				"username":     "nsxt-admin",
+				"username":     "nsxt-lbadmin",
+				"usernameNE":   "nsxt-ne",
 				"remoteAuth":   true,
 			},
 		}

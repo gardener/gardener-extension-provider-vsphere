@@ -65,18 +65,18 @@ const (
 	// InsecureSSL is a constant for the key in a cloud provider secret holding the boolean flag to allow insecure HTTPS connections to the VSphere host
 	InsecureSSL = "vsphereInsecureSSL"
 
-	// NSXTUsername is a constant for the key in a cloud provider secret holding the NSX-T user name (optional, for all components)
+	// NSXTUsername is a constant for the key in a cloud provider secret holding the NSX-T user name with role 'Enterprise Admin' (optional, for all components)
 	NSXTUsername = "nsxtUsername"
-	// Password is a constant for the key in a cloud provider secret holding the NSX-T password (optional, for all components)
+	// Password is a constant for the key in a cloud provider secret holding the NSX-T password for user with role 'Enterprise Admin'
 	NSXTPassword = "nsxtPassword"
-	// NSXTUsername is a constant for the key in a cloud provider secret holding the NSX-T user name (specific for CloudControllerManager)
-	NSXTUsernameCCM = "nsxtUsernameCCM"
-	// Password is a constant for the key in a cloud provider secret holding the NSX-T password (specific for CloudControllerManager)
-	NSXTPasswordCCM = "nsxtPasswordCCM"
-	// NSXTUsername is a constant for the key in a cloud provider secret holding the NSX-T user name (specific for infrastructure)
-	NSXTUsernameInfrastructure = "nsxtUsernameInfrastructure"
-	// Password is a constant for the key in a cloud provider secret holding the NSX-T password (specific for infrastructure)
-	NSXTPasswordInfrastructure = "nsxtPasswordInfrastructure"
+	// NSXTUsernameLBAdmin is a constant for the key in a cloud provider secret holding the NSX-T user name with role 'LB Admin' (needed for CloudControllerManager)
+	NSXTUsernameLBAdmin = "nsxtUsernameLBAdmin"
+	// NSXTPasswordLBAdmin is a constant for the key in a cloud provider secret holding the NSX-T password for user with role 'LB Admin'
+	NSXTPasswordLBAdmin = "nsxtPasswordLBAdmin"
+	// NSXTUsernameNE is a constant for the key in a cloud provider secret holding the NSX-T user name with role 'Network Engineer' (needed for infrastructure and IP pools address allocation in CloudControllerManager)
+	NSXTUsernameNE = "nsxtUsernameNE"
+	// NSXTPasswordNE is a constant for the key in a cloud provider secret holding the NSX-T password for user with role 'Network Engineer'
+	NSXTPasswordNE = "nsxtPasswordNE"
 
 	// CloudProviderConfig is the name of the configmap containing the cloud provider config.
 	CloudProviderConfig = "cloud-provider-config"
