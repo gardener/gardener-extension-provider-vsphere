@@ -54,8 +54,7 @@ var _ = Describe("Helper (decode)", func() {
 			},
 			CloudProfile: &gardencorevbeta1.CloudProfile{
 				Spec: gardencorevbeta1.CloudProfileSpec{
-					ProviderConfig: &gardencorevbeta1.ProviderConfig{
-						RawExtension: runtime.RawExtension{Raw: []byte(`
+					ProviderConfig: &runtime.RawExtension{Raw: []byte(`
 apiVersion: vsphere.provider.extensions.gardener.cloud/v1alpha1
 kind: CloudProfileConfig
 defaultClassStoragePolicyName: "vSAN Default Storage Policy"
@@ -91,7 +90,6 @@ machineImages:
     path: gardener/templates/coreos-2191.5.0
     guestId: coreos64Guest
 `)},
-					},
 				},
 			},
 		}

@@ -548,10 +548,8 @@ func createCluster(cloudProfileName, shootVersion string, images []apiv1alpha1.M
 				Name: cloudProfileName,
 			},
 			Spec: gardencorev1beta1.CloudProfileSpec{
-				ProviderConfig: &gardencorev1beta1.ProviderConfig{
-					RawExtension: runtime.RawExtension{
-						Raw: cloudProfileConfigJSON,
-					},
+				ProviderConfig: &runtime.RawExtension{
+					Raw: cloudProfileConfigJSON,
 				},
 				Regions: []gardencorev1beta1.Region{
 					{

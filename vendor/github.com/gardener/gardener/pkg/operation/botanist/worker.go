@@ -165,7 +165,7 @@ func (b *Botanist) DeployWorker(ctx context.Context) error {
 	}
 
 	if restorePhase {
-		return b.restoreExtensionObject(ctx, b.K8sSeedClient.Client(), worker, &worker.ObjectMeta, &worker.Status.DefaultStatus, extensionsv1alpha1.WorkerResource, worker.Name, worker.GetExtensionSpec().GetExtensionPurpose())
+		return b.restoreExtensionObject(ctx, b.K8sSeedClient.Client(), worker, extensionsv1alpha1.WorkerResource)
 	}
 
 	return nil
@@ -194,6 +194,7 @@ func (b *Botanist) WaitUntilWorkerReady(ctx context.Context) error {
 		b.Shoot.SeedNamespace,
 		b.Shoot.Info.Name,
 		DefaultInterval,
+		DefaultSevereThreshold,
 		WorkerDefaultTimeout,
 		func(obj runtime.Object) error {
 			worker, ok := obj.(*extensionsv1alpha1.Worker)

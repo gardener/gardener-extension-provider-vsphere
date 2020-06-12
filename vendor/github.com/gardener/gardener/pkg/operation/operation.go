@@ -27,7 +27,6 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/gardener/gardener/pkg/chartrenderer"
 	gardencoreinformers "github.com/gardener/gardener/pkg/client/core/informers/externalversions/core/v1beta1"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/gardenlet/apis/config"
@@ -272,17 +271,7 @@ func (o *Operation) InitializeSeedClients() error {
 		return err
 	}
 	o.K8sSeedClient = k8sSeedClient
-
-	renderer, err := chartrenderer.NewForConfig(k8sSeedClient.RESTConfig())
-	if err != nil {
-		return err
-	}
-	applier, err := kubernetes.NewApplierForConfig(k8sSeedClient.RESTConfig())
-	if err != nil {
-		return err
-	}
-
-	o.ChartApplierSeed = kubernetes.NewChartApplier(renderer, applier)
+	o.ChartApplierSeed = k8sSeedClient.ChartApplier()
 	return nil
 }
 
@@ -337,16 +326,7 @@ func (o *Operation) InitializeShootClients() error {
 	}
 	o.K8sShootClient = k8sShootClient
 
-	renderer, err := chartrenderer.NewForConfig(k8sShootClient.RESTConfig())
-	if err != nil {
-		return err
-	}
-	applier, err := kubernetes.NewApplierForConfig(k8sShootClient.RESTConfig())
-	if err != nil {
-		return err
-	}
-
-	o.ChartApplierShoot = kubernetes.NewChartApplier(renderer, applier)
+	o.ChartApplierShoot = k8sShootClient.ChartApplier()
 	return nil
 }
 
@@ -447,18 +427,12 @@ func (o *Operation) ReportShootProgress(ctx context.Context, stats *flow.Stats) 
 // CleanShootTaskError removes the error with taskID from the Shoot's status.LastErrors array.
 // If the status.LastErrors array is empty then status.LastError is also removed.
 func (o *Operation) CleanShootTaskError(_ context.Context, taskID string) {
-	var remainingErrors []gardencorev1beta1.LastError
-	for _, lastErr := range o.Shoot.Info.Status.LastErrors {
-		if lastErr.TaskID == nil || taskID != *lastErr.TaskID {
-			remainingErrors = append(remainingErrors, lastErr)
-		}
-	}
-
 	newShoot, err := kutil.TryUpdateShootStatus(o.K8sGardenClient.GardenCore(), retry.DefaultRetry, o.Shoot.Info.ObjectMeta,
 		func(shoot *gardencorev1beta1.Shoot) (*gardencorev1beta1.Shoot, error) {
-			shoot.Status.LastErrors = remainingErrors
+			shoot.Status.LastErrors = gardencorev1beta1helper.DeleteLastErrorByTaskID(o.Shoot.Info.Status.LastErrors, taskID)
 			return shoot, nil
-		})
+		},
+	)
 	if err != nil {
 		o.Logger.Errorf("Could not report shoot progress: %v", err)
 		return
