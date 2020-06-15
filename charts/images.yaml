@@ -17,7 +17,7 @@ images:
 - name: vsphere-cloud-controller-manager
   sourceRepository: github.com/MartinWeindel/cloud-provider-vsphere
   repository: eu.gcr.io/gardener-project/test/cloud-provider-vsphere-martinweindel
-  tag: v1.1.0-pre3
+  tag: v1.2.0-pre1
   #tag: v1.1.0-71-g7bb1654
   #repository: gcr.io/cloud-provider-vsphere/cpi/release/manager
   #tag: v1.0.0
