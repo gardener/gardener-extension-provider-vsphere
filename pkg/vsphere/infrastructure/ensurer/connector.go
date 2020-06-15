@@ -130,9 +130,9 @@ func createConnector(nsxtConfig *vinfra.NSXTConfig) (client.Connector, error) {
 	}
 
 	// perform API call to check connector
-	_, err = infra.NewDefaultLbMonitorProfilesClient(connector).List(nil, nil, nil, nil, nil, nil)
+	_, err = infra.NewDefaultTier0sClient(connector).List(nil, nil, nil, nil, nil, nil)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Connection to NSX-T API failed. Please check your connection settings.")
+		return nil, errors.Wrapf(err, "Connection to NSX-T API failed (cannot list tier-0 gateways). Please check your connection settings.")
 	}
 
 	return connector, nil
