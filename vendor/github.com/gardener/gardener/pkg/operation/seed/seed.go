@@ -18,20 +18,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gardener/gardener/pkg/operation/botanist/component"
-	"github.com/gardener/gardener/pkg/operation/seed/istio"
 	"path/filepath"
 	"strings"
 
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	"github.com/gardener/gardener/pkg/chartrenderer"
 	gardencorelisters "github.com/gardener/gardener/pkg/client/core/listers/core/v1beta1"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/features"
 	"github.com/gardener/gardener/pkg/gardenlet/apis/config"
 	gardenletfeatures "github.com/gardener/gardener/pkg/gardenlet/features"
+	"github.com/gardener/gardener/pkg/operation/botanist/component"
 	"github.com/gardener/gardener/pkg/operation/common"
+	"github.com/gardener/gardener/pkg/operation/seed/istio"
 	"github.com/gardener/gardener/pkg/utils"
 	"github.com/gardener/gardener/pkg/utils/chart"
 	"github.com/gardener/gardener/pkg/utils/imagevector"
@@ -111,6 +110,10 @@ func (b *Builder) Build() (*Seed, error) {
 			return nil, err
 		}
 		seed.Secret = seedSecret
+	}
+
+	if seedObject.Spec.Settings != nil && seedObject.Spec.Settings.LoadBalancerServices != nil {
+		seed.LoadBalancerServiceAnnotations = seedObject.Spec.Settings.LoadBalancerServices.Annotations
 	}
 
 	return seed, nil
@@ -320,10 +323,7 @@ func deployCertificates(seed *Seed, k8sSeedClient kubernetes.Interface, existing
 
 // BootstrapCluster bootstraps a Seed cluster and deploys various required manifests.
 func BootstrapCluster(k8sGardenClient kubernetes.Interface, seed *Seed, config *config.GardenletConfiguration, secrets map[string]*corev1.Secret, imageVector imagevector.ImageVector, componentImageVectors imagevector.ComponentImageVectors) error {
-	const (
-		chartName      = "seed-bootstrap"
-		istioChartName = "istio"
-	)
+	const chartName = "seed-bootstrap"
 
 	k8sSeedClient, err := GetSeedClient(context.TODO(), k8sGardenClient.Client(), config.SeedClientConnection.ClientConnectionConfiguration, config.SeedSelector == nil, seed.Info.Name)
 	if err != nil {
@@ -559,15 +559,7 @@ func BootstrapCluster(k8sGardenClient kubernetes.Interface, seed *Seed, config *
 	}
 	nodeCount := len(nodes.Items)
 
-	chartRenderer, err := chartrenderer.NewForConfig(k8sSeedClient.RESTConfig())
-	if err != nil {
-		return err
-	}
-	applier, err := kubernetes.NewApplierForConfig(k8sSeedClient.RESTConfig())
-	if err != nil {
-		return err
-	}
-	chartApplier := kubernetes.NewChartApplier(chartRenderer, applier)
+	chartApplier := k8sSeedClient.ChartApplier()
 
 	var (
 		applierOptions          = kubernetes.CopyApplierOptions(kubernetes.DefaultMergeFuncs)
@@ -639,7 +631,7 @@ func BootstrapCluster(k8sGardenClient kubernetes.Interface, seed *Seed, config *
 			return err
 		}
 
-		istioCRDs := istio.NewIstioCRD(chartApplier, "charts")
+		istioCRDs := istio.NewIstioCRD(chartApplier, "charts", k8sSeedClient.Client())
 		istiod := istio.NewIstiod(
 			&istio.IstiodValues{
 				TrustDomain: "cluster.local",
@@ -655,6 +647,7 @@ func BootstrapCluster(k8sGardenClient kubernetes.Interface, seed *Seed, config *
 				TrustDomain:     "cluster.local",
 				Image:           igwImage.String(),
 				IstiodNamespace: common.IstioNamespace,
+				Annotations:     seed.LoadBalancerServiceAnnotations,
 			},
 			common.IstioIngressGatewayNamespace,
 			chartApplier,

@@ -95,66 +95,65 @@ var _ = Describe("ValuesProvider", func() {
 		cluster = &extensionscontroller.Cluster{
 			CloudProfile: &gardencorev1beta1.CloudProfile{
 				Spec: gardencorev1beta1.CloudProfileSpec{
-					ProviderConfig: &gardencorev1beta1.ProviderConfig{
-						RawExtension: runtime.RawExtension{
-							Raw: encode(&apisvspherev1alpha1.CloudProfileConfig{
-								TypeMeta: metav1.TypeMeta{
-									APIVersion: "vsphere.provider.extensions.gardener.cloud/v1alpha1",
-									Kind:       "CloudProfileConfig",
-								},
-								NamePrefix:                    "nameprefix",
-								DefaultClassStoragePolicyName: "mypolicy",
-								Regions: []apisvspherev1alpha1.RegionSpec{
-									{
-										Name:               "testregion",
-										VsphereHost:        "vsphere.host.internal",
-										VsphereInsecureSSL: true,
-										NSXTHost:           "nsxt.host.internal",
-										NSXTInsecureSSL:    true,
-										TransportZone:      "tz",
-										LogicalTier0Router: "lt0router",
-										EdgeCluster:        "edgecluster",
-										SNATIPPool:         "snatIpPool",
-										Datacenter:         sp("scc01-DC"),
-										Datastore:          sp("A800_VMwareB"),
-										Zones: []apisvspherev1alpha1.ZoneSpec{
-											{
-												Name:           "testzone",
-												ComputeCluster: sp("scc01w01-DEV"),
-											},
+					ProviderConfig: &runtime.RawExtension{
+						Raw: encode(&apisvspherev1alpha1.CloudProfileConfig{
+							TypeMeta: metav1.TypeMeta{
+								APIVersion: "vsphere.provider.extensions.gardener.cloud/v1alpha1",
+								Kind:       "CloudProfileConfig",
+							},
+							NamePrefix:                    "nameprefix",
+							DefaultClassStoragePolicyName: "mypolicy",
+							Regions: []apisvspherev1alpha1.RegionSpec{
+								{
+									Name:               "testregion",
+									VsphereHost:        "vsphere.host.internal",
+									VsphereInsecureSSL: true,
+									NSXTHost:           "nsxt.host.internal",
+									NSXTInsecureSSL:    true,
+									NSXTRemoteAuth:     true,
+									TransportZone:      "tz",
+									LogicalTier0Router: "lt0router",
+									EdgeCluster:        "edgecluster",
+									SNATIPPool:         "snatIpPool",
+									Datacenter:         sp("scc01-DC"),
+									Datastore:          sp("A800_VMwareB"),
+									Zones: []apisvspherev1alpha1.ZoneSpec{
+										{
+											Name:           "testzone",
+											ComputeCluster: sp("scc01w01-DEV"),
 										},
 									},
 								},
-								DNSServers: []string{"1.2.3.4"},
-								Constraints: apisvspherev1alpha1.Constraints{
-									LoadBalancerConfig: apisvspherev1alpha1.LoadBalancerConfig{
-										Size: "MEDIUM",
-										Classes: []apisvspherev1alpha1.LoadBalancerClass{
-											{
-												Name:       "default",
-												IPPoolName: sp("lbpool"),
-											},
-											{
-												Name:              "private",
-												IPPoolName:        sp("lbpool2"),
-												TCPAppProfileName: sp("tcpprof2"),
-											},
+							},
+							DNSServers: []string{"1.2.3.4"},
+							Constraints: apisvspherev1alpha1.Constraints{
+								LoadBalancerConfig: apisvspherev1alpha1.LoadBalancerConfig{
+									Size: "MEDIUM",
+									Classes: []apisvspherev1alpha1.LoadBalancerClass{
+										{
+											Name:       "default",
+											IPPoolName: sp("lbpool"),
+										},
+										{
+											Name:              "private",
+											IPPoolName:        sp("lbpool2"),
+											TCPAppProfileName: sp("tcpprof2"),
 										},
 									},
 								},
-								MachineImages: []apisvspherev1alpha1.MachineImages{
-									{Name: "coreos",
-										Versions: []apisvspherev1alpha1.MachineImageVersion{
-											{
-												Version: "2191.5.0",
-												Path:    "gardener/templates/coreos-2191.5.0",
-												GuestID: sp("coreos64Guest"),
-											},
+							},
+							MachineImages: []apisvspherev1alpha1.MachineImages{
+								{Name: "coreos",
+									Versions: []apisvspherev1alpha1.MachineImageVersion{
+										{
+											Version: "2191.5.0",
+											Path:    "gardener/templates/coreos-2191.5.0",
+											GuestID: sp("coreos64Guest"),
 										},
 									},
 								},
-							}),
-						},
+							},
+						}),
 					},
 				},
 			},
@@ -172,10 +171,8 @@ var _ = Describe("ValuesProvider", func() {
 						Version: "1.14.0",
 					},
 					Provider: gardencorev1beta1.Provider{
-						ControlPlaneConfig: &gardencorev1beta1.ProviderConfig{
-							RawExtension: runtime.RawExtension{
-								Raw: encode(cpConfig),
-							},
+						ControlPlaneConfig: &runtime.RawExtension{
+							Raw: encode(cpConfig),
 						},
 					},
 				},
@@ -192,8 +189,10 @@ var _ = Describe("ValuesProvider", func() {
 			Data: map[string][]byte{
 				"vsphereUsername": []byte("admin"),
 				"vspherePassword": []byte("super-secret"),
-				"nsxtUsername":    []byte("nsxt-admin"),
-				"nsxtPassword":    []byte("nsxt-super-secret"),
+				"nsxtUsername":    []byte("nsxt-lbadmin"),
+				"nsxtPassword":    []byte("nsxt-lbadmin-pw"),
+				"nsxtUsernameNE":  []byte("nsxt-ne"),
+				"nsxtPasswordNE":  []byte("nsxt-ne-pw"),
 			},
 		}
 
@@ -210,7 +209,7 @@ var _ = Describe("ValuesProvider", func() {
 		}
 
 		configChartValues = map[string]interface{}{
-			"insecureFlag": "1",
+			"insecureFlag": true,
 			"serverPort":   443,
 			"serverName":   "vsphere.host.internal",
 			"datacenters":  "scc01-DC",
@@ -231,10 +230,13 @@ var _ = Describe("ValuesProvider", func() {
 				},
 			},
 			"nsxt": map[string]interface{}{
-				"password":     "nsxt-super-secret",
+				"password":     "nsxt-lbadmin-pw",
+				"passwordNE":   "nsxt-ne-pw",
 				"host":         "nsxt.host.internal",
 				"insecureFlag": true,
-				"username":     "nsxt-admin",
+				"username":     "nsxt-lbadmin",
+				"usernameNE":   "nsxt-ne",
+				"remoteAuth":   true,
 			},
 		}
 

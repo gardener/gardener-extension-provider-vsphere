@@ -33,7 +33,7 @@ syncerResources:
     memory: 32Mi
   limits:
     cpu: 30m
-    memory: 50Mi
+    memory: 80Mi
 controllerResources:
   requests:
     cpu: 20m
@@ -44,7 +44,7 @@ controllerResources:
 livenessResources:
   requests:
     cpu: 10m
-    memory: 32Mi
+    memory: 20Mi
   limits:
-    cpu: 30m
-    memory: 50Mi
+    cpu: 20m
+    memory: 40Mi

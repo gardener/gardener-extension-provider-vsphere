@@ -13,6 +13,7 @@ namespace:
   uid: uuid-of-namespace
 
 metricsPort: 10258
+metricsPort2: 10259
 
 vpa:
   enabled: true

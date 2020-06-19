@@ -33,6 +33,9 @@ providerSpec:
 {{- end }}
 {{- end }}
   network: {{ $machineClass.network }}
+{{- if $machineClass.switchUuid }}
+  switchUuid: {{ $machineClass.switchUuid }}
+{{- end }}
 {{- if $machineClass.folder }}
   folder: {{ $machineClass.folder }}
 {{- end }}

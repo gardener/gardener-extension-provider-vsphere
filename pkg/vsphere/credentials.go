@@ -38,9 +38,9 @@ type Credentials struct {
 	vsphereCCM *UserPass
 	vsphereCSI *UserPass
 
-	nsxt               *UserPass
-	nsxtCCM            *UserPass
-	nsxtInfrastructure *UserPass
+	nsxt        *UserPass
+	nsxtLBAdmin *UserPass
+	nsxtNE      *UserPass
 }
 
 func (c *Credentials) VsphereMCM() UserPass {
@@ -64,16 +64,16 @@ func (c *Credentials) VsphereCSI() UserPass {
 	return *c.vsphere
 }
 
-func (c *Credentials) NSXT_CCM() UserPass {
-	if c.nsxtCCM != nil {
-		return *c.nsxtCCM
+func (c *Credentials) NSXT_LBAdmin() UserPass {
+	if c.nsxtLBAdmin != nil {
+		return *c.nsxtLBAdmin
 	}
 	return *c.nsxt
 }
 
-func (c *Credentials) NSXT_Infrastructure() UserPass {
-	if c.nsxtInfrastructure != nil {
-		return *c.nsxtInfrastructure
+func (c *Credentials) NSXT_NetworkEngineer() UserPass {
+	if c.nsxtNE != nil {
+		return *c.nsxtNE
 	}
 	return *c.nsxt
 }
@@ -123,25 +123,23 @@ func ExtractCredentials(secret *corev1.Secret) (*Credentials, error) {
 	}
 
 	nsxt, nsxtErr := extractUserPass(secret, NSXTUsername, NSXTPassword)
-	if nsxtErr != nil {
-		return nil, nsxtErr
+
+	nsxtLBAdmin, err := extractUserPass(secret, NSXTUsernameLBAdmin, NSXTPasswordLBAdmin)
+	if err != nil && nsxtErr != nil {
+		return nil, fmt.Errorf("Need either common or LB admin NSX-T account credentials: %s, %s", nsxtErr, err)
 	}
-	nsxtCCM, err := extractUserPass(secret, NSXTUsernameCCM, NSXTPasswordCCM)
-	if err != nil && vsphereErr != nil {
-		return nil, fmt.Errorf("Need either common or cloud controller manager specific NSX-T account credentials: %s, %s", nsxtErr, err)
-	}
-	nsxtInfra, err := extractUserPass(secret, NSXTUsernameInfrastructure, NSXTPasswordInfrastructure)
-	if err != nil && vsphereErr != nil {
-		return nil, fmt.Errorf("Need either common or infrastructure specific NSX-T account credentials: %s, %s", vsphereErr, err)
+	nsxtNE, err := extractUserPass(secret, NSXTUsernameNE, NSXTPasswordNE)
+	if err != nil && nsxtErr != nil {
+		return nil, fmt.Errorf("Need either common or network engineer NSX-T account credentials: %s, %s", nsxtErr, err)
 	}
 
 	return &Credentials{
-		vsphere:            vsphere,
-		vsphereMCM:         mcm,
-		vsphereCCM:         ccm,
-		vsphereCSI:         csi,
-		nsxt:               nsxt,
-		nsxtCCM:            nsxtCCM,
-		nsxtInfrastructure: nsxtInfra,
+		vsphere:     vsphere,
+		vsphereMCM:  mcm,
+		vsphereCCM:  ccm,
+		vsphereCSI:  csi,
+		nsxt:        nsxt,
+		nsxtLBAdmin: nsxtLBAdmin,
+		nsxtNE:      nsxtNE,
 	}, nil
 }

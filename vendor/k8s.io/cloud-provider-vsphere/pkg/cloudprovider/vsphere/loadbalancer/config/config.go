@@ -83,6 +83,8 @@ type NsxtConfig struct {
 	Host string `gcfg:"host"`
 	// InsecureFlag is to be set to true if NSX-T uses self-signed cert.
 	InsecureFlag bool `gcfg:"insecure-flag"`
+	// RemoteAuth is to be set to true if NSX-T uses remote authentication (authentication done through the vIDM).
+	RemoteAuth bool `json:"remote-auth,omitempty"`
 
 	VMCAccessToken     string `gcfg:"vmcAccessToken"`
 	VMCAuthHost        string `gcfg:"vmcAuthHost"`

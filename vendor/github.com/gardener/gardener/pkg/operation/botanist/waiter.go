@@ -78,7 +78,16 @@ func (b *Botanist) WaitUntilNginxIngressServiceIsReady(ctx context.Context) erro
 
 // WaitUntilEtcdReady waits until the etcd statefulsets indicate readiness in their statuses.
 func (b *Botanist) WaitUntilEtcdReady(ctx context.Context) error {
-	return retry.UntilTimeout(ctx, 5*time.Second, 300*time.Second, func(ctx context.Context) (done bool, err error) {
+	var (
+		retryCountUntilSevere int
+		interval              = 5 * time.Second
+		severeThreshold       = 30 * time.Second
+		timeout               = 5 * time.Minute
+	)
+
+	return retry.UntilTimeout(ctx, interval, timeout, func(ctx context.Context) (done bool, err error) {
+		retryCountUntilSevere++
+
 		etcdList := &druidv1alpha1.EtcdList{}
 		if err := b.K8sSeedClient.Client().List(ctx, etcdList,
 			client.InNamespace(b.Shoot.SeedNamespace),
@@ -97,7 +106,7 @@ func (b *Botanist) WaitUntilEtcdReady(ctx context.Context) error {
 		for _, etcd := range etcdList.Items {
 			switch {
 			case etcd.Status.LastError != nil:
-				return retry.SevereError(fmt.Errorf("%s reconciliation errored: %s", etcd.Name, *etcd.Status.LastError))
+				return retry.MinorOrSevereError(retryCountUntilSevere, int(severeThreshold.Nanoseconds()/interval.Nanoseconds()), fmt.Errorf("%s reconciliation errored: %s", etcd.Name, *etcd.Status.LastError))
 			case etcd.DeletionTimestamp != nil:
 				lastErrors = multierror.Append(lastErrors, fmt.Errorf("%s unexpectedly has a deletion timestamp", etcd.Name))
 			case etcd.Status.ObservedGeneration == nil || etcd.Generation != *etcd.Status.ObservedGeneration:
@@ -118,14 +127,20 @@ func (b *Botanist) WaitUntilEtcdReady(ctx context.Context) error {
 	})
 }
 
-// WaitUntilKubeAPIServerScaledDown waits until the kube-apiserver pod(s) are scaled to zero.
-func (b *Botanist) WaitUntilKubeAPIServerScaledDown(ctx context.Context) error {
-	return WaitUntilDeploymentScaledToDesiredReplicas(ctx, b.K8sSeedClient.Client(), b.Shoot.SeedNamespace, v1beta1constants.DeploymentNameKubeAPIServer, 0)
-}
-
-// WaitUntilGardenerResourceManagerScalesDown waits until the gardener-resource-manager pod(s) are scaled to zero.
-func (b *Botanist) WaitUntilGardenerResourceManagerScalesDown(ctx context.Context) error {
-	return WaitUntilDeploymentScaledToDesiredReplicas(ctx, b.K8sSeedClient.Client(), b.Shoot.SeedNamespace, v1beta1constants.DeploymentNameGardenerResourceManager, 0)
+// WaitUntilKubeAPIServerIsDeleted waits until the kube-apiserver is deleted
+func (b *Botanist) WaitUntilKubeAPIServerIsDeleted(ctx context.Context) error {
+	return retry.UntilTimeout(ctx, 5*time.Second, 300*time.Second, func(ctx context.Context) (done bool, err error) {
+		deploy := &appsv1.Deployment{}
+		err = b.K8sSeedClient.Client().Get(ctx, kutil.Key(b.Shoot.SeedNamespace, v1beta1constants.DeploymentNameKubeAPIServer), deploy)
+		switch {
+		case apierrors.IsNotFound(err):
+			return retry.Ok()
+		case err == nil:
+			return retry.MinorError(err)
+		default:
+			return retry.SevereError(err)
+		}
+	})
 }
 
 // WaitUntilKubeAPIServerReady waits until the kube-apiserver pod(s) indicate readiness in their statuses.
@@ -161,11 +176,16 @@ func (b *Botanist) WaitUntilKubeAPIServerReady(ctx context.Context) error {
 	})
 }
 
-// WaitUntilVPNConnectionExists waits until a port forward connection to the vpn-shoot pod in the kube-system
+// WaitUntilTunnelConnectionExists waits until a port forward connection to the tunnel pod (vpn-shoot or konnectivity-agent) in the kube-system
 // namespace of the Shoot cluster can be established.
-func (b *Botanist) WaitUntilVPNConnectionExists(ctx context.Context) error {
+func (b *Botanist) WaitUntilTunnelConnectionExists(ctx context.Context) error {
 	return retry.UntilTimeout(ctx, 5*time.Second, 900*time.Second, func(ctx context.Context) (done bool, err error) {
-		return b.CheckVPNConnection(ctx, b.Logger)
+		tunnelName := common.VPNTunnel
+		if b.Shoot.KonnectivityTunnelEnabled {
+			tunnelName = common.KonnectivityTunnel
+		}
+
+		return b.CheckTunnelConnection(ctx, b.Logger, tunnelName)
 	})
 }
 

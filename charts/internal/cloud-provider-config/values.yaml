@@ -33,4 +33,7 @@ nsxt:
   host: my.nsxt.server.ip.or.fqdn
   username: admin
   password: super-secret
-  insecureFlag: 1
+  #usernameNE: my-network-engineer-user
+  #passwordNE: super-secret
+  insecureFlag: true
+  remoteAuth: false

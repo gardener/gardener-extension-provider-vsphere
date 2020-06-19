@@ -340,11 +340,6 @@ func (vp *valuesProvider) getConfigChartValues(
 		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
 	}
 
-	insecureFlag := "0"
-	if region.VsphereInsecureSSL {
-		insecureFlag = "1"
-	}
-
 	serverName, port, err := splitServerNameAndPort(region.VsphereHost)
 	if err != nil {
 		return nil, err
@@ -400,7 +395,7 @@ func (vp *valuesProvider) getConfigChartValues(
 	values := map[string]interface{}{
 		"serverName":   serverName,
 		"serverPort":   port,
-		"insecureFlag": insecureFlag,
+		"insecureFlag": region.VsphereInsecureSSL,
 		"datacenters":  strings.Join(helper.CollectDatacenters(region), ","),
 		"username":     credentials.VsphereCCM().Username,
 		"password":     credentials.VsphereCCM().Password,
@@ -408,11 +403,16 @@ func (vp *valuesProvider) getConfigChartValues(
 		"nsxt": map[string]interface{}{
 			"host":         region.NSXTHost,
 			"insecureFlag": region.VsphereInsecureSSL,
-			"username":     credentials.NSXT_CCM().Username,
-			"password":     credentials.NSXT_CCM().Password,
+			"username":     credentials.NSXT_LBAdmin().Username,
+			"password":     credentials.NSXT_LBAdmin().Password,
+			"remoteAuth":   region.NSXTRemoteAuth,
 		},
 	}
 
+	if credentials.NSXT_LBAdmin().Username != credentials.NSXT_NetworkEngineer().Username {
+		values["nsxt"].(map[string]interface{})["usernameNE"] = credentials.NSXT_NetworkEngineer().Username
+		values["nsxt"].(map[string]interface{})["passwordNE"] = credentials.NSXT_NetworkEngineer().Password
+	}
 	if !utils.IsEmptyString(region.CaFile) {
 		values["caFile"] = *region.CaFile
 	}

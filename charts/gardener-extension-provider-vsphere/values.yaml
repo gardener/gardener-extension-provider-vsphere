@@ -64,3 +64,8 @@ gardener:
   seed:
     provider: vsphere
     region: someregion
+    spec:
+      provider:
+        providerConfig:
+          storagePolicyName: gardener-fast-etcd-main
+          #svStorageClass: my-sv-storage-class

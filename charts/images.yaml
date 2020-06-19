@@ -15,21 +15,20 @@ images:
   tag: v1.3.1
   targetVersion: ">= 1.14"
 - name: vsphere-cloud-controller-manager
-  sourceRepository: github.com/mandelsoft/cloud-provider-vsphere
-  repository: eu.gcr.io/gardener-project/test/cloud-provider-vsphere-mandelsoft
-  tag: v1.1.0-gardener1
+  sourceRepository: github.com/MartinWeindel/cloud-provider-vsphere
+  repository: eu.gcr.io/gardener-project/test/cloud-provider-vsphere-martinweindel
+  tag: v1.2.0-pre1
+  #tag: v1.1.0-71-g7bb1654
   #repository: gcr.io/cloud-provider-vsphere/cpi/release/manager
   #tag: v1.0.0
 - name: machine-controller-manager
-  #sourceRepository: github.com/gardener/machine-controller-manager
-  sourceRepository: github.com/MartinWeindel/machine-controller-manager
-  repository: eu.gcr.io/gardener-project/test/machine-controller-manager-martinweindel
-  # "prelease" from cmi-client branch
-  tag: v0.26.0-cmiclient2
+  sourceRepository: github.com/gardener/machine-controller-manager
+  repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
+  tag: v0.30.0
 - name: machine-controller-manager-provider-vsphere
   sourceRepository: github.com/gardener/machine-controller-manager-provider-vsphere
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager-provider-vsphere
-  tag: v0.2.0
+  tag: v0.4.0
 - name: vsphere-csi-controller
   sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   repository: gcr.io/cloud-provider-vsphere/csi/release/driver

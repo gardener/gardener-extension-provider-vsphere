@@ -68,6 +68,8 @@ type RegionSpec struct {
 	NSXTHost string
 	// NSXTInsecureSSL is a flag if insecure HTTPS is allowed for NSXTHost
 	NSXTInsecureSSL bool
+	// NSXTRemoteAuth is a flag if NSX-T uses remote authentication (authentication done through the vIDM).
+	NSXTRemoteAuth bool
 	// TransportZone is the NSX-T transport zone
 	TransportZone string
 	// LogicalTier0Router is the NSX-T logical tier 0 router
@@ -121,6 +123,9 @@ type ZoneSpec struct {
 	Datastore *string
 	// DatastoreCluster is the vSphere  datastore cluster to store the cloned machine VM. Either Datastore or DatastoreCluster must be specified at region or zones level.
 	DatastoreCluster *string
+
+	// SwitchUUID is the UUID of the virtual distributed switch the network is assigned to (only needed if there are multiple vds)
+	SwitchUUID *string
 }
 
 // Constraints is an object containing constraints for the shoots.

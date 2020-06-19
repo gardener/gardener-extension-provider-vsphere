@@ -8,12 +8,10 @@ metadata:
 provisioner: csi.vsphere.vmware.com
 allowVolumeExpansion: true
 parameters:
-  # volumeProvider name from seed object is used to specify storagePolicyName for etcd until better solution is in place
-  #storagePolicyName: {{ .Values.gardener.seed.volumeProvider }}
-  # temporary hard-coded
-  {{- if eq .Values.gardener.seed.region "rot1" }}
-  svStorageClass: gardener-fast-etcd-main
+  {{- if .Values.gardener.seed.spec.provider.providerConfig.svStorageClass }}
+  # need to set svStorageClass in Tanzu Kubernetes Cluster
+  svStorageClass: {{ .Values.gardener.seed.spec.provider.providerConfig.svStorageClass }}
   {{- else }}
-  storagePolicyName: gardener-fast-etcd-main
+  storagePolicyName: {{ .Values.gardener.seed.spec.provider.providerConfig.storagePolicyName }}
   {{- end }}
 {{- end }}

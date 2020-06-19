@@ -44,6 +44,7 @@ func DestroyLoadBalancers(cfg *infrastructure.NSXTConfig, clusterName, ipPoolNam
 			Password:     cfg.Password,
 			Host:         cfg.Host,
 			InsecureFlag: cfg.InsecureFlag,
+			RemoteAuth:   cfg.RemoteAuth,
 		},
 	}
 	lbProvider, err := loadbalancer.NewLBProvider(lbCfg)
