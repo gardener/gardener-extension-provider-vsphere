@@ -43,6 +43,9 @@ type CloudProfileConfig struct {
 	MachineImages []MachineImages `json:"machineImages"`
 	// Constraints is an object containing constraints for certain values in the control plane config.
 	Constraints Constraints `json:"constraints"`
+	// CSIResizerDisabled is a flag to disable the CSI resizer (e.g. resizer is not supported for vSphere 6.7)
+	// +optional
+	CSIResizerDisabled *bool `json:"csiResizerDisabled"`
 }
 
 // FailureDomainLabels are the tag categories used for regions and zones in vSphere CSI driver and cloud controller.

@@ -13,7 +13,8 @@ If multiple identifiers make sense you can also state the commands multiple time
 -->
 /area TODO
 /kind TODO
-/priority normaln/platform openstack
+/priority normal
+/platform vmware
 
 **What this PR does / why we need it**:
 

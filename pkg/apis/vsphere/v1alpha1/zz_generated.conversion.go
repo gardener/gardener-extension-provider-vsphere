@@ -333,6 +333,7 @@ func autoConvert_v1alpha1_CloudProfileConfig_To_vsphere_CloudProfileConfig(in *C
 	if err := Convert_v1alpha1_Constraints_To_vsphere_Constraints(&in.Constraints, &out.Constraints, s); err != nil {
 		return err
 	}
+	out.CSIResizerDisabled = (*bool)(unsafe.Pointer(in.CSIResizerDisabled))
 	return nil
 }
 
@@ -352,6 +353,7 @@ func autoConvert_vsphere_CloudProfileConfig_To_v1alpha1_CloudProfileConfig(in *v
 	if err := Convert_vsphere_Constraints_To_v1alpha1_Constraints(&in.Constraints, &out.Constraints, s); err != nil {
 		return err
 	}
+	out.CSIResizerDisabled = (*bool)(unsafe.Pointer(in.CSIResizerDisabled))
 	return nil
 }
 

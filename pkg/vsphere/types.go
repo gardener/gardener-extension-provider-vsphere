@@ -16,7 +16,11 @@
 
 package vsphere
 
-import "path/filepath"
+import (
+	"path/filepath"
+
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+)
 
 const (
 	// Name is the name of the vSphere provider controller.
@@ -35,14 +39,16 @@ const (
 	CSINodeDriverRegistrarImageName = "csi-node-driver-registrar"
 	// CSIProvisionerImageName is the name of the CSI provisioner image.
 	CSIProvisionerImageName = "csi-provisioner"
-	// CSIControllerImageName is the name of the CSI plugin image.
-	CSIControllerImageName = "vsphere-csi-controller"
-	// CSISyncerImageName is the name of the vSphere CSI Syncer image.
-	CSISyncerImageName = "vsphere-csi-syncer"
+	// CSIDriverControllerImageName is the name of the CSI driver controller plugin image.
+	CSIDriverControllerImageName = "vsphere-csi-driver-controller"
+	// CSIDriverNodeImageName is the name of the CSI driver node plugin image.
+	CSIDriverNodeImageName = "vsphere-csi-driver-node"
+	// CSIDriverSyncerImageName is the name of the vSphere CSI Syncer image.
+	CSIDriverSyncerImageName = "vsphere-csi-driver-syncer"
+	// CSIResizerImageName is the name of the csi-resizer image.
+	CSIResizerImageName = "csi-resizer"
 	// LivenessProbeImageName is the name of the liveness-probe image.
 	LivenessProbeImageName = "liveness-probe"
-	// CSINodeImageName is the name of the vsphere-csi-node image.
-	CSINodeImageName = "vsphere-csi-node"
 
 	// Host is a constant for the key in a cloud provider secret holding the VSphere host name
 	Host = "vsphereHost"
@@ -82,8 +88,8 @@ const (
 	CloudProviderConfig = "cloud-provider-config"
 	// CloudProviderConfigMapKey is the key storing the cloud provider config as value in the cloud provider configmap.
 	CloudProviderConfigMapKey = "cloudprovider.conf"
-	// SecretCsiVsphereConfig is a constant for the secret containing the CSI vSphere config.
-	SecretCsiVsphereConfig = "csi-vsphere-config-secret"
+	// SecretCSIVsphereConfig is a constant for the secret containing the CSI vSphere config.
+	SecretCSIVsphereConfig = "csi-vsphere-config"
 	// MachineControllerManagerName is a constant for the name of the machine-controller-manager.
 	MachineControllerManagerName = "machine-controller-manager"
 	// MachineControllerManagerVpaName is the name of the VerticalPodAutoscaler of the machine-controller-manager deployment.
@@ -93,6 +99,22 @@ const (
 
 	// CloudControllerManagerName is the constant for the name of the CloudController deployed by the control plane controller.
 	CloudControllerManagerName = "cloud-controller-manager"
+	// CloudControllerManagerServerName is the constant for the name of the CloudController deployed by the control plane controller.
+	CloudControllerManagerServerName = "cloud-controller-manager-server"
+	// CSIProvisionerName is a constant for the name of the csi-provisioner component.
+	CSIProvisionerName = "csi-provisioner"
+	// CSIAttacherName is a constant for the name of the csi-attacher component.
+	CSIAttacherName = "csi-attacher"
+	// CSIResizerName is a constant for the name of the csi-resizer component.
+	CSIResizerName = "csi-resizer"
+	// VsphereCSIController is a constant for the name of the vsphere-csi-controller component.
+	VsphereCSIController = "vsphere-csi-controller"
+	// VsphereCSISyncer is a constant for the name of the vsphere-csi-syncer component.
+	VsphereCSISyncer = "csi-syncer"
+	// CSINodeName is a constant for the chart name for a CSI node deployment in the shoot.
+	CSINodeName = "vsphere-csi-node"
+	// CSIDriverName is a constant for the name of the csi-driver component.
+	CSIDriverName = "csi-driver"
 )
 
 var (
@@ -100,4 +122,7 @@ var (
 	ChartsPath = filepath.Join("charts")
 	// InternalChartsPath is the path to the internal charts
 	InternalChartsPath = filepath.Join(ChartsPath, "internal")
+
+	// UsernamePrefix is a constant for the username prefix of components deployed by OpenStack.
+	UsernamePrefix = extensionsv1alpha1.SchemeGroupVersion.Group + ":" + Name + ":"
 )

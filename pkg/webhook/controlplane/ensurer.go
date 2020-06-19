@@ -21,7 +21,7 @@ import (
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
-	v1alpha1constants "github.com/gardener/gardener/pkg/apis/core/v1alpha1/constants"
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 
 	"github.com/coreos/go-systemd/unit"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
@@ -85,10 +85,10 @@ func ensureKubeAPIServerCommandLineArgs(c *corev1.Container) {
 
 func ensureKubeControllerManagerAnnotations(t *corev1.PodTemplateSpec) {
 	// make sure to always remove this label
-	delete(t.Labels, v1alpha1constants.LabelNetworkPolicyToBlockedCIDRs)
+	delete(t.Labels, v1beta1constants.LabelNetworkPolicyToBlockedCIDRs)
 
-	t.Labels = extensionswebhook.EnsureAnnotationOrLabel(t.Labels, v1alpha1constants.LabelNetworkPolicyToPublicNetworks, v1alpha1constants.LabelNetworkPolicyAllowed)
-	t.Labels = extensionswebhook.EnsureAnnotationOrLabel(t.Labels, v1alpha1constants.LabelNetworkPolicyToPrivateNetworks, v1alpha1constants.LabelNetworkPolicyAllowed)
+	t.Labels = extensionswebhook.EnsureAnnotationOrLabel(t.Labels, v1beta1constants.LabelNetworkPolicyToPublicNetworks, v1beta1constants.LabelNetworkPolicyAllowed)
+	t.Labels = extensionswebhook.EnsureAnnotationOrLabel(t.Labels, v1beta1constants.LabelNetworkPolicyToPrivateNetworks, v1beta1constants.LabelNetworkPolicyAllowed)
 }
 
 func (e *ensurer) ensureChecksumAnnotations(ctx context.Context, template *corev1.PodTemplateSpec, namespace string) error {

@@ -147,6 +147,18 @@ Constraints
 <p>Constraints is an object containing constraints for certain values in the control plane config.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>csiResizerDisabled</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>CSIResizerDisabled is a flag to disable the CSI resizer (e.g. resizer is not supported for vSphere 6.7)</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.ControlPlaneConfig">ControlPlaneConfig
