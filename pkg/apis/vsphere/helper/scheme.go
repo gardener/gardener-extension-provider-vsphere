@@ -57,7 +57,7 @@ func GetCloudProfileConfigFromProfile(profile *gardencorev1beta1.CloudProfile) (
 			return nil, errors.Wrapf(err, "could not decode providerConfig of cloudProfile")
 		}
 		// TODO validate cloud profile on admission instead
-		if errs := validation.ValidateCloudProfileConfig(cloudProfileConfig); len(errs) > 0 {
+		if errs := validation.ValidateCloudProfileConfig(&profile.Spec, cloudProfileConfig); len(errs) > 0 {
 			return nil, errors.Wrap(errs.ToAggregate(), "validation of providerConfig failed")
 		}
 	}

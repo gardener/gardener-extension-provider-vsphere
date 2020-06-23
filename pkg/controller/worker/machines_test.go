@@ -579,6 +579,19 @@ func createCluster(cloudProfileName, shootVersion string, images []apiv1alpha1.M
 		},
 	}
 
+	specImages := []gardencorev1beta1.MachineImage{}
+	for _, image := range images {
+		specImages = append(specImages, gardencorev1beta1.MachineImage{
+			Name: image.Name,
+			Versions: []gardencorev1beta1.ExpirableVersion{
+				{
+					Version: image.Versions[0].Version,
+				},
+			},
+		})
+	}
+	cluster.CloudProfile.Spec.MachineImages = specImages
+
 	return cluster
 }
 

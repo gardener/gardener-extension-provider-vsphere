@@ -95,6 +95,16 @@ var _ = Describe("ValuesProvider", func() {
 		cluster = &extensionscontroller.Cluster{
 			CloudProfile: &gardencorev1beta1.CloudProfile{
 				Spec: gardencorev1beta1.CloudProfileSpec{
+					MachineImages: []gardencorev1beta1.MachineImage{
+						{
+							Name: "coreos",
+							Versions: []gardencorev1beta1.ExpirableVersion{
+								{
+									Version: "2191.5.0",
+								},
+							},
+						},
+					},
 					ProviderConfig: &runtime.RawExtension{
 						Raw: encode(&apisvspherev1alpha1.CloudProfileConfig{
 							TypeMeta: metav1.TypeMeta{

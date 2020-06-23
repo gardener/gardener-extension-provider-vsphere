@@ -23,7 +23,7 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
-	gardencorevbeta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,11 +49,21 @@ var _ = Describe("Helper (decode)", func() {
 		}
 
 		cluster = &controller.Cluster{
-			Shoot: &gardencorevbeta1.Shoot{
+			Shoot: &gardencorev1beta1.Shoot{
 				ObjectMeta: v1.ObjectMeta{Name: "test"},
 			},
-			CloudProfile: &gardencorevbeta1.CloudProfile{
-				Spec: gardencorevbeta1.CloudProfileSpec{
+			CloudProfile: &gardencorev1beta1.CloudProfile{
+				Spec: gardencorev1beta1.CloudProfileSpec{
+					MachineImages: []gardencorev1beta1.MachineImage{
+						{
+							Name: "coreos",
+							Versions: []gardencorev1beta1.ExpirableVersion{
+								{
+									Version: "2191.5.0",
+								},
+							},
+						},
+					},
 					ProviderConfig: &runtime.RawExtension{Raw: []byte(`
 apiVersion: vsphere.provider.extensions.gardener.cloud/v1alpha1
 kind: CloudProfileConfig

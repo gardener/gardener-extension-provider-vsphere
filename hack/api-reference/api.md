@@ -159,6 +159,20 @@ bool
 <p>CSIResizerDisabled is a flag to disable the CSI resizer (e.g. resizer is not supported for vSphere 6.7)</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>machineTypeOptions</code></br>
+<em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.MachineTypeOptions">
+[]MachineTypeOptions
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>MachineTypeOptions is the list of machine type options to set additional options for individual machine types.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.ControlPlaneConfig">ControlPlaneConfig
@@ -882,6 +896,61 @@ string
 </td>
 <td>
 <p>Versions contains versions and a provider-specific identifier.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.MachineTypeOptions">MachineTypeOptions
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.CloudProfileConfig">CloudProfileConfig</a>)
+</p>
+<p>
+<p>MachineTypeOptions defines additional VM options for an machine type given by name</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the name of the machine type</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>memoryReservationLockedToMax</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>MemoryReservationLockedToMax is flag to reserve all guest OS memory (no swapping in ESXi host)</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraConfig</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>ExtraConfig allows to specify additional VM options.
+e.g. sched.swap.vmxSwapEnabled=false to disable the VMX process swap file</p>
 </td>
 </tr>
 </tbody>
