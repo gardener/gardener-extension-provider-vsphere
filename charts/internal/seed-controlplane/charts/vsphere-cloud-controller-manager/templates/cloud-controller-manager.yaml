@@ -33,9 +33,6 @@ spec:
 {{ toYaml .Values.podLabels | indent 8 }}
 {{- end }}
     spec:
-      tolerations:
-      - effect: NoExecute
-        operator: Exists
       containers:
       - name: vsphere-cloud-controller-manager
         image: {{ index .Values.images "vsphere-cloud-controller-manager" }}
