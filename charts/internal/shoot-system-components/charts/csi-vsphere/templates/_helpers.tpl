@@ -9,3 +9,11 @@ user = "{{ .Values.username }}"
 password = "{{ .Values.password }}"
 insecure-flag = "{{ .Values.insecureFlag }}"
 {{- end -}}
+
+{{- define "csi-driver-node.extensionsGroup" -}}
+extensions.gardener.cloud
+{{- end -}}
+
+{{- define "csi-driver-node.name" -}}
+provider-vsphere
+{{- end -}}

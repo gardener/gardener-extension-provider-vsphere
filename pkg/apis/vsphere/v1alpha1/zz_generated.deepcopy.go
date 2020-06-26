@@ -148,6 +148,11 @@ func (in *CloudProfileConfig) DeepCopyInto(out *CloudProfileConfig) {
 		}
 	}
 	in.Constraints.DeepCopyInto(&out.Constraints)
+	if in.CSIResizerDisabled != nil {
+		in, out := &in.CSIResizerDisabled, &out.CSIResizerDisabled
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

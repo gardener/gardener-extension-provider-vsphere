@@ -196,16 +196,38 @@ var _ = Describe("ValuesProvider", func() {
 			},
 		}
 
+		csiSecretKey = client.ObjectKey{Namespace: namespace, Name: vsphere.SecretCSIVsphereConfig}
+		csiSecret    = &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      vsphere.SecretCSIVsphereConfig,
+				Namespace: namespace,
+			},
+			Type: corev1.SecretTypeOpaque,
+			Data: map[string][]byte{
+				"csi-vsphere.conf": []byte(`[Global]
+cluster-id = "shoot--foo--bar-garden1234"
+
+[VirtualCenter "vsphere.host.internal"]
+port = "443"
+datacenters = "scc01-DC"
+user = "admin"
+password = "super-secret"
+insecure-flag = "true"
+`),
+			},
+		}
+
 		checksums = map[string]string{
 			v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
 			vsphere.CloudProviderConfig:              "08a7bc7fe8f59b055f173145e211760a83f02cf89635cef26ebb351378635606",
-			"cloud-controller-manager":               "3d791b164a808638da9a8df03924be2a41e34cd664e42231c00fe369e3588272",
-			"cloud-controller-manager-server":        "6dff2a2e6f14444b66d8e4a351c049f7e89ee24ba3eaab95dbec40ba6bdebb52",
-			"csi-attacher":                           "2da58ad61c401a2af779a909d22fb42eed93a1524cbfdab974ceedb413fcb914",
-			"csi-provisioner":                        "f75b42d40ab501428c383dfb2336cb1fc892bbee1fc1d739675171e4acc4d911",
-			vsphere.SecretCsiVsphereConfig:           "5555555555",
-			"vsphere-csi-controller":                 "6666666666",
-			"csi-vsphere-csi-syncer":                 "7777777777",
+			vsphere.CloudControllerManagerName:       "3d791b164a808638da9a8df03924be2a41e34cd664e42231c00fe369e3588272",
+			vsphere.CloudControllerManagerServerName: "6dff2a2e6f14444b66d8e4a351c049f7e89ee24ba3eaab95dbec40ba6bdebb52",
+			vsphere.CSIAttacherName:                  "2da58ad61c401a2af779a909d22fb42eed93a1524cbfdab974ceedb413fcb914",
+			vsphere.CSIProvisionerName:               "f75b42d40ab501428c383dfb2336cb1fc892bbee1fc1d739675171e4acc4d911",
+			vsphere.CSIResizerName:                   "a77e663ba1af340fb3dd7f6f8a1be47c7aa9e658198695480641e6b934c0b9ed",
+			vsphere.SecretCSIVsphereConfig:           "a93175a6208bed98639833cf08f616d3329884d2558c1b61cde3656f2a57b5be",
+			vsphere.VsphereCSIController:             "6666666666",
+			vsphere.VsphereCSISyncer:                 "7777777777",
 		}
 
 		configChartValues = map[string]interface{}{
@@ -247,10 +269,10 @@ var _ = Describe("ValuesProvider", func() {
 				"clusterName":       "shoot--foo--bar-garden1234",
 				"podNetwork":        cidr,
 				"podAnnotations": map[string]interface{}{
-					"checksum/secret-cloud-controller-manager":        "3d791b164a808638da9a8df03924be2a41e34cd664e42231c00fe369e3588272",
-					"checksum/secret-cloud-controller-manager-server": "6dff2a2e6f14444b66d8e4a351c049f7e89ee24ba3eaab95dbec40ba6bdebb52",
-					"checksum/secret-cloudprovider":                   "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
-					"checksum/configmap-cloud-provider-config":        "08a7bc7fe8f59b055f173145e211760a83f02cf89635cef26ebb351378635606",
+					"checksum/secret-" + vsphere.CloudControllerManagerName:       "3d791b164a808638da9a8df03924be2a41e34cd664e42231c00fe369e3588272",
+					"checksum/secret-" + vsphere.CloudControllerManagerServerName: "6dff2a2e6f14444b66d8e4a351c049f7e89ee24ba3eaab95dbec40ba6bdebb52",
+					"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
+					"checksum/configmap-" + vsphere.CloudProviderConfig:           "08a7bc7fe8f59b055f173145e211760a83f02cf89635cef26ebb351378635606",
 				},
 				"podLabels": map[string]interface{}{
 					"maintenance.gardener.cloud/restart": "true",
@@ -269,13 +291,15 @@ var _ = Describe("ValuesProvider", func() {
 				"serverPort":        443,
 				"datacenters":       "scc01-DC",
 				"insecureFlag":      "true",
+				"resizerEnabled":    true,
 				"podAnnotations": map[string]interface{}{
-					"checksum/secret-csi-attacher":              "2da58ad61c401a2af779a909d22fb42eed93a1524cbfdab974ceedb413fcb914",
-					"checksum/secret-csi-provisioner":           "f75b42d40ab501428c383dfb2336cb1fc892bbee1fc1d739675171e4acc4d911",
-					"checksum/secret-cloudprovider":             "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
-					"checksum/secret-csi-vsphere-config-secret": "5555555555",
-					"checksum/secret-vsphere-csi-controller":    "6666666666",
-					"checksum/secret-vsphere-csi-syncer":        "7777777777",
+					"checksum/secret-" + vsphere.CSIProvisionerName:               "f75b42d40ab501428c383dfb2336cb1fc892bbee1fc1d739675171e4acc4d911",
+					"checksum/secret-" + vsphere.CSIAttacherName:                  "2da58ad61c401a2af779a909d22fb42eed93a1524cbfdab974ceedb413fcb914",
+					"checksum/secret-" + vsphere.CSIResizerName:                   "a77e663ba1af340fb3dd7f6f8a1be47c7aa9e658198695480641e6b934c0b9ed",
+					"checksum/secret-" + vsphere.VsphereCSIController:             "6666666666",
+					"checksum/secret-" + vsphere.VsphereCSISyncer:                 "7777777777",
+					"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
+					"checksum/secret-" + vsphere.SecretCSIVsphereConfig:           "a93175a6208bed98639833cf08f616d3329884d2558c1b61cde3656f2a57b5be",
 				},
 			},
 		}
@@ -295,9 +319,12 @@ var _ = Describe("ValuesProvider", func() {
 
 		logger = log.Log.WithName("test")
 
-		prepareValueProvider = func() genericactuator.ValuesProvider {
+		prepareValueProvider = func(csi bool) genericactuator.ValuesProvider {
 			// Create mock client
 			client := mockclient.NewMockClient(ctrl)
+			if csi {
+				client.EXPECT().Get(context.TODO(), csiSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(csiSecret))
+			}
 			client.EXPECT().Get(context.TODO(), cpSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(cpSecret))
 
 			// Create valuesProvider
@@ -321,7 +348,7 @@ var _ = Describe("ValuesProvider", func() {
 
 	Describe("#GetConfigChartValues", func() {
 		It("should return correct config chart values", func() {
-			vp := prepareValueProvider()
+			vp := prepareValueProvider(false)
 
 			// Call GetConfigChartValues method and check the result
 			values, err := vp.GetConfigChartValues(context.TODO(), cp, cluster)
@@ -332,7 +359,7 @@ var _ = Describe("ValuesProvider", func() {
 
 	Describe("#GetControlPlaneChartValues", func() {
 		It("should return correct control plane chart values", func() {
-			vp := prepareValueProvider()
+			vp := prepareValueProvider(true)
 
 			// Call GetControlPlaneChartValues method and check the result
 			values, err := vp.GetControlPlaneChartValues(context.TODO(), cp, cluster, checksums, false)
@@ -345,7 +372,7 @@ var _ = Describe("ValuesProvider", func() {
 
 	Describe("#GetControlPlaneShootChartValues", func() {
 		It("should return correct control plane shoot chart values", func() {
-			vp := prepareValueProvider()
+			vp := prepareValueProvider(false)
 
 			// Call GetControlPlaneChartValues method and check the result
 			values, err := vp.GetControlPlaneShootChartValues(context.TODO(), cp, cluster, checksums)

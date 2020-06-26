@@ -23,19 +23,22 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gardener/gardener/extensions/pkg/util"
+	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apiserver/pkg/authentication/user"
+	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
 
 	"github.com/gardener/controller-manager-library/pkg/utils"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
-	v1alpha1constants "github.com/gardener/gardener/pkg/apis/core/v1alpha1/constants"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils/chart"
@@ -47,15 +50,10 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
-// Object names
-const (
-	cloudControllerManagerServerName = "cloud-controller-manager-server"
-)
-
 var controlPlaneSecrets = &secrets.Secrets{
 	CertificateSecretConfigs: map[string]*secrets.CertificateSecretConfig{
-		v1alpha1constants.SecretNameCACluster: {
-			Name:       v1alpha1constants.SecretNameCACluster,
+		v1beta1constants.SecretNameCACluster: {
+			Name:       v1beta1constants.SecretNameCACluster,
 			CommonName: "kubernetes",
 			CertType:   secrets.CACert,
 		},
@@ -68,72 +66,85 @@ var controlPlaneSecrets = &secrets.Secrets{
 					CommonName:   "system:serviceaccount:kube-system:cloud-controller-manager",
 					Organization: []string{user.SystemPrivilegedGroup},
 					CertType:     secrets.ClientCert,
-					SigningCA:    cas[v1alpha1constants.SecretNameCACluster],
+					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
 				},
 				KubeConfigRequest: &secrets.KubeConfigRequest{
 					ClusterName:  clusterName,
-					APIServerURL: v1alpha1constants.DeploymentNameKubeAPIServer,
+					APIServerURL: v1beta1constants.DeploymentNameKubeAPIServer,
 				},
 			},
 			&secrets.ControlPlaneSecretConfig{
 				CertificateSecretConfig: &secrets.CertificateSecretConfig{
-					Name:       cloudControllerManagerServerName,
+					Name:       vsphere.CloudControllerManagerServerName,
 					CommonName: vsphere.CloudControllerManagerName,
 					DNSNames:   controlplane.DNSNamesForService(vsphere.CloudControllerManagerName, clusterName),
 					CertType:   secrets.ServerCert,
-					SigningCA:  cas[v1alpha1constants.SecretNameCACluster],
+					SigningCA:  cas[v1beta1constants.SecretNameCACluster],
 				},
 			},
 			&secrets.ControlPlaneSecretConfig{
 				CertificateSecretConfig: &secrets.CertificateSecretConfig{
-					Name:         "csi-attacher",
-					CommonName:   "system:csi-attacher",
+					Name:         vsphere.CSIAttacherName,
+					CommonName:   vsphere.UsernamePrefix + vsphere.CSIAttacherName,
 					Organization: []string{user.SystemPrivilegedGroup},
 					CertType:     secrets.ClientCert,
-					SigningCA:    cas[v1alpha1constants.SecretNameCACluster],
+					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
 				},
 				KubeConfigRequest: &secrets.KubeConfigRequest{
 					ClusterName:  clusterName,
-					APIServerURL: v1alpha1constants.DeploymentNameKubeAPIServer,
+					APIServerURL: v1beta1constants.DeploymentNameKubeAPIServer,
 				},
 			},
 			&secrets.ControlPlaneSecretConfig{
 				CertificateSecretConfig: &secrets.CertificateSecretConfig{
-					Name:         "csi-provisioner",
-					CommonName:   "system:csi-provisioner",
+					Name:         vsphere.CSIProvisionerName,
+					CommonName:   vsphere.UsernamePrefix + vsphere.CSIProvisionerName,
 					Organization: []string{user.SystemPrivilegedGroup},
 					CertType:     secrets.ClientCert,
-					SigningCA:    cas[v1alpha1constants.SecretNameCACluster],
+					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
 				},
 				KubeConfigRequest: &secrets.KubeConfigRequest{
 					ClusterName:  clusterName,
-					APIServerURL: v1alpha1constants.DeploymentNameKubeAPIServer,
+					APIServerURL: v1beta1constants.DeploymentNameKubeAPIServer,
 				},
 			},
 			&secrets.ControlPlaneSecretConfig{
 				CertificateSecretConfig: &secrets.CertificateSecretConfig{
-					Name:         "vsphere-csi-controller",
-					CommonName:   "gardener.cloud:vsphere-csi-controller",
+					Name:         vsphere.VsphereCSIController,
+					CommonName:   vsphere.UsernamePrefix + vsphere.VsphereCSIController,
 					Organization: []string{user.SystemPrivilegedGroup},
 					CertType:     secrets.ClientCert,
-					SigningCA:    cas[v1alpha1constants.SecretNameCACluster],
+					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
 				},
 				KubeConfigRequest: &secrets.KubeConfigRequest{
 					ClusterName:  clusterName,
-					APIServerURL: v1alpha1constants.DeploymentNameKubeAPIServer,
+					APIServerURL: v1beta1constants.DeploymentNameKubeAPIServer,
 				},
 			},
 			&secrets.ControlPlaneSecretConfig{
 				CertificateSecretConfig: &secrets.CertificateSecretConfig{
-					Name:         "vsphere-csi-syncer",
-					CommonName:   "gardener.cloud:vsphere-csi-syncer",
+					Name:         vsphere.VsphereCSISyncer,
+					CommonName:   vsphere.UsernamePrefix + vsphere.VsphereCSISyncer,
 					Organization: []string{user.SystemPrivilegedGroup},
 					CertType:     secrets.ClientCert,
-					SigningCA:    cas[v1alpha1constants.SecretNameCACluster],
+					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
 				},
 				KubeConfigRequest: &secrets.KubeConfigRequest{
 					ClusterName:  clusterName,
-					APIServerURL: v1alpha1constants.DeploymentNameKubeAPIServer,
+					APIServerURL: v1beta1constants.DeploymentNameKubeAPIServer,
+				},
+			},
+			&secrets.ControlPlaneSecretConfig{
+				CertificateSecretConfig: &secrets.CertificateSecretConfig{
+					Name:         vsphere.CSIResizerName,
+					CommonName:   vsphere.UsernamePrefix + vsphere.CSIResizerName,
+					Organization: []string{user.SystemPrivilegedGroup},
+					CertType:     secrets.ClientCert,
+					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
+				},
+				KubeConfigRequest: &secrets.KubeConfigRequest{
+					ClusterName:  clusterName,
+					APIServerURL: v1beta1constants.DeploymentNameKubeAPIServer,
 				},
 			},
 		}
@@ -156,18 +167,25 @@ var controlPlaneChart = &chart.Chart{
 			Name:   "vsphere-cloud-controller-manager",
 			Images: []string{vsphere.CloudControllerImageName},
 			Objects: []*chart.Object{
-				{Type: &corev1.Service{}, Name: "cloud-controller-manager"},
-				{Type: &appsv1.Deployment{}, Name: "cloud-controller-manager"},
-				{Type: &corev1.ConfigMap{}, Name: "cloud-controller-manager-monitoring-config"},
+				{Type: &corev1.Service{}, Name: vsphere.CloudControllerManagerName},
+				{Type: &appsv1.Deployment{}, Name: vsphere.CloudControllerManagerName},
+				{Type: &corev1.ConfigMap{}, Name: vsphere.CloudControllerManagerName + "-monitoring-config"},
+				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: vsphere.CloudControllerManagerName + "-vpa"},
 			},
 		},
 		{
 			Name: "csi-vsphere",
-			Images: []string{vsphere.CSIAttacherImageName, vsphere.CSIProvisionerImageName, vsphere.CSIControllerImageName,
-				vsphere.CSISyncerImageName, vsphere.LivenessProbeImageName},
+			Images: []string{
+				vsphere.CSIAttacherImageName,
+				vsphere.CSIProvisionerImageName,
+				vsphere.CSIDriverControllerImageName,
+				vsphere.CSIDriverSyncerImageName,
+				vsphere.CSIResizerImageName,
+				vsphere.LivenessProbeImageName},
 			Objects: []*chart.Object{
-				{Type: &corev1.Secret{}, Name: "csi-vsphere-config-secret"},
-				{Type: &appsv1.StatefulSet{}, Name: "vsphere-csi-controller"},
+				{Type: &corev1.Secret{}, Name: vsphere.SecretCSIVsphereConfig},
+				{Type: &appsv1.Deployment{}, Name: vsphere.VsphereCSIController},
+				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: vsphere.VsphereCSIController + "-vpa"},
 			},
 		},
 	},
@@ -187,19 +205,41 @@ var controlPlaneShootChart = &chart.Chart{
 			},
 		},
 		{
-			Name:   "csi-vsphere",
-			Images: []string{vsphere.CSINodeDriverRegistrarImageName, vsphere.CSINodeImageName, vsphere.LivenessProbeImageName},
+			Name: "csi-vsphere",
+			Images: []string{
+				vsphere.CSINodeDriverRegistrarImageName,
+				vsphere.CSIDriverNodeImageName,
+				vsphere.LivenessProbeImageName,
+			},
 			Objects: []*chart.Object{
-				{Type: &corev1.Secret{}, Name: "csi-vsphere-config-secret"},
-				{Type: &rbacv1.ClusterRole{}, Name: "gardener.cloud:vsphere-csi-controller"},
-				{Type: &rbacv1.ClusterRoleBinding{}, Name: "gardener.cloud:vsphere-csi-controller"},
-				{Type: &rbacv1.ClusterRole{}, Name: "gardener.cloud:vsphere-csi-syncer"},
-				{Type: &rbacv1.ClusterRoleBinding{}, Name: "gardener.cloud:vsphere-csi-syncer"},
-				{Type: &rbacv1.ClusterRole{}, Name: "gardener.cloud:csi-attacher"},
-				{Type: &rbacv1.ClusterRoleBinding{}, Name: "gardener.cloud:csi-attacher"},
-				{Type: &rbacv1.ClusterRole{}, Name: "gardener.cloud:csi-provisioner"},
-				{Type: &rbacv1.ClusterRoleBinding{}, Name: "gardener.cloud:csi-provisioner"},
-				{Type: &appsv1.DaemonSet{}, Name: "vsphere-csi-node"},
+				// csi-driver
+				{Type: &appsv1.DaemonSet{}, Name: vsphere.CSINodeName},
+				//{Type: &storagev1beta1.CSIDriver{}, Name: "csi.vsphere.vmware.com"},
+				{Type: &corev1.ServiceAccount{}, Name: vsphere.CSIDriverName + "-node"},
+				{Type: &corev1.Secret{}, Name: vsphere.SecretCSIVsphereConfig},
+				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.CSIDriverName},
+				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIDriverName},
+				{Type: &policyv1beta1.PodSecurityPolicy{}, Name: strings.Replace(vsphere.UsernamePrefix+vsphere.CSIDriverName, ":", ".", -1)},
+				// csi-provisioner
+				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.CSIProvisionerName},
+				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIProvisionerName},
+				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.CSIProvisionerName},
+				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIProvisionerName},
+				// csi-attacher
+				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.CSIAttacherName},
+				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIAttacherName},
+				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.CSIAttacherName},
+				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIAttacherName},
+				// csi-resizer
+				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.CSIResizerName},
+				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIResizerName},
+				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.CSIResizerName},
+				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIResizerName},
+				// csi-syncer
+				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncer},
+				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncer},
+				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncer},
+				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncer},
 			},
 		},
 	},
@@ -264,6 +304,11 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	credentials, err := vsphere.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get vSphere credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
+	}
+
+	secretCSIVsphereConfig := &corev1.Secret{}
+	if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, vsphere.SecretCSIVsphereConfig), secretCSIVsphereConfig); err == nil {
+		checksums[vsphere.SecretCSIVsphereConfig] = util.ComputeChecksum(secretCSIVsphereConfig.Data)
 	}
 
 	// Get control plane chart values
@@ -447,17 +492,13 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
 	}
 
-	insecureFlag := "false"
-	if region.VsphereInsecureSSL {
-		insecureFlag = "true"
-	}
-
 	serverName, port, err := splitServerNameAndPort(region.VsphereHost)
 	if err != nil {
 		return nil, err
 	}
 
 	clusterId := cp.Namespace + "-" + vp.gardenId
+	csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
 	values := map[string]interface{}{
 		"vsphere-cloud-controller-manager": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
@@ -465,10 +506,10 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 			"podNetwork":        extensionscontroller.GetPodNetwork(cluster),
 			"podAnnotations": map[string]interface{}{
-				"checksum/secret-cloud-controller-manager":        checksums[vsphere.CloudControllerManagerName],
-				"checksum/secret-cloud-controller-manager-server": checksums[cloudControllerManagerServerName],
-				"checksum/secret-cloudprovider":                   checksums[v1alpha1constants.SecretNameCloudProvider],
-				"checksum/configmap-cloud-provider-config":        checksums[vsphere.CloudProviderConfig],
+				"checksum/secret-" + vsphere.CloudControllerManagerName:       checksums[vsphere.CloudControllerManagerName],
+				"checksum/secret-" + vsphere.CloudControllerManagerServerName: checksums[vsphere.CloudControllerManagerServerName],
+				"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
+				"checksum/configmap-" + vsphere.CloudProviderConfig:           checksums[vsphere.CloudProviderConfig],
 			},
 			"podLabels": map[string]interface{}{
 				v1beta1constants.LabelPodMaintenanceRestart: "true",
@@ -483,14 +524,16 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"password":          credentials.VsphereCSI().Password,
 			"serverPort":        port,
 			"datacenters":       strings.Join(helper.CollectDatacenters(region), ","),
-			"insecureFlag":      insecureFlag,
+			"insecureFlag":      fmt.Sprintf("%t", region.VsphereInsecureSSL),
+			"resizerEnabled":    csiResizerEnabled,
 			"podAnnotations": map[string]interface{}{
-				"checksum/secret-csi-attacher":              checksums["csi-attacher"],
-				"checksum/secret-csi-provisioner":           checksums["csi-provisioner"],
-				"checksum/secret-vsphere-csi-controller":    checksums["vsphere-csi-controller"],
-				"checksum/secret-vsphere-csi-syncer":        checksums["csi-vsphere-csi-syncer"],
-				"checksum/secret-cloudprovider":             checksums[v1alpha1constants.SecretNameCloudProvider],
-				"checksum/secret-csi-vsphere-config-secret": checksums[vsphere.SecretCsiVsphereConfig],
+				"checksum/secret-" + vsphere.CSIProvisionerName:               checksums[vsphere.CSIProvisionerName],
+				"checksum/secret-" + vsphere.CSIAttacherName:                  checksums[vsphere.CSIAttacherName],
+				"checksum/secret-" + vsphere.CSIResizerName:                   checksums[vsphere.CSIResizerName],
+				"checksum/secret-" + vsphere.VsphereCSIController:             checksums[vsphere.VsphereCSIController],
+				"checksum/secret-" + vsphere.VsphereCSISyncer:                 checksums[vsphere.VsphereCSISyncer],
+				"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
+				"checksum/secret-" + vsphere.SecretCSIVsphereConfig:           checksums[vsphere.SecretCSIVsphereConfig],
 			},
 		},
 	}
