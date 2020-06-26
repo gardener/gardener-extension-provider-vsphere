@@ -41,9 +41,23 @@ import (
 type preparedReconcile struct {
 	cloudProfileConfig *apisvsphere.CloudProfileConfig
 	infraConfig        *apisvsphere.InfrastructureConfig
+	nsxtConfig         *infrastructure.NSXTConfig
 	region             *apisvsphere.RegionSpec
 	spec               infrastructure.NSXTInfraSpec
 	ensurer            infrastructure.NSXTInfrastructureEnsurer
+}
+
+func (p *preparedReconcile) getDefaultLoadBalancerIPPoolName() (*string, error) {
+	var ipPoolName *string
+	for i, cls := range p.cloudProfileConfig.Constraints.LoadBalancerConfig.Classes {
+		if i == 0 || cls.Name == "default" {
+			ipPoolName = cls.IPPoolName
+		}
+	}
+	if ipPoolName == nil {
+		return nil, fmt.Errorf("ipPoolName not set for default load balancer class")
+	}
+	return ipPoolName, nil
 }
 
 func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) (*preparedReconcile, error) {
@@ -102,6 +116,7 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 	prepared := &preparedReconcile{
 		cloudProfileConfig: cloudProfileConfig,
 		infraConfig:        infraConfig,
+		nsxtConfig:         nsxtConfig,
 		region:             region,
 		spec:               spec,
 		ensurer:            infraEnsurer,

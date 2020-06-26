@@ -101,6 +101,22 @@ func (processor remoteBasicAuthHeaderProcessor) Process(req *http.Request) error
 
 // NewNsxtBroker creates a new NsxtBroker using the configuration
 func NewNsxtBroker(nsxtConfig *config.NsxtConfig) (NsxtBroker, error) {
+	connector, userPassword, err := createConnector(nsxtConfig, nsxtConfig.User, nsxtConfig.Password, "")
+	if err != nil {
+		return nil, err
+	}
+	connectorNE := connector
+	if userPassword && nsxtConfig.UserNE != "" {
+		connectorNE, _, err = createConnector(nsxtConfig, nsxtConfig.UserNE, nsxtConfig.PasswordNE, "NE")
+		if err != nil {
+			return nil, err
+		}
+	}
+	return NewNsxtBrokerFromConnector(connector, connectorNE), nil
+}
+
+func createConnector(nsxtConfig *config.NsxtConfig, user, password, suffix string) (client.Connector, bool, error) {
+	userPassword := false
 	url := fmt.Sprintf("https://%s", nsxtConfig.Host)
 	securityCtx := core.NewSecurityContextImpl()
 	securityContextNeeded := true
@@ -111,34 +127,35 @@ func NewNsxtBroker(nsxtConfig *config.NsxtConfig) (NsxtBroker, error) {
 	if securityContextNeeded {
 		if len(nsxtConfig.VMCAccessToken) > 0 {
 			if nsxtConfig.VMCAuthHost == "" {
-				return nil, fmt.Errorf("vmc auth host must be provided if auth token is provided")
+				return nil, false, fmt.Errorf("vmc auth host must be provided if auth token is provided")
 			}
 
 			apiToken, err := getAPIToken(nsxtConfig.VMCAuthHost, nsxtConfig.VMCAccessToken)
 			if err != nil {
-				return nil, err
+				return nil, false, err
 			}
 
 			securityCtx.SetProperty(security.AUTHENTICATION_SCHEME_ID, security.OAUTH_SCHEME_ID)
 			securityCtx.SetProperty(security.ACCESS_TOKEN, apiToken)
 		} else {
-			if nsxtConfig.User == "" {
-				return nil, fmt.Errorf("username must be provided")
+			if user == "" {
+				return nil, false, fmt.Errorf("username 'user%s' must be provided", suffix)
 			}
 
-			if nsxtConfig.Password == "" {
-				return nil, fmt.Errorf("password must be provided")
+			if password == "" {
+				return nil, false, fmt.Errorf("password 'password%s' must be provided", suffix)
 			}
 
+			userPassword = true
 			securityCtx.SetProperty(security.AUTHENTICATION_SCHEME_ID, security.USER_PASSWORD_SCHEME_ID)
-			securityCtx.SetProperty(security.USER_KEY, nsxtConfig.User)
-			securityCtx.SetProperty(security.PASSWORD_KEY, nsxtConfig.Password)
+			securityCtx.SetProperty(security.USER_KEY, user)
+			securityCtx.SetProperty(security.PASSWORD_KEY, password)
 		}
 	}
 
 	tlsConfig, err := getConnectorTLSConfig(nsxtConfig.InsecureFlag, nsxtConfig.ClientAuthCertFile, nsxtConfig.ClientAuthKeyFile, nsxtConfig.CAFile)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	httpClient := http.Client{
 		Transport: &http.Transport{
@@ -153,11 +170,18 @@ func NewNsxtBroker(nsxtConfig *config.NsxtConfig) (NsxtBroker, error) {
 	}
 
 	// perform API call to check connector
-	_, err = infra.NewDefaultLbMonitorProfilesClient(connector).List(nil, nil, nil, nil, nil, nil)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Connection to NSX-T API failed. Please check your connection settings.")
+	switch suffix {
+	case "":
+		// API call allowed for LBAdmin role
+		_, err = infra.NewDefaultLbMonitorProfilesClient(connector).List(nil, nil, nil, nil, nil, nil)
+	case "NE":
+		// API call allowed for Network Enginer role
+		_, err = infra.NewDefaultIpPoolsClient(connector).List(nil, nil, nil, nil, nil, nil)
 	}
-	return NewNsxtBrokerFromConnector(connector), nil
+	if err != nil {
+		return nil, false, errors.Wrapf(err, "Connection to NSX-T API failed for 'user%s'. Please check your connection settings.", suffix)
+	}
+	return connector, userPassword, nil
 }
 
 func getConnectorTLSConfig(insecure bool, clientCertFile string, clientKeyFile string, caFile string) (*tls.Config, error) {
@@ -216,7 +240,7 @@ func getAPIToken(vmcAuthHost string, vmcAccessToken string) (string, error) {
 
 	if res.StatusCode != 200 {
 		b, _ := ioutil.ReadAll(res.Body)
-		return "", fmt.Errorf("Unexpected status code %d trying to get auth token. %s", res.StatusCode, string(b))
+		return "", fmt.Errorf("unexpected status code %d trying to get auth token. %s", res.StatusCode, string(b))
 	}
 
 	defer res.Body.Close()
@@ -230,13 +254,13 @@ func getAPIToken(vmcAuthHost string, vmcAccessToken string) (string, error) {
 }
 
 // NewNsxtBrokerFromConnector creates a new NsxtBroker to the real API
-func NewNsxtBrokerFromConnector(connector client.Connector) NsxtBroker {
+func NewNsxtBrokerFromConnector(connector client.Connector, connectorNE client.Connector) NsxtBroker {
 	return &nsxtBroker{
 		lbServicesClient:        infra.NewDefaultLbServicesClient(connector),
 		lbVirtServersClient:     infra.NewDefaultLbVirtualServersClient(connector),
 		lbPoolsClient:           infra.NewDefaultLbPoolsClient(connector),
-		ipPoolsClient:           infra.NewDefaultIpPoolsClient(connector),
-		ipAllocationsClient:     ip_pools.NewDefaultIpAllocationsClient(connector),
+		ipPoolsClient:           infra.NewDefaultIpPoolsClient(connectorNE),
+		ipAllocationsClient:     ip_pools.NewDefaultIpAllocationsClient(connectorNE),
 		lbAppProfilesClient:     infra.NewDefaultLbAppProfilesClient(connector),
 		lbMonitorProfilesClient: infra.NewDefaultLbMonitorProfilesClient(connector),
 		realizedEntitiesClient:  realized_state.NewDefaultRealizedEntitiesClient(connector),

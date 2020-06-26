@@ -75,16 +75,21 @@ type LoadBalancerClassConfig struct {
 
 // NsxtConfig contains the NSX-T specific configuration
 type NsxtConfig struct {
-	// NSX-T username.
+	// NSX-T username (either with role `Enterprise Admin` or `LB Admin`)
 	User string `gcfg:"user"`
 	// NSX-T password in clear text.
 	Password string `gcfg:"password"`
 	// NSX-T host.
 	Host string `gcfg:"host"`
+	// NSX-T username for ip pool address allocation (with role `Network Engineer`). Only needed if `User` has role `LB Admin`
+	UserNE string `gcfg:"userNE"`
+	// NSX-T password in clear text.
+	PasswordNE string `gcfg:"passwordNE"`
+	// NSX-T host.
 	// InsecureFlag is to be set to true if NSX-T uses self-signed cert.
 	InsecureFlag bool `gcfg:"insecure-flag"`
 	// RemoteAuth is to be set to true if NSX-T uses remote authentication (authentication done through the vIDM).
-	RemoteAuth bool `json:"remote-auth,omitempty"`
+	RemoteAuth bool `gcfg:"remote-auth"`
 
 	VMCAccessToken     string `gcfg:"vmcAccessToken"`
 	VMCAuthHost        string `gcfg:"vmcAuthHost"`

@@ -99,7 +99,7 @@ func (p *lbProvider) CleanupServices(clusterName string, validServices map[types
 	}
 
 	lbs := map[types.NamespacedName]struct{}{}
-	servers, err := p.access.ListVirtualServers(ClusterName)
+	servers, err := p.access.ListVirtualServers(clusterName)
 	if err != nil {
 		return err
 	}

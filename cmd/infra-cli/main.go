@@ -34,6 +34,7 @@ import (
 
 	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	infra_cli "github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd/infra-cli"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd/infra-cli/loadbalancer"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 )
 
@@ -94,7 +95,7 @@ func init() {
                It uses the cleanup functionality and needs the cluster name, IP pool name and owner tag`,
 	}
 	destroyLBCmd.Flags().StringVar(&clusterName, "clusterName", "", "cluster name as tagged in NSX-T load balancer objects")
-	destroyLBCmd.Flags().StringVar(&ipPoolName, "ipPoolName", "", "IP pool name")
+	destroyLBCmd.Flags().StringVar(&ipPoolName, "ipPoolName", "", "(default) IP pool name")
 	destroyLBCmd.Flags().StringVar(&owner, "owner", "", "owner tag")
 	destroyLBCmd.Run = destroyLoadBalancers
 	rootCmd.AddCommand(destroyLBCmd)
@@ -307,7 +308,12 @@ func destroyLoadBalancers(cmd *cobra.Command, args []string) {
 	if owner == "" {
 		panic("missing owner for destroying load balancers")
 	}
-	err := infra_cli.DestroyLoadBalancers(config, clusterName, ipPoolName, owner)
+	state := &loadbalancer.DestroyState{
+		ClusterName:       clusterName,
+		Owner:             owner,
+		DefaultIPPoolName: ipPoolName,
+	}
+	err := loadbalancer.DestroyAll(config, state)
 	if err != nil {
 		panic(errors.Wrapf(err, "DestroyInfrastructure failed"))
 	}

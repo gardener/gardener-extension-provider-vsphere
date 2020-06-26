@@ -50,7 +50,7 @@ replace (
 )
 
 // only needed for infra-cli
-replace k8s.io/cloud-provider-vsphere => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20200522092937-0ba091f72743
+replace k8s.io/cloud-provider-vsphere => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20200626142015-33b0a5766b2c
 
 replace (
 	// these replacements are needed for the cloud-provider-vsphere

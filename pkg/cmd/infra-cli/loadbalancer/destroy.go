@@ -15,7 +15,7 @@
  *
  */
 
-package infra_cli
+package loadbalancer
 
 import (
 	"github.com/pkg/errors"
@@ -27,15 +27,23 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 )
 
-func DestroyLoadBalancers(cfg *infrastructure.NSXTConfig, clusterName, ipPoolName, owner string) error {
+// DestroyState contains all information needed to find and delete lbs
+type DestroyState struct {
+	ClusterName       string
+	Owner             string
+	DefaultIPPoolName string
+}
+
+// DestroyAll destroys all load balancers created from NSX-T load balancer controller in cloud-provider-vsphere
+func DestroyAll(cfg *infrastructure.NSXTConfig, state *DestroyState) error {
 	lbCfg := &config.LBConfig{
 		LoadBalancer: config.LoadBalancerConfig{
 			LoadBalancerClassConfig: config.LoadBalancerClassConfig{
-				IPPoolName: ipPoolName,
+				IPPoolName: state.DefaultIPPoolName,
 			},
 			Size: "SMALL",
 			AdditionalTags: map[string]string{
-				loadbalancer.ScopeOwner: owner,
+				loadbalancer.ScopeOwner: state.Owner,
 			},
 		},
 		LoadBalancerClasses: map[string]*config.LoadBalancerClassConfig{},
@@ -52,5 +60,5 @@ func DestroyLoadBalancers(cfg *infrastructure.NSXTConfig, clusterName, ipPoolNam
 		return errors.Wrapf(err, "NewLBProvider failed")
 	}
 
-	return lbProvider.CleanupServices(clusterName, map[types.NamespacedName]corev1.Service{})
+	return lbProvider.CleanupServices(state.ClusterName, map[types.NamespacedName]corev1.Service{})
 }
