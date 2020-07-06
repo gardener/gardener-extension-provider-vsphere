@@ -132,7 +132,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 			GuestID: machineImageGuestID,
 		})
 
-		numCpus, memoryInMB, systenDiskSizeInGB, err := w.extractMachineValues(pool.MachineType)
+		values, err := w.extractMachineValues(pool.MachineType)
 		if err != nil {
 			return errors.Wrap(err, "extracting machine values failed")
 		}
@@ -149,10 +149,10 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 				"datacenter": zoneConfig.Datacenter,
 				"network":    *infrastructureStatus.NSXTInfraState.SegmentName,
 				"templateVM": machineImagePath,
-				"numCpus":    numCpus,
-				"memory":     memoryInMB,
+				"numCpus":    values.numCpus,
+				"memory":     values.memoryInMB,
 				"systemDisk": map[string]interface{}{
-					"size": systenDiskSizeInGB,
+					"size": values.systemDiskSizeInGB,
 				},
 				"tags": map[string]string{
 					"mcm.gardener.cloud/cluster": w.worker.Namespace,
@@ -175,6 +175,14 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 			addOptional("datastore", zoneConfig.Datastore)
 			addOptional("datastoreCluster", zoneConfig.DatastoreCluster)
 			addOptional("switchUuid", zoneConfig.SwitchUUID)
+			if values.MachineTypeOptions != nil {
+				if values.MachineTypeOptions.MemoryReservationLockedToMax != nil {
+					machineClassSpec["memoryReservationLockedToMax"] = fmt.Sprintf("%t", *values.MachineTypeOptions.MemoryReservationLockedToMax)
+				}
+				if len(values.MachineTypeOptions.ExtraConfig) > 0 {
+					machineClassSpec["extraConfig"] = values.MachineTypeOptions.ExtraConfig
+				}
+			}
 
 			var (
 				deploymentName = fmt.Sprintf("%s-%s-z%d", w.worker.Namespace, pool.Name, zoneIndex+1)
@@ -211,7 +219,14 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 	return nil
 }
 
-func (w *workerDelegate) extractMachineValues(machineTypeName string) (numCpus, memoryInMB, systemDiskSizeInGB int, err error) {
+type machineValues struct {
+	numCpus            int
+	memoryInMB         int
+	systemDiskSizeInGB int
+	MachineTypeOptions *apisvsphere.MachineTypeOptions
+}
+
+func (w *workerDelegate) extractMachineValues(machineTypeName string) (*machineValues, error) {
 	var machineType *corev1beta1.MachineType
 	for _, mt := range w.cluster.CloudProfile.Spec.MachineTypes {
 		if mt.Name == machineTypeName {
@@ -220,39 +235,51 @@ func (w *workerDelegate) extractMachineValues(machineTypeName string) (numCpus, 
 		}
 	}
 	if machineType == nil {
-		err = fmt.Errorf("machine type %s not found in cloud profile spec", machineTypeName)
-		return
+		err := fmt.Errorf("machine type %s not found in cloud profile spec", machineTypeName)
+		return nil, err
 	}
 
+	values := &machineValues{}
 	if n, ok := machineType.CPU.AsInt64(); ok {
-		numCpus = int(n)
+		values.numCpus = int(n)
 	}
-	if numCpus <= 0 {
-		err = fmt.Errorf("machine type %s has invalid CPU value %s", machineTypeName, machineType.CPU.String())
-		return
+	if values.numCpus <= 0 {
+		err := fmt.Errorf("machine type %s has invalid CPU value %s", machineTypeName, machineType.CPU.String())
+		return nil, err
 	}
 
 	if n, ok := machineType.Memory.AsInt64(); ok {
-		memoryInMB = int(n) / (1024 * 1024)
+		values.memoryInMB = int(n) / (1024 * 1024)
 	}
-	if memoryInMB <= 0 {
-		err = fmt.Errorf("machine type %s has invalid Memory value %s", machineTypeName, machineType.CPU.String())
-		return
+	if values.memoryInMB <= 0 {
+		err := fmt.Errorf("machine type %s has invalid Memory value %s", machineTypeName, machineType.CPU.String())
+		return nil, err
 	}
 
-	systemDiskSizeInGB = 20
+	values.systemDiskSizeInGB = 20
 	if machineType.Storage != nil {
 		n, ok := machineType.Storage.StorageSize.AsInt64()
 		if !ok {
-			err = fmt.Errorf("machine type %s has invalid storage size value %s", machineTypeName, machineType.Storage.StorageSize.String())
-			return
+			err := fmt.Errorf("machine type %s has invalid storage size value %s", machineTypeName, machineType.Storage.StorageSize.String())
+			return nil, err
 		}
-		systemDiskSizeInGB = int(n) / (1024 * 1024 * 1024)
-		if systemDiskSizeInGB < 10 {
-			err = fmt.Errorf("machine type %s has invalid storage size value %d GB", machineTypeName, systemDiskSizeInGB)
-			return
+		values.systemDiskSizeInGB = int(n) / (1024 * 1024 * 1024)
+		if values.systemDiskSizeInGB < 10 {
+			err := fmt.Errorf("machine type %s has invalid storage size value %d GB", machineTypeName, values.systemDiskSizeInGB)
+			return nil, err
 		}
 	}
 
-	return
+	profileConfig, err := helper.GetCloudProfileConfigFromProfile(w.cluster.CloudProfile)
+	if err != nil {
+		return nil, err
+	}
+	for _, mt := range profileConfig.MachineTypeOptions {
+		if mt.Name == machineTypeName {
+			values.MachineTypeOptions = &mt
+			break
+		}
+	}
+
+	return values, nil
 }

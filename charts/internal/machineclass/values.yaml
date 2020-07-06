@@ -14,6 +14,9 @@ machineClasses:
   guestId: coreos64Guest
   numCpus: 2
   memory: 4096
+  #memoryReservationLockedToMax: true
+  #extraConfig:
+  #  sched.swap.vmxSwapEnabled: "false"
   systemDisk:
     size: 20
   description: An optional description for machines created by that class.
