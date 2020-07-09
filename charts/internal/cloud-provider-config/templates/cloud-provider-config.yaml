@@ -31,6 +31,9 @@ data:
     {{- end }}
 
     [LoadBalancer]
+    {{- if .Values.loadbalancer.lbServiceId }}
+    lbServiceId = "{{ .Values.loadbalancer.lbServiceId }}"
+    {{- end }}
     ipPoolName = "{{ .Values.loadbalancer.ipPoolName }}"
     size = {{ .Values.loadbalancer.size }}
     tier1GatewayPath = "{{ .Values.loadbalancer.tier1GatewayPath }}"

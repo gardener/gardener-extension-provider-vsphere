@@ -13,6 +13,7 @@ datacenters: dc
 #labelZone: k8s-zone
 
 loadbalancer:
+  #lbServiceId: 111-222-333-444
   ipPoolName: gardener_lb_ip_pool
   size: MEDIUM
   tier1GatewayPath: mm/t1gateway/path

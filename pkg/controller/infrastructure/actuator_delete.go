@@ -43,7 +43,7 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 	ipPoolName, err := prepared.getDefaultLoadBalancerIPPoolName()
 	if err == nil {
 		lbstate := &loadbalancer.DestroyState{
-			ClusterName:       cluster.ObjectMeta.Namespace + "-" + a.gardenID,
+			ClusterName:       cluster.ObjectMeta.Name + "-" + a.gardenID,
 			Owner:             a.gardenID,
 			DefaultIPPoolName: *ipPoolName,
 		}

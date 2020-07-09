@@ -192,6 +192,8 @@ func (t *lookupSNATIPPoolTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraS
 
 type tier1GatewayTask struct{ baseTask }
 
+var _ RecoverableTask = &tier1GatewayTask{}
+
 func NewTier1GatewayTask() Task {
 	return &tier1GatewayTask{baseTask{label: "tier-1 gateway"}}
 }
@@ -201,6 +203,10 @@ func (t *tier1GatewayTask) Reference(state *api.NSXTInfraState) *api.Reference {
 }
 
 func (t *tier1GatewayTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
+	if t.IsExternal(state) {
+		return t.ensureExternal(ctx, spec, state)
+	}
+
 	client := infra.NewDefaultTier1sClient(ctx.Connector())
 
 	tier1 := model.Tier1{
@@ -250,6 +256,19 @@ func (t *tier1GatewayTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec,
 	return actionCreated, nil
 }
 
+func (t *tier1GatewayTask) ensureExternal(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
+	if state.Tier1GatewayRef == nil {
+		client := infra.NewDefaultTier1sClient(ctx.Connector())
+		id := IdFromPath(*spec.ExternalTier1GatewayPath)
+		tier1, err := client.Get(id)
+		if err != nil {
+			return readingErr(err)
+		}
+		state.Tier1GatewayRef = &api.Reference{ID: *tier1.Id, Path: *tier1.Path}
+	}
+	return actionExternal, nil
+}
+
 func (t *tier1GatewayTask) SetRecoveredReference(state *api.NSXTInfraState, ref *api.Reference, _ *string) {
 	state.Tier1GatewayRef = ref
 }
@@ -259,7 +278,15 @@ func (t *tier1GatewayTask) ListAll(ctx EnsurerContext, _ *api.NSXTInfraState, cu
 	return client.List(cursor, nil, nil, nil, nil, nil)
 }
 
+func (t *tier1GatewayTask) IsExternal(state *api.NSXTInfraState) bool {
+	return state.ExternalTier1Gateway != nil && *state.ExternalTier1Gateway
+}
+
 func (t *tier1GatewayTask) EnsureDeleted(ctx EnsurerContext, state *api.NSXTInfraState) (bool, error) {
+	if t.IsExternal(state) {
+		return true, nil
+	}
+
 	client := infra.NewDefaultTier1sClient(ctx.Connector())
 	if state.Tier1GatewayRef == nil {
 		return false, nil
@@ -276,6 +303,8 @@ func (t *tier1GatewayTask) EnsureDeleted(ctx EnsurerContext, state *api.NSXTInfr
 
 type tier1GatewayLocaleServiceTask struct{ baseTask }
 
+var _ RecoverableTask = &tier1GatewayLocaleServiceTask{}
+
 func NewTier1GatewayLocaleServiceTask() Task {
 	return &tier1GatewayLocaleServiceTask{baseTask{label: "tier-1 gateway local service"}}
 }
@@ -285,6 +314,10 @@ func (t *tier1GatewayLocaleServiceTask) Reference(state *api.NSXTInfraState) *ap
 }
 
 func (t *tier1GatewayLocaleServiceTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
+	if t.IsExternal(state) {
+		return actionExternal, nil
+	}
+
 	client := tier_1s.NewDefaultLocaleServicesClient(ctx.Connector())
 
 	obj := model.LocaleServices{
@@ -326,6 +359,10 @@ func (t *tier1GatewayLocaleServiceTask) Ensure(ctx EnsurerContext, spec vinfra.N
 	return actionCreated, nil
 }
 
+func (t *tier1GatewayLocaleServiceTask) IsExternal(state *api.NSXTInfraState) bool {
+	return state.ExternalTier1Gateway != nil && *state.ExternalTier1Gateway
+}
+
 func (t *tier1GatewayLocaleServiceTask) SetRecoveredReference(state *api.NSXTInfraState, _ *api.Reference, _ *string) {
 	state.LocaleServiceRef = &api.Reference{ID: state.Tier1GatewayRef.ID, Path: ""}
 }
@@ -339,6 +376,10 @@ func (t *tier1GatewayLocaleServiceTask) ListAll(ctx EnsurerContext, state *api.N
 }
 
 func (t *tier1GatewayLocaleServiceTask) EnsureDeleted(ctx EnsurerContext, state *api.NSXTInfraState) (bool, error) {
+	if t.IsExternal(state) {
+		return true, nil
+	}
+
 	client := tier_1s.NewDefaultLocaleServicesClient(ctx.Connector())
 	if state.LocaleServiceRef == nil {
 		return false, nil
@@ -354,6 +395,8 @@ func (t *tier1GatewayLocaleServiceTask) EnsureDeleted(ctx EnsurerContext, state 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 type segmentTask struct{ baseTask }
+
+var _ RecoverableTask = &segmentTask{}
 
 func NewSegmentTask() Task {
 	return &segmentTask{baseTask{label: "segment"}}
@@ -519,6 +562,8 @@ func (t *segmentTask) EnsureDeleted(ctx EnsurerContext, state *api.NSXTInfraStat
 
 type snatIPAddressAllocationTask struct{ baseTask }
 
+var _ RecoverableTask = &snatIPAddressAllocationTask{}
+
 func NewSNATIPAddressAllocationTask() Task {
 	return &snatIPAddressAllocationTask{baseTask{label: "SNAT IP address allocation"}}
 }
@@ -610,6 +655,8 @@ func (t *snatIPAddressRealizationTask) Ensure(ctx EnsurerContext, _ vinfra.NSXTI
 
 type snatRuleTask struct{ baseTask }
 
+var _ RecoverableTask = &snatRuleTask{}
+
 func NewSNATRuleTask() Task {
 	return &snatRuleTask{baseTask{label: "SNAT rule"}}
 }
@@ -699,6 +746,8 @@ func (t *snatRuleTask) EnsureDeleted(ctx EnsurerContext, state *api.NSXTInfraSta
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 type dhcpServerConfigTask struct{ baseTask }
+
+var _ RecoverableTask = &dhcpServerConfigTask{}
 
 func NewDHCPServerConfigTask() Task {
 	return &dhcpServerConfigTask{baseTask{label: "DHCP profile"}}

@@ -24,10 +24,22 @@ import (
 // InfrastructureConfig infrastructure configuration resource
 type InfrastructureConfig struct {
 	metav1.TypeMeta `json:",inline"`
+	// Networks contains optional existing network infrastructure to use.
+	// If not defined, NSX-T Tier-1 gateway and load balancer are created for the shoot cluster.
+	// +optional
+	Networks *Networks `json:"networks,omitempty"`
 	// OverwriteNSXTInfraVersion allows to fix the ensurer version used to create the NSXT-T infrastructure.
 	// This is an advanced configuration to overwrite the automatic version selection.
 	// +optional
 	OverwriteNSXTInfraVersion *string `json:"overwriteNSXTInfraVersion,omitempty"`
+}
+
+// Networks contains existing NSX-T network infrastructure to use.
+type Networks struct {
+	// Tier1GatewayPath is the path of the existing NSX-T Tier-1 Gateway to use.
+	Tier1GatewayPath string `json:"tier1GatewayPath"`
+	// LoadBalancerServicePath is the path of the existing NSX-T load balancer service assigned to the Tier-1 Gateway
+	LoadBalancerServicePath string `json:"loadBalancerServicePath"`
 }
 
 // VsphereConfig holds information about vSphere resources to use.
@@ -81,6 +93,7 @@ type NSXTInfraState struct {
 	Tier0GatewayRef       *Reference        `json:"tier0GatewayRef,omitempty"`
 	SNATIPPoolRef         *Reference        `json:"snatIPPoolRef,omitempty"`
 	Tier1GatewayRef       *Reference        `json:"tier1GatewayRef,omitempty"`
+	ExternalTier1Gateway  *bool             `json:"externalTier1Gateway,omitempty"`
 	LocaleServiceRef      *Reference        `json:"localeServiceRef,omitempty"`
 	SegmentRef            *Reference        `json:"segmentRef,omitempty"`
 	SNATIPAddressAllocRef *Reference        `json:"snatIPAddressAllocRef,omitempty"`

@@ -32,24 +32,54 @@ Here `base64(...)` are only a placeholders for the Base64 encoded values.
 
 ## `InfrastructureConfig`
 
-The infrastructure configuration is currently not used. Nodes on all zones are using IP addresses from the common nodes
-network as the network is managed by NSX-T.
+The infrastructure configuration is used for advanced scenarios only.
+Nodes on all zones are using IP addresses from the common nodes network as the network is managed by NSX-T.
+The infrastructure controller will create several network objects using NSX-T. A network segment is used as the subnet
+for the VMs (nodes), a tier-1 gateway, a DHCP server, and a SNAT for the nodes.
 
-An example `InfrastructureConfig` for the vSphere extension looks as follows, but is currently only needed 
-to set advanced configuration values:
+An example `InfrastructureConfig` for the vSphere extension looks as follows.
+You only need to specify it, if you either want to use an existing Tier-1 gateway and load balancer service pair
+or if you want to overwrite the automatic selection of the NSX-T version.
 
 ```yaml
 infrastructureConfig:
   apiVersion: vsphere.provider.extensions.gardener.cloud/v1alpha1
   kind: InfrastructureConfig
-  overwriteNSXTInfraVersion: '1'
+  #overwriteNSXTInfraVersion: '1'
+  #networks:
+  #  tier1GatewayPath: /infra/tier-1s/tier1gw-b8213651-9659-4180-8bfd-1e16228e8dcb
+  #  loadBalancerServicePath: /infra/lb-services/708c5cb1-e5d0-4b16-906f-ec7177a1485d
 ```
-
-The infrastructure controller will create several network objects using NSX-T. A logical switch to be used as the network
-for the VMs (nodes), a tier-1 router, a DHCP server, and a SNAT for the nodes.
 
 ### Advanced configuration settings
 
+#### Section networks
+
+By default, the infrastructure controller creates a separate Tier-1 gateway for each shoot cluster
+and the cloud controller manager (`vsphere-cloud-provider`) creates a load balancer service.
+
+If an existing tier-1 gateway should be used, you can specify its 'path'. In this case, there
+must also be a load balancer service defined for this tier-1 gateway and its 'path' needs to be specified, too.
+In the NSX-T manager UI, the path of the tier-1 gateway can be found at `Networking / Tier-1 Gateways`.
+Then select `Copy path to clipboard` from the context menu of the tier-1 gateway 
+(click on the three vertical dots on the left of the row). Do the same with the 
+corresponding load balancer at `Networking / Load balancing / Tab Load Balancers`
+
+Example:
+
+```yaml
+infrastructureConfig:
+  apiVersion: vsphere.provider.extensions.gardener.cloud/v1alpha1
+  kind: InfrastructureConfig
+  networks:
+    tier1GatewayPath: /infra/tier-1s/tier1gw-b8213651-9659-4180-8bfd-1e16228e8dcb
+    loadBalancerServicePath: /infra/lb-services/708c5cb1-e5d0-4b16-906f-ec7177a1485d
+```
+
+Please ensure, that the worker nodes cidr (shoot manifest `spec.networking.nodes`) do not overlap with
+other existing segments of the selected tier-1 gateway.
+
+#### Option overwriteNSXTInfraVersion
 The option `overwriteNSXTInfraVersion` can be used to change the network objects created during the initial infrastructure creation. 
 By default the infra-version is automatically selected according to the NSX-T version. The infra-version `'1'` is used 
 for NSX-T 2.5, and infra-version `'2'` for NSX-T versions >= 3.0. The difference is creation of the the logical DHCP server.

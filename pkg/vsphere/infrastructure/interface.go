@@ -29,6 +29,8 @@ type NSXTInfraSpec struct {
 	ClusterName       string   `json:"clusterName"`
 	WorkersNetwork    string   `json:"workersNetwork"`
 	DNSServers        []string `json:"dnsServers"`
+
+	ExternalTier1GatewayPath *string `json:"externalTier1GatewayPath,omitempty"`
 }
 
 // NSXTConfig contains the NSX-T specific configuration
