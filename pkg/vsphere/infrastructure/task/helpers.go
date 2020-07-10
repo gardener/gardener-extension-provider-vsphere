@@ -147,3 +147,9 @@ outer:
 	}
 	return result
 }
+
+func IdFromPath(path string) string {
+	parts := strings.Split(path, "/")
+	id := parts[len(parts)-1]
+	return id
+}

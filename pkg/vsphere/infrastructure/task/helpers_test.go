@@ -103,6 +103,11 @@ var _ = Describe("Helpers", func() {
 			Expect(mergeTags(tags1, itemTags)).To(Equal(itemTags))
 		})
 	})
+	Describe("#IdFromPath", func() {
+		It("should extract id from path", func() {
+			Expect(IdFromPath("/infra/lb-services/60b86e75-41a0-474b-ab5d-ef46d3e1b25b")).To(Equal("60b86e75-41a0-474b-ab5d-ef46d3e1b25b"))
+		})
+	})
 })
 
 func sp(s string) *string {

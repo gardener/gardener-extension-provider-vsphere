@@ -58,11 +58,49 @@ var _ = Describe("InfrastructureConfig validation", func() {
 				"Field": Equal("overwriteNSXTInfraVersion"),
 			}))))
 		})
+
+		It("should check if networks is set, but tier1GatewayPath or loadBalancerServicePath is empty", func() {
+			infrastructureConfig.Networks = &api.Networks{Tier1GatewayPath: "foo", LoadBalancerServicePath: "bar"}
+			errorList := ValidateInfrastructureConfig(infrastructureConfig, nilPath)
+			Expect(errorList).To(BeEmpty())
+
+			infrastructureConfig.Networks = &api.Networks{}
+			errorList = ValidateInfrastructureConfig(infrastructureConfig, nilPath)
+			Expect(errorList).To(ConsistOf(
+				PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeRequired),
+					"Field": Equal("networks.tier1GatewayPath"),
+				})),
+				PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeRequired),
+					"Field": Equal("networks.loadBalancerServicePath"),
+				})),
+			))
+		})
 	})
 
 	Describe("#ValidateInfrastructureConfigUpdate", func() {
 		It("should return no errors for an unchanged config", func() {
-			Expect(ValidateInfrastructureConfigUpdate(infrastructureConfig, infrastructureConfig, nilPath)).To(BeEmpty())
+			infrastructureConfig.Networks = &api.Networks{Tier1GatewayPath: "foo", LoadBalancerServicePath: "bar"}
+			newInfraConfig := &api.InfrastructureConfig{
+				Networks: &api.Networks{Tier1GatewayPath: "foo", LoadBalancerServicePath: "bar"},
+			}
+			errorList := ValidateInfrastructureConfigUpdate(infrastructureConfig, newInfraConfig, nilPath)
+			Expect(errorList).To(BeEmpty())
+		})
+
+		It("should return an error for changed network settings", func() {
+			infrastructureConfig.Networks = &api.Networks{Tier1GatewayPath: "foo", LoadBalancerServicePath: "bar"}
+			newInfraConfig := &api.InfrastructureConfig{
+				Networks: &api.Networks{Tier1GatewayPath: "foo", LoadBalancerServicePath: "changed"},
+			}
+			errorList := ValidateInfrastructureConfigUpdate(infrastructureConfig, newInfraConfig, nilPath)
+			Expect(errorList).To(ConsistOf(
+				PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeForbidden),
+					"Field": Equal("networks"),
+				})),
+			))
 		})
 	})
 

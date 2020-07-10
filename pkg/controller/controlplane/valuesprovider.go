@@ -48,6 +48,7 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
 )
 
 var controlPlaneSecrets = &secrets.Secrets{
@@ -380,6 +381,11 @@ func (vp *valuesProvider) getConfigChartValues(
 		return nil, err
 	}
 
+	infraConfig, err := helper.GetInfrastructureConfig(cluster)
+	if err != nil {
+		return nil, err
+	}
+
 	region := helper.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
 	if region == nil {
 		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
@@ -434,6 +440,9 @@ func (vp *valuesProvider) getConfigChartValues(
 	}
 	if infraStatus.NSXTInfraState != nil && infraStatus.NSXTInfraState.Tier1GatewayRef != nil {
 		loadBalancer["tier1GatewayPath"] = infraStatus.NSXTInfraState.Tier1GatewayRef.Path
+	}
+	if infraConfig.Networks != nil {
+		loadBalancer["lbServiceId"] = task.IdFromPath(infraConfig.Networks.LoadBalancerServicePath)
 	}
 
 	// Collect config chart values

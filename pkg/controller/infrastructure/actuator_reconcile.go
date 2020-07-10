@@ -108,6 +108,10 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 		DNSServers:        dnsServers,
 	}
 
+	if infraConfig.Networks != nil {
+		spec.ExternalTier1GatewayPath = &infraConfig.Networks.Tier1GatewayPath
+	}
+
 	infraEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(a.logger, nsxtConfig)
 	if err != nil {
 		return nil, err

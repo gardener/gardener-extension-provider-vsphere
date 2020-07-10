@@ -46,6 +46,7 @@ const (
 	actionUpdated   = "updated"
 	actionUnchanged = "unchanged"
 	actionFound     = "found"
+	actionExternal  = "external"
 )
 
 type baseTask struct {
@@ -72,6 +73,10 @@ func (t *baseTask) NameToLog(_ vinfra.NSXTInfraSpec) *string {
 
 func (t *baseTask) Reference(_ *api.NSXTInfraState) *api.Reference {
 	return nil
+}
+
+func (t *baseTask) IsExternal(_ *api.NSXTInfraState) bool {
+	return false
 }
 
 func generateID(prefix string) string {
