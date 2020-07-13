@@ -16,7 +16,7 @@ images:
 - name: csi-provisioner
   sourceRepository: https://github.com/kubernetes-csi/external-provisioner
   repository: quay.io/k8scsi/csi-provisioner
-  tag: v1.4.0
+  tag: v2.0.0-rc2
   targetVersion: ">= 1.14"
 - name: vsphere-cloud-controller-manager
   sourceRepository: github.com/MartinWeindel/cloud-provider-vsphere
