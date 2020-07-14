@@ -2,12 +2,12 @@ images:
 - name: csi-attacher
   sourceRepository: https://github.com/kubernetes-csi/external-attacher
   repository: quay.io/k8scsi/csi-attacher
-  tag: v2.0.0
+  tag: v2.2.0
   targetVersion: ">= 1.14"
 - name: csi-resizer
   sourceRepository: github.com/kubernetes-csi/external-resizer
   repository: quay.io/k8scsi/csi-resizer
-  tag: v0.3.0
+  tag: v0.5.0
 - name: csi-node-driver-registrar
   sourceRepository: https://github.com/kubernetes-csi/node-driver-registrar
   repository: quay.io/k8scsi/csi-node-driver-registrar
@@ -16,7 +16,7 @@ images:
 - name: csi-provisioner
   sourceRepository: https://github.com/kubernetes-csi/external-provisioner
   repository: quay.io/k8scsi/csi-provisioner
-  tag: v1.4.0
+  tag: v1.6.0
   targetVersion: ">= 1.14"
 - name: vsphere-cloud-controller-manager
   sourceRepository: github.com/MartinWeindel/cloud-provider-vsphere
@@ -36,16 +36,16 @@ images:
 - name: vsphere-csi-driver-controller
   sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   repository: gcr.io/cloud-provider-vsphere/csi/release/driver
-  tag: v2.0.0
+  tag: v1.0.2
 - name: vsphere-csi-driver-node
   sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   repository: gcr.io/cloud-provider-vsphere/csi/release/driver
-  tag: v2.0.0
+  tag: v1.0.2
 - name: vsphere-csi-driver-syncer
   sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   repository: gcr.io/cloud-provider-vsphere/csi/release/syncer
-  tag: v2.0.0
+  tag: v1.0.2
 - name: liveness-probe
   sourceRepository: github.com/kubernetes-csi/livenessprobe
   repository: quay.io/k8scsi/livenessprobe
-  tag: v1.1.0
+  tag: v2.0.0

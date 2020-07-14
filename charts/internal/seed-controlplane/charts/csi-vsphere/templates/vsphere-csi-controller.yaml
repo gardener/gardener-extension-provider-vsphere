@@ -136,7 +136,7 @@ spec:
         - name: vsphere-syncer
           image: {{ index .Values.images "vsphere-csi-driver-syncer" }}
           args:
-            - "--leader-election"
+            - "--v=2"
             - "--kubeconfig=/var/lib/csi-syncer/kubeconfig"
           env:
             - name: FULL_SYNC_INTERVAL_MINUTES

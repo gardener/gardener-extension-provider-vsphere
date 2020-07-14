@@ -504,12 +504,14 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 		return nil, err
 	}
 
-	clusterId := cp.Namespace + "-" + vp.gardenID
-	csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
+	clusterID := cp.Namespace + "-" + vp.gardenID
+	csiResizerEnabled := false
+	// for v2.0.0
+	// csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
 	values := map[string]interface{}{
 		"vsphere-cloud-controller-manager": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
-			"clusterName":       clusterId,
+			"clusterName":       clusterID,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 			"podNetwork":        extensionscontroller.GetPodNetwork(cluster),
 			"podAnnotations": map[string]interface{}{
@@ -526,7 +528,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 			"serverName":        serverName,
-			"clusterID":         clusterId,
+			"clusterID":         clusterID,
 			"username":          credentials.VsphereCSI().Username,
 			"password":          credentials.VsphereCSI().Password,
 			"serverPort":        port,
@@ -579,11 +581,11 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 		return nil, err
 	}
 
-	clusterId := cp.Namespace + "-" + vp.gardenID
+	clusterID := cp.Namespace + "-" + vp.gardenID
 	values := map[string]interface{}{
 		"csi-vsphere": map[string]interface{}{
 			"serverName":        serverName,
-			"clusterID":         clusterId,
+			"clusterID":         clusterID,
 			"username":          credentials.VsphereCSI().Username,
 			"password":          credentials.VsphereCSI().Password,
 			"serverPort":        port,

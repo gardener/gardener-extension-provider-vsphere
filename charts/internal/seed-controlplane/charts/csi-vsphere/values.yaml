@@ -14,7 +14,7 @@ password: mypassword
 port: 443
 datacenters: dc1
 insecureFlag: true
-resizerEnabled: true
+resizerEnabled: false
 loggerLevel: PRODUCTION
 resources:
   attacher:

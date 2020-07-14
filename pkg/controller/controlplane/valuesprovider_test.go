@@ -301,7 +301,7 @@ insecure-flag = "true"
 				"serverPort":        443,
 				"datacenters":       "scc01-DC",
 				"insecureFlag":      "true",
-				"resizerEnabled":    true,
+				"resizerEnabled":    false,
 				"podAnnotations": map[string]interface{}{
 					"checksum/secret-" + vsphere.CSIProvisionerName:               "f75b42d40ab501428c383dfb2336cb1fc892bbee1fc1d739675171e4acc4d911",
 					"checksum/secret-" + vsphere.CSIAttacherName:                  "2da58ad61c401a2af779a909d22fb42eed93a1524cbfdab974ceedb413fcb914",
