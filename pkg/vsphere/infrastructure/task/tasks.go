@@ -306,7 +306,7 @@ type tier1GatewayLocaleServiceTask struct{ baseTask }
 var _ RecoverableTask = &tier1GatewayLocaleServiceTask{}
 
 func NewTier1GatewayLocaleServiceTask() Task {
-	return &tier1GatewayLocaleServiceTask{baseTask{label: "tier-1 gateway local service"}}
+	return &tier1GatewayLocaleServiceTask{baseTask{label: "tier-1 gateway locale service"}}
 }
 
 func (t *tier1GatewayLocaleServiceTask) Reference(state *api.NSXTInfraState) *api.Reference {
@@ -386,7 +386,10 @@ func (t *tier1GatewayLocaleServiceTask) EnsureDeleted(ctx EnsurerContext, state 
 	}
 	err := client.Delete(state.LocaleServiceRef.ID, defaultPolicyLocaleServiceID)
 	if err != nil {
-		return false, nicerVAPIError(err)
+		_, err2 := client.Get(state.LocaleServiceRef.ID, defaultPolicyLocaleServiceID)
+		if !isNotFoundError(err2) {
+			return false, nicerVAPIError(err)
+		}
 	}
 	state.LocaleServiceRef = nil
 	return true, nil
