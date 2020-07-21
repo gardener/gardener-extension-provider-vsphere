@@ -179,6 +179,8 @@ var controlPlaneChart = &chart.Chart{
 				vsphere.CSIProvisionerImageName,
 				vsphere.CSIDriverControllerImageName,
 				vsphere.CSIDriverSyncerImageName,
+				"new-" + vsphere.CSIDriverControllerImageName,
+				"new-" + vsphere.CSIDriverSyncerImageName,
 				vsphere.CSIResizerImageName,
 				vsphere.LivenessProbeImageName},
 			Objects: []*chart.Object{
@@ -208,6 +210,7 @@ var controlPlaneShootChart = &chart.Chart{
 			Images: []string{
 				vsphere.CSINodeDriverRegistrarImageName,
 				vsphere.CSIDriverNodeImageName,
+				"new-" + vsphere.CSIDriverNodeImageName,
 				vsphere.LivenessProbeImageName,
 			},
 			Objects: []*chart.Object{
@@ -506,6 +509,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 
 	clusterID := cp.Namespace + "-" + vp.gardenID
 	csiResizerEnabled := false
+	csi2 := !(cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled)
 	// for v2.0.0
 	// csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
 	values := map[string]interface{}{
@@ -535,6 +539,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"datacenters":       strings.Join(helper.CollectDatacenters(region), ","),
 			"insecureFlag":      fmt.Sprintf("%t", region.VsphereInsecureSSL),
 			"resizerEnabled":    csiResizerEnabled,
+			"csi2":              csi2,
 			"podAnnotations": map[string]interface{}{
 				"checksum/secret-" + vsphere.CSIProvisionerName:               checksums[vsphere.CSIProvisionerName],
 				"checksum/secret-" + vsphere.CSIAttacherName:                  checksums[vsphere.CSIAttacherName],
@@ -582,6 +587,7 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 	}
 
 	clusterID := cp.Namespace + "-" + vp.gardenID
+	csi2 := !(cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled)
 	values := map[string]interface{}{
 		"csi-vsphere": map[string]interface{}{
 			"serverName":        serverName,
@@ -591,6 +597,7 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 			"serverPort":        port,
 			"datacenters":       strings.Join(helper.CollectDatacenters(region), ","),
 			"insecureFlag":      insecureFlag,
+			"csi2":              csi2,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 		},
 	}

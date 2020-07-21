@@ -45,6 +45,18 @@ images:
   sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   repository: gcr.io/cloud-provider-vsphere/csi/release/syncer
   tag: v1.0.2
+- name: new-vsphere-csi-driver-controller
+  sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
+  repository: gcr.io/cloud-provider-vsphere/csi/release/driver
+  tag: v2.0.0
+- name: new-vsphere-csi-driver-node
+  sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
+  repository: gcr.io/cloud-provider-vsphere/csi/release/driver
+  tag: v2.0.0
+- name: new-vsphere-csi-driver-syncer
+  sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
+  repository: gcr.io/cloud-provider-vsphere/csi/release/syncer
+  tag: v2.0.0
 - name: liveness-probe
   sourceRepository: github.com/kubernetes-csi/livenessprobe
   repository: quay.io/k8scsi/livenessprobe

@@ -5,6 +5,8 @@ images:
   csi-provisioner: image-repository:image-tag
   vsphere-csi-driver-controller: image-repository:image-tag
   vsphere-csi-driver-syncer: image-repository:image-tag
+  new-vsphere-csi-driver-controller: image-repository:image-tag-new
+  new-vsphere-csi-driver-syncer: image-repository:image-tag-new
   liveness-probe: image-repository:image-tag
 podAnnotations: {}
 serverName: my.vcenter.server.ip.or.fqdn
@@ -15,6 +17,7 @@ port: 443
 datacenters: dc1
 insecureFlag: true
 resizerEnabled: false
+csi2: false
 loggerLevel: PRODUCTION
 resources:
   attacher:

@@ -301,6 +301,7 @@ insecure-flag = "true"
 				"serverPort":        443,
 				"datacenters":       "scc01-DC",
 				"insecureFlag":      "true",
+				"csi2":              false,
 				"resizerEnabled":    false,
 				"podAnnotations": map[string]interface{}{
 					"checksum/secret-" + vsphere.CSIProvisionerName:               "f75b42d40ab501428c383dfb2336cb1fc892bbee1fc1d739675171e4acc4d911",
@@ -323,6 +324,7 @@ insecure-flag = "true"
 				"serverPort":        443,
 				"datacenters":       "scc01-DC",
 				"insecureFlag":      "true",
+				"csi2":              false,
 				"kubernetesVersion": "1.14.0",
 			},
 		}
