@@ -7,8 +7,8 @@ require (
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
 	github.com/gardener/controller-manager-library v0.1.1-0.20200204110458-c263b9bb97ad
 	github.com/gardener/etcd-druid v0.3.0
-	github.com/gardener/gardener v1.7.0
-	github.com/gardener/machine-controller-manager v0.32.0
+	github.com/gardener/gardener v1.7.1-0.20200803051903-729a1cce46be
+	github.com/gardener/machine-controller-manager v0.33.0
 	github.com/go-logr/logr v0.1.0
 	github.com/gobuffalo/packr/v2 v2.8.0
 	github.com/golang/mock v1.4.3
@@ -22,16 +22,16 @@ require (
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.2.0
 	github.com/vmware/vsphere-automation-sdk-go/runtime v0.2.0
 	github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.3.0
-	k8s.io/api v0.17.6
-	k8s.io/apiextensions-apiserver v0.17.6
-	k8s.io/apimachinery v0.17.6
-	k8s.io/apiserver v0.17.6
+	k8s.io/api v0.17.9
+	k8s.io/apiextensions-apiserver v0.17.9
+	k8s.io/apimachinery v0.17.9
+	k8s.io/apiserver v0.17.9
 	k8s.io/autoscaler v0.0.0-20190805135949-100e91ba756e
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/cloud-provider-vsphere v1.1.0
-	k8s.io/code-generator v0.17.6
-	k8s.io/component-base v0.17.6
-	k8s.io/kubelet v0.17.6
+	k8s.io/code-generator v0.17.9
+	k8s.io/component-base v0.17.9
+	k8s.io/kubelet v0.17.9
 	k8s.io/utils v0.0.0-20200327001022-6496210b90e8
 	sigs.k8s.io/controller-runtime v0.5.5
 	sigs.k8s.io/yaml v1.1.0
@@ -39,15 +39,15 @@ require (
 
 replace (
 	github.com/prometheus/client_golang => github.com/prometheus/client_golang v0.9.2
-	k8s.io/api => k8s.io/api v0.17.6
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.17.6
-	k8s.io/apimachinery => k8s.io/apimachinery v0.17.6
-	k8s.io/apiserver => k8s.io/apiserver v0.17.6
-	k8s.io/client-go => k8s.io/client-go v0.17.6
-	k8s.io/code-generator => k8s.io/code-generator v0.17.6
-	k8s.io/component-base => k8s.io/component-base v0.17.6
+	k8s.io/api => k8s.io/api v0.17.9
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.17.9
+	k8s.io/apimachinery => k8s.io/apimachinery v0.17.9
+	k8s.io/apiserver => k8s.io/apiserver v0.17.9
+	k8s.io/client-go => k8s.io/client-go v0.17.9
+	k8s.io/code-generator => k8s.io/code-generator v0.17.9
+	k8s.io/component-base => k8s.io/component-base v0.17.9
 	k8s.io/helm => k8s.io/helm v2.13.1+incompatible
-	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.17.6
+	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.17.9
 )
 
 // only needed for infra-cli
