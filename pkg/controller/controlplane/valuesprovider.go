@@ -23,8 +23,22 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gardener/gardener/extensions/pkg/util"
+	"github.com/gardener/controller-manager-library/pkg/utils"
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
+	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	"github.com/gardener/gardener/extensions/pkg/controller/common"
+	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	gutils "github.com/gardener/gardener/pkg/utils"
+	"github.com/gardener/gardener/pkg/utils/chart"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
+	"github.com/gardener/gardener/pkg/utils/secrets"
+
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
@@ -33,22 +47,6 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apiserver/pkg/authentication/user"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
-
-	"github.com/gardener/controller-manager-library/pkg/utils"
-	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
-	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
-	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
-	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/gardener/gardener/pkg/utils/chart"
-	"github.com/gardener/gardener/pkg/utils/secrets"
-
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
 )
 
 var controlPlaneSecrets = &secrets.Secrets{
@@ -78,7 +76,7 @@ var controlPlaneSecrets = &secrets.Secrets{
 				CertificateSecretConfig: &secrets.CertificateSecretConfig{
 					Name:       vsphere.CloudControllerManagerServerName,
 					CommonName: vsphere.CloudControllerManagerName,
-					DNSNames:   controlplane.DNSNamesForService(vsphere.CloudControllerManagerName, clusterName),
+					DNSNames:   kutil.DNSNamesForService(vsphere.CloudControllerManagerName, clusterName),
 					CertType:   secrets.ServerCert,
 					SigningCA:  cas[v1beta1constants.SecretNameCACluster],
 				},
@@ -252,10 +250,10 @@ var storageClassChart = &chart.Chart{
 }
 
 // NewValuesProvider creates a new ValuesProvider for the generic actuator.
-func NewValuesProvider(logger logr.Logger, gardenId string) genericactuator.ValuesProvider {
+func NewValuesProvider(logger logr.Logger, gardenID string) genericactuator.ValuesProvider {
 	return &valuesProvider{
 		logger:   logger.WithName("vsphere-values-provider"),
-		gardenId: gardenId,
+		gardenID: gardenID,
 	}
 }
 
@@ -264,7 +262,7 @@ type valuesProvider struct {
 	genericactuator.NoopValuesProvider
 	common.ClientContext
 	logger   logr.Logger
-	gardenId string
+	gardenID string
 }
 
 // GetConfigChartValues returns the values for the config chart applied by the generic actuator.
@@ -309,7 +307,7 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 
 	secretCSIVsphereConfig := &corev1.Secret{}
 	if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, vsphere.SecretCSIVsphereConfig), secretCSIVsphereConfig); err == nil {
-		checksums[vsphere.SecretCSIVsphereConfig] = util.ComputeChecksum(secretCSIVsphereConfig.Data)
+		checksums[vsphere.SecretCSIVsphereConfig] = gutils.ComputeChecksum(secretCSIVsphereConfig.Data)
 	}
 
 	// Get control plane chart values
@@ -430,7 +428,7 @@ func (vp *valuesProvider) getConfigChartValues(
 		"ipPoolName": *defaultClass.IPPoolName,
 		"size":       lbSize,
 		"classes":    loadBalancersClassesMap,
-		"tags":       map[string]interface{}{"owner": vp.gardenId},
+		"tags":       map[string]interface{}{"owner": vp.gardenID},
 	}
 	if !utils.IsEmptyString(defaultClass.TCPAppProfileName) {
 		loadBalancer["tcpAppProfileName"] = *defaultClass.TCPAppProfileName
@@ -506,7 +504,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 		return nil, err
 	}
 
-	clusterId := cp.Namespace + "-" + vp.gardenId
+	clusterId := cp.Namespace + "-" + vp.gardenID
 	csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
 	values := map[string]interface{}{
 		"vsphere-cloud-controller-manager": map[string]interface{}{
@@ -581,7 +579,7 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 		return nil, err
 	}
 
-	clusterId := cp.Namespace + "-" + vp.gardenId
+	clusterId := cp.Namespace + "-" + vp.gardenID
 	values := map[string]interface{}{
 		"csi-vsphere": map[string]interface{}{
 			"serverName":        serverName,

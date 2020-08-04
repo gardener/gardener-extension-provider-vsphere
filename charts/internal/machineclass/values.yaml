@@ -25,10 +25,10 @@ machineClasses:
   - 12345-abcd567-aaf2
   secret:
     cloudConfig: abc
-    host: "a_host"
-    username: "a_user"
-    password: "a_password"
-    insecureSSL: "true"
+    vsphereHost: "a_host"
+    vsphereUsername: "a_user"
+    vspherePassword: "a_password"
+    vsphereInsecureSSL: "true"
   tags:
   - kubernetes.io/cluster/foo
   - kubernetes.io/role/node
