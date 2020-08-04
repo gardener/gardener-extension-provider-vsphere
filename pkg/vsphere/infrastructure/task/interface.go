@@ -19,7 +19,7 @@ package task
 
 import (
 	"github.com/go-logr/logr"
-	"github.com/vmware/go-vmware-nsxt"
+	nsxt "github.com/vmware/go-vmware-nsxt"
 	"github.com/vmware/go-vmware-nsxt/common"
 	vapiclient "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 

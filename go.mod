@@ -1,13 +1,13 @@
 module github.com/gardener/gardener-extension-provider-vsphere
 
-go 1.13
+go 1.14
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
 	github.com/gardener/controller-manager-library v0.1.1-0.20200204110458-c263b9bb97ad
 	github.com/gardener/etcd-druid v0.3.0
-	github.com/gardener/gardener v1.7.4 // need v1.8.0
+	github.com/gardener/gardener v1.7.1-0.20200803135146-0255b12f5b51 // need v1.8.0
 	github.com/gardener/machine-controller-manager v0.33.0
 	github.com/go-logr/logr v0.1.0
 	github.com/gobuffalo/packr/v2 v2.8.0
@@ -29,10 +29,8 @@ require (
 	k8s.io/autoscaler v0.0.0-20190805135949-100e91ba756e
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/cloud-provider-vsphere v1.1.0
-	k8s.io/cluster-bootstrap v0.17.9 // indirect
 	k8s.io/code-generator v0.17.9
 	k8s.io/component-base v0.17.9
-	k8s.io/kube-aggregator v0.17.9 // indirect
 	k8s.io/kubelet v0.17.9
 	k8s.io/utils v0.0.0-20200327001022-6496210b90e8
 	sigs.k8s.io/controller-runtime v0.5.5
@@ -72,6 +70,3 @@ replace (
 	k8s.io/metrics => k8s.io/kubernetes/staging/src/k8s.io/metrics v0.0.0-20190615005809-e8462b5b5dc2
 	k8s.io/sample-apiserver => k8s.io/kubernetes/staging/src/k8s.io/sample-apiserver v0.0.0-20190615005809-e8462b5b5dc2
 )
-
-// need v1.8.0
-//replace github.com/gardener/gardener => github.com/gardener/gardener v1.7.1-0.20200803135146-0255b12f5b51
