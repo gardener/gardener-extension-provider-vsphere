@@ -40,7 +40,7 @@ disableWebhooks: []
 #   ...
 
 webhookConfig:
-  serverPort: 443
+  serverPort: 10250
 
 config:
   clientConnection:
