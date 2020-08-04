@@ -162,22 +162,11 @@ func (d *network) WaitCleanup(ctx context.Context) error {
 		d.client,
 		d.logger,
 		func() extensionsv1alpha1.Object { return &extensionsv1alpha1.Network{} },
-		extensionsv1alpha1.NetworkResource,
+		"Network",
 		d.values.Namespace,
 		d.values.Name,
 		d.waitInterval,
 		d.waitTimeout,
-	)
-}
-
-func (d *network) internalDeploy(ctx context.Context, operation string) (extensionsv1alpha1.Object, error) {
-	var (
-		network = &extensionsv1alpha1.Network{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      d.values.Name,
-				Namespace: d.values.Namespace,
-			},
-		}
 	)
 
 	_, err := controllerutil.CreateOrUpdate(ctx, d.client, network, func() error {

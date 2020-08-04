@@ -27,12 +27,19 @@ import (
 // MaintainShootAnnotations ensures that given deprecated Shoot annotations are maintained also
 // with their new equivalent in the Shoot metadata.
 func (b *Botanist) MaintainShootAnnotations(ctx context.Context) error {
-	if _, err := kutil.TryUpdateShootAnnotations(b.K8sGardenClient.GardenCore(), retry.DefaultRetry, b.Shoot.Info.ObjectMeta, func(shoot *gardencorev1beta1.Shoot) (*gardencorev1beta1.Shoot, error) {
-		deprecatedValue, deprecatedExists := shoot.Annotations[common.GardenCreatedByDeprecated]
-		_, newExists := shoot.Annotations[common.GardenCreatedBy]
-		if deprecatedExists {
-			if !newExists {
-				metav1.SetMetaDataAnnotation(&shoot.ObjectMeta, common.GardenCreatedBy, deprecatedValue)
+	annotationsToAdd := make(map[string]string)
+
+	// Maintain common.GardenCreatedByDeprecated annotation
+	deprecatedValue, deprecatedExists := b.Shoot.Info.Annotations[common.GardenCreatedByDeprecated]
+	_, newExists := b.Shoot.Info.Annotations[common.GardenCreatedBy]
+	if deprecatedExists && !newExists {
+		annotationsToAdd[common.GardenCreatedBy] = deprecatedValue
+	}
+
+	if len(annotationsToAdd) > 0 {
+		if _, err := kutil.TryUpdateShootAnnotations(b.K8sGardenClient.GardenCore(), retry.DefaultRetry, b.Shoot.Info.ObjectMeta, func(shoot *gardencorev1beta1.Shoot) (*gardencorev1beta1.Shoot, error) {
+			for key, value := range annotationsToAdd {
+				metav1.SetMetaDataAnnotation(&shoot.ObjectMeta, key, value)
 			}
 			delete(shoot.Annotations, common.GardenCreatedByDeprecated)
 		}
