@@ -1,5 +1,6 @@
 images:
   vsphere-csi-driver-node: image-repository:image-tag
+  new-vsphere-csi-driver-node: image-repository:image-tag-new
   csi-driver-registrar: image-repository:image-tag
   liveness-probe: image-repository:image-tag
 serverName: my.vcenter.server.ip.or.fqdn
@@ -11,3 +12,4 @@ datacenters: dc1
 insecureFlag: true
 # topology-aware setup
 topologyAware: true
+csi2: false

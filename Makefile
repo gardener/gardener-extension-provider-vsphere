@@ -139,3 +139,11 @@ verify: check format test
 
 .PHONY: verify-extended
 verify-extended: install-requirements check-generate check format test-cov test-clean
+
+#################################################################
+# build infra-cli                                               #
+#################################################################
+
+.PHONY: install-infra-cli
+install-infra-cli:
+	@go install -mod=vendor ./cmd/infra-cli

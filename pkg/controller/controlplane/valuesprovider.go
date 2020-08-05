@@ -179,6 +179,8 @@ var controlPlaneChart = &chart.Chart{
 				vsphere.CSIProvisionerImageName,
 				vsphere.CSIDriverControllerImageName,
 				vsphere.CSIDriverSyncerImageName,
+				"new-" + vsphere.CSIDriverControllerImageName,
+				"new-" + vsphere.CSIDriverSyncerImageName,
 				vsphere.CSIResizerImageName,
 				vsphere.LivenessProbeImageName},
 			Objects: []*chart.Object{
@@ -208,6 +210,7 @@ var controlPlaneShootChart = &chart.Chart{
 			Images: []string{
 				vsphere.CSINodeDriverRegistrarImageName,
 				vsphere.CSIDriverNodeImageName,
+				"new-" + vsphere.CSIDriverNodeImageName,
 				vsphere.LivenessProbeImageName,
 			},
 			Objects: []*chart.Object{
@@ -504,12 +507,15 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 		return nil, err
 	}
 
-	clusterId := cp.Namespace + "-" + vp.gardenID
-	csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
+	clusterID := cp.Namespace + "-" + vp.gardenID
+	csiResizerEnabled := false
+	csi2 := !(cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled)
+	// for v2.0.0
+	// csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
 	values := map[string]interface{}{
 		"vsphere-cloud-controller-manager": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
-			"clusterName":       clusterId,
+			"clusterName":       clusterID,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 			"podNetwork":        extensionscontroller.GetPodNetwork(cluster),
 			"podAnnotations": map[string]interface{}{
@@ -526,13 +532,14 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 			"serverName":        serverName,
-			"clusterID":         clusterId,
+			"clusterID":         clusterID,
 			"username":          credentials.VsphereCSI().Username,
 			"password":          credentials.VsphereCSI().Password,
 			"serverPort":        port,
 			"datacenters":       strings.Join(helper.CollectDatacenters(region), ","),
 			"insecureFlag":      fmt.Sprintf("%t", region.VsphereInsecureSSL),
 			"resizerEnabled":    csiResizerEnabled,
+			"csi2":              csi2,
 			"podAnnotations": map[string]interface{}{
 				"checksum/secret-" + vsphere.CSIProvisionerName:               checksums[vsphere.CSIProvisionerName],
 				"checksum/secret-" + vsphere.CSIAttacherName:                  checksums[vsphere.CSIAttacherName],
@@ -579,16 +586,18 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 		return nil, err
 	}
 
-	clusterId := cp.Namespace + "-" + vp.gardenID
+	clusterID := cp.Namespace + "-" + vp.gardenID
+	csi2 := !(cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled)
 	values := map[string]interface{}{
 		"csi-vsphere": map[string]interface{}{
 			"serverName":        serverName,
-			"clusterID":         clusterId,
+			"clusterID":         clusterID,
 			"username":          credentials.VsphereCSI().Username,
 			"password":          credentials.VsphereCSI().Password,
 			"serverPort":        port,
 			"datacenters":       strings.Join(helper.CollectDatacenters(region), ","),
 			"insecureFlag":      insecureFlag,
+			"csi2":              csi2,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 		},
 	}
