@@ -81,10 +81,6 @@ spec:
 {{- if .Values.csi2 }}
         - name: vsphere-csi-controller
           image: {{ index .Values.images "new-vsphere-csi-driver-controller" }}
-          lifecycle:
-            preStop:
-              exec:
-                command: ["/bin/sh", "-c", "rm -rf /var/lib/csi/sockets/pluginproxy/csi.vsphere.vmware.com"]
           env:
             - name: KUBECONFIG
               value: /var/lib/vsphere-csi-controller/kubeconfig
@@ -145,10 +141,8 @@ spec:
 {{- else }}
         - name: vsphere-csi-controller
           image: {{ index .Values.images "vsphere-csi-driver-controller" }}
-          lifecycle:
-            preStop:
-              exec:
-                command: ["/bin/sh", "-c", "rm -rf /var/lib/csi/sockets/pluginproxy/csi.vsphere.vmware.com"]
+          args:
+            - "--v=4"
           env:
             - name: KUBECONFIG
               value: /var/lib/vsphere-csi-controller/kubeconfig
@@ -158,8 +152,6 @@ spec:
               value: "controller"
             - name: VSPHERE_CSI_CONFIG
               value: "/etc/cloud/csi-vsphere.conf"
-            - name: LOGGER_LEVEL
-              value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
 {{- if .Values.resources.controller }}
           resources:
 {{ toYaml .Values.resources.controller | indent 12 }}
@@ -213,13 +205,13 @@ spec:
             - "--csi-address=$(ADDRESS)"
           env:
             - name: ADDRESS
-              value: /var/lib/csi/sockets/pluginproxy/csi.sock
+              value: /csi/csi.sock
 {{- if .Values.resources.liveness }}
           resources:
 {{ toYaml .Values.resources.liveness | indent 12 }}
 {{- end }}
           volumeMounts:
-            - mountPath: /var/lib/csi/sockets/pluginproxy/
+            - mountPath: /csi
               name: socket-dir
         - name: csi-provisioner
           image: {{ index .Values.images "csi-provisioner" }}
@@ -264,9 +256,7 @@ spec:
           secret:
             secretName: csi-vsphere-config
         - name: socket-dir
-          hostPath:
-            path: /var/lib/csi/sockets/pluginproxy/csi.vsphere.vmware.com
-            type: DirectoryOrCreate
+          emptyDir: {}
 ---
 apiVersion: storage.k8s.io/v1beta1
 kind: CSIDriver

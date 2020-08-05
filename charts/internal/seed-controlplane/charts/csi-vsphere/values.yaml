@@ -43,11 +43,11 @@ resources:
       memory: 80Mi
   controller:
     requests:
-      cpu: 20m
-      memory: 50Mi
-    limits:
-      cpu: 50m
+      cpu: 30m
       memory: 80Mi
+    limits:
+      cpu: 60m
+      memory: 160Mi
   liveness:
     requests:
       cpu: 10m
