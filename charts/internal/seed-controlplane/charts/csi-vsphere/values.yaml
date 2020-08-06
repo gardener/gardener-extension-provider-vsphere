@@ -5,6 +5,8 @@ images:
   csi-provisioner: image-repository:image-tag
   vsphere-csi-driver-controller: image-repository:image-tag
   vsphere-csi-driver-syncer: image-repository:image-tag
+  new-vsphere-csi-driver-controller: image-repository:image-tag-new
+  new-vsphere-csi-driver-syncer: image-repository:image-tag-new
   liveness-probe: image-repository:image-tag
 podAnnotations: {}
 serverName: my.vcenter.server.ip.or.fqdn
@@ -14,7 +16,8 @@ password: mypassword
 port: 443
 datacenters: dc1
 insecureFlag: true
-resizerEnabled: true
+resizerEnabled: false
+csi2: false
 loggerLevel: PRODUCTION
 resources:
   attacher:
@@ -40,11 +43,11 @@ resources:
       memory: 80Mi
   controller:
     requests:
-      cpu: 20m
-      memory: 50Mi
-    limits:
-      cpu: 50m
+      cpu: 30m
       memory: 80Mi
+    limits:
+      cpu: 60m
+      memory: 160Mi
   liveness:
     requests:
       cpu: 10m

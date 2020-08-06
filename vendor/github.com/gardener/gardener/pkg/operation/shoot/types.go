@@ -27,6 +27,7 @@ import (
 
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -55,12 +56,14 @@ type Shoot struct {
 	ExternalClusterDomain *string
 	ExternalDomain        *garden.Domain
 
-	WantsClusterAutoscaler    bool
-	WantsAlertmanager         bool
-	IgnoreAlerts              bool
-	HibernationEnabled        bool
-	KonnectivityTunnelEnabled bool
-	Networks                  *Networks
+	WantsClusterAutoscaler     bool
+	WantsVerticalPodAutoscaler bool
+	WantsAlertmanager          bool
+	IgnoreAlerts               bool
+	HibernationEnabled         bool
+	KonnectivityTunnelEnabled  bool
+	NodeLocalDNSEnabled        bool
+	Networks                   *Networks
 
 	Components *Components
 
@@ -75,19 +78,46 @@ type Shoot struct {
 	ResourceRefs map[string]autoscalingv1.CrossVersionObjectReference
 }
 
-// Components contains different components deployed
+// Components contains different components deployed in the Shoot cluster.
 type Components struct {
-	DNS *DNS
+	Extensions      *Extensions
+	ControlPlane    *ControlPlane
+	ClusterIdentity component.Deployer
+}
+
+// ControlPlane contains references to K8S control plane components.
+type ControlPlane struct {
+	KubeAPIServerService component.DeployWaiter
+	KubeAPIServerSNI     component.DeployWaiter
+}
+
+// Extensions contains references to extension resources.
+type Extensions struct {
+	DNS            *DNS
+	Infrastructure Infrastructure
+	Network        component.DeployMigrateWaiter
 }
 
 // DNS contains references to internal and external DNSProvider and DNSEntry deployers.
 type DNS struct {
+	ExternalOwner       component.DeployWaiter
 	ExternalProvider    component.DeployWaiter
 	ExternalEntry       component.DeployWaiter
+	InternalOwner       component.DeployWaiter
 	InternalProvider    component.DeployWaiter
 	InternalEntry       component.DeployWaiter
 	AdditionalProviders map[string]component.DeployWaiter
+	NginxOwner          component.DeployWaiter
 	NginxEntry          component.DeployWaiter
+}
+
+// Infrastructure contains references to an Infrastructure extension deployer and its generated
+// provider status.
+type Infrastructure interface {
+	component.DeployWaiter
+	SetSSHPublicKey([]byte)
+	ProviderStatus() *runtime.RawExtension
+	NodesCIDR() *string
 }
 
 // Networks contains pre-calculated subnets and IP address for various components.

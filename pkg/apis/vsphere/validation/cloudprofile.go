@@ -17,7 +17,9 @@ package validation
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
@@ -29,37 +31,50 @@ var validLoadBalancerSizeValues = sets.NewString("SMALL", "MEDIUM", "LARGE")
 var namePrefixPattern = regexp.MustCompile("^[a-z0-9]([-a-z0-9]*[a-z0-9])?$")
 
 // ValidateCloudProfileConfig validates a CloudProfileConfig object.
-func ValidateCloudProfileConfig(cloudProfile *apisvsphere.CloudProfileConfig) field.ErrorList {
+func ValidateCloudProfileConfig(profileSpec *gardencorev1beta1.CloudProfileSpec, profileConfig *apisvsphere.CloudProfileConfig) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	loadBalancerSizePath := field.NewPath("constraints", "loadBalancerConfig", "size")
-	if cloudProfile.Constraints.LoadBalancerConfig.Size == "" {
+	if profileConfig.Constraints.LoadBalancerConfig.Size == "" {
 		allErrs = append(allErrs, field.Required(loadBalancerSizePath, "must provide the load balancer size"))
 	} else {
-		if !validLoadBalancerSizeValues.Has(cloudProfile.Constraints.LoadBalancerConfig.Size) {
+		if !validLoadBalancerSizeValues.Has(profileConfig.Constraints.LoadBalancerConfig.Size) {
 			allErrs = append(allErrs, field.NotSupported(loadBalancerSizePath,
-				cloudProfile.Constraints.LoadBalancerConfig.Size, validLoadBalancerSizeValues.List()))
+				profileConfig.Constraints.LoadBalancerConfig.Size, validLoadBalancerSizeValues.List()))
 		}
 	}
 
-	if cloudProfile.NamePrefix == "" {
+	if profileConfig.NamePrefix == "" {
 		allErrs = append(allErrs, field.Required(field.NewPath("namePrefix"), "must provide name prefix for NSX-T resources"))
-	} else if !namePrefixPattern.MatchString(cloudProfile.NamePrefix) {
-		allErrs = append(allErrs, field.Invalid(field.NewPath("namePrefix"), cloudProfile.NamePrefix,
+	} else if !namePrefixPattern.MatchString(profileConfig.NamePrefix) {
+		allErrs = append(allErrs, field.Invalid(field.NewPath("namePrefix"), profileConfig.NamePrefix,
 			"must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character"))
 	}
-	if cloudProfile.DefaultClassStoragePolicyName == "" {
+	if profileConfig.DefaultClassStoragePolicyName == "" {
 		allErrs = append(allErrs, field.Required(field.NewPath("defaultClassStoragePolicyName"), "must provide defaultClassStoragePolicyName"))
 	}
 
 	machineImagesPath := field.NewPath("machineImages")
-	if len(cloudProfile.MachineImages) == 0 {
+	if len(profileConfig.MachineImages) == 0 {
 		allErrs = append(allErrs, field.Required(machineImagesPath, "must provide at least one machine image"))
+	}
+	machineImageVersions := map[string]sets.String{}
+	for _, image := range profileSpec.MachineImages {
+		versions := sets.String{}
+		for _, version := range image.Versions {
+			versions.Insert(version.Version)
+		}
+		machineImageVersions[image.Name] = versions
 	}
 
 	checkMachineImage := func(idxPath *field.Path, machineImage apisvsphere.MachineImages) {
+		definedVersions := sets.String{}
 		if len(machineImage.Name) == 0 {
 			allErrs = append(allErrs, field.Required(idxPath.Child("name"), "must provide a name"))
+		}
+		versions, ok := machineImageVersions[machineImage.Name]
+		if !ok {
+			allErrs = append(allErrs, field.Forbidden(idxPath.Child("name"), "machineImage with this name is not defined in cloud profile spec"))
 		}
 
 		if len(machineImage.Versions) == 0 {
@@ -70,21 +85,53 @@ func ValidateCloudProfileConfig(cloudProfile *apisvsphere.CloudProfileConfig) fi
 
 			if len(version.Version) == 0 {
 				allErrs = append(allErrs, field.Required(jdxPath.Child("version"), "must provide a version"))
+			} else {
+				if definedVersions.Has(version.Version) {
+					allErrs = append(allErrs, field.Duplicate(jdxPath.Child("version"), version.Version))
+				}
+				definedVersions.Insert(version.Version)
+				if !versions.Has(version.Version) {
+					allErrs = append(allErrs, field.Invalid(jdxPath.Child("version"), version.Version, "not defined as version in cloud profile spec"))
+				}
 			}
 			if len(version.Path) == 0 {
 				allErrs = append(allErrs, field.Required(jdxPath.Child("path"), "must provide a path of VM template"))
 			}
 		}
+		missing := versions.Difference(definedVersions)
+		if missing.Len() > 0 {
+			allErrs = append(allErrs, field.Invalid(idxPath, strings.Join(missing.List(), ","), "missing versions"))
+		}
 	}
-	for i, machineImage := range cloudProfile.MachineImages {
+	for i, machineImage := range profileConfig.MachineImages {
 		checkMachineImage(machineImagesPath.Index(i), machineImage)
 	}
 
+	machineTypeNames := sets.String{}
+	for _, machineType := range profileSpec.MachineTypes {
+		machineTypeNames.Insert(machineType.Name)
+	}
+	machineTypeOptionsNames := sets.String{}
+	for i, machineTypeOptions := range profileConfig.MachineTypeOptions {
+		idxPath := field.NewPath("machineTypeOptions").Index(i)
+		if len(machineTypeOptions.Name) == 0 {
+			allErrs = append(allErrs, field.Required(idxPath.Child("name"), "must provide a name"))
+			continue
+		}
+		if machineTypeOptionsNames.Has(machineTypeOptions.Name) {
+			allErrs = append(allErrs, field.Duplicate(idxPath.Child("name"), machineTypeOptions.Name))
+		}
+		machineTypeOptionsNames.Insert(machineTypeOptions.Name)
+		if !machineTypeNames.Has(machineTypeOptions.Name) {
+			allErrs = append(allErrs, field.Invalid(idxPath.Child("name"), machineTypeOptions.Name, "machineType with this name is not defined"))
+		}
+	}
+
 	regionsPath := field.NewPath("regions")
-	if len(cloudProfile.Regions) == 0 {
+	if len(profileConfig.Regions) == 0 {
 		allErrs = append(allErrs, field.Required(regionsPath, "must provide at least one region"))
 	}
-	for i, region := range cloudProfile.Regions {
+	for i, region := range profileConfig.Regions {
 		regionPath := regionsPath.Index(i)
 		if region.Name == "" {
 			allErrs = append(allErrs, field.Required(regionPath.Child("name"), "must provide region name"))
@@ -110,7 +157,7 @@ func ValidateCloudProfileConfig(cloudProfile *apisvsphere.CloudProfileConfig) fi
 		if len(region.Zones) == 0 {
 			allErrs = append(allErrs, field.Required(regionPath.Child("zones"), fmt.Sprintf("must provide edge cluster for region %s", region.Name)))
 		}
-		if len(cloudProfile.DNSServers) == 0 && len(region.DNSServers) == 0 {
+		if len(profileConfig.DNSServers) == 0 && len(region.DNSServers) == 0 {
 			allErrs = append(allErrs, field.Required(field.NewPath("dnsServers"), "must provide dnsServers globally or for each region"))
 			allErrs = append(allErrs, field.Required(regionPath.Child("dnsServers"), fmt.Sprintf("must provide dnsServers globally or for region %s", region.Name)))
 		}

@@ -15,6 +15,8 @@
 package validation_test
 
 import (
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	. "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
 
@@ -27,6 +29,7 @@ import (
 var _ = Describe("ValidateCloudProfileConfig", func() {
 	Describe("#ValidateCloudProfileConfig", func() {
 		var cloudProfileConfig *apisvsphere.CloudProfileConfig
+		var cloudProfileSpec *gardencorev1beta1.CloudProfileSpec
 
 		BeforeEach(func() {
 			cloudProfileConfig = &apisvsphere.CloudProfileConfig{
@@ -80,23 +83,46 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 					},
 				},
 			}
+			cloudProfileSpec = &gardencorev1beta1.CloudProfileSpec{
+				MachineTypes: []gardencorev1beta1.MachineType{
+					{
+						Name: "std-02",
+					},
+					{
+						Name: "std-02-reserved",
+					},
+				},
+				MachineImages: []gardencorev1beta1.MachineImage{
+					{
+						Name: "coreos",
+						Versions: []gardencorev1beta1.ExpirableVersion{
+							{
+								Version: "2190.5.0",
+							},
+							{
+								Version: "2190.5.1",
+							},
+						},
+					},
+				},
+			}
 		})
 
 		Context("machine image validation", func() {
 			It("should validate valid machine image version configuration", func() {
-				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
 				Expect(errorList).To(ConsistOf())
 			})
 
 			It("should validate valid machine image version configuration", func() {
-				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
 				Expect(errorList).To(ConsistOf())
 			})
 
 			It("should enforce that at least one machine image has been defined", func() {
 				cloudProfileConfig.MachineImages = []apisvsphere.MachineImages{}
 
-				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
 
 				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 					"Type":  Equal(field.ErrorTypeRequired),
@@ -107,10 +133,13 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 			It("should forbid unsupported machine image configuration", func() {
 				cloudProfileConfig.MachineImages = []apisvsphere.MachineImages{{}}
 
-				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
 
 				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 					"Type":  Equal(field.ErrorTypeRequired),
+					"Field": Equal("machineImages[0].name"),
+				})), PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeForbidden),
 					"Field": Equal("machineImages[0].name"),
 				})), PointTo(MatchFields(IgnoreExtras, Fields{
 					"Type":  Equal(field.ErrorTypeRequired),
@@ -126,9 +155,12 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 					},
 				}
 
-				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
 
 				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeForbidden),
+					"Field": Equal("machineImages[0].name"),
+				})), PointTo(MatchFields(IgnoreExtras, Fields{
 					"Type":  Equal(field.ErrorTypeRequired),
 					"Field": Equal("machineImages[0].versions[0].version"),
 				})), PointTo(MatchFields(IgnoreExtras, Fields{
@@ -138,11 +170,75 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 			})
 		})
 
+		Context("machine type options validation", func() {
+			It("should accept options for defined machine types", func() {
+				bt := true
+				cloudProfileConfig.MachineTypeOptions = []apisvsphere.MachineTypeOptions{
+					{
+						Name:                         "std-02-reserved",
+						MemoryReservationLockedToMax: &bt,
+					},
+				}
+
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
+
+				Expect(errorList).To(BeEmpty())
+			})
+
+			It("should forbid options for undefined machine type", func() {
+				cloudProfileConfig.MachineTypeOptions = []apisvsphere.MachineTypeOptions{
+					{
+						Name: "std-384",
+					},
+				}
+
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
+
+				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeInvalid),
+					"Field": Equal("machineTypeOptions[0].name"),
+				}))))
+			})
+
+			It("should complain about duplicate names", func() {
+				cloudProfileConfig.MachineTypeOptions = []apisvsphere.MachineTypeOptions{
+					{
+						Name: "std-02",
+					},
+					{
+						Name: "std-02",
+					},
+				}
+
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
+
+				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeDuplicate),
+					"Field": Equal("machineTypeOptions[1].name"),
+				}))))
+			})
+
+			It("should complain about empty name", func() {
+				cloudProfileConfig.MachineTypeOptions = []apisvsphere.MachineTypeOptions{
+					{
+						Name: "",
+					},
+				}
+
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
+
+				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeRequired),
+					"Field": Equal("machineTypeOptions[0].name"),
+				}))))
+			})
+		})
+
 		Context("load balancer validation", func() {
 			It("should have a load balancer size", func() {
 				cloudProfileConfig.Constraints.LoadBalancerConfig.Size = ""
 
-				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
 
 				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 					"Type":   Equal(field.ErrorTypeRequired),
@@ -154,7 +250,7 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 			It("should have a valid load balancer size value", func() {
 				cloudProfileConfig.Constraints.LoadBalancerConfig.Size = "foo"
 
-				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
 
 				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 					"Type":  Equal(field.ErrorTypeNotSupported),
@@ -168,11 +264,11 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 				cloudProfileConfig.Regions[0].Zones[0].ResourcePool = nil
 
 				cloudProfileConfig.Regions[0].Zones[0].ComputeCluster = sp("cc")
-				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
 				Expect(errorList).To(ConsistOf())
 
 				cloudProfileConfig.Regions[0].Zones[0].ComputeCluster = nil
-				errorList = ValidateCloudProfileConfig(cloudProfileConfig)
+				errorList = ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
 				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 					"Type":  Equal(field.ErrorTypeRequired),
 					"Field": Equal("regions[0].zones[0].resourcePool"),
@@ -182,7 +278,7 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 			It("should have a valid datastore", func() {
 				cloudProfileConfig.Regions[0].Zones[0].Datastore = nil
 
-				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
 
 				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 					"Type":  Equal(field.ErrorTypeRequired),
@@ -194,11 +290,11 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 				cloudProfileConfig.Regions[0].Zones[0].Datacenter = nil
 				cloudProfileConfig.Regions[0].Datacenter = sp("dc")
 
-				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
 				Expect(errorList).To(ConsistOf())
 
 				cloudProfileConfig.Regions[0].Datacenter = nil
-				errorList = ValidateCloudProfileConfig(cloudProfileConfig)
+				errorList = ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
 				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 					"Type":  Equal(field.ErrorTypeRequired),
 					"Field": Equal("regions[0].zones[0].datacenter"),
@@ -209,7 +305,7 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 		Context("name prefix validation", func() {
 			It("should have a name prefix", func() {
 				cloudProfileConfig.NamePrefix = ""
-				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
 				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 					"Type":  Equal(field.ErrorTypeRequired),
 					"Field": Equal("namePrefix"),
@@ -217,7 +313,7 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 			})
 			It("should have a valid name prefix", func() {
 				cloudProfileConfig.NamePrefix = "gardener_dev"
-				errorList := ValidateCloudProfileConfig(cloudProfileConfig)
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
 				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 					"Type":  Equal(field.ErrorTypeInvalid),
 					"Field": Equal("namePrefix"),

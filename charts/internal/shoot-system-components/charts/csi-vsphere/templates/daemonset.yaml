@@ -52,7 +52,11 @@ spec:
         - name: registration-dir
           mountPath: /registration
       - name: vsphere-csi-node
+  {{- if .Values.csi2 }}
+        image: {{ index .Values.images "new-vsphere-csi-driver-node" }}
+  {{- else }}
         image: {{ index .Values.images "vsphere-csi-driver-node" }}
+  {{- end }}
         env:
         - name: NODE_NAME
           valueFrom:

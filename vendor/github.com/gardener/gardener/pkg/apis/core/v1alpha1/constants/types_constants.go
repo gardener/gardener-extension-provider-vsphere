@@ -71,9 +71,6 @@ const (
 	// DeploymentNameKubeStateMetricsSeed is a constant for the name of a Kubernetes deployment object that contains
 	// the kube-state-metrics-seed pod.
 	DeploymentNameKubeStateMetricsSeed = "kube-state-metrics-seed"
-	// DeploymentNameKibana is a constant for the name of a Kubernetes deployment object that contains
-	// the kibana-logging pod.
-	DeploymentNameKibana = "kibana-logging"
 
 	// StatefulSetNameAlertManager is a constant for the name of a Kubernetes stateful set object that contains
 	// the alertmanager pod.
@@ -82,9 +79,7 @@ const (
 	ETCDMain = "etcd-main"
 	// ETCDEvents is a constant for the name of etcd-events Etcd object.
 	ETCDEvents = "etcd-events"
-	// StatefulSetNameElasticSearch is a constant for the name of a Kubernetes stateful set object that contains
-	// the elasticsearch-logging pod.
-	StatefulSetNameElasticSearch = "elasticsearch-logging"
+
 	// StatefulSetNamePrometheus is a constant for the name of a Kubernetes stateful set object that contains
 	// the prometheus pod.
 	StatefulSetNamePrometheus = "prometheus"
@@ -176,9 +171,6 @@ const (
 	LabelNetworkPolicyToShootAPIServer = "networking.gardener.cloud/to-shoot-apiserver"
 	// LabelNetworkPolicyToAll disables all Ingress and Egress traffic into/from this namespace when set to "disallowed".
 	LabelNetworkPolicyToAll = "networking.gardener.cloud/to-all"
-	// LabelNetworkPolicyToElasticSearch allows Ingress to the ElasticSearch API pods labeled with 'networking.gardener.cloud/to-elasticsearch=allowed',
-	// and fluentd in 'garden' namespace.
-	LabelNetworkPolicyToElasticSearch = "networking.gardener.cloud/to-elasticsearch"
 	// LabelNetworkPolicyFromPrometheus allows Ingress from Prometheus to pods labeled with 'networking.gardener.cloud/from-prometheus=allowed' and ports
 	// named 'metrics' in the PodSpecification.
 	LabelNetworkPolicyFromPrometheus = "networking.gardener.cloud/from-prometheus"
@@ -208,6 +200,9 @@ const (
 	// LabelAPIServerExposureGardenerManaged is a constant for label value which gardener sets on the label key
 	// "core.gardener.cloud/apiserver-exposure" to indicate that it's responsible for apiserver exposure (via SNI).
 	LabelAPIServerExposureGardenerManaged = "gardener-managed"
+
+	// LabelWorkerPoolSystemComponents is a constant that indicates whether the worker pool should host system components
+	LabelWorkerPoolSystemComponents = "worker.gardener.cloud/system-components"
 
 	// GardenNamespace is the namespace in which the configuration and secrets for
 	// the Gardener controller manager will be stored (e.g., secrets for the Seed clusters).

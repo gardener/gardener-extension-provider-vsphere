@@ -250,6 +250,9 @@ func ValidateShootStatusUpdate(newStatus, oldStatus core.ShootStatus) field.Erro
 		allErrs = append(allErrs, apivalidation.ValidateImmutableField(newStatus.TechnicalID, oldStatus.TechnicalID, fldPath.Child("technicalID"))...)
 	}
 
+	if oldStatus.ClusterIdentity != nil && !apiequality.Semantic.DeepEqual(oldStatus.ClusterIdentity, newStatus.ClusterIdentity) {
+		allErrs = append(allErrs, apivalidation.ValidateImmutableField(newStatus.ClusterIdentity, oldStatus.ClusterIdentity, fldPath.Child("clusterIdentity"))...)
+	}
 	return allErrs
 }
 
@@ -587,6 +590,9 @@ func validateKubernetes(kubernetes core.Kubernetes, fldPath *field.Path) field.E
 	if clusterAutoscaler := kubernetes.ClusterAutoscaler; clusterAutoscaler != nil {
 		allErrs = append(allErrs, ValidateClusterAutoscaler(*clusterAutoscaler, fldPath.Child("clusterAutoscaler"))...)
 	}
+	if verticalPodAutoscaler := kubernetes.VerticalPodAutoscaler; verticalPodAutoscaler != nil {
+		allErrs = append(allErrs, ValidateVerticalPodAutoscaler(*verticalPodAutoscaler, fldPath.Child("verticalPodAutoscaler"))...)
+	}
 
 	return allErrs
 }
@@ -640,6 +646,23 @@ func ValidateClusterAutoscaler(autoScaler core.ClusterAutoscaler, fldPath *field
 			allErrs = append(allErrs, field.Invalid(fldPath.Child("scaleDownUtilizationThreshold"), *threshold, "can not be greater than 1.0"))
 		}
 	}
+	return allErrs
+}
+
+// ValidateVerticalPodAutoscaler validates the given VerticalPodAutoscaler fields.
+func ValidateVerticalPodAutoscaler(autoScaler core.VerticalPodAutoscaler, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+
+	if threshold := autoScaler.EvictAfterOOMThreshold; threshold != nil && threshold.Duration < 0 {
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("evictAfterOOMThreshold"), *threshold, "can not be negative"))
+	}
+	if interval := autoScaler.UpdaterInterval; interval != nil && interval.Duration < 0 {
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("updaterInterval"), *interval, "can not be negative"))
+	}
+	if interval := autoScaler.RecommenderInterval; interval != nil && interval.Duration < 0 {
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("recommenderInterval"), *interval, "can not be negative"))
+	}
+
 	return allErrs
 }
 
@@ -810,12 +833,19 @@ func validateProvider(provider core.Provider, kubernetes core.Kubernetes, fldPat
 	return allErrs
 }
 
+const (
+	// maxWorkerNameLength is a constant for the maximum length for worker name.
+	maxWorkerNameLength = 15
+
+	// maxVolumeNameLength is a constant for the maximum length for data volume name.
+	maxVolumeNameLength = 15
+)
+
 // ValidateWorker validates the worker object.
 func ValidateWorker(worker core.Worker, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	allErrs = append(allErrs, validateDNS1123Label(worker.Name, fldPath.Child("name"))...)
-	maxWorkerNameLength := 15
 	if len(worker.Name) > maxWorkerNameLength {
 		allErrs = append(allErrs, field.TooLong(fldPath.Child("name"), worker.Name, maxWorkerNameLength))
 	}
@@ -881,33 +911,30 @@ func ValidateWorker(worker core.Worker, fldPath *field.Path) field.ErrorList {
 		}
 		for idx, volume := range worker.DataVolumes {
 			idxPath := fldPath.Child("dataVolumes").Index(idx)
-			if volume.Name == nil {
-				allErrs = append(allErrs, field.Required(idxPath.Child("name"), "data volume name is required"))
+			if len(volume.Name) == 0 {
+				allErrs = append(allErrs, field.Required(idxPath.Child("name"), "must specify a name"))
 			} else {
-				volName := *volume.Name
-				allErrs = append(allErrs, validateDNS1123Label(volName, idxPath.Child("name"))...)
-				maxVolumeNameLength := 15
-				if len(volName) > maxVolumeNameLength {
-					allErrs = append(allErrs, field.TooLong(idxPath.Child("name"), volName, maxVolumeNameLength))
-				}
-				if _, keyExist := volumeNames[volName]; keyExist {
-					volumeNames[volName]++
-					allErrs = append(allErrs, field.Duplicate(idxPath.Child("name"), volName))
-				} else {
-					volumeNames[volName] = 1
-				}
-				if !volumeSizeRegex.MatchString(volume.VolumeSize) {
-					allErrs = append(allErrs, field.Invalid(idxPath.Child("size"), volume.VolumeSize, fmt.Sprintf("data volume size must match the regex %s", volumeSizeRegex)))
-				}
+				allErrs = append(allErrs, validateDNS1123Label(volume.Name, idxPath.Child("name"))...)
+			}
+			if len(volume.Name) > maxVolumeNameLength {
+				allErrs = append(allErrs, field.TooLong(idxPath.Child("name"), volume.Name, maxVolumeNameLength))
+			}
+			if _, keyExist := volumeNames[volume.Name]; keyExist {
+				volumeNames[volume.Name]++
+				allErrs = append(allErrs, field.Duplicate(idxPath.Child("name"), volume.Name))
+			} else {
+				volumeNames[volume.Name] = 1
+			}
+			if !volumeSizeRegex.MatchString(volume.VolumeSize) {
+				allErrs = append(allErrs, field.Invalid(idxPath.Child("size"), volume.VolumeSize, fmt.Sprintf("data volume size must match the regex %s", volumeSizeRegex)))
 			}
 		}
-
 	}
 
 	if worker.KubeletDataVolumeName != nil {
 		found := false
 		for _, volume := range worker.DataVolumes {
-			if *volume.Name == *worker.KubeletDataVolumeName {
+			if volume.Name == *worker.KubeletDataVolumeName {
 				found = true
 			}
 		}
@@ -959,6 +986,12 @@ func ValidateKubeletConfig(kubeletConfig core.KubeletConfig, fldPath *field.Path
 	if kubeletConfig.EvictionSoftGracePeriod != nil {
 		allErrs = append(allErrs, validateKubeletConfigEvictionSoftGracePeriod(kubeletConfig.EvictionSoftGracePeriod, fldPath.Child("evictionSoftGracePeriod"))...)
 	}
+	if kubeletConfig.KubeReserved != nil {
+		allErrs = append(allErrs, validateKubeletConfigReserved(kubeletConfig.KubeReserved, fldPath.Child("kubeReserved"))...)
+	}
+	if kubeletConfig.SystemReserved != nil {
+		allErrs = append(allErrs, validateKubeletConfigReserved(kubeletConfig.SystemReserved, fldPath.Child("systemReserved"))...)
+	}
 	return allErrs
 }
 
@@ -999,6 +1032,23 @@ func validateKubeletConfigEvictionSoftGracePeriod(eviction *core.KubeletConfigEv
 	allErrs = append(allErrs, ValidatePositiveDuration(eviction.ImageFSInodesFree, fldPath.Child("imagefsInodesFree"))...)
 	allErrs = append(allErrs, ValidatePositiveDuration(eviction.NodeFSAvailable, fldPath.Child("nodefsAvailable"))...)
 	allErrs = append(allErrs, ValidatePositiveDuration(eviction.ImageFSInodesFree, fldPath.Child("imagefsInodesFree"))...)
+	return allErrs
+}
+
+func validateKubeletConfigReserved(reserved *core.KubeletConfigReserved, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+	if reserved.CPU != nil {
+		allErrs = append(allErrs, validateResourceQuantityValue("cpu", *reserved.CPU, fldPath.Child("cpu"))...)
+	}
+	if reserved.Memory != nil {
+		allErrs = append(allErrs, validateResourceQuantityValue("memory", *reserved.Memory, fldPath.Child("memory"))...)
+	}
+	if reserved.EphemeralStorage != nil {
+		allErrs = append(allErrs, validateResourceQuantityValue("ephemeralStorage", *reserved.EphemeralStorage, fldPath.Child("ephemeralStorage"))...)
+	}
+	if reserved.PID != nil {
+		allErrs = append(allErrs, validateResourceQuantityValue("pid", *reserved.EphemeralStorage, fldPath.Child("pid"))...)
+	}
 	return allErrs
 }
 
@@ -1061,14 +1111,20 @@ func ValidateWorkers(workers []core.Worker, fldPath *field.Path) field.ErrorList
 	var (
 		allErrs = field.ErrorList{}
 
-		workerNames                        = make(map[string]bool)
-		atLeastOneActivePool               = false
-		atLeastOnePoolWithCompatibleTaints = len(workers) == 0
+		workerNames                               = make(map[string]bool)
+		atLeastOneActivePool                      = false
+		atLeastOnePoolWithCompatibleTaints        = len(workers) == 0
+		atLeastOnePoolWithAllowedSystemComponents = false
 	)
 
 	for i, worker := range workers {
+		var (
+			poolIsActive            = false
+			poolHasCompatibleTaints = false
+		)
+
 		if worker.Minimum != 0 && worker.Maximum != 0 {
-			atLeastOneActivePool = true
+			poolIsActive = true
 		}
 
 		if workerNames[worker.Name] {
@@ -1077,9 +1133,8 @@ func ValidateWorkers(workers []core.Worker, fldPath *field.Path) field.ErrorList
 		workerNames[worker.Name] = true
 
 		switch {
-		case atLeastOnePoolWithCompatibleTaints:
 		case len(worker.Taints) == 0:
-			atLeastOnePoolWithCompatibleTaints = true
+			poolHasCompatibleTaints = true
 		case !atLeastOnePoolWithCompatibleTaints:
 			onlyPreferNoScheduleEffectTaints := true
 			for _, taint := range worker.Taints {
@@ -1089,8 +1144,20 @@ func ValidateWorkers(workers []core.Worker, fldPath *field.Path) field.ErrorList
 				}
 			}
 			if onlyPreferNoScheduleEffectTaints {
-				atLeastOnePoolWithCompatibleTaints = true
+				poolHasCompatibleTaints = true
 			}
+		}
+
+		if poolIsActive && poolHasCompatibleTaints && helper.SystemComponentsAllowed(&worker) {
+			atLeastOnePoolWithAllowedSystemComponents = true
+		}
+
+		if !atLeastOneActivePool {
+			atLeastOneActivePool = poolIsActive
+		}
+
+		if !atLeastOnePoolWithCompatibleTaints {
+			atLeastOnePoolWithCompatibleTaints = poolHasCompatibleTaints
 		}
 	}
 
@@ -1100,6 +1167,10 @@ func ValidateWorkers(workers []core.Worker, fldPath *field.Path) field.ErrorList
 
 	if !atLeastOnePoolWithCompatibleTaints {
 		allErrs = append(allErrs, field.Forbidden(fldPath, fmt.Sprintf("at least one worker pool must exist having either no taints or only the %q taint", corev1.TaintEffectPreferNoSchedule)))
+	}
+
+	if !atLeastOnePoolWithAllowedSystemComponents {
+		allErrs = append(allErrs, field.Forbidden(fldPath, "at least one active worker pool with allowSystemComponents=true needed"))
 	}
 
 	return allErrs

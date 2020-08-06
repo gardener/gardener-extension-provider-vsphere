@@ -50,6 +50,13 @@ providerSpec:
 {{- end }}
   numCpus: {{ $machineClass.numCpus }}
   memory: {{ $machineClass.memory }}
+{{- if $machineClass.memoryReservationLockedToMax }}
+  memoryReservationLockedToMax: {{ $machineClass.memoryReservationLockedToMax }}
+{{- end }}
+{{- if $machineClass.extraConfig }}
+  extraConfig:
+{{ toYaml $machineClass.extraConfig | indent 4 }}
+{{- end }}
   systemDisk:
   {{ toYaml $machineClass.systemDisk | indent 2 }}
   sshKeys:

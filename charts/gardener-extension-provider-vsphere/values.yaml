@@ -4,6 +4,9 @@ image:
   pullPolicy: IfNotPresent
 
 replicaCount: 1
+maxUnavailable: 1
+maxSurge: 50%
+
 resources: {}
 vpa:
   enabled: true
@@ -37,7 +40,7 @@ disableWebhooks: []
 #   ...
 
 webhookConfig:
-  serverPort: 443
+  serverPort: 10250
 
 config:
   clientConnection:

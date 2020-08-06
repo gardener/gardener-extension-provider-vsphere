@@ -30,24 +30,34 @@ func shootHibernatedConstraint(condition gardencorev1beta1.Condition) gardencore
 	return gardencorev1beta1helper.UpdatedCondition(condition, gardencorev1beta1.ConditionTrue, "ConstraintNotChecked", "Shoot cluster has been hibernated.")
 }
 
-// ConstraintsChecks conducts the constraints checks on all the given constraints.
-func (b *Botanist) ConstraintsChecks(ctx context.Context, initializeShootClients func() error, hibernation gardencorev1beta1.Condition) gardencorev1beta1.Condition {
-	hibernationPossible := b.constraintsChecks(ctx, initializeShootClients, hibernation)
-	lastOp := b.Shoot.Info.Status.LastOperation
-	return PardonCondition(lastOp, hibernationPossible)
+func shootControlPlaneNotRunningConstraint(condition gardencorev1beta1.Condition) gardencorev1beta1.Condition {
+	return gardencorev1beta1helper.UpdatedCondition(condition, gardencorev1beta1.ConditionFalse, "ConstraintNotChecked", "Shoot control plane is not running at the moment.")
 }
 
-func (b *Botanist) constraintsChecks(ctx context.Context, initializeShootClients func() error, hibernationConstraint gardencorev1beta1.Condition) gardencorev1beta1.Condition {
+// ConstraintsChecks conducts the constraints checks on all the given constraints.
+func (b *Botanist) ConstraintsChecks(ctx context.Context, initializeShootClients func() (bool, error), hibernation gardencorev1beta1.Condition) gardencorev1beta1.Condition {
+	hibernationPossible := b.constraintsChecks(ctx, initializeShootClients, hibernation)
+	lastOp := b.Shoot.Info.Status.LastOperation
+	lastErrors := b.Shoot.Info.Status.LastErrors
+	return PardonCondition(hibernationPossible, lastOp, lastErrors)
+}
+
+func (b *Botanist) constraintsChecks(ctx context.Context, initializeShootClients func() (bool, error), hibernationConstraint gardencorev1beta1.Condition) gardencorev1beta1.Condition {
 	if b.Shoot.HibernationEnabled || b.Shoot.Info.Status.IsHibernated {
 		return shootHibernatedConstraint(hibernationConstraint)
 	}
 
-	if err := initializeShootClients(); err != nil {
+	apiServerRunning, err := initializeShootClients()
+	if err != nil {
 		message := fmt.Sprintf("Could not initialize Shoot client for constraints check: %+v", err)
 		b.Logger.Error(message)
 		hibernationConstraint = gardencorev1beta1helper.UpdatedConditionUnknownErrorMessage(hibernationConstraint, message)
 
 		return hibernationConstraint
+	}
+	if !apiServerRunning {
+		// don't check constraints if API server has already been deleted or has not been created yet
+		return shootControlPlaneNotRunningConstraint(hibernationConstraint)
 	}
 
 	newHibernationConstraint, err := b.CheckHibernationPossible(ctx, hibernationConstraint)

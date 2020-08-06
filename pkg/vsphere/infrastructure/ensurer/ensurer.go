@@ -23,7 +23,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
-	"github.com/vmware/go-vmware-nsxt"
+	nsxt "github.com/vmware/go-vmware-nsxt"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/log"
 	vapiclient "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra"
@@ -146,6 +146,7 @@ func (e *ensurer) getTasks(state *api.NSXTInfraState) []task.Task {
 }
 
 func (e *ensurer) EnsureInfrastructure(spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) error {
+	e.updateExternalState(spec, state)
 	tasks := e.getTasks(state)
 	for _, tsk := range tasks {
 		_ = e.tryRecover(spec, state, tsk, false)
@@ -169,12 +170,28 @@ func (e *ensurer) EnsureInfrastructure(spec vinfra.NSXTInfraSpec, state *api.NSX
 	return nil
 }
 
+func (e *ensurer) updateExternalState(spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) {
+	if spec.ExternalTier1GatewayPath != nil {
+		b := true
+		state.ExternalTier1Gateway = &b
+	}
+}
+
 // tryRecover tries if the NSX-T reference has for some reason been lost and not be stored in the state.
 // It then tries to find the object by the garden and shoot tag to restore the reference.
 func (e *ensurer) tryRecover(spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState, tsk task.Task, lookup bool) error {
 	if e.IsTryRecoverEnabled() && tsk.Reference(state) == nil {
 		recovered := false
 		if rt, ok := tsk.(task.RecoverableTask); ok {
+			if rt.IsExternal(state) {
+				if lookup {
+					// external lookup may be needed for recover
+					var err error
+					_, err = tsk.Ensure(e, spec, state)
+					return err
+				}
+				return nil
+			}
 			recovered = task.TryRecover(e, state, rt, spec.CreateTags())
 		} else if rt, ok := tsk.(task.RecoverableAdvancedTask); ok {
 			recovered = rt.TryRecover(e, state, spec.CreateCommonTags())
@@ -194,6 +211,7 @@ func (e *ensurer) tryRecover(spec vinfra.NSXTInfraSpec, state *api.NSXTInfraStat
 func (e *ensurer) EnsureInfrastructureDeleted(spec *vinfra.NSXTInfraSpec, state *api.NSXTInfraState) error {
 	tasks := e.getTasks(state)
 	if spec != nil {
+		e.updateExternalState(*spec, state)
 		// tryRecover needs the order of creation
 		for _, tsk := range tasks {
 			err := e.tryRecover(*spec, state, tsk, true)

@@ -24,7 +24,8 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	apisvspherehelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	vspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
-	"github.com/gardener/gardener/extensions/pkg/util"
+	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
+
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -82,7 +83,7 @@ func (w *workerDelegate) findMachineImage(name, version string) (string, string,
 	if providerStatus := w.worker.Status.ProviderStatus; providerStatus != nil {
 		workerStatus := &apisvsphere.WorkerStatus{}
 		if _, _, err := w.Decoder().Decode(providerStatus.Raw, nil, workerStatus); err != nil {
-			return "", "", errors.Wrapf(err, "could not decode worker status of worker '%s'", util.ObjectName(w.worker))
+			return "", "", errors.Wrapf(err, "could not decode worker status of worker '%s'", kutil.ObjectName(w.worker))
 		}
 
 		machineImage, err := apisvspherehelper.FindMachineImage(workerStatus.MachineImages, name, version)

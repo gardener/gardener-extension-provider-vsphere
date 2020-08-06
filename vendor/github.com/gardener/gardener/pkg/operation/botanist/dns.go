@@ -20,13 +20,15 @@ import (
 	"strings"
 	"time"
 
-	dnsv1alpha1 "github.com/gardener/external-dns-management/pkg/apis/dns/v1alpha1"
 	"github.com/gardener/gardener/pkg/apis/core"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	"github.com/gardener/gardener/pkg/features"
+	gardenletfeatures "github.com/gardener/gardener/pkg/gardenlet/features"
 	"github.com/gardener/gardener/pkg/operation/botanist/component"
-	"github.com/gardener/gardener/pkg/operation/botanist/dns"
+	"github.com/gardener/gardener/pkg/operation/botanist/extensions/dns"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 
+	dnsv1alpha1 "github.com/gardener/external-dns-management/pkg/apis/dns/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -55,46 +57,54 @@ func GenerateDNSProviderName(secretName, providerType string) string {
 	}
 }
 
-// DeployExternalDNS deploys the external DNSProvider and DNSEntry.
+// DeployExternalDNS deploys the external DNSOwner, DNSProvider, and DNSEntry resources.
 func (b *Botanist) DeployExternalDNS(ctx context.Context) error {
-	return b.ExternalDNS().Deploy(ctx)
-}
-
-// ExternalDNS returns the external DNSProvider which deploys / destroys
-// the external DNSProvider and DNSEntry.
-func (b *Botanist) ExternalDNS() component.Deployer {
 	if b.NeedsExternalDNS() {
+		if b.isRestorePhase() {
+			return dnsRestoreDeployer{
+				provider: b.Shoot.Components.Extensions.DNS.ExternalProvider,
+				entry:    b.Shoot.Components.Extensions.DNS.ExternalEntry,
+				owner:    b.Shoot.Components.Extensions.DNS.ExternalOwner,
+			}.Deploy(ctx)
+		}
+
 		return component.OpWaiter(
-			b.Shoot.Components.DNS.ExternalProvider,
-			b.Shoot.Components.DNS.ExternalEntry,
-		)
+			b.Shoot.Components.Extensions.DNS.ExternalOwner,
+			b.Shoot.Components.Extensions.DNS.ExternalProvider,
+			b.Shoot.Components.Extensions.DNS.ExternalEntry,
+		).Deploy(ctx)
 	}
 
 	return component.OpWaiter(
-		b.Shoot.Components.DNS.ExternalEntry,
-		b.Shoot.Components.DNS.ExternalProvider,
-	)
+		b.Shoot.Components.Extensions.DNS.ExternalEntry,
+		b.Shoot.Components.Extensions.DNS.ExternalProvider,
+		b.Shoot.Components.Extensions.DNS.ExternalOwner,
+	).Deploy(ctx)
 }
 
-// DeployInternalDNS deploys the internal DNSProvider and DNSEntry.
+// DeployInternalDNS deploys the internal DNSOwner, DNSProvider, and DNSEntry resources.
 func (b *Botanist) DeployInternalDNS(ctx context.Context) error {
-	return b.InternalDNS().Deploy(ctx)
-}
-
-// InternalDNS returns the internal DNSProvider which deploys / destroys
-// the internal DNSProvider and DNSEntry.
-func (b *Botanist) InternalDNS() component.Deployer {
 	if b.NeedsInternalDNS() {
+		if b.isRestorePhase() {
+			return dnsRestoreDeployer{
+				provider: b.Shoot.Components.Extensions.DNS.InternalProvider,
+				entry:    b.Shoot.Components.Extensions.DNS.InternalEntry,
+				owner:    b.Shoot.Components.Extensions.DNS.InternalOwner,
+			}.Deploy(ctx)
+		}
+
 		return component.OpWaiter(
-			b.Shoot.Components.DNS.InternalProvider,
-			b.Shoot.Components.DNS.InternalEntry,
-		)
+			b.Shoot.Components.Extensions.DNS.InternalOwner,
+			b.Shoot.Components.Extensions.DNS.InternalProvider,
+			b.Shoot.Components.Extensions.DNS.InternalEntry,
+		).Deploy(ctx)
 	}
 
 	return component.OpWaiter(
-		b.Shoot.Components.DNS.InternalEntry,
-		b.Shoot.Components.DNS.InternalProvider,
-	)
+		b.Shoot.Components.Extensions.DNS.InternalEntry,
+		b.Shoot.Components.Extensions.DNS.InternalProvider,
+		b.Shoot.Components.Extensions.DNS.InternalOwner,
+	).Deploy(ctx)
 }
 
 // DefaultExternalDNSProvider returns the external DNSProvider if external DNS is
@@ -117,7 +127,7 @@ func (b *Botanist) DefaultExternalDNSProvider(seedClient client.Client) componen
 				},
 			},
 			b.Shoot.SeedNamespace,
-			b.ChartApplierSeed,
+			b.K8sSeedClient.ChartApplier(),
 			b.ChartsRootPath,
 			b.Logger,
 			seedClient,
@@ -131,7 +141,7 @@ func (b *Botanist) DefaultExternalDNSProvider(seedClient client.Client) componen
 			Purpose: DNSExternalName,
 		},
 		b.Shoot.SeedNamespace,
-		b.ChartApplierSeed,
+		b.K8sSeedClient.ChartApplier(),
 		b.ChartsRootPath,
 		b.Logger,
 		seedClient,
@@ -146,11 +156,24 @@ func (b *Botanist) DefaultExternalDNSEntry(seedClient client.Client) component.D
 			Name: DNSExternalName,
 		},
 		b.Shoot.SeedNamespace,
-		b.ChartApplierSeed,
+		b.K8sSeedClient.ChartApplier(),
 		b.ChartsRootPath,
 		b.Logger,
 		seedClient,
 		nil,
+	))
+}
+
+// DefaultExternalDNSOwner returns DeployWaiter which removes the external DNSOwner.
+func (b *Botanist) DefaultExternalDNSOwner(seedClient client.Client) component.DeployWaiter {
+	return component.OpDestroy(dns.NewDNSOwner(
+		&dns.OwnerValues{
+			Name: DNSExternalName,
+		},
+		b.Shoot.SeedNamespace,
+		b.K8sSeedClient.ChartApplier(),
+		b.ChartsRootPath,
+		seedClient,
 	))
 }
 
@@ -173,7 +196,7 @@ func (b *Botanist) DefaultInternalDNSProvider(seedClient client.Client) componen
 				},
 			},
 			b.Shoot.SeedNamespace,
-			b.ChartApplierSeed,
+			b.K8sSeedClient.ChartApplier(),
 			b.ChartsRootPath,
 			b.Logger,
 			seedClient,
@@ -187,7 +210,7 @@ func (b *Botanist) DefaultInternalDNSProvider(seedClient client.Client) componen
 			Purpose: DNSInternalName,
 		},
 		b.Shoot.SeedNamespace,
-		b.ChartApplierSeed,
+		b.K8sSeedClient.ChartApplier(),
 		b.ChartsRootPath,
 		b.Logger,
 		seedClient,
@@ -202,11 +225,24 @@ func (b *Botanist) DefaultInternalDNSEntry(seedClient client.Client) component.D
 			Name: DNSInternalName,
 		},
 		b.Shoot.SeedNamespace,
-		b.ChartApplierSeed,
+		b.K8sSeedClient.ChartApplier(),
 		b.ChartsRootPath,
 		b.Logger,
 		seedClient,
 		nil,
+	))
+}
+
+// DefaultInternalDNSOwner returns a DeployWaiter which removes the internal DNSOwner.
+func (b *Botanist) DefaultInternalDNSOwner(seedClient client.Client) component.DeployWaiter {
+	return component.OpDestroy(dns.NewDNSOwner(
+		&dns.OwnerValues{
+			Name: DNSInternalName,
+		},
+		b.Shoot.SeedNamespace,
+		b.K8sSeedClient.ChartApplier(),
+		b.ChartsRootPath,
+		seedClient,
 	))
 }
 
@@ -276,7 +312,7 @@ func (b *Botanist) AdditionalDNSProviders(ctx context.Context, gardenClient, see
 					},
 				},
 				b.Shoot.SeedNamespace,
-				b.ChartApplierSeed,
+				b.K8sSeedClient.ChartApplier(),
 				b.ChartsRootPath,
 				b.Logger,
 				seedClient,
@@ -305,7 +341,7 @@ func (b *Botanist) AdditionalDNSProviders(ctx context.Context, gardenClient, see
 					Labels:  map[string]string{v1beta1constants.GardenRole: DNSProviderRoleAdditional},
 				},
 				b.Shoot.SeedNamespace,
-				b.ChartApplierSeed,
+				b.K8sSeedClient.ChartApplier(),
 				b.ChartsRootPath,
 				b.Logger,
 				seedClient,
@@ -343,6 +379,12 @@ func (b *Botanist) NeedsAdditionalDNSProviders() bool {
 		len(b.Shoot.Info.Spec.DNS.Providers) > 0
 }
 
+// APIServerSNIEnabled returns true if APIServerSNI feature gate is enabled and
+// the shoot uses internal and external DNS.
+func (b *Botanist) APIServerSNIEnabled() bool {
+	return gardenletfeatures.FeatureGate.Enabled(features.APIServerSNI) && b.NeedsInternalDNS() && b.NeedsExternalDNS()
+}
+
 // DeleteDNSProviders deletes all DNS providers in the shoot namespace of the seed.
 func (b *Botanist) DeleteDNSProviders(ctx context.Context) error {
 	if err := b.K8sSeedClient.Client().DeleteAllOf(
@@ -360,4 +402,90 @@ func (b *Botanist) DeleteDNSProviders(ctx context.Context) error {
 		5*time.Second,
 		client.InNamespace(b.Shoot.SeedNamespace),
 	)
+}
+
+// DestroyInternalDNS destroys the internal DNSEntry, DNSOwner, and DNSProvider resources.
+func (b *Botanist) DestroyInternalDNS(ctx context.Context) error {
+	return component.OpDestroyAndWait(
+		b.Shoot.Components.Extensions.DNS.InternalEntry,
+		b.Shoot.Components.Extensions.DNS.InternalProvider,
+		b.Shoot.Components.Extensions.DNS.InternalOwner,
+	).Destroy(ctx)
+}
+
+// DestroyExternalDNS destroys the external DNSEntry, DNSOwner, and DNSProvider resources.
+func (b *Botanist) DestroyExternalDNS(ctx context.Context) error {
+	return component.OpDestroyAndWait(
+		b.Shoot.Components.Extensions.DNS.ExternalEntry,
+		b.Shoot.Components.Extensions.DNS.ExternalProvider,
+		b.Shoot.Components.Extensions.DNS.ExternalOwner,
+	).Destroy(ctx)
+}
+
+// MigrateInternalDNS destroys the internal DNSEntry, DNSOwner, and DNSProvider resources,
+// without removing the entry from the DNS provider.
+func (b *Botanist) MigrateInternalDNS(ctx context.Context) error {
+	return component.OpDestroy(
+		b.Shoot.Components.Extensions.DNS.InternalOwner,
+		b.Shoot.Components.Extensions.DNS.InternalProvider,
+		b.Shoot.Components.Extensions.DNS.InternalEntry,
+	).Destroy(ctx)
+}
+
+// MigrateExternalDNS destroys the external DNSEntry, DNSOwner, and DNSProvider resources,
+// without removing the entry from the DNS provider.
+func (b *Botanist) MigrateExternalDNS(ctx context.Context) error {
+	return component.OpDestroy(
+		b.Shoot.Components.Extensions.DNS.ExternalOwner,
+		b.Shoot.Components.Extensions.DNS.ExternalProvider,
+		b.Shoot.Components.Extensions.DNS.ExternalEntry,
+	).Destroy(ctx)
+}
+
+// dnsRestoreDeployer implements special deploy logic for DNS providers, entries, and owners to be executed only
+// during the restore phase.
+type dnsRestoreDeployer struct {
+	provider component.DeployWaiter
+	entry    component.DeployWaiter
+	owner    component.DeployWaiter
+}
+
+func (d dnsRestoreDeployer) Deploy(ctx context.Context) error {
+	// Deploy the provider and wait for it to become ready
+	if d.provider != nil {
+		if err := d.provider.Deploy(ctx); err != nil {
+			return err
+		}
+		if err := d.provider.Wait(ctx); err != nil {
+			return err
+		}
+	}
+
+	// Deploy the entry and wait for it to be reconciled, but ignore any errors due to Invalid or Error status
+	// This is done in order to ensure that the entry exists and has been reconciled before the owner is reconciled
+	if err := d.entry.Deploy(ctx); err != nil {
+		return err
+	}
+	if err := d.entry.Wait(ctx); err != nil && !strings.Contains(err.Error(), "status=") {
+		return err
+	}
+
+	// Deploy the owner and wait for it to become ready
+	if err := d.owner.Deploy(ctx); err != nil {
+		return err
+	}
+	if err := d.owner.Wait(ctx); err != nil {
+		return err
+	}
+
+	// Wait for the entry to become ready
+	if err := d.entry.Wait(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d dnsRestoreDeployer) Destroy(ctx context.Context) error {
+	return nil
 }

@@ -21,12 +21,16 @@ import (
 	"strings"
 	"time"
 
+	"k8s.io/client-go/util/retry"
+
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/operation"
+	"github.com/gardener/gardener/pkg/operation/botanist/clusteridentity"
 	"github.com/gardener/gardener/pkg/operation/common"
 	shootpkg "github.com/gardener/gardener/pkg/operation/shoot"
+	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -72,17 +76,25 @@ func New(o *operation.Operation) (*Botanist, error) {
 		return nil, err
 	}
 
-	o.Shoot.Components.DNS.ExternalProvider = b.DefaultExternalDNSProvider(b.K8sSeedClient.Client())
-	o.Shoot.Components.DNS.ExternalEntry = b.DefaultExternalDNSEntry(b.K8sSeedClient.Client())
-	o.Shoot.Components.DNS.InternalProvider = b.DefaultInternalDNSProvider(b.K8sSeedClient.Client())
-	o.Shoot.Components.DNS.InternalEntry = b.DefaultInternalDNSEntry(b.K8sSeedClient.Client())
-
-	o.Shoot.Components.DNS.AdditionalProviders, err = b.AdditionalDNSProviders(context.TODO(), b.K8sGardenClient.Client(), b.K8sSeedClient.Client())
+	o.Shoot.Components.Extensions.DNS.ExternalProvider = b.DefaultExternalDNSProvider(b.K8sSeedClient.DirectClient())
+	o.Shoot.Components.Extensions.DNS.ExternalOwner = b.DefaultExternalDNSOwner(b.K8sSeedClient.DirectClient())
+	o.Shoot.Components.Extensions.DNS.ExternalEntry = b.DefaultExternalDNSEntry(b.K8sSeedClient.DirectClient())
+	o.Shoot.Components.Extensions.DNS.InternalProvider = b.DefaultInternalDNSProvider(b.K8sSeedClient.DirectClient())
+	o.Shoot.Components.Extensions.DNS.InternalOwner = b.DefaultInternalDNSOwner(b.K8sSeedClient.DirectClient())
+	o.Shoot.Components.Extensions.DNS.InternalEntry = b.DefaultInternalDNSEntry(b.K8sSeedClient.DirectClient())
+	o.Shoot.Components.Extensions.DNS.NginxOwner = b.DefaultNginxIngressDNSOwner(b.K8sSeedClient.DirectClient())
+	o.Shoot.Components.Extensions.DNS.NginxEntry = b.DefaultNginxIngressDNSEntry(b.K8sSeedClient.DirectClient())
+	o.Shoot.Components.Extensions.DNS.AdditionalProviders, err = b.AdditionalDNSProviders(context.TODO(), b.K8sGardenClient.Client(), b.K8sSeedClient.DirectClient())
 	if err != nil {
 		return nil, err
 	}
+	o.Shoot.Components.Extensions.Infrastructure = b.DefaultInfrastructure(b.K8sSeedClient.DirectClient())
+	o.Shoot.Components.Extensions.Network = b.DefaultNetwork(b.K8sSeedClient.DirectClient())
 
-	o.Shoot.Components.DNS.NginxEntry = b.DefaultNginxIngressDNSEntry(b.K8sSeedClient.Client())
+	o.Shoot.Components.ControlPlane.KubeAPIServerService = b.DefaultKubeAPIServerService()
+	o.Shoot.Components.ControlPlane.KubeAPIServerSNI = b.DefaultKubeAPIServerSNI()
+
+	o.Shoot.Components.ClusterIdentity = clusteridentity.New(o.Shoot.Info.Status.ClusterIdentity, o.GardenClusterIdentity, o.Shoot.Info.Name, o.Shoot.Info.Namespace, o.Shoot.SeedNamespace, string(o.Shoot.Info.Status.UID), b.K8sGardenClient.DirectClient(), b.K8sSeedClient.DirectClient(), b.Logger)
 
 	return b, nil
 }
@@ -158,6 +170,22 @@ func (b *Botanist) CreateETCDSnapshot(ctx context.Context) error {
 
 	_, err := executor.Execute(ctx, b.Shoot.SeedNamespace, etcdMainPod.GetName(), "backup-restore", "/bin/sh", "curl -k https://etcd-main-local:8080/snapshot/full")
 	return err
+}
+
+// UpdateShootAndCluster updates the given `core.gardener.cloud/v1beta1.Shoot` resource in the garden cluster after
+// applying the given transform function to it. It will also update the `shoot` field in the
+// extensions.gardener.cloud/v1alpha1.Cluster` resource in the seed cluster with the updated shoot information.
+func (b *Botanist) UpdateShootAndCluster(ctx context.Context, shoot *gardencorev1beta1.Shoot, transform func() error) error {
+	if err := kutil.TryUpdate(ctx, retry.DefaultRetry, b.K8sGardenClient.DirectClient(), shoot, transform); err != nil {
+		return err
+	}
+
+	if err := common.SyncClusterResourceToSeed(ctx, b.K8sSeedClient.Client(), b.Shoot.SeedNamespace, shoot, nil, nil); err != nil {
+		return err
+	}
+
+	b.Shoot.Info = shoot
+	return nil
 }
 
 func getETCDMainLabelSelector() labels.Selector {

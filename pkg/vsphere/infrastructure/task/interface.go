@@ -19,7 +19,7 @@ package task
 
 import (
 	"github.com/go-logr/logr"
-	"github.com/vmware/go-vmware-nsxt"
+	nsxt "github.com/vmware/go-vmware-nsxt"
 	"github.com/vmware/go-vmware-nsxt/common"
 	vapiclient "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 
@@ -50,6 +50,7 @@ type Task interface {
 type RecoverableTask interface {
 	ListAll(a EnsurerContext, state *api.NSXTInfraState, cursor *string) (interface{}, error)
 	SetRecoveredReference(state *api.NSXTInfraState, ref *api.Reference, displayName *string)
+	IsExternal(state *api.NSXTInfraState) bool
 }
 
 type RecoverableAdvancedTask interface {

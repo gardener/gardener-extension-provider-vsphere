@@ -16,9 +16,12 @@ package infrastructure
 
 import (
 	"context"
+	"fmt"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd/infra-cli/loadbalancer"
 )
 
 func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
@@ -34,6 +37,20 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 	prepared, err := a.prepareReconcile(ctx, infra, cluster)
 	if err != nil {
 		return err
+	}
+
+	// try to cleanup any possible left-offs from the cloud-provider-vsphere load balancer controller
+	ipPoolName, err := prepared.getDefaultLoadBalancerIPPoolName()
+	if err == nil {
+		lbstate := &loadbalancer.DestroyState{
+			ClusterName:       cluster.ObjectMeta.Name + "-" + a.gardenID,
+			Owner:             a.gardenID,
+			DefaultIPPoolName: *ipPoolName,
+		}
+		err = loadbalancer.DestroyAll(prepared.nsxtConfig, lbstate)
+	}
+	if err != nil {
+		a.logger.Info(fmt.Sprintf("warning: cleanup of load balancers failed with: %s", err), "infra", infra.Name)
 	}
 
 	err = prepared.ensurer.EnsureInfrastructureDeleted(&prepared.spec, state)

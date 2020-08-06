@@ -95,6 +95,16 @@ var _ = Describe("ValuesProvider", func() {
 		cluster = &extensionscontroller.Cluster{
 			CloudProfile: &gardencorev1beta1.CloudProfile{
 				Spec: gardencorev1beta1.CloudProfileSpec{
+					MachineImages: []gardencorev1beta1.MachineImage{
+						{
+							Name: "coreos",
+							Versions: []gardencorev1beta1.ExpirableVersion{
+								{
+									Version: "2191.5.0",
+								},
+							},
+						},
+					},
 					ProviderConfig: &runtime.RawExtension{
 						Raw: encode(&apisvspherev1alpha1.CloudProfileConfig{
 							TypeMeta: metav1.TypeMeta{
@@ -291,7 +301,8 @@ insecure-flag = "true"
 				"serverPort":        443,
 				"datacenters":       "scc01-DC",
 				"insecureFlag":      "true",
-				"resizerEnabled":    true,
+				"csi2":              false,
+				"resizerEnabled":    false,
 				"podAnnotations": map[string]interface{}{
 					"checksum/secret-" + vsphere.CSIProvisionerName:               "f75b42d40ab501428c383dfb2336cb1fc892bbee1fc1d739675171e4acc4d911",
 					"checksum/secret-" + vsphere.CSIAttacherName:                  "2da58ad61c401a2af779a909d22fb42eed93a1524cbfdab974ceedb413fcb914",
@@ -313,6 +324,7 @@ insecure-flag = "true"
 				"serverPort":        443,
 				"datacenters":       "scc01-DC",
 				"insecureFlag":      "true",
+				"csi2":              false,
 				"kubernetesVersion": "1.14.0",
 			},
 		}

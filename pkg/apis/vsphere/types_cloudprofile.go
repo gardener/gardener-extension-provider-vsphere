@@ -43,6 +43,8 @@ type CloudProfileConfig struct {
 	Constraints Constraints
 	// CSIResizerDisabled is a flag to disable the CSI resizer (e.g. resizer is not supported for vSphere 6.7)
 	CSIResizerDisabled *bool
+	// MachineTypeOptions is the list of machine type options to set additional options for individual machine types.
+	MachineTypeOptions []MachineTypeOptions
 }
 
 // FailureDomainLabels are the tag categories used for regions and zones in vSphere CSI driver and cloud controller.
@@ -176,4 +178,17 @@ type LoadBalancerClass struct {
 	TCPAppProfileName *string
 	// UDPAppProfileName is the profile name of the load balaner profile for UDP
 	UDPAppProfileName *string
+}
+
+// MachineTypeOptions defines additional VM options for an machine type given by name
+type MachineTypeOptions struct {
+	// Name is the name of the machine type
+	Name string
+	// MemoryReservationLockedToMax is flag to reserve all guest OS memory (no swapping in ESXi host)
+	// +optional
+	MemoryReservationLockedToMax *bool
+	// ExtraConfig allows to specify additional VM options.
+	// e.g. sched.swap.vmxSwapEnabled=false to disable the VMX process swap file
+	// +optional
+	ExtraConfig map[string]string
 }

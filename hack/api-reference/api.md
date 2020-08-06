@@ -159,6 +159,20 @@ bool
 <p>CSIResizerDisabled is a flag to disable the CSI resizer (e.g. resizer is not supported for vSphere 6.7)</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>machineTypeOptions</code></br>
+<em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.MachineTypeOptions">
+[]MachineTypeOptions
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>MachineTypeOptions is the list of machine type options to set additional options for individual machine types.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.ControlPlaneConfig">ControlPlaneConfig
@@ -262,6 +276,21 @@ vsphere.provider.extensions.gardener.cloud/v1alpha1
 string
 </td>
 <td><code>InfrastructureConfig</code></td>
+</tr>
+<tr>
+<td>
+<code>networks</code></br>
+<em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.Networks">
+Networks
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Networks contains optional existing network infrastructure to use.
+If not defined, NSX-T Tier-1 gateway and load balancer are created for the shoot cluster.</p>
+</td>
 </tr>
 <tr>
 <td>
@@ -886,6 +915,61 @@ string
 </tr>
 </tbody>
 </table>
+<h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.MachineTypeOptions">MachineTypeOptions
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.CloudProfileConfig">CloudProfileConfig</a>)
+</p>
+<p>
+<p>MachineTypeOptions defines additional VM options for an machine type given by name</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the name of the machine type</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>memoryReservationLockedToMax</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>MemoryReservationLockedToMax is flag to reserve all guest OS memory (no swapping in ESXi host)</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraConfig</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>ExtraConfig allows to specify additional VM options.
+e.g. sched.swap.vmxSwapEnabled=false to disable the VMX process swap file</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.NSXTInfraState">NSXTInfraState
 </h3>
 <p>
@@ -968,6 +1052,16 @@ Reference
 <a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.Reference">
 Reference
 </a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>externalTier1Gateway</code></br>
+<em>
+bool
 </em>
 </td>
 <td>
@@ -1063,6 +1157,47 @@ AdvancedDHCPState
 </em>
 </td>
 <td>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.Networks">Networks
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.InfrastructureConfig">InfrastructureConfig</a>)
+</p>
+<p>
+<p>Networks contains existing NSX-T network infrastructure to use.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>tier1GatewayPath</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Tier1GatewayPath is the path of the existing NSX-T Tier-1 Gateway to use.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>loadBalancerServicePath</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>LoadBalancerServicePath is the path of the existing NSX-T load balancer service assigned to the Tier-1 Gateway</p>
 </td>
 </tr>
 </tbody>

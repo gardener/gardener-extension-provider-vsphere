@@ -30,9 +30,20 @@ var SupportedEnsurerVersions = []string{Ensurer_Version1_NSXT25, Ensurer_Version
 // InfrastructureConfig infrastructure configuration resource
 type InfrastructureConfig struct {
 	metav1.TypeMeta
+	// Networks contains optional existing network infrastructure to use.
+	// If not defined, NSX-T Tier-1 gateway and load balancer are created for the shoot cluster.
+	Networks *Networks
 	// OverwriteNSXTInfraVersion allows to fix the ensurer version used to create the NSXT-T infrastructure.
 	// This is an advanced configuration to overwrite the automatic version selection.
 	OverwriteNSXTInfraVersion *string
+}
+
+// Networks contains existing NSX-T network infrastructure to use.
+type Networks struct {
+	// Tier1GatewayPath is the path of the existing NSX-T Tier-1 Gateway to use.
+	Tier1GatewayPath string
+	// LoadBalancerServicePath is the path of the existing NSX-T load balancer service assigned to the Tier-1 Gateway
+	LoadBalancerServicePath string
 }
 
 // VsphereConfig holds information about vSphere resources to use.
@@ -86,6 +97,7 @@ type NSXTInfraState struct {
 	Tier0GatewayRef       *Reference
 	SNATIPPoolRef         *Reference
 	Tier1GatewayRef       *Reference
+	ExternalTier1Gateway  *bool
 	LocaleServiceRef      *Reference
 	SegmentRef            *Reference
 	SNATIPAddressAllocRef *Reference

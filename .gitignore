@@ -11,6 +11,7 @@
 .idea
 .DS_Store
 *~
+infra-cli
 
 TODO
 
