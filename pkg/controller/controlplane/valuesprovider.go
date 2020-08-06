@@ -508,10 +508,9 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	}
 
 	clusterID := cp.Namespace + "-" + vp.gardenID
-	csiResizerEnabled := false
-	csi2 := !(cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled)
-	// for v2.0.0
-	// csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
+	// TODO drop csi2 flag if validated that v2.0 works correctly with vSphere 7.0 fix1
+	csi2 := true
+	csiResizerEnabled := csi2 && (cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled)
 	values := map[string]interface{}{
 		"vsphere-cloud-controller-manager": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
@@ -587,7 +586,8 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 	}
 
 	clusterID := cp.Namespace + "-" + vp.gardenID
-	csi2 := !(cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled)
+	// TODO drop csi2 flag if validated that v2.0 works correctly with vSphere 7.0 fix1
+	csi2 := true
 	values := map[string]interface{}{
 		"csi-vsphere": map[string]interface{}{
 			"serverName":        serverName,
