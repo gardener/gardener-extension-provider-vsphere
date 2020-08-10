@@ -49,7 +49,7 @@ github.com/gardener/etcd-druid/api/v1alpha1
 github.com/gardener/external-dns-management/pkg/apis/dns
 github.com/gardener/external-dns-management/pkg/apis/dns/v1alpha1
 github.com/gardener/external-dns-management/pkg/client/dns/clientset/versioned/scheme
-# github.com/gardener/gardener v1.7.1-0.20200803135146-0255b12f5b51
+# github.com/gardener/gardener v1.8.0
 ## explicit
 github.com/gardener/gardener/.github
 github.com/gardener/gardener/.github/ISSUE_TEMPLATE

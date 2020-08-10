@@ -7,7 +7,7 @@ require (
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
 	github.com/gardener/controller-manager-library v0.1.1-0.20200204110458-c263b9bb97ad
 	github.com/gardener/etcd-druid v0.3.0
-	github.com/gardener/gardener v1.7.1-0.20200803135146-0255b12f5b51 // need v1.8.0
+	github.com/gardener/gardener v1.8.0
 	github.com/gardener/machine-controller-manager v0.33.0
 	github.com/go-logr/logr v0.1.0
 	github.com/gobuffalo/packr/v2 v2.8.0
