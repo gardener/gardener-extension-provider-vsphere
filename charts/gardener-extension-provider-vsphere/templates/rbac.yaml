@@ -50,6 +50,7 @@ rules:
   - storage.k8s.io
   resources:
   - namespaces
+  - namespaces/finalizers
   - events
   - secrets
   - configmaps
