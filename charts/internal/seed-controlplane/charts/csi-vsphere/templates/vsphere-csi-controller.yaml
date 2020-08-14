@@ -78,71 +78,8 @@ spec:
             - name: csi-resizer
               mountPath: /var/lib/csi-resizer
 {{- end }}
-{{- if .Values.csi2 }}
-        - name: vsphere-csi-controller
-          image: {{ index .Values.images "new-vsphere-csi-driver-controller" }}
-          env:
-            - name: KUBECONFIG
-              value: /var/lib/vsphere-csi-controller/kubeconfig
-            - name: CSI_ENDPOINT
-              value: unix:///var/lib/csi/sockets/pluginproxy/csi.sock
-            - name: X_CSI_MODE
-              value: "controller"
-            - name: VSPHERE_CSI_CONFIG
-              value: "/etc/cloud/csi-vsphere.conf"
-            - name: LOGGER_LEVEL
-              value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
-{{- if .Values.resources.controller }}
-          resources:
-{{ toYaml .Values.resources.controller | indent 12 }}
-{{- end }}
-          volumeMounts:
-            - mountPath: /etc/cloud
-              name: vsphere-config-volume
-              readOnly: true
-            - mountPath: /var/lib/csi/sockets/pluginproxy/
-              name: socket-dir
-            - name: vsphere-csi-controller
-              mountPath: /var/lib/vsphere-csi-controller
-          ports:
-            - name: healthz
-              containerPort: 9808
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: healthz
-            initialDelaySeconds: 10
-            timeoutSeconds: 3
-            periodSeconds: 5
-            failureThreshold: 3
-        - name: vsphere-syncer
-          image: {{ index .Values.images "new-vsphere-csi-driver-syncer" }}
-          args:
-            - "--leader-election"
-            - "--kubeconfig=/var/lib/csi-syncer/kubeconfig"
-          env:
-            - name: FULL_SYNC_INTERVAL_MINUTES
-              value: "30"
-            - name: VSPHERE_CSI_CONFIG
-              value: "/etc/cloud/csi-vsphere.conf"
-            - name: LOGGER_LEVEL
-              value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
-{{- if .Values.resources.syncer }}
-          resources:
-{{ toYaml .Values.resources.syncer | indent 12 }}
-{{- end }}
-          volumeMounts:
-            - name: csi-syncer
-              mountPath: /var/lib/csi-syncer
-            - mountPath: /etc/cloud
-              name: vsphere-config-volume
-              readOnly: true
-{{- else }}
         - name: vsphere-csi-controller
           image: {{ index .Values.images "vsphere-csi-driver-controller" }}
-          args:
-            - "--v=4"
           env:
             - name: KUBECONFIG
               value: /var/lib/vsphere-csi-controller/kubeconfig
@@ -152,6 +89,8 @@ spec:
               value: "controller"
             - name: VSPHERE_CSI_CONFIG
               value: "/etc/cloud/csi-vsphere.conf"
+            - name: LOGGER_LEVEL
+              value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
 {{- if .Values.resources.controller }}
           resources:
 {{ toYaml .Values.resources.controller | indent 12 }}
@@ -179,7 +118,7 @@ spec:
         - name: vsphere-syncer
           image: {{ index .Values.images "vsphere-csi-driver-syncer" }}
           args:
-            - "--v=2"
+            - "--leader-election"
             - "--kubeconfig=/var/lib/csi-syncer/kubeconfig"
           env:
             - name: FULL_SYNC_INTERVAL_MINUTES
@@ -198,7 +137,6 @@ spec:
             - mountPath: /etc/cloud
               name: vsphere-config-volume
               readOnly: true
-{{- end }}
         - name: liveness-probe
           image: {{ index .Values.images "liveness-probe" }}
           args:

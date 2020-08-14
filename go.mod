@@ -19,9 +19,9 @@ require (
 	github.com/spf13/cobra v0.0.6
 	github.com/spf13/pflag v1.0.5
 	github.com/vmware/go-vmware-nsxt v0.0.0-20200114231430-33a5af043f2e
-	github.com/vmware/vsphere-automation-sdk-go/lib v0.2.0
-	github.com/vmware/vsphere-automation-sdk-go/runtime v0.2.0
-	github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.3.0
+	github.com/vmware/vsphere-automation-sdk-go/lib v0.3.1
+	github.com/vmware/vsphere-automation-sdk-go/runtime v0.3.1
+	github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.4.0
 	k8s.io/api v0.17.9
 	k8s.io/apiextensions-apiserver v0.17.9
 	k8s.io/apimachinery v0.17.9

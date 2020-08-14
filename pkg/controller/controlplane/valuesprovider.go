@@ -19,6 +19,7 @@ package controlplane
 import (
 	"context"
 	"fmt"
+	"hash/fnv"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -179,8 +180,6 @@ var controlPlaneChart = &chart.Chart{
 				vsphere.CSIProvisionerImageName,
 				vsphere.CSIDriverControllerImageName,
 				vsphere.CSIDriverSyncerImageName,
-				"new-" + vsphere.CSIDriverControllerImageName,
-				"new-" + vsphere.CSIDriverSyncerImageName,
 				vsphere.CSIResizerImageName,
 				vsphere.LivenessProbeImageName},
 			Objects: []*chart.Object{
@@ -210,7 +209,6 @@ var controlPlaneShootChart = &chart.Chart{
 			Images: []string{
 				vsphere.CSINodeDriverRegistrarImageName,
 				vsphere.CSIDriverNodeImageName,
-				"new-" + vsphere.CSIDriverNodeImageName,
 				vsphere.LivenessProbeImageName,
 			},
 			Objects: []*chart.Object{
@@ -507,10 +505,8 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 		return nil, err
 	}
 
-	clusterID := cp.Namespace + "-" + vp.gardenID
-	// TODO drop csi2 flag if validated that v2.0 works correctly with vSphere 7.0 fix1
-	csi2 := true
-	csiResizerEnabled := csi2 && (cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled)
+	clusterID, csiClusterID := vp.calcClusterIDs(cp)
+	csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
 	values := map[string]interface{}{
 		"vsphere-cloud-controller-manager": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
@@ -531,14 +527,13 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 			"serverName":        serverName,
-			"clusterID":         clusterID,
+			"clusterID":         csiClusterID,
 			"username":          credentials.VsphereCSI().Username,
 			"password":          credentials.VsphereCSI().Password,
 			"serverPort":        port,
 			"datacenters":       strings.Join(helper.CollectDatacenters(region), ","),
 			"insecureFlag":      fmt.Sprintf("%t", region.VsphereInsecureSSL),
 			"resizerEnabled":    csiResizerEnabled,
-			"csi2":              csi2,
 			"podAnnotations": map[string]interface{}{
 				"checksum/secret-" + vsphere.CSIProvisionerName:               checksums[vsphere.CSIProvisionerName],
 				"checksum/secret-" + vsphere.CSIAttacherName:                  checksums[vsphere.CSIAttacherName],
@@ -585,22 +580,39 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 		return nil, err
 	}
 
-	clusterID := cp.Namespace + "-" + vp.gardenID
-	// TODO drop csi2 flag if validated that v2.0 works correctly with vSphere 7.0 fix1
-	csi2 := true
+	_, csiClusterID := vp.calcClusterIDs(cp)
 	values := map[string]interface{}{
 		"csi-vsphere": map[string]interface{}{
 			"serverName":        serverName,
-			"clusterID":         clusterID,
+			"clusterID":         csiClusterID,
 			"username":          credentials.VsphereCSI().Username,
 			"password":          credentials.VsphereCSI().Password,
 			"serverPort":        port,
 			"datacenters":       strings.Join(helper.CollectDatacenters(region), ","),
 			"insecureFlag":      insecureFlag,
-			"csi2":              csi2,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 		},
 	}
 
 	return values, nil
+}
+
+func (vp *valuesProvider) calcClusterIDs(cp *extensionsv1alpha1.ControlPlane) (clusterID string, csiClusterID string) {
+	clusterID = cp.Namespace + "-" + vp.gardenID
+	csiClusterID = shortenID(clusterID, 63)
+	return
+}
+
+func shortenID(id string, maxlen int) string {
+	if maxlen < 16 {
+		panic("maxlen < 16 for shortenID")
+	}
+	if len(id) <= maxlen {
+		return id
+	}
+
+	hash := fnv.New64()
+	_, _ = hash.Write([]byte(id))
+	hashstr := strconv.FormatUint(hash.Sum64(), 36)
+	return fmt.Sprintf("%s-%s", id[:62-len(hashstr)], hashstr)
 }
