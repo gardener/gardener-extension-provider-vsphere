@@ -445,11 +445,11 @@ github.com/vmware/govmomi/vim25/xml
 github.com/vmware/govmomi/vslm
 github.com/vmware/govmomi/vslm/methods
 github.com/vmware/govmomi/vslm/types
-# github.com/vmware/vsphere-automation-sdk-go/lib v0.2.0
+# github.com/vmware/vsphere-automation-sdk-go/lib v0.3.1
 ## explicit
 github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std
 github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors
-# github.com/vmware/vsphere-automation-sdk-go/runtime v0.2.0
+# github.com/vmware/vsphere-automation-sdk-go/runtime v0.3.1
 ## explicit
 github.com/vmware/vsphere-automation-sdk-go/runtime/bindings
 github.com/vmware/vsphere-automation-sdk-go/runtime/common
@@ -470,7 +470,7 @@ github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client/metadata
 github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/server
 github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/server/rpc/msg
 github.com/vmware/vsphere-automation-sdk-go/runtime/security
-# github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.3.0
+# github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.4.0
 ## explicit
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/ip_pools
@@ -514,7 +514,7 @@ golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/modfile
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+# golang.org/x/net v0.0.0-20200602114024-627f9648deb9
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/html

@@ -49,7 +49,7 @@ func getNSXTVersion(connector client.Connector) (*string, error) {
 		dispatchHeaderParams := map[string]string{}
 		bodyFieldsMap := map[string]string{}
 		resultHeaders := map[string]string{}
-		errorHeaders := map[string]string{}
+		errorHeaders := map[string]map[string]string{}
 		return protocol.NewOperationRestMetadata(
 			fields,
 			fieldNameMap,
