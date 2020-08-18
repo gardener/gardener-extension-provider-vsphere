@@ -16,7 +16,7 @@ For Gardener Enhancement Proposals (GEPs), please check the following [documenta
 /area TODO
 /kind TODO
 /priority normal
-/platform vmware
+/platform vsphere
 
 **What this PR does / why we need it**:
 

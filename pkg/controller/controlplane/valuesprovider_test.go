@@ -136,6 +136,10 @@ var _ = Describe("ValuesProvider", func() {
 								},
 							},
 							DNSServers: []string{"1.2.3.4"},
+							FailureDomainLabels: &apisvspherev1alpha1.FailureDomainLabels{
+								Region: "k8s-region",
+								Zone:   "k8s-zone",
+							},
 							Constraints: apisvspherev1alpha1.Constraints{
 								LoadBalancerConfig: apisvspherev1alpha1.LoadBalancerConfig{
 									Size: "MEDIUM",
@@ -270,6 +274,8 @@ insecure-flag = "true"
 				"usernameNE":   "nsxt-ne",
 				"remoteAuth":   true,
 			},
+			"labelRegion": "k8s-region",
+			"labelZone":   "k8s-zone",
 		}
 
 		controlPlaneChartValues = map[string]interface{}{
@@ -311,6 +317,8 @@ insecure-flag = "true"
 					"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
 					"checksum/secret-" + vsphere.SecretCSIVsphereConfig:           "a93175a6208bed98639833cf08f616d3329884d2558c1b61cde3656f2a57b5be",
 				},
+				"labelRegion": "k8s-region",
+				"labelZone":   "k8s-zone",
 			},
 		}
 
@@ -324,6 +332,8 @@ insecure-flag = "true"
 				"datacenters":       "scc01-DC",
 				"insecureFlag":      "true",
 				"kubernetesVersion": "1.14.0",
+				"labelRegion":       "k8s-region",
+				"labelZone":         "k8s-zone",
 			},
 		}
 
