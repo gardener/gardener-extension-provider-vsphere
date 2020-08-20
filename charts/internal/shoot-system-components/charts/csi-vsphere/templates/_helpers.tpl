@@ -8,6 +8,14 @@ datacenters = "{{ .Values.datacenters }}"
 user = "{{ .Values.username }}"
 password = "{{ .Values.password }}"
 insecure-flag = "{{ .Values.insecureFlag }}"
+
+[Labels]
+{{- if .Values.labelRegion }}
+region = "{{ .Values.labelRegion }}"
+{{- end }}
+{{- if .Values.labelZone }}
+zone = "{{ .Values.labelZone }}"
+{{- end }}
 {{- end -}}
 
 {{- define "csi-driver-node.extensionsGroup" -}}

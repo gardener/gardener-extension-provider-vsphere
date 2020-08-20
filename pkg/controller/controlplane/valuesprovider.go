@@ -550,6 +550,11 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 		values["vsphere-cloud-controller-manager"].(map[string]interface{})["featureGates"] = cpConfig.CloudControllerManager.FeatureGates
 	}
 
+	if cloudProfileConfig.FailureDomainLabels != nil {
+		values["csi-vsphere"].(map[string]interface{})["labelRegion"] = cloudProfileConfig.FailureDomainLabels.Region
+		values["csi-vsphere"].(map[string]interface{})["labelZone"] = cloudProfileConfig.FailureDomainLabels.Zone
+	}
+
 	return values, nil
 }
 
@@ -592,6 +597,11 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 			"insecureFlag":      insecureFlag,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 		},
+	}
+
+	if cloudProfileConfig.FailureDomainLabels != nil {
+		values["csi-vsphere"].(map[string]interface{})["labelRegion"] = cloudProfileConfig.FailureDomainLabels.Region
+		values["csi-vsphere"].(map[string]interface{})["labelZone"] = cloudProfileConfig.FailureDomainLabels.Zone
 	}
 
 	return values, nil

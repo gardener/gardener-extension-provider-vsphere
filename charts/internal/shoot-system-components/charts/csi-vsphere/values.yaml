@@ -11,3 +11,6 @@ datacenters: dc1
 insecureFlag: true
 # topology-aware setup
 topologyAware: true
+
+#labelRegion: k8s-region
+#labelZone: k8s-zone

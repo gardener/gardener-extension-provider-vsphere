@@ -16,6 +16,10 @@ datacenters: dc1
 insecureFlag: true
 resizerEnabled: false
 loggerLevel: PRODUCTION
+
+#labelRegion: k8s-region
+#labelZone: k8s-zone
+
 resources:
   attacher:
     requests:
