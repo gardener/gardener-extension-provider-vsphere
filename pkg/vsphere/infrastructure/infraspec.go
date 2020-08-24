@@ -27,6 +27,8 @@ import (
 const (
 	ScopeGarden = "garden"
 	ScopeShoot  = "shoot"
+	// ScopeAuthorizedShoots is the tag name used to annotate a NSX-T object with allowed shoot-names
+	ScopeAuthorizedShoots = "authorized-shoots"
 )
 
 func (s NSXTInfraSpec) FullClusterName() string {

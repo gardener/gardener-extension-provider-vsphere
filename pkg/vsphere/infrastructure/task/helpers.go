@@ -153,3 +153,11 @@ func IdFromPath(path string) string {
 	id := parts[len(parts)-1]
 	return id
 }
+
+func TagsToMap(tags []model.Tag) map[string]string {
+	tagmap := map[string]string{}
+	for _, tag := range tags {
+		tagmap[*tag.Scope] = *tag.Tag
+	}
+	return tagmap
+}

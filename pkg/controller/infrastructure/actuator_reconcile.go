@@ -34,6 +34,7 @@ import (
 	apishelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	apisvspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/helpers"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
 )
@@ -88,13 +89,7 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 		dnsServers = region.DNSServers
 	}
 
-	nsxtConfig := &infrastructure.NSXTConfig{
-		User:         creds.NSXT_NetworkEngineer().Username,
-		Password:     creds.NSXT_NetworkEngineer().Password,
-		Host:         region.NSXTHost,
-		InsecureFlag: region.NSXTInsecureSSL,
-		RemoteAuth:   region.NSXTRemoteAuth,
-	}
+	nsxtConfig := helpers.NewNSXTConfig(creds, region)
 
 	spec := infrastructure.NSXTInfraSpec{
 		EdgeClusterName:   region.EdgeCluster,
@@ -112,7 +107,8 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 		spec.ExternalTier1GatewayPath = &infraConfig.Networks.Tier1GatewayPath
 	}
 
-	infraEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(a.logger, nsxtConfig)
+	shootCtx := &ensurer.ShootContext{ShootNamespace: cluster.ObjectMeta.Name, GardenID: a.gardenID}
+	infraEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(a.logger, nsxtConfig, shootCtx)
 	if err != nil {
 		return nil, err
 	}

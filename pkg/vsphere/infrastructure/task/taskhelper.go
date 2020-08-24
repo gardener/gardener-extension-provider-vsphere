@@ -20,8 +20,11 @@ package task
 import (
 	"fmt"
 	"reflect"
+	"regexp"
+	"strings"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std"
@@ -29,6 +32,7 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
 	vapiclient "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/realized_state"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 
@@ -284,4 +288,70 @@ func newDHCPConfig(spec vinfra.NSXTInfraSpec) (*dhcpConfig, error) {
 		LeaseTime:         int64(2 * time.Hour.Seconds()),
 		DNSServers:        spec.DNSServers,
 	}, nil
+}
+
+func LookupIPPoolIDByName(ctx EnsurerContext, name string) (string, string, error) {
+	client := infra.NewDefaultIpPoolsClient(ctx.Connector())
+	var cursor *string
+	total := 0
+	count := 0
+	for {
+		result, err := client.List(cursor, nil, nil, nil, nil, nil)
+		if err != nil {
+			return "", "", nicerVAPIError(err)
+		}
+		for _, item := range result.Results {
+			if *item.DisplayName == name {
+				// found
+				return *item.Id, *item.Path, nil
+			}
+		}
+		if cursor == nil {
+			total = int(*result.ResultCount)
+		}
+		count += len(result.Results)
+		if count >= total {
+			return "", "", fmt.Errorf("not found: %s", name)
+		}
+		cursor = result.Cursor
+	}
+}
+
+func CheckShootAuthorizationByTags(logger logr.Logger, objectType, name, shootNamespace, gardenID string, tags map[string]string) error {
+	gardenIDValue := tags[vinfra.ScopeGarden]
+	if len(gardenIDValue) == 0 {
+		return fmt.Errorf("shoot %s is not authorized to use the %s %s (missing tag %s)",
+			shootNamespace, objectType, name, vinfra.ScopeGarden)
+	}
+	if gardenID != gardenIDValue {
+		return fmt.Errorf("shoot %s is not authorized to use the %s %s (gardenID mismatch: %s != %s)",
+			shootNamespace, objectType, name, gardenID, gardenIDValue)
+	}
+	authorizedShoots := tags[vinfra.ScopeAuthorizedShoots]
+	if len(authorizedShoots) == 0 {
+		return fmt.Errorf("shoot %s is not authorized to use the %s %s (missing tag %s)",
+			shootNamespace, objectType, name, vinfra.ScopeAuthorizedShoots)
+	}
+
+	for _, part := range strings.Split(authorizedShoots, ",") {
+		if strings.Contains(part, "*") {
+			reString := fmt.Sprintf("^%s$", strings.ReplaceAll(part, "*", ".*"))
+			re, err := regexp.Compile(reString)
+			if err != nil {
+				if logger != nil {
+					logger.Info("invalid regex in checkShootAuthorizationByTags",
+						"objectType", objectType, "name", name, "part", part)
+				}
+				continue
+			}
+			if re.MatchString(shootNamespace) {
+				return nil // found
+			}
+		} else if part == shootNamespace {
+			return nil // found
+		}
+	}
+
+	return fmt.Errorf("shoot %s is not authorized to use the %s %s (no match in value of tag %s)",
+		shootNamespace, objectType, name, vinfra.ScopeAuthorizedShoots)
 }

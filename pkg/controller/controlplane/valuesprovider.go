@@ -25,11 +25,6 @@ import (
 	"strings"
 
 	"github.com/gardener/controller-manager-library/pkg/utils"
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
@@ -39,6 +34,15 @@ import (
 	"github.com/gardener/gardener/pkg/utils/chart"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/secrets"
+
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	apishelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/helpers"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
 
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
@@ -400,7 +404,9 @@ func (vp *valuesProvider) getConfigChartValues(
 		return nil, err
 	}
 
-	defaultClass, loadBalancersClasses, err := validation.OverwriteLoadBalancerClasses(cloudProfileConfig.Constraints.LoadBalancerConfig.Classes, cpConfig)
+	checkFunc := vp.checkAuthorizationOfOverwrittenIPPoolName(cluster, cloudProfileConfig, credentials)
+	defaultClass, loadBalancersClasses, err := validation.OverwriteLoadBalancerClasses(
+		cloudProfileConfig.Constraints.LoadBalancerConfig.Classes, cpConfig, checkFunc)
 	if err != nil {
 		return nil, err
 	}
@@ -478,6 +484,34 @@ func (vp *valuesProvider) getConfigChartValues(
 	}
 
 	return values, nil
+}
+
+func (vp *valuesProvider) checkAuthorizationOfOverwrittenIPPoolName(cluster *extensionscontroller.Cluster,
+	cloudProfileConfig *apisvsphere.CloudProfileConfig, credentials *vsphere.Credentials) func(ipPoolName string) error {
+
+	wrap := func(err error) error {
+		return errors.Wrap(err, "checkAuthorizationOfOverwrittenIPPoolName failed")
+	}
+	return func(ipPoolName string) error {
+		regionName := cluster.Shoot.Spec.Region
+		region := apishelper.FindRegion(regionName, cloudProfileConfig)
+		if region == nil {
+			return wrap(fmt.Errorf("region %q not found in cloud profile", regionName))
+		}
+		nsxtConfig := helpers.NewNSXTConfig(credentials, region)
+		shootCtx := &ensurer.ShootContext{ShootNamespace: cluster.ObjectMeta.Name, GardenID: vp.gardenID}
+		infraEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(vp.logger, nsxtConfig, shootCtx)
+		if err != nil {
+			return wrap(err)
+		}
+
+		tags, err := infraEnsurer.GetIPPoolTags(ipPoolName)
+		if err != nil {
+			return wrap(err)
+		}
+
+		return infraEnsurer.CheckShootAuthorizationByTags("IP pool", ipPoolName, tags)
+	}
 }
 
 // getControlPlaneChartValues collects and returns the control plane chart values.

@@ -66,4 +66,8 @@ type NSXTInfrastructureEnsurer interface {
 	// EnsureInfrastructureDeleted ensures that all infrastructure objects are deleted
 	// It even trys to recover objects not recorded in the state before deleting them.
 	EnsureInfrastructureDeleted(spec *NSXTInfraSpec, state *api.NSXTInfraState) error
+	// GetIPPoolTags retrieves the tags of an IP pool
+	GetIPPoolTags(ipPoolName string) (map[string]string, error)
+	// CheckShootAuthorizationByTags checks if shoot namespace is allowed in the tags
+	CheckShootAuthorizationByTags(objectType, name string, tags map[string]string) error
 }

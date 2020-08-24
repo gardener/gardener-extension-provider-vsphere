@@ -42,7 +42,7 @@ import (
 )
 
 func CreateIPPool(logger logr.Logger, cfg *infrastructure.NSXTConfig, ipPoolName, ipPoolRanges, ipPoolCidr string, advancedAPI bool) error {
-	infrastructureEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(logger, cfg)
+	infrastructureEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(logger, cfg, nil)
 	if err != nil {
 		return errors.Wrapf(err, "creating ensurer failed")
 	}
@@ -179,7 +179,7 @@ func ipAddressPoolStaticSubnetToStructValue(poolPath *string, ipPoolName, ipPool
 }
 
 func DeleteIPPool(logger logr.Logger, cfg *infrastructure.NSXTConfig, ipPoolName string, advancedAPI bool) error {
-	infrastructureEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(logger, cfg)
+	infrastructureEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(logger, cfg, nil)
 	if err != nil {
 		return errors.Wrapf(err, "creating ensurer failed")
 	}

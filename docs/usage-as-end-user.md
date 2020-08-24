@@ -58,12 +58,14 @@ infrastructureConfig:
 By default, the infrastructure controller creates a separate Tier-1 gateway for each shoot cluster
 and the cloud controller manager (`vsphere-cloud-provider`) creates a load balancer service.
 
-If an existing tier-1 gateway should be used, you can specify its 'path'. In this case, there
+If an existing Tier-1 gateway should be used, you can specify its 'path'. In this case, there
 must also be a load balancer service defined for this tier-1 gateway and its 'path' needs to be specified, too.
 In the NSX-T manager UI, the path of the tier-1 gateway can be found at `Networking / Tier-1 Gateways`.
 Then select `Copy path to clipboard` from the context menu of the tier-1 gateway 
 (click on the three vertical dots on the left of the row). Do the same with the 
 corresponding load balancer at `Networking / Load balancing / Tab Load Balancers`
+For security reasons the referenced Tier-1 gateway in NSX-T must have a tag with scope `authorized-shoots` and its
+tag value consists of a comma-separated list of the allowed shoot names (optionally with wildcard `*`)
 
 Example:
 
@@ -111,6 +113,8 @@ The specified names must be defined in the constraints section of the cloud prof
 If the list contains a load balancer named "default", it is used as the default load balancer.
 Otherwise the first one is also the default.
 If no classes are specified the default load balancer class is used as defined in the cloud profile constraints section.
+If the ipPoolName is overwritten, the IP pool object in NSX-T must have a tag with scope `authorized-shoots` and its
+tag value consists of a comma-separated list of the allowed shoot names (optionally with wildcard `*`)
 
 The `loadBalancerSize` is optional and overwrites the default value specified in the cloud profile config.
 It must be one of the values `SMALL`, `MEDIUM`, or `LARGE`. `SMALL` can manage 10 service ports,
