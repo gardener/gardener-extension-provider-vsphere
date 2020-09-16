@@ -27,7 +27,7 @@ import (
 )
 
 func CreateInfrastructure(logger logr.Logger, cfg *infrastructure.NSXTConfig, specString string, fixedVersion *string) (*string, error) {
-	infrastructureEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(logger, cfg)
+	infrastructureEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(logger, cfg, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating ensurer failed")
 	}

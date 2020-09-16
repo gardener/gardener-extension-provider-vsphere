@@ -34,7 +34,7 @@ func DestroyInfrastructure(logger logr.Logger, cfg *infrastructure.NSXTConfig, s
 	if stateString == nil && specString == nil {
 		return nil, fmt.Errorf("Either state or spec is needed to destroy infrastructure")
 	}
-	infrastructureEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(logger, cfg)
+	infrastructureEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(logger, cfg, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating ensurer failed")
 	}

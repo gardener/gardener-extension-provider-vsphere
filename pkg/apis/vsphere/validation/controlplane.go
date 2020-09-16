@@ -60,12 +60,12 @@ func ValidateControlPlaneConfigUpdate(oldConfig, newConfig *apisvsphere.ControlP
 	constraintsClasses := []apisvsphere.LoadBalancerClass{
 		{Name: apisvsphere.LoadBalancerDefaultClassName, IPPoolName: sp("dummy")},
 	}
-	oldDefault, _, err := OverwriteLoadBalancerClasses(constraintsClasses, oldConfig)
+	oldDefault, _, err := OverwriteLoadBalancerClasses(constraintsClasses, oldConfig, nil)
 	if err != nil {
 		allErrs = append(allErrs, field.InternalError(fldPath.Child("loadBalancerClasses"), err))
 		return allErrs
 	}
-	newDefault, _, err := OverwriteLoadBalancerClasses(constraintsClasses, newConfig)
+	newDefault, _, err := OverwriteLoadBalancerClasses(constraintsClasses, newConfig, nil)
 	if err != nil {
 		allErrs = append(allErrs, field.InternalError(fldPath.Child("loadBalancerClasses"), err))
 		return allErrs
@@ -86,7 +86,7 @@ func ValidateControlPlaneConfigUpdate(oldConfig, newConfig *apisvsphere.ControlP
 func ValidateControlPlaneConfigAgainstCloudProfile(cpConfig *apisvsphere.ControlPlaneConfig, shootRegion string, cloudProfile *gardencorev1beta1.CloudProfile, cloudProfileConfig *apisvsphere.CloudProfileConfig, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
-	_, _, err := OverwriteLoadBalancerClasses(cloudProfileConfig.Constraints.LoadBalancerConfig.Classes, cpConfig)
+	_, _, err := OverwriteLoadBalancerClasses(cloudProfileConfig.Constraints.LoadBalancerConfig.Classes, cpConfig, nil)
 	if err != nil {
 		allErrs = append(allErrs, field.InternalError(fldPath.Child("loadBalancerClasses"), err))
 	}
@@ -99,15 +99,18 @@ func HasRelevantControlPlaneConfigUpdates(oldCpConfig *apisvsphere.ControlPlaneC
 		{Name: apisvsphere.LoadBalancerDefaultClassName, IPPoolName: sp("dummy")},
 	}
 
-	oldDefaultClass, _, _ := OverwriteLoadBalancerClasses(constraintsClasses, oldCpConfig)
-	newDefaultClass, _, _ := OverwriteLoadBalancerClasses(constraintsClasses, newCpConfig)
+	oldDefaultClass, _, _ := OverwriteLoadBalancerClasses(constraintsClasses, oldCpConfig, nil)
+	newDefaultClass, _, _ := OverwriteLoadBalancerClasses(constraintsClasses, newCpConfig, nil)
 
 	return oldDefaultClass == nil || newDefaultClass == nil ||
 		!equality.Semantic.DeepEqual(*oldDefaultClass, *newDefaultClass)
 }
 
-// OverwriteLoadBalancerClasses uses load balancer constraints classes as defaults for cpConfig load balancer classes
-func OverwriteLoadBalancerClasses(constraintsClasses []apisvsphere.LoadBalancerClass, cpConfig *apisvsphere.ControlPlaneConfig) (*apisvsphere.LoadBalancerClass, []apisvsphere.LoadBalancerClass, error) {
+// OverwriteLoadBalancerClasses uses load balancer constraints classes as defaults for cpConfig load balancer classes.
+// The checkIPPoolName function is optional. It can be used to check that the name provided by the shoot manifest is
+// authorized.
+func OverwriteLoadBalancerClasses(constraintsClasses []apisvsphere.LoadBalancerClass, cpConfig *apisvsphere.ControlPlaneConfig,
+	checkIPPoolName func(name string) error) (*apisvsphere.LoadBalancerClass, []apisvsphere.LoadBalancerClass, error) {
 	var defaultClass *apisvsphere.LoadBalancerClass
 	loadBalancersClasses := []apisvsphere.LoadBalancerClass{}
 	if len(cpConfig.LoadBalancerClasses) == 0 {
@@ -133,6 +136,13 @@ func OverwriteLoadBalancerClasses(constraintsClasses []apisvsphere.LoadBalancerC
 			}
 		}
 		if !utils.IsEmptyString(cpClass.IPPoolName) {
+			// if IP pool is set in shoot manifest, perform optional authorization check
+			if checkIPPoolName != nil {
+				err := checkIPPoolName(*cpClass.IPPoolName)
+				if err != nil {
+					return nil, nil, err
+				}
+			}
 			lbClass.IPPoolName = cpClass.IPPoolName
 		} else if constraintClass != nil && !utils.IsEmptyString(constraintClass.IPPoolName) {
 			lbClass.IPPoolName = constraintClass.IPPoolName

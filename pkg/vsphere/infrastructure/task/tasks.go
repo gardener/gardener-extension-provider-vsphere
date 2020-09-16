@@ -160,32 +160,12 @@ func (t *lookupSNATIPPoolTask) Reference(state *api.NSXTInfraState) *api.Referen
 }
 
 func (t *lookupSNATIPPoolTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
-	name := spec.SNATIPPoolName
-	client := infra.NewDefaultIpPoolsClient(ctx.Connector())
-	var cursor *string
-	total := 0
-	count := 0
-	for {
-		result, err := client.List(cursor, nil, nil, nil, nil, nil)
-		if err != nil {
-			return "", nicerVAPIError(err)
-		}
-		for _, item := range result.Results {
-			if *item.DisplayName == name {
-				// found
-				state.SNATIPPoolRef = &api.Reference{ID: *item.Id, Path: *item.Path}
-				return actionFound, nil
-			}
-		}
-		if cursor == nil {
-			total = int(*result.ResultCount)
-		}
-		count += len(result.Results)
-		if count >= total {
-			return "", fmt.Errorf("not found: %s", name)
-		}
-		cursor = result.Cursor
+	id, path, err := LookupIPPoolIDByName(ctx, spec.SNATIPPoolName)
+	if err != nil {
+		return "", err
 	}
+	state.SNATIPPoolRef = &api.Reference{ID: id, Path: path}
+	return actionFound, nil
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -263,6 +243,12 @@ func (t *tier1GatewayTask) ensureExternal(ctx EnsurerContext, spec vinfra.NSXTIn
 		tier1, err := client.Get(id)
 		if err != nil {
 			return readingErr(err)
+		}
+		tags := TagsToMap(tier1.Tags)
+		err = CheckShootAuthorizationByTags(ctx.Logger(), "T1 Gateway", *tier1.DisplayName,
+			ctx.ShootNamespace(), ctx.GardenID(), tags)
+		if err != nil {
+			return "", err
 		}
 		state.Tier1GatewayRef = &api.Reference{ID: *tier1.Id, Path: *tier1.Path}
 	}

@@ -420,7 +420,6 @@ insecure-flag = "true"
 			Expect(len(short4)).To(Equal(63))
 		})
 	})
-
 })
 
 func encode(obj runtime.Object) []byte {
