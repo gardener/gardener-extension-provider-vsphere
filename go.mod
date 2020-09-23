@@ -50,8 +50,8 @@ replace (
 	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.17.9
 )
 
-// only needed for infra-cli
-replace k8s.io/cloud-provider-vsphere => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20200626142015-33b0a5766b2c
+// needed for infra-cli and load balancer cleanup
+replace k8s.io/cloud-provider-vsphere => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20200923145736-6d1acc9c5d28
 
 replace (
 	// these replacements are needed for the cloud-provider-vsphere

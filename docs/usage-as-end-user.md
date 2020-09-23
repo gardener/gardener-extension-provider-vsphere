@@ -18,12 +18,8 @@ metadata:
   namespace: garden-dev
 type: Opaque
 data:
-  vsphereHost: base64(vsphere-host)
-  vsphereUsername: base64(vsphere-username)
   vspherePassword: base64(vsphere-password)
   vsphereInsecureSSL: base64("true"|"false")
-  nsxtHost: base64(NSX-T-host)
-  nsxtUsername: base64(NSX-T-username)
   nsxtPassword: base64(NSX-T-password)
   nsxtInsecureSSL: base64("true"|"false")
 ```
@@ -65,7 +61,8 @@ Then select `Copy path to clipboard` from the context menu of the tier-1 gateway
 (click on the three vertical dots on the left of the row). Do the same with the 
 corresponding load balancer at `Networking / Load balancing / Tab Load Balancers`
 For security reasons the referenced Tier-1 gateway in NSX-T must have a tag with scope `authorized-shoots` and its
-tag value consists of a comma-separated list of the allowed shoot names (optionally with wildcard `*`)
+tag value consists of a comma-separated list of the allowed shoot names in the format `shoot--<project>--<name>`
+(optionally with wildcard `*`). Additionally, it must have a tag with scope `garden` set to the garden ID.
 
 Example:
 
@@ -113,8 +110,9 @@ The specified names must be defined in the constraints section of the cloud prof
 If the list contains a load balancer named "default", it is used as the default load balancer.
 Otherwise the first one is also the default.
 If no classes are specified the default load balancer class is used as defined in the cloud profile constraints section.
-If the ipPoolName is overwritten, the IP pool object in NSX-T must have a tag with scope `authorized-shoots` and its
-tag value consists of a comma-separated list of the allowed shoot names (optionally with wildcard `*`)
+If the ipPoolName is overwritten, the corresponding IP pool object in NSX-T must have a tag with scope `authorized-shoots` and its
+tag value consists of a comma-separated list of the allowed shoot names in the format `shoot--<project>--<name>` 
+(optionally with wildcard `*`). Additionally, it must have a tag with scope `garden` set to the garden ID.
 
 The `loadBalancerSize` is optional and overwrites the default value specified in the cloud profile config.
 It must be one of the values `SMALL`, `MEDIUM`, or `LARGE`. `SMALL` can manage 10 service ports,

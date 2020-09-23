@@ -60,5 +60,5 @@ func DestroyAll(cfg *infrastructure.NSXTConfig, state *DestroyState) error {
 		return errors.Wrapf(err, "NewLBProvider failed")
 	}
 
-	return lbProvider.CleanupServices(state.ClusterName, map[types.NamespacedName]corev1.Service{})
+	return lbProvider.CleanupServices(state.ClusterName, map[types.NamespacedName]corev1.Service{}, true)
 }
