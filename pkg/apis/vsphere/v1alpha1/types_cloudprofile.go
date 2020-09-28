@@ -49,6 +49,9 @@ type CloudProfileConfig struct {
 	// MachineTypeOptions is the list of machine type options to set additional options for individual machine types.
 	// +optional
 	MachineTypeOptions []MachineTypeOptions `json:"machineTypeOptions,omitempty"`
+	// DockerDaemonOptions contains configuration options for docker daemon service
+	// +optional
+	DockerDaemonOptions *DockerDaemonOptions `json:"dockerDaemonOptions,omitempty"`
 }
 
 // FailureDomainLabels are the tag categories used for regions and zones in vSphere CSI driver and cloud controller.
@@ -209,4 +212,11 @@ type MachineTypeOptions struct {
 	// e.g. sched.swap.vmxSwapEnabled=false to disable the VMX process swap file
 	// +optional
 	ExtraConfig map[string]string `json:"extraConfig,omitempty"`
+}
+
+// DockerDaemonOptions contains configuration options for Docker daemon service
+type DockerDaemonOptions struct {
+	// HTTPProxyConf contains HTTP/HTTPS proxy configuration for Docker daemon
+	// +optional
+	HTTPProxyConf *string `json:"httpProxyConf,omitempty"`
 }

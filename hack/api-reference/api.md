@@ -173,6 +173,20 @@ bool
 <p>MachineTypeOptions is the list of machine type options to set additional options for individual machine types.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>dockerDaemonOptions</code></br>
+<em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.DockerDaemonOptions">
+DockerDaemonOptions
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>DockerDaemonOptions contains configuration options for docker daemon service</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.ControlPlaneConfig">ControlPlaneConfig
@@ -550,6 +564,37 @@ LoadBalancerConfig
 </td>
 <td>
 <p>LoadBalancerConfig contains constraints regarding allowed values of the &lsquo;Lo&rsquo; block in the control plane config.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.DockerDaemonOptions">DockerDaemonOptions
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.CloudProfileConfig">CloudProfileConfig</a>)
+</p>
+<p>
+<p>DockerDaemonOptions contains configuration options for Docker daemon service</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>httpProxyConf</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>HTTPProxyConf contains HTTP/HTTPS proxy configuration for Docker daemon</p>
 </td>
 </tr>
 </tbody>

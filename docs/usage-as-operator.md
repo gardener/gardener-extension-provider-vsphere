@@ -61,6 +61,10 @@ machineImages:
   - version: 2191.5.0
     path: gardener/templates/coreos-2191.5.0
     guestId: coreos64Guest
+#dockerDaemonOptions:
+#  httpProxyConf: |
+#    [Service]
+#    Environment="HTTPS_PROXY=https://proxy.example.com:443"
 ```
 
 ## Example `CloudProfile` manifest

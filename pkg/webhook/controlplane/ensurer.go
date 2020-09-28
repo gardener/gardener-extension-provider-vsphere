@@ -17,11 +17,15 @@ package controlplane
 import (
 	"context"
 
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"k8s.io/apimachinery/pkg/util/validation/field"
+
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 
 	"github.com/coreos/go-systemd/unit"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
@@ -152,4 +156,51 @@ func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, ectx gen
 	// Overwrite data variable
 	*data = cm.Data[vsphere.CloudProviderConfigMapKey]
 	return nil
+}
+
+// EnsureAdditionalFile ensures additional systemd files
+// "old" might be "nil" and must always be checked.
+func (e *ensurer) EnsureAdditionalFiles(ctx context.Context, ectx genericmutator.EnsurerContext, new, old *[]extensionsv1alpha1.File) error {
+	cluster, err := ectx.GetCluster(ctx)
+	if err != nil {
+		return err
+	}
+
+	providerConfigPath := field.NewPath("spec", "providerConfig")
+	cloudProfileConfig, err := helper.DecodeCloudProfileConfig(cluster.CloudProfile.Spec.ProviderConfig, providerConfigPath)
+	if err != nil {
+		return errors.Wrapf(err, "decoding cloudprofileconfig failed")
+	}
+
+	if cloudProfileConfig.DockerDaemonOptions != nil && cloudProfileConfig.DockerDaemonOptions.HTTPProxyConf != nil {
+		var (
+			permissions       int32 = 0644
+			customFileContent       = *cloudProfileConfig.DockerDaemonOptions.HTTPProxyConf
+		)
+
+		appendUniqueFile(new, extensionsv1alpha1.File{
+			Path:        "/etc/systemd/system/docker.service.d/http-proxy.conf",
+			Permissions: &permissions,
+			Content: extensionsv1alpha1.FileContent{
+				Inline: &extensionsv1alpha1.FileContentInline{
+					Encoding: "",
+					Data:     customFileContent,
+				},
+			},
+		})
+	}
+	return nil
+}
+
+// appendUniqueFile appends a unit file only if it does not exist, otherwise overwrite content of previous files
+func appendUniqueFile(files *[]extensionsv1alpha1.File, file extensionsv1alpha1.File) {
+	resFiles := make([]extensionsv1alpha1.File, 0, len(*files))
+
+	for _, f := range *files {
+		if f.Path != file.Path {
+			resFiles = append(resFiles, f)
+		}
+	}
+
+	*files = append(resFiles, file)
 }
