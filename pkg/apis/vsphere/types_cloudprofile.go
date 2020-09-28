@@ -36,6 +36,9 @@ type CloudProfileConfig struct {
 	FailureDomainLabels *FailureDomainLabels
 	// DNSServers is a list of IPs of DNS servers used while creating subnets.
 	DNSServers []string
+	// DHCPOptions contains optional options for DHCP like Domain name, NTP server,...
+	DHCPOptions []DHCPOption
+
 	// MachineImages is the list of machine images that are understood by the controller. It maps
 	// logical names and versions to provider-specific identifiers.
 	MachineImages []MachineImages
@@ -45,6 +48,8 @@ type CloudProfileConfig struct {
 	CSIResizerDisabled *bool
 	// MachineTypeOptions is the list of machine type options to set additional options for individual machine types.
 	MachineTypeOptions []MachineTypeOptions
+	// DockerDaemonOptions contains configuration options for docker daemon service
+	DockerDaemonOptions *DockerDaemonOptions
 }
 
 // FailureDomainLabels are the tag categories used for regions and zones in vSphere CSI driver and cloud controller.
@@ -55,6 +60,15 @@ type FailureDomainLabels struct {
 	Region string
 	// Zone is the tag category used for zones on vSphere data centers and/or clusters.
 	Zone string
+}
+
+// DHCPOption contains a DHCP option by code
+type DHCPOption struct {
+	// Code is the tag according to the BOOTP Vendor Extensions and DHCP Options (see https://www.iana.org/assignments/bootp-dhcp-parameters/bootp-dhcp-parameters.xhtml)
+	// most important codes: 'Domain Name'=15 (only allowed for NSX-T 2.5, use code 119 for NSX-T >= 3.0), 'NTP server'=42, 'Domain Search': 119
+	Code int
+	// Values are the values for the given code
+	Values []string
 }
 
 // RegionSpec specifies the topology of a region and its zones.
@@ -102,6 +116,9 @@ type RegionSpec struct {
 	// DNSServers is a optional list of IPs of DNS servers used while creating subnets. If provided, it overwrites the global
 	// DNSServers of the CloudProfileConfig
 	DNSServers []string
+	// DHCPOptions contains optional options for DHCP like Domain name, NTP server,...
+	// If provided, it overwrites the global DHCPOptions of the CloudProfileConfig
+	DHCPOptions []DHCPOption
 	// MachineImages is the list of machine images that are understood by the controller. If provided, it overwrites the global
 	// MachineImages of the CloudProfileConfig
 	MachineImages []MachineImages
@@ -185,10 +202,17 @@ type MachineTypeOptions struct {
 	// Name is the name of the machine type
 	Name string
 	// MemoryReservationLockedToMax is flag to reserve all guest OS memory (no swapping in ESXi host)
-	// +optional
 	MemoryReservationLockedToMax *bool
 	// ExtraConfig allows to specify additional VM options.
 	// e.g. sched.swap.vmxSwapEnabled=false to disable the VMX process swap file
-	// +optional
 	ExtraConfig map[string]string
+}
+
+// DockerDaemonOptions contains configuration options for Docker daemon service
+type DockerDaemonOptions struct {
+	// HTTPProxyConf contains HTTP/HTTPS proxy configuration for Docker daemon
+	HTTPProxyConf *string
+	// InsecureRegistries adds the given registries to Docker on the worker nodes
+	// (see https://docs.docker.com/registry/insecure/)
+	InsecureRegistries []string
 }

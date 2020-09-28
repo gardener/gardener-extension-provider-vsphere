@@ -251,6 +251,7 @@ type dhcpConfig struct {
 	Network           string
 	DHCPServerAddress string
 	DNSServers        []string
+	DHCPOptions       map[int][]string
 	StartIP           string
 	EndIP             string
 	LeaseTime         int64
@@ -287,6 +288,7 @@ func newDHCPConfig(spec vinfra.NSXTInfraSpec) (*dhcpConfig, error) {
 		EndIP:             endIP,
 		LeaseTime:         int64(2 * time.Hour.Seconds()),
 		DNSServers:        spec.DNSServers,
+		DHCPOptions:       spec.DHCPOptions,
 	}, nil
 }
 

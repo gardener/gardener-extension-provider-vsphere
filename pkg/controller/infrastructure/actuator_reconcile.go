@@ -103,6 +103,17 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 		DNSServers:        dnsServers,
 	}
 
+	dhcpOptions := cloudProfileConfig.DHCPOptions
+	if region.DHCPOptions != nil {
+		dhcpOptions = region.DHCPOptions
+	}
+	if len(dhcpOptions) > 0 {
+		spec.DHCPOptions = map[int][]string{}
+		for _, option := range dhcpOptions {
+			spec.DHCPOptions[option.Code] = option.Values
+		}
+	}
+
 	if infraConfig.Networks != nil {
 		spec.ExternalTier1GatewayPath = &infraConfig.Networks.Tier1GatewayPath
 	}

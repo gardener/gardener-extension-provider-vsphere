@@ -122,6 +122,20 @@ FailureDomainLabels
 </tr>
 <tr>
 <td>
+<code>dhcpOptions</code></br>
+<em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.DHCPOption">
+[]DHCPOption
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>DHCPOptions contains optional options for DHCP like Domain name, NTP server,&hellip;</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>machineImages</code></br>
 <em>
 <a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.MachineImages">
@@ -171,6 +185,20 @@ bool
 <td>
 <em>(Optional)</em>
 <p>MachineTypeOptions is the list of machine type options to set additional options for individual machine types.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>dockerDaemonOptions</code></br>
+<em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.DockerDaemonOptions">
+DockerDaemonOptions
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>DockerDaemonOptions contains configuration options for docker daemon service</p>
 </td>
 </tr>
 </tbody>
@@ -550,6 +578,93 @@ LoadBalancerConfig
 </td>
 <td>
 <p>LoadBalancerConfig contains constraints regarding allowed values of the &lsquo;Lo&rsquo; block in the control plane config.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.DHCPOption">DHCPOption
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.CloudProfileConfig">CloudProfileConfig</a>, 
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.RegionSpec">RegionSpec</a>)
+</p>
+<p>
+<p>DHCPOption contains a DHCP option by code</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>code</code></br>
+<em>
+int
+</em>
+</td>
+<td>
+<p>Code is the tag according to the BOOTP Vendor Extensions and DHCP Options (see <a href="https://www.iana.org/assignments/bootp-dhcp-parameters/bootp-dhcp-parameters.xhtml">https://www.iana.org/assignments/bootp-dhcp-parameters/bootp-dhcp-parameters.xhtml</a>)
+most important codes: &lsquo;Domain Name&rsquo;=15 (only allowed for NSX-T 2.5, use code 119 for NSX-T &gt;= 3.0), &lsquo;NTP server&rsquo;=42, &lsquo;Domain Search&rsquo;: 119</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>values</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>Values are the values for the given code</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.DockerDaemonOptions">DockerDaemonOptions
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.CloudProfileConfig">CloudProfileConfig</a>)
+</p>
+<p>
+<p>DockerDaemonOptions contains configuration options for Docker daemon service</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>httpProxyConf</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>HTTPProxyConf contains HTTP/HTTPS proxy configuration for Docker daemon</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>insecureRegistries</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>InsecureRegistries adds the given registries to Docker on the worker nodes
+(see <a href="https://docs.docker.com/registry/insecure/">https://docs.docker.com/registry/insecure/</a>)</p>
 </td>
 </tr>
 </tbody>
@@ -1455,6 +1570,21 @@ string
 <em>(Optional)</em>
 <p>DNSServers is a optional list of IPs of DNS servers used while creating subnets. If provided, it overwrites the global
 DNSServers of the CloudProfileConfig</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>dhcpOptions</code></br>
+<em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.DHCPOption">
+[]DHCPOption
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>DHCPOptions contains optional options for DHCP like Domain name, NTP server,&hellip;
+If provided, it overwrites the global DHCPOptions of the CloudProfileConfig</p>
 </td>
 </tr>
 <tr>
