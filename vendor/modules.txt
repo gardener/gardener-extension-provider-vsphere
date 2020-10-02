@@ -1001,7 +1001,7 @@ k8s.io/client-go/util/workqueue
 # k8s.io/cloud-provider v0.0.0 => k8s.io/kubernetes/staging/src/k8s.io/cloud-provider v0.0.0-20190615005809-e8462b5b5dc2
 k8s.io/cloud-provider
 k8s.io/cloud-provider/node/helpers
-# k8s.io/cloud-provider-vsphere v1.1.0 => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20200626142015-33b0a5766b2c
+# k8s.io/cloud-provider-vsphere v1.1.0 => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20200923145736-6d1acc9c5d28
 ## explicit
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer
@@ -1165,7 +1165,7 @@ sigs.k8s.io/yaml
 # k8s.io/component-base => k8s.io/component-base v0.17.9
 # k8s.io/helm => k8s.io/helm v2.13.1+incompatible
 # k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.17.9
-# k8s.io/cloud-provider-vsphere => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20200626142015-33b0a5766b2c
+# k8s.io/cloud-provider-vsphere => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20200923145736-6d1acc9c5d28
 # k8s.io/cli-runtime => k8s.io/kubernetes/staging/src/k8s.io/cli-runtime v0.0.0-20190615005809-e8462b5b5dc2
 # k8s.io/cloud-provider => k8s.io/kubernetes/staging/src/k8s.io/cloud-provider v0.0.0-20190615005809-e8462b5b5dc2
 # k8s.io/cluster-bootstrap => k8s.io/kubernetes/staging/src/k8s.io/cluster-bootstrap v0.0.0-20190615005809-e8462b5b5dc2

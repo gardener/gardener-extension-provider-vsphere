@@ -90,13 +90,16 @@ func NewNSXTInfrastructureEnsurer(logger logr.Logger, nsxtConfig *vinfra.NSXTCon
 		return nil, errors.Wrapf(err, "creating NSX-T client failed")
 	}
 
-	return &ensurer{
-		logger:         logger,
-		connector:      connector,
-		nsxtClient:     nsxClient,
-		shootNamespace: shootCtx.ShootNamespace,
-		gardenID:       shootCtx.GardenID,
-	}, nil
+	obj := &ensurer{
+		logger:     logger,
+		connector:  connector,
+		nsxtClient: nsxClient,
+	}
+	if shootCtx != nil {
+		obj.shootNamespace = shootCtx.ShootNamespace
+		obj.gardenID = shootCtx.GardenID
+	}
+	return obj, nil
 }
 
 func (e *ensurer) NewStateWithVersion(overwriteVersion *string) (*api.NSXTInfraState, error) {
