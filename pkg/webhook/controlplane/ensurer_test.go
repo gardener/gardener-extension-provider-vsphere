@@ -18,14 +18,15 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/test"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
 
-	"github.com/coreos/go-systemd/unit"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+
+	"github.com/coreos/go-systemd/v22/unit"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

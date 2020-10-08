@@ -37,11 +37,17 @@ func newZones(nodeManager *NodeManager, zone string, region string) cloudprovide
 	}
 }
 
+var _ cloudprovider.Zones = &zones{}
+
 // GetZone implements Zones.GetZone for In-Tree providers
 func (z *zones) GetZone(ctx context.Context) (cloudprovider.Zone, error) {
 	klog.V(4).Info("zones.GetZone() called")
 
 	zone := cloudprovider.Zone{}
+
+	if len(z.region) == 0 || len(z.zone) == 0 {
+		return zone, nil
+	}
 
 	nodeName, err := os.Hostname()
 	if err != nil {
@@ -90,16 +96,26 @@ func (z *zones) GetZoneByNodeName(ctx context.Context, nodeName k8stypes.NodeNam
 
 	zone := cloudprovider.Zone{}
 
+	if len(z.region) == 0 || len(z.zone) == 0 {
+		return zone, nil
+	}
+
 	node, ok := z.nodeManager.nodeNameMap[string(nodeName)]
 	if !ok {
 		klog.V(2).Info("zones.GetZoneByNodeName() NOT FOUND with ", string(nodeName))
 		return zone, ErrVMNotFound
 	}
+	klog.V(4).Infof("Getting zone/region for VM %s", node.NodeName)
 
 	vmHost, err := node.vm.HostSystem(ctx)
 	if err != nil {
 		klog.Errorf("Failed to get host system for VM: %q. err: %+v", node.vm.InventoryPath, err)
 		return zone, err
+	}
+	vmRP, err := node.vm.ResourcePool(ctx)
+	if err != nil {
+		klog.Warningf("Failed to get resource pool for VM: %q. err: %+v", node.vm.InventoryPath, err)
+		vmRP = nil
 	}
 
 	var oHost mo.HostSystem
@@ -110,8 +126,29 @@ func (z *zones) GetZoneByNodeName(ctx context.Context, nodeName k8stypes.NodeNam
 	}
 	klog.V(4).Infof("Host owning VM is %s", oHost.Summary.Config.Name)
 
+	// Look down the compute resources
 	zoneResult, err := z.nodeManager.connectionManager.LookupZoneByMoref(
 		ctx, node.tenantRef, vmHost.Reference(), z.zone, z.region)
+	if err == nil {
+		zone.FailureDomain = zoneResult[cm.ZoneLabel]
+		zone.Region = zoneResult[cm.RegionLabel]
+		return zone, nil
+	}
+
+	// Look down the resource pools
+	if vmRP != nil {
+		zoneResult, err := z.nodeManager.connectionManager.LookupZoneByMoref(
+			ctx, node.tenantRef, vmRP.Reference(), z.zone, z.region)
+		if err == nil {
+			zone.FailureDomain = zoneResult[cm.ZoneLabel]
+			zone.Region = zoneResult[cm.RegionLabel]
+			return zone, nil
+		}
+	}
+
+	// Look down the folders path
+	zoneResult, err = z.nodeManager.connectionManager.LookupZoneByMoref(
+		ctx, node.tenantRef, node.vm.Reference(), z.zone, z.region)
 	if err != nil {
 		klog.Errorf("Failed to get host system properties. err: %+v", err)
 		return zone, err
@@ -128,18 +165,28 @@ func (z *zones) GetZoneByProviderID(ctx context.Context, providerID string) (clo
 	klog.V(4).Info("zones.GetZoneByProviderID() called with ", providerID)
 
 	zone := cloudprovider.Zone{}
-	uid := GetUUIDFromProviderID(providerID)
 
+	if len(z.region) == 0 || len(z.zone) == 0 {
+		return zone, nil
+	}
+
+	uid := GetUUIDFromProviderID(providerID)
 	node, ok := z.nodeManager.nodeUUIDMap[uid]
 	if !ok {
 		klog.V(2).Info("zones.GetZoneByProviderID() NOT FOUND with ", uid)
 		return zone, ErrVMNotFound
 	}
+	klog.V(4).Infof("Getting zone/region for VM %s", node.NodeName)
 
 	vmHost, err := node.vm.HostSystem(ctx)
 	if err != nil {
 		klog.Errorf("Failed to get host system for VM: %q. err: %+v", node.vm.InventoryPath, err)
 		return zone, err
+	}
+	vmRP, err := node.vm.ResourcePool(ctx)
+	if err != nil {
+		klog.Warningf("Failed to get resource pool for VM: %q. err: %+v", node.vm.InventoryPath, err)
+		vmRP = nil
 	}
 
 	var oHost mo.HostSystem
@@ -150,8 +197,29 @@ func (z *zones) GetZoneByProviderID(ctx context.Context, providerID string) (clo
 	}
 	klog.V(4).Infof("Host owning VM is %s", oHost.Summary.Config.Name)
 
+	// Look down the compute resources
 	zoneResult, err := z.nodeManager.connectionManager.LookupZoneByMoref(
 		ctx, node.tenantRef, vmHost.Reference(), z.zone, z.region)
+	if err == nil {
+		zone.FailureDomain = zoneResult[cm.ZoneLabel]
+		zone.Region = zoneResult[cm.RegionLabel]
+		return zone, nil
+	}
+
+	// Look down the resource pools
+	if vmRP != nil {
+		zoneResult, err := z.nodeManager.connectionManager.LookupZoneByMoref(
+			ctx, node.tenantRef, vmRP.Reference(), z.zone, z.region)
+		if err == nil {
+			zone.FailureDomain = zoneResult[cm.ZoneLabel]
+			zone.Region = zoneResult[cm.RegionLabel]
+			return zone, nil
+		}
+	}
+
+	// Look down the folders path
+	zoneResult, err = z.nodeManager.connectionManager.LookupZoneByMoref(
+		ctx, node.tenantRef, node.vm.Reference(), z.zone, z.region)
 	if err != nil {
 		klog.Errorf("Failed to get host system properties. err: %+v", err)
 		return zone, err

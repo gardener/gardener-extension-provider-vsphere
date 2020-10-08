@@ -95,13 +95,9 @@ var _ = Describe("ValidateCloudProfileConfig", func() {
 				MachineImages: []gardencorev1beta1.MachineImage{
 					{
 						Name: "coreos",
-						Versions: []gardencorev1beta1.ExpirableVersion{
-							{
-								Version: "2190.5.0",
-							},
-							{
-								Version: "2190.5.1",
-							},
+						Versions: []gardencorev1beta1.MachineImageVersion{
+							{ExpirableVersion: gardencorev1beta1.ExpirableVersion{Version: "2190.5.0"}},
+							{ExpirableVersion: gardencorev1beta1.ExpirableVersion{Version: "2190.5.1"}},
 						},
 					},
 				},

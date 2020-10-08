@@ -20,47 +20,31 @@ import (
 	"context"
 	"fmt"
 
+	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
+
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	apisvspherehelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-	vspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 
 	"github.com/pkg/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // GetMachineImages returns the used machine images for the `Worker` resource.
-func (w *workerDelegate) GetMachineImages(ctx context.Context) (runtime.Object, error) {
+func (w *workerDelegate) UpdateMachineImagesStatus(ctx context.Context) error {
 	if w.machineImages == nil {
 		if err := w.generateMachineConfig(ctx); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	var (
-		workerStatus = &apisvsphere.WorkerStatus{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: apisvsphere.SchemeGroupVersion.String(),
-				Kind:       "WorkerStatus",
-			},
-			MachineImages: w.machineImages,
-		}
-
-		workerStatusV1alpha1 = &vspherev1alpha1.WorkerStatus{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: vspherev1alpha1.SchemeGroupVersion.String(),
-				Kind:       "WorkerStatus",
-			},
-		}
-	)
-
-	if err := w.Scheme().Convert(workerStatus, workerStatusV1alpha1, nil); err != nil {
-		return nil, err
+	// Decode the current worker provider status.
+	workerStatus, err := w.decodeWorkerProviderStatus()
+	if err != nil {
+		return err
 	}
 
-	return workerStatusV1alpha1, nil
+	workerStatus.MachineImages = w.machineImages
+	return w.updateWorkerProviderStatus(ctx, workerStatus)
 }
 
 func (w *workerDelegate) findMachineImage(name, version string) (string, string, error) {
