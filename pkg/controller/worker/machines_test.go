@@ -25,16 +25,11 @@ import (
 	"strings"
 	"time"
 
-	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	apiv1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
-	vspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
-	. "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/worker"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-	extensionsv1alpha "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
 	mockkubernetes "github.com/gardener/gardener/pkg/mock/gardener/client/kubernetes"
@@ -49,6 +44,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	apiv1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
+	vspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
+	. "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/worker"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
 // TODO martin adapt/fix test
@@ -57,6 +58,7 @@ var _ = Describe("Machines", func() {
 	var (
 		ctrl         *gomock.Controller
 		c            *mockclient.MockClient
+		statusWriter *mockclient.MockStatusWriter
 		chartApplier *mockkubernetes.MockChartApplier
 	)
 
@@ -64,6 +66,7 @@ var _ = Describe("Machines", func() {
 		ctrl = gomock.NewController(GinkgoT())
 
 		c = mockclient.NewMockClient(ctrl)
+		statusWriter = mockclient.NewMockStatusWriter(ctrl)
 		chartApplier = mockkubernetes.NewMockChartApplier(ctrl)
 	})
 
@@ -142,7 +145,7 @@ var _ = Describe("Machines", func() {
 				scheme                 *runtime.Scheme
 				decoder                runtime.Decoder
 				cluster                *extensionscontroller.Cluster
-				w                      *extensionsv1alpha.Worker
+				w                      *extensionsv1alpha1.Worker
 			)
 
 			BeforeEach(func() {
@@ -208,11 +211,11 @@ var _ = Describe("Machines", func() {
 				}
 				cluster = createCluster(cloudProfileName, shootVersion, images)
 
-				w = &extensionsv1alpha.Worker{
+				w = &extensionsv1alpha1.Worker{
 					ObjectMeta: metav1.ObjectMeta{
 						Namespace: namespace,
 					},
-					Spec: extensionsv1alpha.WorkerSpec{
+					Spec: extensionsv1alpha1.WorkerSpec{
 						SecretRef: corev1.SecretReference{
 							Name:      "secret",
 							Namespace: namespace,
@@ -248,7 +251,7 @@ var _ = Describe("Machines", func() {
 								},
 							}),
 						},
-						Pools: []extensionsv1alpha.WorkerPool{
+						Pools: []extensionsv1alpha1.WorkerPool{
 							{
 								Name:           namePool1,
 								Minimum:        minPool1,
@@ -256,7 +259,7 @@ var _ = Describe("Machines", func() {
 								MaxSurge:       maxSurgePool1,
 								MaxUnavailable: maxUnavailablePool1,
 								MachineType:    machineType,
-								MachineImage: extensionsv1alpha.MachineImage{
+								MachineImage: extensionsv1alpha1.MachineImage{
 									Name:    machineImageName,
 									Version: machineImageVersion,
 								},
@@ -273,7 +276,7 @@ var _ = Describe("Machines", func() {
 								MaxSurge:       maxSurgePool2,
 								MaxUnavailable: maxUnavailablePool2,
 								MachineType:    machineType,
-								MachineImage: extensionsv1alpha.MachineImage{
+								MachineImage: extensionsv1alpha1.MachineImage{
 									Name:    machineImageName,
 									Version: machineImageVersion,
 								},
@@ -360,9 +363,8 @@ var _ = Describe("Machines", func() {
 				err := workerDelegate.DeployMachineClasses(context.TODO())
 				Expect(err).NotTo(HaveOccurred())
 
-				// Test workerDelegate.GetMachineImages()
-				machineImages, err := workerDelegate.GetMachineImages(context.TODO())
-				Expect(machineImages).To(Equal(&vspherev1alpha1.WorkerStatus{
+				// Test workerDelegate.UpdateMachineDeployments()
+				expectedImages := &apiv1alpha1.WorkerStatus{
 					TypeMeta: metav1.TypeMeta{
 						APIVersion: vspherev1alpha1.SchemeGroupVersion.String(),
 						Kind:       "WorkerStatus",
@@ -374,7 +376,22 @@ var _ = Describe("Machines", func() {
 							Path:    machineImagePath,
 						},
 					},
-				}))
+				}
+
+				workerWithExpectedImages := w.DeepCopy()
+				workerWithExpectedImages.Status.ProviderStatus = &runtime.RawExtension{
+					Object: expectedImages,
+				}
+
+				ctx := context.TODO()
+				c.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&extensionsv1alpha1.Worker{})).
+					DoAndReturn(func(_ context.Context, _ client.ObjectKey, worker *extensionsv1alpha1.Worker) error {
+						return nil
+					})
+				c.EXPECT().Status().Return(statusWriter)
+				statusWriter.EXPECT().Update(ctx, workerWithExpectedImages).Return(nil)
+
+				err = workerDelegate.UpdateMachineImagesStatus(ctx)
 				Expect(err).NotTo(HaveOccurred())
 
 				// Test workerDelegate.GenerateMachineDeployments()
@@ -623,10 +640,8 @@ func createCluster(cloudProfileName, shootVersion string, images []apiv1alpha1.M
 	for _, image := range images {
 		specImages = append(specImages, gardencorev1beta1.MachineImage{
 			Name: image.Name,
-			Versions: []gardencorev1beta1.ExpirableVersion{
-				{
-					Version: image.Versions[0].Version,
-				},
+			Versions: []gardencorev1beta1.MachineImageVersion{
+				{ExpirableVersion: gardencorev1beta1.ExpirableVersion{Version: image.Versions[0].Version}},
 			},
 		})
 	}

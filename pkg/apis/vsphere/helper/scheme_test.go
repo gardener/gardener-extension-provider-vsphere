@@ -57,10 +57,8 @@ var _ = Describe("Helper (decode)", func() {
 					MachineImages: []gardencorev1beta1.MachineImage{
 						{
 							Name: "coreos",
-							Versions: []gardencorev1beta1.ExpirableVersion{
-								{
-									Version: "2191.5.0",
-								},
+							Versions: []gardencorev1beta1.MachineImageVersion{
+								{ExpirableVersion: gardencorev1beta1.ExpirableVersion{Version: "2191.5.0"}},
 							},
 						},
 					},

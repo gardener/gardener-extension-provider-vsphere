@@ -46,7 +46,7 @@ func DestroyAll(cfg *infrastructure.NSXTConfig, state *DestroyState) error {
 				loadbalancer.ScopeOwner: state.Owner,
 			},
 		},
-		LoadBalancerClasses: map[string]*config.LoadBalancerClassConfig{},
+		LoadBalancerClass: map[string]*config.LoadBalancerClassConfig{},
 		NSXT: config.NsxtConfig{
 			User:         cfg.User,
 			Password:     cfg.Password,
