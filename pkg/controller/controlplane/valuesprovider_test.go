@@ -246,7 +246,7 @@ insecure-flag = "true"
 			"insecureFlag": true,
 			"serverPort":   443,
 			"serverName":   "vsphere.host.internal",
-			"datacenters":  "scc01-DC",
+			"datacenters":  []string{"scc01-DC"},
 			"username":     "admin",
 			"password":     "super-secret",
 			"loadbalancer": map[string]interface{}{
