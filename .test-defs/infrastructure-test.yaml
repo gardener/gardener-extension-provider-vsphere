@@ -1,0 +1,22 @@
+kind: TestDefinition
+metadata:
+  name: infrastructure-test
+spec:
+  owner: gardener-oq@listserv.sap.com
+  description: Integration test for infrastructure creation and deletion
+  activeDeadlineSeconds: 600
+
+  command: [bash, -c]
+  args:
+    - >-
+      go test -timeout=0 -mod=vendor ./test/integration/infrastructure
+      --v -ginkgo.v -ginkgo.progress -ginkgo.noColor
+      --kubeconfig=$TM_KUBECONFIG_PATH/testmachinery.config
+      --nsxt-host="${NSXT_HOST}" \
+      --nsxt-username="${NSXT_USERNAME}" \
+      --nsxt-password="${NSXT_PASSWORD}" \
+      --nsxt-transport-zone="${NSXT_TRANSPORT_ZONE}" \
+      --nsxt-t0-gateway="${NSXT_T0_GATEWAY}" \
+      --nsxt-edge-cluster="${NSXT_EDGE_CLUSTER}" \
+      --nsxt-snat-ip-pool="${NSXT_SNAP_IP_POOL}"
+  image: golang:1.14
