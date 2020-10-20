@@ -2,12 +2,12 @@
 soapRoundtripCount: 1  # number of retries for API requests = value-1
 serverName: my.vcenter.server.ip.or.fqdn
 serverPort: 443
-insecureFlag: 1 # set to 1 if the vCenter uses a self-signed cert
+insecureFlag: true # set to true if the vCenter uses a self-signed cert
 username: admin
 password: super-secret
 # caFile: /etc/kubernetes/vcenter-ca.crt # optional path to vCenter certificate
 # thumbprint: "xyz" # optional vCenter certificate thumbprint
-datacenters: dc
+datacenters: [dc,dc2]
 
 #labelRegion: k8s-region
 #labelZone: k8s-zone
@@ -27,7 +27,8 @@ loadbalancer:
       #tcpAppProfileName: tcp-app-profile-private
       #udpAppProfileName: udp-app-profile-private
 
-  tags: {}
+  tags:
+    foo: bar
     # myscope: mytagvalue
 
 nsxt:

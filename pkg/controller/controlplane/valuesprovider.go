@@ -455,7 +455,7 @@ func (vp *valuesProvider) getConfigChartValues(
 		"serverName":   serverName,
 		"serverPort":   port,
 		"insecureFlag": region.VsphereInsecureSSL,
-		"datacenters":  strings.Join(helper.CollectDatacenters(region), ","),
+		"datacenters":  helper.CollectDatacenters(region),
 		"username":     credentials.VsphereCCM().Username,
 		"password":     credentials.VsphereCCM().Password,
 		"loadbalancer": loadBalancer,

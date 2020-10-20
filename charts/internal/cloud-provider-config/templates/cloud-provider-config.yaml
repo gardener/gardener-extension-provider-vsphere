@@ -5,63 +5,75 @@ metadata:
   namespace: {{ .Release.Namespace }}
 data:
   cloudprovider.conf: |
-    [Global]
-    soap-roundtrip-count = "{{ .Values.soapRoundtripCount }}"
-    ip-family = "ipv4"
-    {{- if .Values.caFile }}
-    ca-file="{{ .Values.caFile }}"
-    {{- end }}
-    {{- if .Values.caFile }}
-    thumbprint="{{ .Values.thumbprint }}"
-    {{- end }}
+    global:
+      soapRoundtripCount: {{ .Values.soapRoundtripCount }}
+      ipFamily:
+      - ipv4
+      {{- if .Values.caFile }}
+      caFile: "{{ .Values.caFile }}"
+      {{- end }}
+      {{- if .Values.thumbprint }}
+      thumbprint: "{{ .Values.thumbprint }}"
+      {{- end }}
 
-    [VirtualCenter "{{ .Values.serverName }}"]
-    port = "{{ .Values.serverPort }}"
-    datacenters = "{{ .Values.datacenters }}"
-    user = "{{ .Values.username }}"
-    password = "{{ .Values.password }}"
-    insecure-flag = "{{ .Values.insecureFlag }}"
+    vcenter:
+      {{ .Values.serverName }}:
+        server: {{ .Values.serverName }}
+        port: {{ .Values.serverPort }}
+        datacenters:
+        {{- range .Values.datacenters }}
+        - {{ . | quote }}
+        {{- end }}
+        user: "{{ .Values.username }}"
+        password: "{{ .Values.password }}"
+        insecureFlag: {{ .Values.insecureFlag }}
 
-    [Labels]
+    {{- if (or .Values.labelRegion .Values.labelZone) }}
+    labels:
     {{- if .Values.labelRegion }}
-    region = "{{ .Values.labelRegion }}"
+    region: "{{ .Values.labelRegion }}"
     {{- end }}
     {{- if .Values.labelZone }}
-    zone = "{{ .Values.labelZone }}"
+    zone: "{{ .Values.labelZone }}"
+    {{- end }}
     {{- end }}
 
-    [LoadBalancer]
-    {{- if .Values.loadbalancer.lbServiceId }}
-    lbServiceId = "{{ .Values.loadbalancer.lbServiceId }}"
-    {{- end }}
-    ipPoolName = "{{ .Values.loadbalancer.ipPoolName }}"
-    size = {{ .Values.loadbalancer.size }}
-    tier1GatewayPath = "{{ .Values.loadbalancer.tier1GatewayPath }}"
-    tcpAppProfileName = "{{ .Values.loadbalancer.tcpAppProfileName }}"
-    udpAppProfileName = "{{ .Values.loadbalancer.udpAppProfileName }}"
-    tags = { {{ template "tags" .Values.loadbalancer.tags }} }
+    loadBalancer:
+      {{- if .Values.loadbalancer.lbServiceId }}
+      lbServiceId: "{{ .Values.loadbalancer.lbServiceId }}"
+      {{- end }}
+      ipPoolName: "{{ .Values.loadbalancer.ipPoolName }}"
+      size: {{ .Values.loadbalancer.size }}
+      tier1GatewayPath: "{{ .Values.loadbalancer.tier1GatewayPath }}"
+      tcpAppProfileName: "{{ .Values.loadbalancer.tcpAppProfileName }}"
+      udpAppProfileName: "{{ .Values.loadbalancer.udpAppProfileName }}"
+      tags:
+      {{- range $k, $v := .Values.loadbalancer.tags }}
+        {{ $k }}: {{ $v | quote }}
+      {{- end }}
 
+    loadBalancerClass:
     {{- range $i, $class := .Values.loadbalancer.classes }}
+      {{ $class.name }}:
+        name: {{ $class.name }}
+        {{- if $class.ipPoolName }}
+        ipPoolName: "{{ $class.ipPoolName }}"
+        {{- end }}
+        {{- if $class.tcpAppProfileName }}
+        tcpAppProfileName: "{{ $class.tcpAppProfileName }}"
+        {{- end }}
+        {{- if $class.udpAppProfileName }}
+        udpAppProfileName: "{{ $class.udpAppProfileName }}"
+        {{- end }}
+    {{- end }}
 
-    [LoadBalancerClass {{ $class.name | quote }}]
-    {{- if $class.ipPoolName }}
-    ipPoolName="{{ $class.ipPoolName }}"
-    {{- end }}
-    {{- if $class.tcpAppProfileName }}
-    tcpAppProfileName="{{ $class.tcpAppProfileName }}"
-    {{- end }}
-    {{- if $class.udpAppProfileName }}
-    udpAppProfileName="{{ $class.udpAppProfileName }}"
-    {{- end }}
-    {{- end }}
-
-    [NSX-T]
-    user = "{{ .Values.nsxt.username }}"
-    password = "{{ .Values.nsxt.password }}"
-    {{- if .Values.nsxt.usernameNE }}
-    userNE = "{{ .Values.nsxt.usernameNE }}"
-    passwordNE = "{{ .Values.nsxt.passwordNE }}"
-    {{- end }}
-    host = "{{ .Values.nsxt.host }}"
-    insecure-flag = "{{ .Values.nsxt.insecureFlag }}"
-    remote-auth = "{{ .Values.nsxt.remoteAuth }}"
+    nsxt:
+      user: "{{ .Values.nsxt.username }}"
+      password: "{{ .Values.nsxt.password }}"
+      {{- if .Values.nsxt.usernameNE }}
+      userNE: "{{ .Values.nsxt.usernameNE }}"
+      passwordNE: "{{ .Values.nsxt.passwordNE }}"
+      {{- end }}
+      host: "{{ .Values.nsxt.host }}"
+      insecureFlag: {{ .Values.nsxt.insecureFlag }}
+      remoteAuth: {{ .Values.nsxt.remoteAuth }}
