@@ -34,6 +34,14 @@ ifeq ($(WEBHOOK_CONFIG_MODE), service)
   WEBHOOK_PARAM := --webhook-config-namespace=$(EXTENSION_NAMESPACE)
 endif
 
+NSXT_HOST              := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_host")
+NSXT_USERNAME          := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_username")
+NSXT_PASSWORD          := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_password")
+NSXT_TRANSPORT_ZONE    := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_transport_zone")
+NSXT_T0_GATEWAY        := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_t0_gateway")
+NSXT_EDGE_CLUSTER      := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_edge_cluster")
+NSXT_SNAP_IP_POOL      := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_snat_ip_pool")
+
 #########################################
 # Rules for local development scenarios #
 #########################################
@@ -140,6 +148,20 @@ verify: check format test
 
 .PHONY: verify-extended
 verify-extended: install-requirements check-generate check format test-cov test-clean
+
+
+.PHONY: integration-test-infra
+integration-test-infra:
+	@go test -timeout=0 -mod=vendor ./test/integration/infrastructure \
+		--v -ginkgo.v -ginkgo.progress \
+		--kubeconfig=${KUBECONFIG} \
+		--nsxt-host="${NSXT_HOST}" \
+		--nsxt-username="${NSXT_USERNAME}" \
+		--nsxt-password="${NSXT_PASSWORD}" \
+		--nsxt-transport-zone="${NSXT_TRANSPORT_ZONE}" \
+		--nsxt-t0-gateway="${NSXT_T0_GATEWAY}" \
+		--nsxt-edge-cluster="${NSXT_EDGE_CLUSTER}" \
+		--nsxt-snat-ip-pool="${NSXT_SNAP_IP_POOL}"
 
 #################################################################
 # build infra-cli                                               #

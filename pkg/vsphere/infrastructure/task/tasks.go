@@ -270,7 +270,7 @@ func (t *tier1GatewayTask) IsExternal(state *api.NSXTInfraState) bool {
 
 func (t *tier1GatewayTask) EnsureDeleted(ctx EnsurerContext, state *api.NSXTInfraState) (bool, error) {
 	if t.IsExternal(state) {
-		return true, nil
+		return false, nil
 	}
 
 	client := infra.NewDefaultTier1sClient(ctx.Connector())
@@ -363,7 +363,7 @@ func (t *tier1GatewayLocaleServiceTask) ListAll(ctx EnsurerContext, state *api.N
 
 func (t *tier1GatewayLocaleServiceTask) EnsureDeleted(ctx EnsurerContext, state *api.NSXTInfraState) (bool, error) {
 	if t.IsExternal(state) {
-		return true, nil
+		return false, nil
 	}
 
 	client := tier_1s.NewDefaultLocaleServicesClient(ctx.Connector())

@@ -73,7 +73,7 @@ func GetCloudProfileConfig(cluster *controller.Cluster) (*vsphere.CloudProfileCo
 	}
 	cloudProfileConfig, err := GetCloudProfileConfigFromProfile(cluster.CloudProfile)
 	if err != nil {
-		return nil, errors.Wrapf(err, "shoot '%s'", cluster.Shoot.Name)
+		return nil, errors.Wrapf(err, "shoot '%s'", cluster.ObjectMeta.Name)
 	}
 	return cloudProfileConfig, nil
 }
@@ -82,7 +82,7 @@ func GetControlPlaneConfig(cluster *controller.Cluster) (*vsphere.ControlPlaneCo
 	cpConfig := &vsphere.ControlPlaneConfig{}
 	if cluster.Shoot.Spec.Provider.ControlPlaneConfig != nil {
 		if _, _, err := decoder.Decode(cluster.Shoot.Spec.Provider.ControlPlaneConfig.Raw, nil, cpConfig); err != nil {
-			return nil, errors.Wrapf(err, "could not decode providerConfig of controlplane '%s'", cluster.Shoot.Name)
+			return nil, errors.Wrapf(err, "could not decode providerConfig of controlplane '%s'", cluster.ObjectMeta.Name)
 		}
 	}
 	return cpConfig, nil
