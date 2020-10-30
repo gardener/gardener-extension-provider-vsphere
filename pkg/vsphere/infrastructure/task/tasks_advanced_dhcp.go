@@ -173,8 +173,10 @@ func (t *advancedDHCPServerTask) buildIPv4DHCPServer(cfg *dhcpConfig) (*manager.
 		GatewayIp:      cfg.GatewayIP,
 		DomainName:     domainName,
 	}
+	ipv4DhcpServer.Options = &manager.DhcpOptions{
+		Others: []manager.GenericDhcpOption{{Code: 1, Values: []string{cfg.SubnetMask}}},
+	}
 	if len(cfg.DHCPOptions) > 0 {
-		ipv4DhcpServer.Options = &manager.DhcpOptions{}
 		if values121, ok := cfg.DHCPOptions[121]; ok {
 			routes := []manager.ClasslessStaticRoute{}
 			for _, v := range values121 {

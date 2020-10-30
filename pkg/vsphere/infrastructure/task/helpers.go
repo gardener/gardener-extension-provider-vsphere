@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
+	"strconv"
 	"strings"
 	"time"
 
@@ -113,6 +114,26 @@ func cidrHostAndPrefix(cidr string, index int) (string, error) {
 		return "", fmt.Errorf("splitting cidr failed: %s", cidr)
 	}
 	return fmt.Sprintf("%s/%s", host, parts[1]), nil
+}
+
+func cidrSubnetMask(cidr string) (string, error) {
+	parts := strings.Split(cidr, "/")
+	if len(parts) != 2 {
+		return "", fmt.Errorf("splitting cidr failed: %s", cidr)
+	}
+	subnet, err := strconv.Atoi(parts[1])
+	if err != nil || subnet < 0 || subnet > 32 {
+		return "", fmt.Errorf("subnet integer between 0 and 32 expected for %s: %s", cidr, err)
+	}
+	subnetMask := make([]int, 4)
+	for i := 0; i < subnet; i++ {
+		subnetMask[i/8] |= 1 << (7 - (i % 8))
+	}
+	str := make([]string, 4)
+	for i, m := range subnetMask {
+		str[i] = strconv.FormatInt(int64(m), 10)
+	}
+	return strings.Join(str, "."), nil
 }
 
 func containsTags(itemTags []model.Tag, tags []model.Tag) bool {

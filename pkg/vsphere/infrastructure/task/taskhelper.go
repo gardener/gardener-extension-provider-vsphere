@@ -254,6 +254,7 @@ type dhcpConfig struct {
 	DHCPOptions       map[int][]string
 	StartIP           string
 	EndIP             string
+	SubnetMask        string
 	LeaseTime         int64
 }
 
@@ -278,6 +279,10 @@ func newDHCPConfig(spec vinfra.NSXTInfraSpec) (*dhcpConfig, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "end IP of pool")
 	}
+	subnetMask, err := cidrSubnetMask(spec.WorkersNetwork)
+	if err != nil {
+		return nil, errors.Wrapf(err, "subnet mask of pool")
+	}
 
 	return &dhcpConfig{
 		GatewayIP:         gatewayIP,
@@ -286,6 +291,7 @@ func newDHCPConfig(spec vinfra.NSXTInfraSpec) (*dhcpConfig, error) {
 		DHCPServerAddress: dhcpServerAddress,
 		StartIP:           startIP,
 		EndIP:             endIP,
+		SubnetMask:        subnetMask,
 		LeaseTime:         int64(2 * time.Hour.Seconds()),
 		DNSServers:        spec.DNSServers,
 		DHCPOptions:       spec.DHCPOptions,
