@@ -33,6 +33,7 @@ import (
 	"github.com/gardener/gardener/pkg/operation/botanist/component"
 	"github.com/gardener/gardener/pkg/operation/botanist/controlplane"
 	"github.com/gardener/gardener/pkg/operation/botanist/controlplane/clusterautoscaler"
+	"github.com/gardener/gardener/pkg/operation/botanist/controlplane/kubecontrollermanager"
 	"github.com/gardener/gardener/pkg/operation/botanist/controlplane/kubescheduler"
 	"github.com/gardener/gardener/pkg/operation/botanist/extensions/dns"
 	"github.com/gardener/gardener/pkg/operation/common"
@@ -295,70 +296,6 @@ func (b *Botanist) DeleteClusterAutoscaler(ctx context.Context) error {
 	return client.IgnoreNotFound(b.K8sSeedClient.Client().Delete(ctx, deploy, kubernetes.DefaultDeleteOptions...))
 }
 
-// WakeUpControlPlane scales the replicas to 1 for the following deployments which are needed in case of shoot deletion:
-// * etcd-events
-// * etcd-main
-// * kube-apiserver
-// * kube-controller-manager
-func (b *Botanist) WakeUpControlPlane(ctx context.Context) error {
-	// use direct client here, as cached client sometimes causes scale functions not to work properly
-	// e.g. Deployments not scaled down/up
-	client := b.K8sSeedClient.DirectClient()
-
-	for _, etcd := range []string{v1beta1constants.ETCDEvents, v1beta1constants.ETCDMain} {
-		if err := kubernetes.ScaleEtcd(ctx, client, kutil.Key(b.Shoot.SeedNamespace, etcd), 1); err != nil {
-			return err
-		}
-	}
-	if err := b.WaitUntilEtcdReady(ctx); err != nil {
-		return err
-	}
-
-	if err := component.OpWaiter(b.Shoot.Components.ControlPlane.KubeAPIServerService).Deploy(ctx); err != nil {
-		return err
-	}
-
-	if b.APIServerSNIEnabled() {
-		if err := b.DestroyControlPlaneExposure(ctx); err != nil {
-			return err
-		}
-
-		if err := b.DeployKubeAPIServerSNI(ctx); err != nil {
-			return err
-		}
-	}
-
-	if err := b.DeployInternalDNS(ctx); err != nil {
-		return err
-	}
-
-	if err := b.DeployExternalDNS(ctx); err != nil {
-		return err
-	}
-
-	if err := b.DeployKubeAPIServer(ctx); err != nil {
-		return err
-	}
-
-	if err := kubernetes.ScaleDeployment(ctx, client, kutil.Key(b.Shoot.SeedNamespace, v1beta1constants.DeploymentNameKubeAPIServer), 1); err != nil {
-		return err
-	}
-	if err := b.WaitUntilKubeAPIServerReady(ctx); err != nil {
-		return err
-	}
-
-	for _, deployment := range []string{
-		v1beta1constants.DeploymentNameKubeControllerManager,
-		v1beta1constants.DeploymentNameGardenerResourceManager,
-	} {
-		if err := kubernetes.ScaleDeployment(ctx, client, kutil.Key(b.Shoot.SeedNamespace, deployment), 1); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // WakeUpKubeAPIServer creates a service and ensures API Server is scaled up
 func (b *Botanist) WakeUpKubeAPIServer(ctx context.Context) error {
 	sniPhase := b.Shoot.Components.ControlPlane.KubeAPIServerSNIPhase.Done()
@@ -412,6 +349,19 @@ func (b *Botanist) HibernateControlPlane(ctx context.Context) error {
 		if err := b.WaitUntilEndpointsDoNotContainPodIPs(ctxWithTimeOut); err != nil {
 			return err
 		}
+
+		// TODO: remove this mitigation once there is a garbage collection for VolumeAttachments (ref https://github.com/kubernetes/kubernetes/issues/77324)
+		// Currently on hibernation Machines are forecefully deleted and machine-controller-manager does not wait volumes to be detached.
+		// In this case kube-controller-manager cannot delete the corresponding VolumeAttachment objects and they are orphaned.
+		// Such orphaned VolumeAttachments then prevent/block PV deletion. For more details see https://github.com/gardener/gardener-extension-provider-gcp/issues/172.
+		// As the Nodes are already deleted, we can delete all VolumeAttachments.
+		if err := DeleteVolumeAttachments(ctxWithTimeOut, b.K8sShootClient.Client()); err != nil {
+			return err
+		}
+
+		if err := WaitUntilVolumeAttachmentsDeleted(ctxWithTimeOut, b.K8sShootClient.Client(), b.Logger); err != nil {
+			return err
+		}
 	}
 
 	// invalidate shoot client here before scaling down API server
@@ -457,7 +407,7 @@ func (b *Botanist) HibernateControlPlane(ctx context.Context) error {
 // ScaleETCDToZero scales ETCD main and events to zero
 func (b *Botanist) ScaleETCDToZero(ctx context.Context) error {
 	for _, etcd := range []string{v1beta1constants.ETCDEvents, v1beta1constants.ETCDMain} {
-		if err := kubernetes.ScaleEtcd(ctx, b.K8sSeedClient.Client(), kutil.Key(b.Shoot.SeedNamespace, etcd), 0); client.IgnoreNotFound(err) != nil {
+		if err := kubernetes.ScaleEtcd(ctx, b.K8sSeedClient.DirectClient(), kutil.Key(b.Shoot.SeedNamespace, etcd), 0); client.IgnoreNotFound(err) != nil {
 			return err
 		}
 	}
@@ -467,16 +417,26 @@ func (b *Botanist) ScaleETCDToZero(ctx context.Context) error {
 // ScaleETCDToOne scales ETCD main and events replicas to one
 func (b *Botanist) ScaleETCDToOne(ctx context.Context) error {
 	for _, etcd := range []string{v1beta1constants.ETCDEvents, v1beta1constants.ETCDMain} {
-		if err := kubernetes.ScaleEtcd(ctx, b.K8sSeedClient.Client(), kutil.Key(b.Shoot.SeedNamespace, etcd), 1); err != nil {
+		if err := kubernetes.ScaleEtcd(ctx, b.K8sSeedClient.DirectClient(), kutil.Key(b.Shoot.SeedNamespace, etcd), 1); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
+// ScaleKubeAPIServerToOne scales kube-apiserver replicas to one
+func (b *Botanist) ScaleKubeAPIServerToOne(ctx context.Context) error {
+	return kubernetes.ScaleDeployment(ctx, b.K8sSeedClient.DirectClient(), kutil.Key(b.Shoot.SeedNamespace, v1beta1constants.DeploymentNameKubeAPIServer), 1)
+}
+
+// ScaleKubeControllerManagerToOne scales kube-controller-manager replicas to one
+func (b *Botanist) ScaleKubeControllerManagerToOne(ctx context.Context) error {
+	return kubernetes.ScaleDeployment(ctx, b.K8sSeedClient.DirectClient(), kutil.Key(b.Shoot.SeedNamespace, v1beta1constants.DeploymentNameKubeControllerManager), 1)
+}
+
 // ScaleGardenerResourceManagerToOne scales the gardener-resource-manager deployment
 func (b *Botanist) ScaleGardenerResourceManagerToOne(ctx context.Context) error {
-	return kubernetes.ScaleDeployment(ctx, b.K8sSeedClient.Client(), kutil.Key(b.Shoot.SeedNamespace, v1beta1constants.DeploymentNameGardenerResourceManager), 1)
+	return kubernetes.ScaleDeployment(ctx, b.K8sSeedClient.DirectClient(), kutil.Key(b.Shoot.SeedNamespace, v1beta1constants.DeploymentNameGardenerResourceManager), 1)
 }
 
 // PrepareKubeAPIServerForMigration deletes the kube-apiserver and deletes its hvpa
@@ -1190,17 +1150,6 @@ func (b *Botanist) DeployKubeAPIServer(ctx context.Context) error {
 		}
 	}
 
-	// Remove deprecated blackbox exporter configmap
-	// TODO: Remove in a future version
-	if err := b.K8sSeedClient.Client().Delete(ctx, &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "blackbox-exporter-config-apiserver",
-			Namespace: b.Shoot.SeedNamespace,
-		},
-	}); client.IgnoreNotFound(err) != nil {
-		return err
-	}
-
 	return b.K8sSeedClient.ChartApplier().Apply(ctx, filepath.Join(chartPathControlPlane, v1beta1constants.DeploymentNameKubeAPIServer), b.Shoot.SeedNamespace, v1beta1constants.DeploymentNameKubeAPIServer, kubernetes.Values(values))
 }
 
@@ -1248,67 +1197,69 @@ func IsValidAuditPolicyVersion(shootVersion string, schemaVersion *schema.GroupV
 	return true, nil
 }
 
-// DeployKubeControllerManager deploys kube-controller-manager deployment.
-func (b *Botanist) DeployKubeControllerManager(ctx context.Context) error {
-	defaultValues := map[string]interface{}{
-		"clusterName":       b.Shoot.SeedNamespace,
-		"kubernetesVersion": b.Shoot.Info.Spec.Kubernetes.Version,
-		"podNetwork":        b.Shoot.Networks.Pods.String(),
-		"serviceNetwork":    b.Shoot.Networks.Services.String(),
-		"podAnnotations": map[string]interface{}{
-			"checksum/secret-ca":                             b.CheckSums[v1beta1constants.SecretNameCACluster],
-			"checksum/secret-kube-controller-manager":        b.CheckSums[v1beta1constants.DeploymentNameKubeControllerManager],
-			"checksum/secret-kube-controller-manager-server": b.CheckSums[common.KubeControllerManagerServerName],
-			"checksum/secret-service-account-key":            b.CheckSums["service-account-key"],
-		},
-		"podLabels": map[string]interface{}{
-			v1beta1constants.LabelPodMaintenanceRestart: "true",
-		},
+// DefaultKubeControllerManager returns a deployer for the kube-controller-manager.
+func (b *Botanist) DefaultKubeControllerManager() (kubecontrollermanager.KubeControllerManager, error) {
+	image, err := b.ImageVector.FindImage(common.KubeControllerManagerImageName, imagevector.RuntimeVersion(b.SeedVersion()), imagevector.TargetVersion(b.ShootVersion()))
+	if err != nil {
+		return nil, err
 	}
 
+	return kubecontrollermanager.New(
+		b.Logger.WithField("component", "kube-controller-manager"),
+		b.K8sSeedClient.Client(),
+		b.Shoot.SeedNamespace,
+		b.Shoot.KubernetesVersion,
+		image.String(),
+		b.Shoot.Info.Spec.Kubernetes.KubeControllerManager,
+		b.Shoot.Networks.Pods,
+		b.Shoot.Networks.Services,
+	), nil
+}
+
+// DeployKubeControllerManager deploys the Kubernetes Controller Manager.
+func (b *Botanist) DeployKubeControllerManager(ctx context.Context) error {
+	replicaCount, err := b.getWantedReplicaCountKubeControllerManager(ctx)
+	if err != nil {
+		return err
+	}
+
+	b.Shoot.Components.ControlPlane.KubeControllerManager.SetReplicaCount(replicaCount)
+
+	b.Shoot.Components.ControlPlane.KubeControllerManager.SetSecrets(kubecontrollermanager.Secrets{
+		CA:                component.Secret{Name: v1beta1constants.SecretNameCACluster, Checksum: b.CheckSums[v1beta1constants.SecretNameCACluster]},
+		ServiceAccountKey: component.Secret{Name: v1beta1constants.SecretNameServiceAccountKey, Checksum: b.CheckSums[v1beta1constants.SecretNameServiceAccountKey]},
+		Kubeconfig:        component.Secret{Name: kubecontrollermanager.SecretName, Checksum: b.CheckSums[kubecontrollermanager.SecretName]},
+		Server:            component.Secret{Name: kubecontrollermanager.SecretNameServer, Checksum: b.CheckSums[kubecontrollermanager.SecretNameServer]},
+	})
+	return b.Shoot.Components.ControlPlane.KubeControllerManager.Deploy(ctx)
+}
+
+func (b *Botanist) getWantedReplicaCountKubeControllerManager(ctx context.Context) (int32, error) {
+	var replicaCount int32
 	if b.Shoot.Info.Status.LastOperation != nil && b.Shoot.Info.Status.LastOperation.Type == gardencorev1beta1.LastOperationTypeCreate {
 		if b.Shoot.HibernationEnabled {
 			// shoot is being created with .spec.hibernation.enabled=true, don't deploy KCM at all
-			defaultValues["replicas"] = 0
+			replicaCount = 0
 		} else {
 			// shoot is being created with .spec.hibernation.enabled=false, deploy KCM
-			defaultValues["replicas"] = 1
+			replicaCount = 1
 		}
 	} else {
 		if b.Shoot.HibernationEnabled == b.Shoot.Info.Status.IsHibernated {
 			// shoot is being reconciled with .spec.hibernation.enabled=.status.isHibernated, so keep the replicas which
 			// are controlled by the dependency-watchdog
-			replicaCount, err := common.CurrentReplicaCount(ctx, b.K8sSeedClient.Client(), b.Shoot.SeedNamespace, v1beta1constants.DeploymentNameKubeControllerManager)
+			replicas, err := common.CurrentReplicaCount(ctx, b.K8sSeedClient.Client(), b.Shoot.SeedNamespace, v1beta1constants.DeploymentNameKubeControllerManager)
 			if err != nil {
-				return err
+				return 0, err
 			}
-			defaultValues["replicas"] = replicaCount
+			replicaCount = replicas
 		} else {
 			// shoot is being reconciled with .spec.hibernation.enabled!=.status.isHibernated, so deploy KCM. in case the
 			// shoot is being hibernated then it will be scaled down to zero later after all machines are gone
-			defaultValues["replicas"] = 1
+			replicaCount = 1
 		}
 	}
-
-	controllerManagerConfig := b.Shoot.Info.Spec.Kubernetes.KubeControllerManager
-	if controllerManagerConfig != nil {
-		defaultValues["featureGates"] = controllerManagerConfig.FeatureGates
-
-		if controllerManagerConfig.HorizontalPodAutoscalerConfig != nil {
-			defaultValues["horizontalPodAutoscaler"] = controllerManagerConfig.HorizontalPodAutoscalerConfig
-		}
-
-		if controllerManagerConfig.NodeCIDRMaskSize != nil {
-			defaultValues["nodeCIDRMaskSize"] = *controllerManagerConfig.NodeCIDRMaskSize
-		}
-	}
-
-	values, err := b.InjectSeedShootImages(defaultValues, common.KubeControllerManagerImageName)
-	if err != nil {
-		return err
-	}
-
-	return b.K8sSeedClient.ChartApplier().Apply(ctx, filepath.Join(chartPathControlPlane, v1beta1constants.DeploymentNameKubeControllerManager), b.Shoot.SeedNamespace, v1beta1constants.DeploymentNameKubeControllerManager, kubernetes.Values(values))
+	return replicaCount, nil
 }
 
 // DefaultKubeScheduler returns a deployer for the kube-scheduler.
