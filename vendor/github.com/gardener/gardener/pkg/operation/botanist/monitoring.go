@@ -64,6 +64,7 @@ func (b *Botanist) DeploySeedMonitoring(ctx context.Context) error {
 	// Fetch component-specific monitoring configuration
 	monitoringComponents := []component.MonitoringComponent{
 		b.Shoot.Components.ControlPlane.KubeScheduler,
+		b.Shoot.Components.ControlPlane.KubeControllerManager,
 	}
 
 	if b.Shoot.WantsClusterAutoscaler {
@@ -219,12 +220,6 @@ func (b *Botanist) DeploySeedMonitoring(ctx context.Context) error {
 		},
 		"prometheus":               prometheus,
 		"kube-state-metrics-shoot": kubeStateMetricsShoot,
-	}
-
-	// TODO: (wyb1) Remove in next minor release
-	err = b.DeleteKubeStateMetricsSeed(ctx)
-	if err != nil {
-		return err
 	}
 
 	if err := b.K8sSeedClient.ChartApplier().Apply(ctx, filepath.Join(common.ChartPath, "seed-monitoring", "charts", "core"), b.Shoot.SeedNamespace, fmt.Sprintf("%s-monitoring", b.Shoot.SeedNamespace), kubernetes.Values(coreValues)); err != nil {
@@ -415,51 +410,14 @@ func (b *Botanist) deployGrafanaCharts(ctx context.Context, role, dashboards, ba
 		"konnectivityTunnel": map[string]interface{}{
 			"enabled": b.Shoot.KonnectivityTunnelEnabled,
 		},
+		"sni": map[string]interface{}{
+			"enabled": b.APIServerSNIEnabled(),
+		},
 	}, common.GrafanaImageName, common.BusyboxImageName)
 	if err != nil {
 		return err
 	}
 	return b.K8sSeedClient.ChartApplier().Apply(ctx, filepath.Join(common.ChartPath, "seed-monitoring", "charts", "grafana"), b.Shoot.SeedNamespace, fmt.Sprintf("%s-monitoring", b.Shoot.SeedNamespace), kubernetes.Values(values))
-}
-
-// TODO: (wyb1) Delete in next minor release
-// DeleteKubeStateMetricsSeed will delete everything related to the kube-state-metrics-seed deployment
-// present in the shoot namespaces.
-func (b *Botanist) DeleteKubeStateMetricsSeed(ctx context.Context) error {
-	objects := []runtime.Object{
-		&corev1.ServiceAccount{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: b.Shoot.SeedNamespace,
-				Name:      "kube-state-metrics-seed",
-			},
-		},
-		&rbacv1.RoleBinding{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: b.Shoot.SeedNamespace,
-				Name:      "kube-state-metrics-seed",
-			},
-		},
-		&corev1.Service{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: b.Shoot.SeedNamespace,
-				Name:      "kube-state-metrics-seed",
-			},
-		},
-		&appsv1.Deployment{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: b.Shoot.SeedNamespace,
-				Name:      "kube-state-metrics-seed",
-			},
-		},
-		&autoscalingv1beta2.VerticalPodAutoscaler{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: b.Shoot.SeedNamespace,
-				Name:      "kube-state-metrics-seed-vpa",
-			},
-		},
-	}
-
-	return kutil.DeleteObjects(ctx, b.K8sSeedClient.Client(), objects...)
 }
 
 // DeleteSeedMonitoring will delete the monitoring stack from the Seed cluster to avoid phantom alerts
@@ -475,11 +433,6 @@ func (b *Botanist) DeleteSeedMonitoring(ctx context.Context) error {
 	}
 
 	if err := common.DeleteGrafanaByRole(ctx, b.K8sSeedClient, b.Shoot.SeedNamespace, common.GrafanaUsersRole); err != nil {
-		return err
-	}
-
-	// TODO: (wyb1) Delete in next minor release
-	if err := b.DeleteKubeStateMetricsSeed(ctx); err != nil {
 		return err
 	}
 
