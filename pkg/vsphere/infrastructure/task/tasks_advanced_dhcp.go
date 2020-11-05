@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strings"
 
 	"github.com/vmware/go-vmware-nsxt/common"
 	"github.com/vmware/go-vmware-nsxt/manager"
@@ -156,15 +157,60 @@ func (t *advancedDHCPServerTask) Reference(state *api.NSXTInfraState) *api.Refer
 	return toReference(state.AdvancedDHCP.ServerID)
 }
 
+func (t *advancedDHCPServerTask) buildIPv4DHCPServer(cfg *dhcpConfig) (*manager.IPv4DhcpServer, error) {
+	domainName := ""
+	if cfg.DHCPOptions != nil {
+		if v, ok := cfg.DHCPOptions[15]; ok {
+			if len(v) != 1 {
+				return nil, fmt.Errorf("Single domain name needed (DHCP option code 15): %v", v)
+			}
+			domainName = v[0]
+		}
+	}
+	ipv4DhcpServer := &manager.IPv4DhcpServer{
+		DhcpServerIp:   cfg.DHCPServerAddress,
+		DnsNameservers: cfg.DNSServers,
+		GatewayIp:      cfg.GatewayIP,
+		DomainName:     domainName,
+	}
+	ipv4DhcpServer.Options = &manager.DhcpOptions{
+		Others: []manager.GenericDhcpOption{{Code: 1, Values: []string{cfg.SubnetMask}}},
+	}
+	if len(cfg.DHCPOptions) > 0 {
+		if values121, ok := cfg.DHCPOptions[121]; ok {
+			routes := []manager.ClasslessStaticRoute{}
+			for _, v := range values121 {
+				parts := strings.Split(v, "=>")
+				if len(parts) != 2 {
+					return nil, fmt.Errorf("Invalid DhcpOption121 value: %s (expected `network=>nextHop`)", v)
+				}
+				routes = append(routes, manager.ClasslessStaticRoute{
+					Network: parts[0],
+					NextHop: parts[1],
+				})
+			}
+			ipv4DhcpServer.Options.Option121 = &manager.DhcpOption121{StaticRoutes: routes}
+		}
+		for code, values := range cfg.DHCPOptions {
+			if code != 121 && code != 15 {
+				ipv4DhcpServer.Options.Others = append(ipv4DhcpServer.Options.Others, manager.GenericDhcpOption{
+					Code:   int64(code),
+					Values: values,
+				})
+			}
+		}
+	}
+	return ipv4DhcpServer, nil
+}
+
 func (t *advancedDHCPServerTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfraSpec, state *api.NSXTInfraState) (string, error) {
 	cfg, err := newDHCPConfig(spec)
 	if err != nil {
 		return "", err
 	}
-	ipv4DhcpServer := manager.IPv4DhcpServer{
-		DhcpServerIp:   cfg.DHCPServerAddress,
-		DnsNameservers: cfg.DNSServers,
-		GatewayIp:      cfg.GatewayIP,
+	ipv4DhcpServer, err := t.buildIPv4DHCPServer(cfg)
+	if err != nil {
+		return "", err
 	}
 
 	server := manager.LogicalDhcpServer{
@@ -172,7 +218,7 @@ func (t *advancedDHCPServerTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfr
 		DisplayName:    spec.FullClusterName(),
 		Tags:           spec.CreateCommonTags(),
 		DhcpProfileId:  *state.AdvancedDHCP.ProfileID,
-		Ipv4DhcpServer: &ipv4DhcpServer,
+		Ipv4DhcpServer: ipv4DhcpServer,
 	}
 
 	if state.AdvancedDHCP.ServerID != nil {
@@ -189,7 +235,9 @@ func (t *advancedDHCPServerTask) Ensure(ctx EnsurerContext, spec vinfra.NSXTInfr
 			oldServer.Ipv4DhcpServer == nil ||
 			oldServer.Ipv4DhcpServer.DhcpServerIp != server.Ipv4DhcpServer.DhcpServerIp ||
 			oldServer.Ipv4DhcpServer.GatewayIp != server.Ipv4DhcpServer.GatewayIp ||
+			oldServer.Ipv4DhcpServer.DomainName != server.Ipv4DhcpServer.DomainName ||
 			!reflect.DeepEqual(oldServer.Ipv4DhcpServer.DnsNameservers, server.Ipv4DhcpServer.DnsNameservers) ||
+			!reflect.DeepEqual(oldServer.Ipv4DhcpServer.Options, server.Ipv4DhcpServer.Options) ||
 			!containsCommonTags(oldServer.Tags, server.Tags) {
 			server.Tags = mergeCommonTags(server.Tags, oldServer.Tags)
 			_, resp, err := ctx.NSXTClient().ServicesApi.UpdateDhcpServer(ctx.NSXTClient().Context, *state.AdvancedDHCP.ServerID, server)

@@ -16,12 +16,18 @@ package controlplane
 
 import (
 	"context"
+	"strings"
 
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"k8s.io/apimachinery/pkg/util/validation/field"
+
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 
 	"github.com/coreos/go-systemd/v22/unit"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
@@ -152,4 +158,129 @@ func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, ectx gen
 	// Overwrite data variable
 	*data = cm.Data[vsphere.CloudProviderConfigMapKey]
 	return nil
+}
+
+// EnsureAdditionalFile ensures additional systemd files
+// "old" might be "nil" and must always be checked.
+func (e *ensurer) EnsureAdditionalFiles(ctx context.Context, ectx genericmutator.EnsurerContext, new, old *[]extensionsv1alpha1.File) error {
+	cloudProfileConfig, err := getCloudProfileConfig(ctx, ectx)
+	if err != nil {
+		return err
+	}
+
+	if cloudProfileConfig.DockerDaemonOptions != nil && cloudProfileConfig.DockerDaemonOptions.HTTPProxyConf != nil {
+		addDockerHttpProxyFile(new, *cloudProfileConfig.DockerDaemonOptions.HTTPProxyConf)
+	}
+
+	if cloudProfileConfig.DockerDaemonOptions != nil && len(cloudProfileConfig.DockerDaemonOptions.InsecureRegistries) != 0 {
+		addMergeDockerJsonFile(new, cloudProfileConfig.DockerDaemonOptions.InsecureRegistries)
+	}
+
+	return nil
+}
+
+func getCloudProfileConfig(ctx context.Context, ectx genericmutator.EnsurerContext) (*apisvsphere.CloudProfileConfig, error) {
+	cluster, err := ectx.GetCluster(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	providerConfigPath := field.NewPath("spec", "providerConfig")
+	cloudProfileConfig, err := helper.DecodeCloudProfileConfig(cluster.CloudProfile.Spec.ProviderConfig, providerConfigPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "decoding cloudprofileconfig failed")
+	}
+	return cloudProfileConfig, nil
+}
+
+func addDockerHttpProxyFile(new *[]extensionsv1alpha1.File, httpProxyConf string) {
+	var (
+		permissions int32 = 0644
+	)
+
+	appendUniqueFile(new, extensionsv1alpha1.File{
+		Path:        "/etc/systemd/system/docker.service.d/http-proxy.conf",
+		Permissions: &permissions,
+		Content: extensionsv1alpha1.FileContent{
+			Inline: &extensionsv1alpha1.FileContentInline{
+				Encoding: "",
+				Data:     httpProxyConf,
+			},
+		},
+	})
+}
+
+func addMergeDockerJsonFile(new *[]extensionsv1alpha1.File, insecureRegistries []string) {
+	var (
+		permissions int32 = 0755
+		template          = `#!/bin/sh
+DOCKER_CONF=/etc/docker/daemon.json
+
+if [ ! -f ${DOCKER_CONF} ]; then
+  echo "{}" > ${DOCKER_CONF}
+fi
+if [ ! -f ${DOCKER_CONF}.org ]; then
+  mv ${DOCKER_CONF} ${DOCKER_CONF}.org
+fi
+echo '{"insecure-registries":["@@"]}' | jq -s '.[0] * .[1]' ${DOCKER_CONF}.org - > ${DOCKER_CONF}
+`
+	)
+
+	content := strings.ReplaceAll(template, "@@", strings.Join(insecureRegistries, `","`))
+	appendUniqueFile(new, extensionsv1alpha1.File{
+		Path:        "/opt/bin/merge-docker-json.sh",
+		Permissions: &permissions,
+		Content: extensionsv1alpha1.FileContent{
+			Inline: &extensionsv1alpha1.FileContentInline{
+				Encoding: "",
+				Data:     content,
+			},
+		},
+	})
+}
+
+// EnsureAdditionalUnits ensures that additional required system units are added.
+func (e *ensurer) EnsureAdditionalUnits(ctx context.Context, ectx genericmutator.EnsurerContext, new, _ *[]extensionsv1alpha1.Unit) error {
+	var (
+		command           = "start"
+		trueVar           = true
+		customUnitContent = `[Unit]
+Description=Extend dockerd configuration file
+Before=dockerd.service
+[Install]
+WantedBy=dockerd.service
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/bin/merge-docker-json.sh
+`
+	)
+
+	cloudProfileConfig, err := getCloudProfileConfig(ctx, ectx)
+	if err != nil {
+		return err
+	}
+
+	if cloudProfileConfig.DockerDaemonOptions != nil && len(cloudProfileConfig.DockerDaemonOptions.InsecureRegistries) != 0 {
+		extensionswebhook.AppendUniqueUnit(new, extensionsv1alpha1.Unit{
+			Name:    "merge-docker-json.service",
+			Enable:  &trueVar,
+			Command: &command,
+			Content: &customUnitContent,
+		})
+	}
+	return nil
+}
+
+// appendUniqueFile appends a unit file only if it does not exist, otherwise overwrite content of previous files
+func appendUniqueFile(files *[]extensionsv1alpha1.File, file extensionsv1alpha1.File) {
+	resFiles := make([]extensionsv1alpha1.File, 0, len(*files))
+
+	for _, f := range *files {
+		if f.Path != file.Path {
+			resFiles = append(resFiles, f)
+		}
+	}
+
+	*files = append(resFiles, file)
 }

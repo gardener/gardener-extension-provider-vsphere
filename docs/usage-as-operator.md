@@ -12,6 +12,17 @@ You have to map every version that you specify in `.spec.machineImages[].version
 It also contains optional default values for DNS servers that shall be used for shoots.
 In the `dnsServers[]` list you can specify IP addresses that are used as DNS configuration for created shoot subnets.
 
+The `dhcpOptions` list allows to specify DHCP options. See [BOOTP Vendor Extensions and DHCP Options](https://www.iana.org/assignments/bootp-dhcp-parameters/bootp-dhcp-parameters.xhtml)
+for valid codes (tags) and details about values. The code `15` (domain name) is only allowed for
+when using NSX-T 2.5. For NSX-T >= 3.0 use `119` (search domain).
+
+The `dockerDaemonOptions` allow to adjust the docker daemon configuration.
+- with `dockerDaemonOptions.httpProxyConf` the content of the proxy configuration file can be set.
+See [Docker HTTP/HTTPS proxy](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy) for more details
+- with `dockerDaemonOptions.insecureRegistries` insecure registries can be specified. This
+should only be used for development or evaluation purposes.
+
+
 Also, you have to specify several name of NSX-T objects in the constraints.
 
 An example `CloudProfileConfig` for the vSphere extension looks as follows:
@@ -52,6 +63,17 @@ constraints:
     classes:
     - name: default
       ipPoolName: gardener_lb_vip
+# optional DHCP options like 119 (search domain), 42 (NTP), 15 (domain name (only NSX-T 2.5))
+#dhcpOptions:
+#- code: 15
+#  values:
+#  - foo.bar.com
+#- code: 42
+#  values:
+#  - 136.243.202.118
+#  - 80.240.29.124
+#  - 78.46.53.8
+#  - 162.159.200.123
 dnsServers:
 - 10.10.10.11
 - 10.10.10.12
@@ -61,6 +83,13 @@ machineImages:
   - version: 2191.5.0
     path: gardener/templates/coreos-2191.5.0
     guestId: coreos64Guest
+#dockerDaemonOptions:
+#  httpProxyConf: |
+#    [Service]
+#    Environment="HTTPS_PROXY=https://proxy.example.com:443"
+#  insecureRegistries:
+#  - myregistrydomain.com:5000
+#  - blabla.mycompany.local
 ```
 
 ## Example `CloudProfile` manifest

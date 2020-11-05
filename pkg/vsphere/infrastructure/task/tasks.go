@@ -20,6 +20,7 @@ package task
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -401,6 +402,33 @@ func makeDhcpConfig(cfg *dhcpConfig) (*data.StructValue, error) {
 		DnsServers:    cfg.DNSServers,
 		ServerAddress: strptr(cfg.DHCPServerAddress),
 		LeaseTime:     &cfg.LeaseTime,
+	}
+
+	if len(cfg.DHCPOptions) > 0 {
+		config.Options = &model.DhcpV4Options{}
+		if values121, ok := cfg.DHCPOptions[121]; ok {
+			routes := []model.ClasslessStaticRoute{}
+			for _, v := range values121 {
+				parts := strings.Split(v, "=>")
+				if len(parts) != 2 {
+					return nil, fmt.Errorf("Invalid DhcpOption121 value: %s (expected `network=>nextHop`)", v)
+				}
+				routes = append(routes, model.ClasslessStaticRoute{
+					Network: strptr(parts[0]),
+					NextHop: strptr(parts[1]),
+				})
+			}
+			config.Options.Option121 = &model.DhcpOption121{StaticRoutes: routes}
+		}
+		for code, values := range cfg.DHCPOptions {
+			if code != 121 {
+				c64 := int64(code)
+				config.Options.Others = append(config.Options.Others, model.GenericDhcpOption{
+					Code:   &c64,
+					Values: values,
+				})
+			}
+		}
 	}
 
 	converter := bindings.NewTypeConverter()

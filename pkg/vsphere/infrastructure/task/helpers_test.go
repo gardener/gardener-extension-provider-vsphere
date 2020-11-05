@@ -53,6 +53,20 @@ var _ = Describe("Helpers", func() {
 			Expect(result).To(Equal("10.0.96.1/19"))
 		})
 	})
+	DescribeTable("#cidrSubnetMask", func(cidr, expectedSubnetMask string) {
+		result, err := cidrSubnetMask(cidr)
+		Expect(err).To(BeNil())
+		Expect(result).To(Equal(expectedSubnetMask))
+	},
+		Entry("/0", "0.0.0.0/0", "0.0.0.0"),
+		Entry("/7", "10.0.96.0/7", "254.0.0.0"),
+		Entry("/8", "10.0.96.0/8", "255.0.0.0"),
+		Entry("/16", "10.0.96.0/16", "255.255.0.0"),
+		Entry("/19", "10.0.96.0/19", "255.255.224.0"),
+		Entry("/24", "10.0.96.0/24", "255.255.255.0"),
+		Entry("/28", "10.0.96.0/28", "255.255.255.240"),
+		Entry("/32", "123.254.96.32/32", "255.255.255.255"),
+	)
 	Describe("#RandomString", func() {
 		It("should generate random strings", func() {
 			s1 := RandomString(16)

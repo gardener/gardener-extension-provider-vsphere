@@ -38,6 +38,10 @@ type CloudProfileConfig struct {
 	FailureDomainLabels *FailureDomainLabels `json:"failureDomainLabels,omitempty"`
 	// DNSServers is a list of IPs of DNS servers used while creating subnets.
 	DNSServers []string `json:"dnsServers"`
+	// DHCPOptions contains optional options for DHCP like Domain name, NTP server,...
+	// +optional
+	DHCPOptions []DHCPOption `json:"dhcpOptions,omitempty"`
+
 	// MachineImages is the list of machine images that are understood by the controller. It maps
 	// logical names and versions to provider-specific identifiers.
 	MachineImages []MachineImages `json:"machineImages"`
@@ -49,6 +53,9 @@ type CloudProfileConfig struct {
 	// MachineTypeOptions is the list of machine type options to set additional options for individual machine types.
 	// +optional
 	MachineTypeOptions []MachineTypeOptions `json:"machineTypeOptions,omitempty"`
+	// DockerDaemonOptions contains configuration options for docker daemon service
+	// +optional
+	DockerDaemonOptions *DockerDaemonOptions `json:"dockerDaemonOptions,omitempty"`
 }
 
 // FailureDomainLabels are the tag categories used for regions and zones in vSphere CSI driver and cloud controller.
@@ -59,6 +66,15 @@ type FailureDomainLabels struct {
 	Region string `json:"region"`
 	// Zone is the tag category used for zones on vSphere data centers and/or clusters.
 	Zone string `json:"zone"`
+}
+
+// DHCPOption contains a DHCP option by code
+type DHCPOption struct {
+	// Code is the tag according to the BOOTP Vendor Extensions and DHCP Options (see https://www.iana.org/assignments/bootp-dhcp-parameters/bootp-dhcp-parameters.xhtml)
+	// most important codes: 'Domain Name'=15 (only allowed for NSX-T 2.5, use code 119 for NSX-T >= 3.0), 'NTP server'=42, 'Domain Search': 119
+	Code int `json:"code"`
+	// Values are the values for the given code
+	Values []string `json:"values"`
 }
 
 // RegionSpec specifies the topology of a region and its zones.
@@ -112,6 +128,10 @@ type RegionSpec struct {
 	// DNSServers of the CloudProfileConfig
 	// +optional
 	DNSServers []string `json:"dnsServers,omitempty"`
+	// DHCPOptions contains optional options for DHCP like Domain name, NTP server,...
+	// If provided, it overwrites the global DHCPOptions of the CloudProfileConfig
+	// +optional
+	DHCPOptions []DHCPOption `json:"dhcpOptions,omitempty"`
 	// MachineImages is the list of machine images that are understood by the controller. If provided, it overwrites the global
 	// MachineImages of the CloudProfileConfig
 	// +optional
@@ -209,4 +229,15 @@ type MachineTypeOptions struct {
 	// e.g. sched.swap.vmxSwapEnabled=false to disable the VMX process swap file
 	// +optional
 	ExtraConfig map[string]string `json:"extraConfig,omitempty"`
+}
+
+// DockerDaemonOptions contains configuration options for Docker daemon service
+type DockerDaemonOptions struct {
+	// HTTPProxyConf contains HTTP/HTTPS proxy configuration for Docker daemon
+	// +optional
+	HTTPProxyConf *string `json:"httpProxyConf,omitempty"`
+	// InsecureRegistries adds the given registries to Docker on the worker nodes
+	// (see https://docs.docker.com/registry/insecure/)
+	// +optional
+	InsecureRegistries []string `json:"insecureRegistries,omitempty"`
 }

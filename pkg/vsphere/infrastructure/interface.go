@@ -20,15 +20,16 @@ package infrastructure
 import api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 
 type NSXTInfraSpec struct {
-	EdgeClusterName   string   `json:"edgeClusterName"`
-	TransportZoneName string   `json:"transportZoneName"`
-	Tier0GatewayName  string   `json:"tier0GatewayName"`
-	SNATIPPoolName    string   `json:"snatIPPoolName"`
-	GardenID          string   `json:"gardenID"`
-	GardenName        string   `json:"gardenName"`
-	ClusterName       string   `json:"clusterName"`
-	WorkersNetwork    string   `json:"workersNetwork"`
-	DNSServers        []string `json:"dnsServers"`
+	EdgeClusterName   string           `json:"edgeClusterName"`
+	TransportZoneName string           `json:"transportZoneName"`
+	Tier0GatewayName  string           `json:"tier0GatewayName"`
+	SNATIPPoolName    string           `json:"snatIPPoolName"`
+	GardenID          string           `json:"gardenID"`
+	GardenName        string           `json:"gardenName"`
+	ClusterName       string           `json:"clusterName"`
+	WorkersNetwork    string           `json:"workersNetwork"`
+	DNSServers        []string         `json:"dnsServers"`
+	DHCPOptions       map[int][]string `json:"dhcpOptions,omitempty"`
 
 	ExternalTier1GatewayPath *string `json:"externalTier1GatewayPath,omitempty"`
 }

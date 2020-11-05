@@ -161,6 +161,11 @@ func ValidateCloudProfileConfig(profileSpec *gardencorev1beta1.CloudProfileSpec,
 			allErrs = append(allErrs, field.Required(field.NewPath("dnsServers"), "must provide dnsServers globally or for each region"))
 			allErrs = append(allErrs, field.Required(regionPath.Child("dnsServers"), fmt.Sprintf("must provide dnsServers globally or for region %s", region.Name)))
 		}
+		for i, option := range profileConfig.DHCPOptions {
+			if option.Code <= 0 {
+				allErrs = append(allErrs, field.Required(field.NewPath("dhcpOptions").Index(i).Child("code"), "must be positive integer"))
+			}
+		}
 		for j, zone := range region.Zones {
 			zonePath := regionPath.Child("zones").Index(j)
 			if zone.Name == "" {
