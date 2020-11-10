@@ -10,7 +10,7 @@ require (
 	github.com/gardener/gardener v1.12.3
 	github.com/gardener/machine-controller-manager v0.34.1
 	github.com/go-logr/logr v0.1.0
-	github.com/gobuffalo/packr/v2 v2.8.0
+	github.com/gobuffalo/packr/v2 v2.8.1
 	github.com/golang/mock v1.4.4-0.20200731163441-8734ec565a4d
 	github.com/google/uuid v1.1.1
 	github.com/onsi/ginkgo v1.14.0
