@@ -7,5 +7,6 @@ metadata:
     storageclass.kubernetes.io/is-default-class: "true"
     resources.gardener.cloud/delete-on-invalid-update: "true"
 provisioner: csi.vsphere.vmware.com
+volumeBindingMode: WaitForFirstConsumer
 parameters:
   storagePolicyName: "{{ .Values.storagePolicyName }}"
