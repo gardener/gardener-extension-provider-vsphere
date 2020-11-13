@@ -31,10 +31,10 @@ data:
     {{- if (or .Values.labelRegion .Values.labelZone) }}
     labels:
     {{- if .Values.labelRegion }}
-    region: "{{ .Values.labelRegion }}"
+      region: "{{ .Values.labelRegion }}"
     {{- end }}
     {{- if .Values.labelZone }}
-    zone: "{{ .Values.labelZone }}"
+      zone: "{{ .Values.labelZone }}"
     {{- end }}
     {{- end }}
 

@@ -348,8 +348,15 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 		return nil, err
 	}
 
+	volumeBindingMode := "Immediate"
+	if cloudProfileConfig.FailureDomainLabels != nil {
+		// can only be used if topology tags are set
+		volumeBindingMode = "WaitForFirstConsumer"
+	}
+
 	return map[string]interface{}{
 		"storagePolicyName": cloudProfileConfig.DefaultClassStoragePolicyName,
+		"volumeBindingMode": volumeBindingMode,
 	}, nil
 }
 
