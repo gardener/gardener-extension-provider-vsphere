@@ -326,14 +326,8 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 	cluster *extensionscontroller.Cluster,
 	checksums map[string]string,
 ) (map[string]interface{}, error) {
-	// Get credentials
-	credentials, err := vsphere.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
-	if err != nil {
-		return nil, errors.Wrapf(err, "could not get vSphere credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
-	}
-
 	// Get control plane shoot chart values
-	return vp.getControlPlaneShootChartValues(cp, cluster, credentials)
+	return vp.getControlPlaneShootChartValues()
 }
 
 // GetStorageClassesChartValues returns the values for the shoot storageclasses chart applied by the generic actuator.
@@ -600,52 +594,8 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 }
 
 // getControlPlaneShootChartValues collects and returns the control plane shoot chart values.
-func (vp *valuesProvider) getControlPlaneShootChartValues(
-	cp *extensionsv1alpha1.ControlPlane,
-	cluster *extensionscontroller.Cluster,
-	credentials *vsphere.Credentials,
-) (map[string]interface{}, error) {
-
-	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
-	if err != nil {
-		return nil, err
-	}
-
-	region := helper.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
-	if region == nil {
-		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
-	}
-
-	insecureFlag := "false"
-	if region.VsphereInsecureSSL {
-		insecureFlag = "true"
-	}
-
-	serverName, port, err := splitServerNameAndPort(region.VsphereHost)
-	if err != nil {
-		return nil, err
-	}
-
-	_, csiClusterID := vp.calcClusterIDs(cp)
-	values := map[string]interface{}{
-		"csi-vsphere": map[string]interface{}{
-			"serverName":        serverName,
-			"clusterID":         csiClusterID,
-			"username":          credentials.VsphereCSI().Username,
-			"password":          credentials.VsphereCSI().Password,
-			"serverPort":        port,
-			"datacenters":       strings.Join(helper.CollectDatacenters(region), ","),
-			"insecureFlag":      insecureFlag,
-			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
-		},
-	}
-
-	if cloudProfileConfig.FailureDomainLabels != nil {
-		values["csi-vsphere"].(map[string]interface{})["labelRegion"] = cloudProfileConfig.FailureDomainLabels.Region
-		values["csi-vsphere"].(map[string]interface{})["labelZone"] = cloudProfileConfig.FailureDomainLabels.Zone
-	}
-
-	return values, nil
+func (vp *valuesProvider) getControlPlaneShootChartValues() (map[string]interface{}, error) {
+	return map[string]interface{}{}, nil
 }
 
 func (vp *valuesProvider) calcClusterIDs(cp *extensionsv1alpha1.ControlPlane) (clusterID string, csiClusterID string) {

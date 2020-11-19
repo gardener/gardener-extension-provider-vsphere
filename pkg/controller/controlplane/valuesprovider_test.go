@@ -320,30 +320,19 @@ insecure-flag = "true"
 			},
 		}
 
-		controlPlaneShootChartValues = map[string]interface{}{
-			"csi-vsphere": map[string]interface{}{
-				"serverName":        "vsphere.host.internal",
-				"clusterID":         "shoot--foo--bar-garden1234",
-				"username":          "admin",
-				"password":          "super-secret",
-				"serverPort":        443,
-				"datacenters":       "scc01-DC",
-				"insecureFlag":      "true",
-				"kubernetesVersion": "1.14.0",
-				"labelRegion":       "k8s-region",
-				"labelZone":         "k8s-zone",
-			},
-		}
+		controlPlaneShootChartValues = map[string]interface{}{}
 
 		logger = log.Log.WithName("test")
 
-		prepareValueProvider = func(csi bool) genericactuator.ValuesProvider {
+		prepareValueProvider = func(csi, cp bool) genericactuator.ValuesProvider {
 			// Create mock client
 			client := mockclient.NewMockClient(ctrl)
 			if csi {
 				client.EXPECT().Get(context.TODO(), csiSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(csiSecret))
 			}
-			client.EXPECT().Get(context.TODO(), cpSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(cpSecret))
+			if cp {
+				client.EXPECT().Get(context.TODO(), cpSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(cpSecret))
+			}
 
 			// Create valuesProvider
 			vp := NewValuesProvider(logger, "garden1234")
@@ -366,7 +355,7 @@ insecure-flag = "true"
 
 	Describe("#GetConfigChartValues", func() {
 		It("should return correct config chart values", func() {
-			vp := prepareValueProvider(false)
+			vp := prepareValueProvider(false, true)
 
 			// Call GetConfigChartValues method and check the result
 			values, err := vp.GetConfigChartValues(context.TODO(), cp, cluster)
@@ -377,7 +366,7 @@ insecure-flag = "true"
 
 	Describe("#GetControlPlaneChartValues", func() {
 		It("should return correct control plane chart values", func() {
-			vp := prepareValueProvider(true)
+			vp := prepareValueProvider(true, true)
 
 			// Call GetControlPlaneChartValues method and check the result
 			values, err := vp.GetControlPlaneChartValues(context.TODO(), cp, cluster, checksums, false)
@@ -390,7 +379,7 @@ insecure-flag = "true"
 
 	Describe("#GetControlPlaneShootChartValues", func() {
 		It("should return correct control plane shoot chart values", func() {
-			vp := prepareValueProvider(false)
+			vp := prepareValueProvider(false, false)
 
 			// Call GetControlPlaneChartValues method and check the result
 			values, err := vp.GetControlPlaneShootChartValues(context.TODO(), cp, cluster, checksums)

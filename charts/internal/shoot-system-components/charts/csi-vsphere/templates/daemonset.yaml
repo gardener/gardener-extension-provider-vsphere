@@ -11,13 +11,11 @@ spec:
     type: "RollingUpdate"
   template:
     metadata:
-      annotations:
-        checksum/secret-csi-vsphere-config: {{ include (print $.Template.BasePath "/secret-csi-vsphere-config.yaml") . | sha256sum }}
       labels:
         app: vsphere-csi-node
         role: vsphere-csi
     spec:
-      automountServiceAccountToken: false
+      automountServiceAccountToken: true
       hostNetwork: true
       priorityClassName: system-node-critical
       serviceAccount: csi-driver-node
@@ -64,20 +62,12 @@ spec:
           value: "node"
         - name: X_CSI_SPEC_REQ_VALIDATION
           value: "false"
-{{- if .Values.topologyAware }}
-        # needed only for topology aware setups
-        - name: VSPHERE_CSI_CONFIG
-          value: "/etc/cloud/csi-vsphere.conf" # here csi-vsphere.conf is the name of the file used for creating secret using "--from-file" flag
-{{- end }}
         securityContext:
           privileged: true
           capabilities:
             add: ["SYS_ADMIN"]
           allowPrivilegeEscalation: true
         volumeMounts:
-          - name: vsphere-config-volume
-            mountPath: /etc/cloud
-            readOnly: true
           - name: plugin-dir
             mountPath: /csi
           - name: pods-mount-dir
@@ -110,9 +100,6 @@ spec:
           - name: plugin-dir
             mountPath: /csi
       volumes:
-        - name: vsphere-config-volume
-          secret:
-            secretName: csi-vsphere-config
         - name: registration-dir
           hostPath:
             path: /var/lib/kubelet/plugins_registry
