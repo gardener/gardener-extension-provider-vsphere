@@ -36,12 +36,17 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// MachineClassKind yields the name of the vSphere machine class.
+// MachineClassKind yields the name of the machine class.
 func (w *workerDelegate) MachineClassKind() string {
 	return "MachineClass"
 }
 
-// MachineClassList yields a newly initialized VsphereMachineClassList object.
+// MachineClass yields a newly initialized MachineClass object.
+func (w *workerDelegate) MachineClass() runtime.Object {
+	return &machinev1alpha1.MachineClass{}
+}
+
+// MachineClassList yields a newly initialized MachineClassList object.
 func (w *workerDelegate) MachineClassList() runtime.Object {
 	return &machinev1alpha1.MachineClassList{}
 }
