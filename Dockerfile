@@ -1,12 +1,12 @@
 ############# builder
-FROM golang:1.15.3 AS builder
+FROM eu.gcr.io/gardener-project/3rd/golang:1.15.5 AS builder
 
 WORKDIR /go/src/github.com/gardener/gardener-extension-provider-vsphere
 COPY . .
 RUN make install
 
 ############# base
-FROM alpine:3.11.3 AS base
+FROM alpine:3.12.1 AS base
 
 ############# gardener-extension-provider-vsphere
 FROM base AS gardener-extension-provider-vsphere

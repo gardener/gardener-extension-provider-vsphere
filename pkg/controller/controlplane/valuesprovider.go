@@ -353,10 +353,12 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 		// can only be used if topology tags are set
 		volumeBindingMode = "WaitForFirstConsumer"
 	}
+	allowVolumeExpansion := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
 
 	return map[string]interface{}{
-		"storagePolicyName": cloudProfileConfig.DefaultClassStoragePolicyName,
-		"volumeBindingMode": volumeBindingMode,
+		"storagePolicyName":    cloudProfileConfig.DefaultClassStoragePolicyName,
+		"volumeBindingMode":    volumeBindingMode,
+		"allowVolumeExpansion": allowVolumeExpansion,
 	}, nil
 }
 

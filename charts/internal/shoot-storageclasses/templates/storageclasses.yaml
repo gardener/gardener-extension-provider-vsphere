@@ -8,5 +8,6 @@ metadata:
     resources.gardener.cloud/delete-on-invalid-update: "true"
 provisioner: csi.vsphere.vmware.com
 volumeBindingMode: {{ .Values.volumeBindingMode }}
+allowVolumeExpansion: {{ .Values.allowVolumeExpansion }}
 parameters:
   storagePolicyName: "{{ .Values.storagePolicyName }}"
