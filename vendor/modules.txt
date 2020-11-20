@@ -50,11 +50,13 @@ github.com/gardener/etcd-druid/api/v1alpha1
 # github.com/gardener/external-dns-management v0.7.18
 github.com/gardener/external-dns-management/pkg/apis/dns
 github.com/gardener/external-dns-management/pkg/apis/dns/v1alpha1
-# github.com/gardener/gardener v1.12.3
+# github.com/gardener/gardener v1.12.1-0.20201120071023-5656cd744b03
 ## explicit
 github.com/gardener/gardener/.github
 github.com/gardener/gardener/.github/ISSUE_TEMPLATE
 github.com/gardener/gardener/extensions/pkg/controller
+github.com/gardener/gardener/extensions/pkg/controller/backupentry
+github.com/gardener/gardener/extensions/pkg/controller/backupentry/genericactuator
 github.com/gardener/gardener/extensions/pkg/controller/cmd
 github.com/gardener/gardener/extensions/pkg/controller/common
 github.com/gardener/gardener/extensions/pkg/controller/controlplane
@@ -136,6 +138,7 @@ github.com/gardener/gardener/pkg/operation/botanist/clusteridentity
 github.com/gardener/gardener/pkg/operation/botanist/component
 github.com/gardener/gardener/pkg/operation/botanist/controlplane
 github.com/gardener/gardener/pkg/operation/botanist/controlplane/clusterautoscaler
+github.com/gardener/gardener/pkg/operation/botanist/controlplane/etcd
 github.com/gardener/gardener/pkg/operation/botanist/controlplane/kubecontrollermanager
 github.com/gardener/gardener/pkg/operation/botanist/controlplane/kubescheduler
 github.com/gardener/gardener/pkg/operation/botanist/extensions/containerruntime
@@ -143,6 +146,7 @@ github.com/gardener/gardener/pkg/operation/botanist/extensions/dns
 github.com/gardener/gardener/pkg/operation/botanist/extensions/infrastructure
 github.com/gardener/gardener/pkg/operation/botanist/extensions/network
 github.com/gardener/gardener/pkg/operation/botanist/matchers
+github.com/gardener/gardener/pkg/operation/botanist/systemcomponents/metricsserver
 github.com/gardener/gardener/pkg/operation/common
 github.com/gardener/gardener/pkg/operation/etcdencryption
 github.com/gardener/gardener/pkg/operation/garden
@@ -173,13 +177,13 @@ github.com/gardener/gardener/pkg/utils/validation/cidr
 github.com/gardener/gardener/pkg/utils/version
 github.com/gardener/gardener/pkg/version
 github.com/gardener/gardener/test/framework
-# github.com/gardener/gardener-resource-manager v0.13.1
+# github.com/gardener/gardener-resource-manager v0.18.0
 github.com/gardener/gardener-resource-manager/pkg/apis/resources
 github.com/gardener/gardener-resource-manager/pkg/apis/resources/v1alpha1
 github.com/gardener/gardener-resource-manager/pkg/manager
-# github.com/gardener/hvpa-controller v0.2.5
+# github.com/gardener/hvpa-controller v0.3.1
 github.com/gardener/hvpa-controller/api/v1alpha1
-# github.com/gardener/machine-controller-manager v0.34.1
+# github.com/gardener/machine-controller-manager v0.35.0
 ## explicit
 github.com/gardener/machine-controller-manager/pkg/apis/machine
 github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1
@@ -764,7 +768,7 @@ honnef.co/go/tools/staticcheck
 honnef.co/go/tools/stylecheck
 honnef.co/go/tools/unused
 honnef.co/go/tools/version
-# k8s.io/api v0.18.8 => k8s.io/api v0.18.8
+# k8s.io/api v0.18.10 => k8s.io/api v0.18.8
 ## explicit
 k8s.io/api/admission/v1beta1
 k8s.io/api/admissionregistration/v1
@@ -807,7 +811,7 @@ k8s.io/api/settings/v1alpha1
 k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
-# k8s.io/apiextensions-apiserver v0.18.8 => k8s.io/apiextensions-apiserver v0.18.8
+# k8s.io/apiextensions-apiserver v0.18.10 => k8s.io/apiextensions-apiserver v0.18.8
 ## explicit
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1
@@ -816,7 +820,7 @@ k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset
 k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/scheme
 k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1
 k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1
-# k8s.io/apimachinery v0.18.8 => k8s.io/apimachinery v0.18.8
+# k8s.io/apimachinery v0.18.10 => k8s.io/apimachinery v0.18.8
 ## explicit
 k8s.io/apimachinery/pkg/api/equality
 k8s.io/apimachinery/pkg/api/errors
@@ -871,7 +875,7 @@ k8s.io/apimachinery/pkg/watch
 k8s.io/apimachinery/third_party/forked/golang/json
 k8s.io/apimachinery/third_party/forked/golang/netutil
 k8s.io/apimachinery/third_party/forked/golang/reflect
-# k8s.io/apiserver v0.18.8 => k8s.io/apiserver v0.18.8
+# k8s.io/apiserver v0.18.10 => k8s.io/apiserver v0.18.8
 ## explicit
 k8s.io/apiserver/pkg/apis/audit
 k8s.io/apiserver/pkg/apis/audit/v1
@@ -880,6 +884,7 @@ k8s.io/apiserver/pkg/apis/audit/v1beta1
 k8s.io/apiserver/pkg/apis/audit/validation
 k8s.io/apiserver/pkg/apis/config
 k8s.io/apiserver/pkg/apis/config/v1
+k8s.io/apiserver/pkg/authentication/serviceaccount
 k8s.io/apiserver/pkg/authentication/user
 k8s.io/apiserver/pkg/util/feature
 # k8s.io/autoscaler v0.0.0-20190805135949-100e91ba756e
@@ -1073,10 +1078,10 @@ k8s.io/cloud-provider-vsphere/pkg/common/connectionmanager
 k8s.io/cloud-provider-vsphere/pkg/common/credentialmanager
 k8s.io/cloud-provider-vsphere/pkg/common/kubernetes
 k8s.io/cloud-provider-vsphere/pkg/common/vclib
-# k8s.io/cluster-bootstrap v0.18.8 => k8s.io/kubernetes/staging/src/k8s.io/cluster-bootstrap v0.0.0-20200715165012-dff82dc0de47
+# k8s.io/cluster-bootstrap v0.18.10 => k8s.io/kubernetes/staging/src/k8s.io/cluster-bootstrap v0.0.0-20200715165012-dff82dc0de47
 k8s.io/cluster-bootstrap/token/api
 k8s.io/cluster-bootstrap/token/util
-# k8s.io/code-generator v0.18.8 => k8s.io/code-generator v0.18.8
+# k8s.io/code-generator v0.18.10 => k8s.io/code-generator v0.18.8
 ## explicit
 k8s.io/code-generator
 k8s.io/code-generator/cmd/client-gen
@@ -1112,7 +1117,7 @@ k8s.io/code-generator/cmd/set-gen
 k8s.io/code-generator/pkg/namer
 k8s.io/code-generator/pkg/util
 k8s.io/code-generator/third_party/forked/golang/reflect
-# k8s.io/component-base v0.18.8 => k8s.io/component-base v0.18.8
+# k8s.io/component-base v0.18.10 => k8s.io/component-base v0.18.8
 ## explicit
 k8s.io/component-base/config
 k8s.io/component-base/config/v1alpha1
@@ -1154,7 +1159,7 @@ k8s.io/helm/pkg/version
 k8s.io/klog
 # k8s.io/klog/v2 v2.0.0
 k8s.io/klog/v2
-# k8s.io/kube-aggregator v0.18.8 => k8s.io/kube-aggregator v0.18.8
+# k8s.io/kube-aggregator v0.18.10 => k8s.io/kube-aggregator v0.18.8
 k8s.io/kube-aggregator/pkg/apis/apiregistration
 k8s.io/kube-aggregator/pkg/apis/apiregistration/v1
 k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1
@@ -1175,17 +1180,17 @@ k8s.io/kube-openapi/pkg/generators
 k8s.io/kube-openapi/pkg/generators/rules
 k8s.io/kube-openapi/pkg/util/proto
 k8s.io/kube-openapi/pkg/util/sets
-# k8s.io/kubelet v0.18.8 => k8s.io/kubernetes/staging/src/k8s.io/kubelet v0.0.0-20200715165012-dff82dc0de47
+# k8s.io/kubelet v0.18.10 => k8s.io/kubernetes/staging/src/k8s.io/kubelet v0.0.0-20200715165012-dff82dc0de47
 ## explicit
 k8s.io/kubelet/config/v1beta1
-# k8s.io/metrics v0.18.8 => k8s.io/kubernetes/staging/src/k8s.io/metrics v0.0.0-20200715165012-dff82dc0de47
+# k8s.io/metrics v0.18.10 => k8s.io/kubernetes/staging/src/k8s.io/metrics v0.0.0-20200715165012-dff82dc0de47
 k8s.io/metrics/pkg/apis/metrics
 k8s.io/metrics/pkg/apis/metrics/v1alpha1
 k8s.io/metrics/pkg/apis/metrics/v1beta1
 k8s.io/metrics/pkg/client/clientset/versioned/scheme
 # k8s.io/sample-controller v0.18.6
 k8s.io/sample-controller/pkg/signals
-# k8s.io/utils v0.0.0-20200603063816-c1c6865ac451
+# k8s.io/utils v0.0.0-20200619165400-6e3d28b6ed19
 ## explicit
 k8s.io/utils/buffer
 k8s.io/utils/integer
