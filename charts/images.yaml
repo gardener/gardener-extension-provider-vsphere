@@ -38,8 +38,8 @@ images:
   tag: v2.0.1
 - name: vsphere-csi-driver-node
   sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
-  repository: gcr.io/cloud-provider-vsphere/csi/release/driver
-  tag: v2.0.1
+  repository: eu.gcr.io/gardener-project/test/vsphere-csi-driver
+  tag: v2.1.0-rc.1-260-gda4dd05-b
 - name: vsphere-csi-driver-syncer
   sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   repository: gcr.io/cloud-provider-vsphere/csi/release/syncer
