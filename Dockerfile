@@ -6,7 +6,7 @@ COPY . .
 RUN make install
 
 ############# base
-FROM alpine:3.12.1 AS base
+FROM eu.gcr.io/gardener-project/3rd/alpine:3.12.1 AS base
 
 ############# gardener-extension-provider-vsphere
 FROM base AS gardener-extension-provider-vsphere

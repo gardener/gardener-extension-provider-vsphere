@@ -35,6 +35,7 @@ import (
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils"
+	"github.com/sirupsen/logrus"
 )
 
 func requiredConditionMissing(conditionType string) error {
@@ -245,11 +246,26 @@ var (
 
 // CheckSeed checks if the Seed is up-to-date and if its extensions have been successfully bootstrapped.
 func CheckSeed(seed *gardencorev1beta1.Seed, identity *gardencorev1beta1.Gardener) error {
-	if seed.Status.ObservedGeneration < seed.Generation {
-		return fmt.Errorf("observed generation outdated (%d/%d)", seed.Status.ObservedGeneration, seed.Generation)
-	}
 	if !apiequality.Semantic.DeepEqual(seed.Status.Gardener, identity) {
 		return fmt.Errorf("observing Gardener version not up to date (%v/%v)", seed.Status.Gardener, identity)
+	}
+
+	return checkSeed(seed, identity)
+}
+
+// CheckSeedForMigration checks if the Seed is up-to-date (comparing only the versions) and if its extensions have been successfully bootstrapped.
+func CheckSeedForMigration(seed *gardencorev1beta1.Seed, identity *gardencorev1beta1.Gardener) error {
+	if seed.Status.Gardener.Version != identity.Version {
+		return fmt.Errorf("observing Gardener version not up to date (%s/%s)", seed.Status.Gardener.Version, identity.Version)
+	}
+
+	return checkSeed(seed, identity)
+}
+
+// checkSeed checks if the seed.Status.ObservedGeneration ObservedGeneration is not outdated and if its extensions have been successfully bootstrapped.
+func checkSeed(seed *gardencorev1beta1.Seed, identity *gardencorev1beta1.Gardener) error {
+	if seed.Status.ObservedGeneration < seed.Generation {
+		return fmt.Errorf("observed generation outdated (%d/%d)", seed.Status.ObservedGeneration, seed.Generation)
 	}
 
 	for _, trueConditionType := range trueSeedConditionTypes {
@@ -340,7 +356,7 @@ var Now = time.Now
 type conditionerFunc func(conditionType string, message string) gardencorev1beta1.Condition
 
 // CheckAPIServerAvailability checks if the API server of a cluster is reachable and measure the response time.
-func CheckAPIServerAvailability(ctx context.Context, condition gardencorev1beta1.Condition, restClient rest.Interface, conditioner conditionerFunc) gardencorev1beta1.Condition {
+func CheckAPIServerAvailability(ctx context.Context, condition gardencorev1beta1.Condition, restClient rest.Interface, conditioner conditionerFunc, log logrus.FieldLogger) gardencorev1beta1.Condition {
 	now := Now()
 	response := restClient.Get().AbsPath("/healthz").Do(ctx)
 	responseDurationText := fmt.Sprintf("[response_time:%dms]", Now().Sub(now).Nanoseconds()/time.Millisecond.Nanoseconds())
@@ -362,6 +378,7 @@ func CheckAPIServerAvailability(ctx context.Context, condition gardencorev1beta1
 			body = string(bodyRaw)
 		}
 		message := fmt.Sprintf("API server /healthz endpoint check returned a non ok status code %d. (%s)", statusCode, body)
+		log.Error(message)
 		return conditioner("HealthzRequestError", message)
 	}
 
