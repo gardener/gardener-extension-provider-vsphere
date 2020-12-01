@@ -47,7 +47,6 @@ import (
 	versionutils "github.com/gardener/gardener/pkg/utils/version"
 	"github.com/gardener/gardener/pkg/version"
 
-	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -299,7 +298,6 @@ func BootstrapCluster(ctx context.Context, k8sGardenClient, k8sSeedClient kubern
 			common.HvpaControllerImageName,
 			common.DependencyWatchdogImageName,
 			common.KubeStateMetricsImageName,
-			common.EtcdDruidImageName,
 		},
 		imagevector.RuntimeVersion(k8sSeedClient.Version()),
 		imagevector.TargetVersion(k8sSeedClient.Version()),
@@ -327,11 +325,6 @@ func BootstrapCluster(ctx context.Context, k8sGardenClient, k8sSeedClient kubern
 		Repository: repository,
 		Tag:        &tag,
 	}
-	// TODO: Remove in future release
-	// Delete the mutatingwebhookconfigoration
-	if err := deleteMutatingWebHookConfiguration(ctx, k8sSeedClient.Client()); err != nil {
-		return err
-	}
 
 	// HVPA feature gate
 	hvpaEnabled := gardenletfeatures.FeatureGate.Enabled(features.HVPA)
@@ -354,7 +347,10 @@ func BootstrapCluster(ctx context.Context, k8sGardenClient, k8sSeedClient kubern
 	}
 
 	// Fetch component-specific central monitoring configuration
-	var centralScrapeConfigs = strings.Builder{}
+	var (
+		centralScrapeConfigs                            = strings.Builder{}
+		centralCAdvisorScrapeConfigMetricRelabelConfigs = strings.Builder{}
+	)
 
 	for _, componentFn := range []component.CentralMonitoringConfiguration{
 		etcd.CentralMonitoringConfiguration,
@@ -363,8 +359,13 @@ func BootstrapCluster(ctx context.Context, k8sGardenClient, k8sSeedClient kubern
 		if err != nil {
 			return err
 		}
+
 		for _, config := range centralMonitoringConfig.ScrapeConfigs {
 			centralScrapeConfigs.WriteString(fmt.Sprintf("- %s\n", utils.Indent(config, 2)))
+		}
+
+		for _, config := range centralMonitoringConfig.CAdvisorScrapeConfigMetricRelabelConfigs {
+			centralCAdvisorScrapeConfigMetricRelabelConfigs.WriteString(fmt.Sprintf("- %s\n", utils.Indent(config, 2)))
 		}
 	}
 
@@ -546,7 +547,6 @@ func BootstrapCluster(ctx context.Context, k8sGardenClient, k8sSeedClient kubern
 		}
 		vpaGK                 = schema.GroupKind{Group: "autoscaling.k8s.io", Kind: "VerticalPodAutoscaler"}
 		hvpaGK                = schema.GroupKind{Group: "autoscaling.k8s.io", Kind: "Hvpa"}
-		druidGK               = schema.GroupKind{Group: "druid.gardener.cloud", Kind: "Etcd"}
 		issuerGK              = schema.GroupKind{Group: "certmanager.k8s.io", Kind: "ClusterIssuer"}
 		grafanaHost           = seed.GetIngressFQDN(grafanaPrefix)
 		prometheusHost        = seed.GetIngressFQDN(prometheusPrefix)
@@ -560,7 +560,6 @@ func BootstrapCluster(ctx context.Context, k8sGardenClient, k8sSeedClient kubern
 	applierOptions[vpaGK] = retainStatusInformation
 	applierOptions[hvpaGK] = retainStatusInformation
 	applierOptions[issuerGK] = retainStatusInformation
-	applierOptions[druidGK] = retainStatusInformation
 
 	networks := []string{
 		seed.Info.Spec.Networks.Pods,
@@ -590,7 +589,7 @@ func BootstrapCluster(ctx context.Context, k8sGardenClient, k8sSeedClient kubern
 		prometheusTLSOverride = wildcardCert.GetName()
 	}
 
-	imageVectorOverwrites := map[string]interface{}{}
+	imageVectorOverwrites := make(map[string]string, len(componentImageVectors))
 	for name, data := range componentImageVectors {
 		imageVectorOverwrites[name] = data
 	}
@@ -690,8 +689,7 @@ func BootstrapCluster(ctx context.Context, k8sGardenClient, k8sSeedClient kubern
 		"cloudProvider":     seed.Info.Spec.Provider.Type,
 		"priorityClassName": v1beta1constants.PriorityClassNameShootControlPlane,
 		"global": map[string]interface{}{
-			"images":                chart.ImageMapToValues(images),
-			"imageVectorOverwrites": imageVectorOverwrites,
+			"images": chart.ImageMapToValues(images),
 		},
 		"reserveExcessCapacity": seed.Info.Spec.Settings.ExcessCapacityReservation.Enabled,
 		"replicas": map[string]interface{}{
@@ -700,6 +698,7 @@ func BootstrapCluster(ctx context.Context, k8sGardenClient, k8sSeedClient kubern
 		"prometheus": map[string]interface{}{
 			"storage":                 seed.GetValidVolumeSize("10Gi"),
 			"additionalScrapeConfigs": centralScrapeConfigs.String(),
+			"additionalCAdvisorScrapeConfigMetricRelabelConfigs": centralCAdvisorScrapeConfigMetricRelabelConfigs.String(),
 		},
 		"aggregatePrometheus": map[string]interface{}{
 			"storage":    seed.GetValidVolumeSize("20Gi"),
@@ -764,46 +763,67 @@ func BootstrapCluster(ctx context.Context, k8sGardenClient, k8sSeedClient kubern
 	}
 
 	// Deploy component specific resources
-	var bootstrapFunctions []flow.TaskFn
-	for _, componentFn := range []component.BootstrapSeed{
-		clusterautoscaler.BootstrapSeed,
-	} {
-		bootstrapFunctions = append(bootstrapFunctions, func(ctx context.Context) error {
-			return componentFn(ctx, k8sSeedClient.Client(), v1beta1constants.GardenNamespace, k8sSeedClient.Version())
-		})
-	}
-	if err := flow.Parallel(bootstrapFunctions...)(ctx); err != nil {
+	bootstrapComponents, err := bootstrapComponents(k8sSeedClient, v1beta1constants.GardenNamespace, imageVector, imageVectorOverwrites)
+	if err != nil {
 		return err
 	}
 
-	// TODO: remove in a future release
-	// Clean up the stale vpa-webhook-config MutatingWebhookConfiguration.
-	// We can delete vpa-webhook-config as the new vpa-webhook-config-seed will be created with the apply of the seed-boostrap chart.
-	if vpaEnabled {
-		webhook := &admissionregistrationv1beta1.MutatingWebhookConfiguration{
-			ObjectMeta: metav1.ObjectMeta{Name: "vpa-webhook-config"},
-		}
-		if err := k8sSeedClient.Client().Delete(ctx, webhook); client.IgnoreNotFound(err) != nil {
-			return err
-		}
+	var bootstrapFunctions []flow.TaskFn
+	for _, componentFn := range bootstrapComponents {
+		fn := componentFn
+		bootstrapFunctions = append(bootstrapFunctions, func(ctx context.Context) error {
+			return component.OpWaiter(fn).Deploy(ctx)
+		})
 	}
 
-	return nil
+	return flow.Parallel(bootstrapFunctions...)(ctx)
 }
 
 // DebootstrapCluster deletes certain resources from the seed cluster.
 func DebootstrapCluster(ctx context.Context, k8sSeedClient kubernetes.Interface) error {
+	bootstrapComponents, err := bootstrapComponents(k8sSeedClient, v1beta1constants.GardenNamespace, nil, nil)
+	if err != nil {
+		return err
+	}
+
 	// Delete component specific resources
 	var debootstrapFunctions []flow.TaskFn
-	for _, componentFn := range []component.DebootstrapSeed{
-		clusterautoscaler.DebootstrapSeed,
-	} {
+	for _, componentFn := range bootstrapComponents {
+		fn := componentFn
 		debootstrapFunctions = append(debootstrapFunctions, func(ctx context.Context) error {
-			return componentFn(ctx, k8sSeedClient.Client(), v1beta1constants.GardenNamespace)
+			return component.OpDestroyAndWait(fn).Destroy(ctx)
 		})
 	}
 
 	return flow.Parallel(debootstrapFunctions...)(ctx)
+}
+
+func bootstrapComponents(c kubernetes.Interface, namespace string, imageVector imagevector.ImageVector, imageVectorOverwrites map[string]string) ([]component.DeployWaiter, error) {
+	var components []component.DeployWaiter
+
+	// cluster-autoscaler
+	components = append(components, clusterautoscaler.NewBootstrapper(c.Client(), namespace))
+
+	// etcd
+	var (
+		etcdImage                string
+		etcdImageVectorOverwrite *string
+	)
+	if imageVector != nil {
+		image, err := imageVector.FindImage(common.EtcdDruidImageName, imagevector.RuntimeVersion(c.Version()), imagevector.TargetVersion(c.Version()))
+		if err != nil {
+			return nil, err
+		}
+		etcdImage = image.String()
+	}
+	if imageVectorOverwrites != nil {
+		if val, ok := imageVectorOverwrites[etcd.Druid]; ok {
+			etcdImageVectorOverwrite = &val
+		}
+	}
+	components = append(components, etcd.NewBootstrapper(c.Client(), namespace, etcdImage, c.Version(), etcdImageVectorOverwrite))
+
+	return components, nil
 }
 
 // DesiredExcessCapacity computes the required resources (CPU and memory) required to deploy new shoot control planes
@@ -919,15 +939,4 @@ func determineClusterIdentity(ctx context.Context, c client.Client) (string, err
 		return string(gardenNamespace.UID), nil
 	}
 	return clusterIdentity.Data[v1beta1constants.ClusterIdentity], nil
-}
-
-func deleteMutatingWebHookConfiguration(ctx context.Context, k8sSeedClient client.Client) error {
-	a := &admissionregistrationv1beta1.MutatingWebhookConfiguration{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "gardener-seed-admission-controller",
-		},
-	}
-
-	err := k8sSeedClient.Delete(ctx, a)
-	return client.IgnoreNotFound(err)
 }
