@@ -173,7 +173,7 @@ var controlPlaneChart = &chart.Chart{
 			Objects: []*chart.Object{
 				{Type: &corev1.Service{}, Name: vsphere.CloudControllerManagerName},
 				{Type: &appsv1.Deployment{}, Name: vsphere.CloudControllerManagerName},
-				{Type: &corev1.ConfigMap{}, Name: vsphere.CloudControllerManagerName + "-monitoring-config"},
+				{Type: &corev1.ConfigMap{}, Name: vsphere.CloudControllerManagerName + "-observability-config"},
 				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: vsphere.CloudControllerManagerName + "-vpa"},
 			},
 		},
@@ -189,6 +189,7 @@ var controlPlaneChart = &chart.Chart{
 			Objects: []*chart.Object{
 				{Type: &corev1.Secret{}, Name: vsphere.SecretCSIVsphereConfig},
 				{Type: &appsv1.Deployment{}, Name: vsphere.VsphereCSIController},
+				{Type: &corev1.ConfigMap{}, Name: vsphere.VsphereCSIController + "-observability-config"},
 				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: vsphere.VsphereCSIController + "-vpa"},
 			},
 		},
@@ -313,6 +314,11 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	secretCSIVsphereConfig := &corev1.Secret{}
 	if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, vsphere.SecretCSIVsphereConfig), secretCSIVsphereConfig); err == nil {
 		checksums[vsphere.SecretCSIVsphereConfig] = gutils.ComputeChecksum(secretCSIVsphereConfig.Data)
+	}
+
+	// TODO: Remove this code in next version. Delete old config
+	if err := vp.deleteCCMMonitoringConfig(ctx, cp.Namespace); err != nil {
+		return nil, err
 	}
 
 	// Get control plane chart values
