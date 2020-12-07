@@ -50,6 +50,7 @@ const (
 var _ = Describe("ValuesProvider", func() {
 	var (
 		ctrl *gomock.Controller
+		c    *mockclient.MockClient
 
 		// Build scheme
 		scheme = runtime.NewScheme()
@@ -229,6 +230,14 @@ insecure-flag = "true"
 			},
 		}
 
+		// TODO remove ccmMonitoringConfigmap in next version
+		ccmMonitoringConfigmap = &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: namespace,
+				Name:      "cloud-controller-manager-monitoring-config",
+			},
+		}
+
 		checksums = map[string]string{
 			v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
 			vsphere.CloudProviderConfig:              "08a7bc7fe8f59b055f173145e211760a83f02cf89635cef26ebb351378635606",
@@ -339,17 +348,17 @@ insecure-flag = "true"
 
 		prepareValueProvider = func(csi bool) genericactuator.ValuesProvider {
 			// Create mock client
-			client := mockclient.NewMockClient(ctrl)
+			c = mockclient.NewMockClient(ctrl)
 			if csi {
-				client.EXPECT().Get(context.TODO(), csiSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(csiSecret))
+				c.EXPECT().Get(context.TODO(), csiSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(csiSecret))
 			}
-			client.EXPECT().Get(context.TODO(), cpSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(cpSecret))
+			c.EXPECT().Get(context.TODO(), cpSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(cpSecret))
 
 			// Create valuesProvider
 			vp := NewValuesProvider(logger, "garden1234")
 			err := vp.(inject.Scheme).InjectScheme(scheme)
 			Expect(err).NotTo(HaveOccurred())
-			err = vp.(inject.Client).InjectClient(client)
+			err = vp.(inject.Client).InjectClient(c)
 			Expect(err).NotTo(HaveOccurred())
 
 			return vp
@@ -376,8 +385,10 @@ insecure-flag = "true"
 	})
 
 	Describe("#GetControlPlaneChartValues", func() {
+
 		It("should return correct control plane chart values", func() {
 			vp := prepareValueProvider(true)
+			c.EXPECT().Delete(context.TODO(), ccmMonitoringConfigmap).DoAndReturn(clientDeleteSuccess())
 
 			// Call GetControlPlaneChartValues method and check the result
 			values, err := vp.GetControlPlaneChartValues(context.TODO(), cp, cluster, checksums, false)
@@ -437,4 +448,10 @@ func clientGet(result runtime.Object) interface{} {
 
 func sp(s string) *string {
 	return &s
+}
+
+func clientDeleteSuccess() interface{} {
+	return func(ctx context.Context, cm runtime.Object) error {
+		return nil
+	}
 }

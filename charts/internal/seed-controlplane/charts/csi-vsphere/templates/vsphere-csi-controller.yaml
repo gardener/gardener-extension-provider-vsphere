@@ -36,7 +36,7 @@ spec:
     spec:
       automountServiceAccountToken: false
       containers:
-        - name: csi-attacher
+        - name: vsphere-csi-attacher
           image: {{ index .Values.images "csi-attacher" }}
           args:
             - "--v=4"
@@ -57,7 +57,7 @@ spec:
             - name: csi-attacher
               mountPath: /var/lib/csi-attacher
 {{- if .Values.resizerEnabled }}
-        - name: csi-resizer
+        - name: vsphere-csi-resizer
           image: {{ index .Values.images "csi-resizer" }}
           args:
             - "--v=4"
@@ -115,7 +115,7 @@ spec:
             timeoutSeconds: 3
             periodSeconds: 5
             failureThreshold: 3
-        - name: vsphere-syncer
+        - name: vsphere-csi-syncer
           image: {{ index .Values.images "vsphere-csi-driver-syncer" }}
           args:
             - "--leader-election"
@@ -137,7 +137,7 @@ spec:
             - mountPath: /etc/cloud
               name: vsphere-config-volume
               readOnly: true
-        - name: liveness-probe
+        - name: vsphere-csi-liveness-probe
           image: {{ index .Values.images "liveness-probe" }}
           args:
             - "--csi-address=$(ADDRESS)"
@@ -151,7 +151,7 @@ spec:
           volumeMounts:
             - mountPath: /csi
               name: socket-dir
-        - name: csi-provisioner
+        - name: vsphere-csi-provisioner
           image: {{ index .Values.images "csi-provisioner" }}
           args:
             - "--v=4"
