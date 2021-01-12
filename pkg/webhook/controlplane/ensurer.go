@@ -18,24 +18,24 @@ import (
 	"context"
 	"strings"
 
-	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
-	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane"
-	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
-	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"k8s.io/apimachinery/pkg/util/validation/field"
-
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 
 	"github.com/coreos/go-systemd/v22/unit"
+	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
+	gcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
+	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane"
+	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -60,7 +60,7 @@ func (e *ensurer) InjectClient(client client.Client) error {
 }
 
 // EnsureKubeAPIServerDeployment ensures that the kube-apiserver deployment conforms to the provider requirements.
-func (e *ensurer) EnsureKubeAPIServerDeployment(ctx context.Context, ectx genericmutator.EnsurerContext, new, old *appsv1.Deployment) error {
+func (e *ensurer) EnsureKubeAPIServerDeployment(ctx context.Context, gctx gcontext.GardenContext, new, old *appsv1.Deployment) error {
 	template := &new.Spec.Template
 	ps := &template.Spec
 	if c := extensionswebhook.ContainerWithName(ps.Containers, "kube-apiserver"); c != nil {
@@ -70,7 +70,7 @@ func (e *ensurer) EnsureKubeAPIServerDeployment(ctx context.Context, ectx generi
 }
 
 // EnsureKubeControllerManagerDeployment ensures that the kube-controller-manager deployment conforms to the provider requirements.
-func (e *ensurer) EnsureKubeControllerManagerDeployment(ctx context.Context, ectx genericmutator.EnsurerContext, new, old *appsv1.Deployment) error {
+func (e *ensurer) EnsureKubeControllerManagerDeployment(ctx context.Context, gctx gcontext.GardenContext, new, old *appsv1.Deployment) error {
 	ensureKubeControllerManagerAnnotations(&new.Spec.Template)
 	return e.ensureChecksumAnnotations(ctx, &new.Spec.Template, new.Namespace)
 }
@@ -102,7 +102,7 @@ func (e *ensurer) ensureChecksumAnnotations(ctx context.Context, template *corev
 }
 
 // EnsureKubeletServiceUnitOptions ensures that the kubelet.service unit options conform to the provider requirements.
-func (e *ensurer) EnsureKubeletServiceUnitOptions(ctx context.Context, ectx genericmutator.EnsurerContext, new, old []*unit.UnitOption) ([]*unit.UnitOption, error) {
+func (e *ensurer) EnsureKubeletServiceUnitOptions(ctx context.Context, gctx gcontext.GardenContext, new, old []*unit.UnitOption) ([]*unit.UnitOption, error) {
 	if opt := extensionswebhook.UnitOptionWithSectionAndName(new, "Service", "ExecStart"); opt != nil {
 		command := extensionswebhook.DeserializeCommandLine(opt.Value)
 		command = ensureKubeletCommandLineArgs(command)
@@ -123,7 +123,7 @@ func ensureKubeletCommandLineArgs(command []string) []string {
 }
 
 // EnsureKubeletConfiguration ensures that the kubelet configuration conforms to the provider requirements.
-func (e *ensurer) EnsureKubeletConfiguration(ctx context.Context, ectx genericmutator.EnsurerContext, new, old *kubeletconfigv1beta1.KubeletConfiguration) error {
+func (e *ensurer) EnsureKubeletConfiguration(ctx context.Context, gctx gcontext.GardenContext, new, old *kubeletconfigv1beta1.KubeletConfiguration) error {
 	// Make sure CSI-related feature gates are not enabled
 	// TODO Leaving these enabled shouldn't do any harm, perhaps remove this code when properly tested?
 	delete(new.FeatureGates, "VolumeSnapshotDataSource")
@@ -133,12 +133,12 @@ func (e *ensurer) EnsureKubeletConfiguration(ctx context.Context, ectx genericmu
 }
 
 // ShouldProvisionKubeletCloudProviderConfig returns true if the cloud provider config file should be added to the kubelet configuration.
-func (e *ensurer) ShouldProvisionKubeletCloudProviderConfig(context.Context, genericmutator.EnsurerContext) bool {
+func (e *ensurer) ShouldProvisionKubeletCloudProviderConfig(context.Context, gcontext.GardenContext) bool {
 	return true
 }
 
 // EnsureKubeletCloudProviderConfig ensures that the cloud provider config file conforms to the provider requirements.
-func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, ectx genericmutator.EnsurerContext, data *string, namespace string) error {
+func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, gctx gcontext.GardenContext, data *string, namespace string) error {
 	// Get `cloud-provider-config` ConfigMap
 	var cm corev1.ConfigMap
 	err := e.client.Get(ctx, kutil.Key(namespace, vsphere.CloudProviderConfig), &cm)
@@ -162,25 +162,25 @@ func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, ectx gen
 
 // EnsureAdditionalFile ensures additional systemd files
 // "old" might be "nil" and must always be checked.
-func (e *ensurer) EnsureAdditionalFiles(ctx context.Context, ectx genericmutator.EnsurerContext, new, old *[]extensionsv1alpha1.File) error {
-	cloudProfileConfig, err := getCloudProfileConfig(ctx, ectx)
+func (e *ensurer) EnsureAdditionalFiles(ctx context.Context, gctx gcontext.GardenContext, new, old *[]extensionsv1alpha1.File) error {
+	cloudProfileConfig, err := getCloudProfileConfig(ctx, gctx)
 	if err != nil {
 		return err
 	}
 
 	if cloudProfileConfig.DockerDaemonOptions != nil && cloudProfileConfig.DockerDaemonOptions.HTTPProxyConf != nil {
-		addDockerHttpProxyFile(new, *cloudProfileConfig.DockerDaemonOptions.HTTPProxyConf)
+		addDockerHTTPProxyFile(new, *cloudProfileConfig.DockerDaemonOptions.HTTPProxyConf)
 	}
 
 	if cloudProfileConfig.DockerDaemonOptions != nil && len(cloudProfileConfig.DockerDaemonOptions.InsecureRegistries) != 0 {
-		addMergeDockerJsonFile(new, cloudProfileConfig.DockerDaemonOptions.InsecureRegistries)
+		addMergeDockerJSONFile(new, cloudProfileConfig.DockerDaemonOptions.InsecureRegistries)
 	}
 
 	return nil
 }
 
-func getCloudProfileConfig(ctx context.Context, ectx genericmutator.EnsurerContext) (*apisvsphere.CloudProfileConfig, error) {
-	cluster, err := ectx.GetCluster(ctx)
+func getCloudProfileConfig(ctx context.Context, gctx gcontext.GardenContext) (*apisvsphere.CloudProfileConfig, error) {
+	cluster, err := gctx.GetCluster(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func getCloudProfileConfig(ctx context.Context, ectx genericmutator.EnsurerConte
 	return cloudProfileConfig, nil
 }
 
-func addDockerHttpProxyFile(new *[]extensionsv1alpha1.File, httpProxyConf string) {
+func addDockerHTTPProxyFile(new *[]extensionsv1alpha1.File, httpProxyConf string) {
 	var (
 		permissions int32 = 0644
 	)
@@ -210,7 +210,7 @@ func addDockerHttpProxyFile(new *[]extensionsv1alpha1.File, httpProxyConf string
 	})
 }
 
-func addMergeDockerJsonFile(new *[]extensionsv1alpha1.File, insecureRegistries []string) {
+func addMergeDockerJSONFile(new *[]extensionsv1alpha1.File, insecureRegistries []string) {
 	var (
 		permissions int32 = 0755
 		template          = `#!/bin/sh
@@ -240,7 +240,7 @@ echo '{"insecure-registries":["@@"]}' | jq -s '.[0] * .[1]' ${DOCKER_CONF}.org -
 }
 
 // EnsureAdditionalUnits ensures that additional required system units are added.
-func (e *ensurer) EnsureAdditionalUnits(ctx context.Context, ectx genericmutator.EnsurerContext, new, _ *[]extensionsv1alpha1.Unit) error {
+func (e *ensurer) EnsureAdditionalUnits(ctx context.Context, gctx gcontext.GardenContext, new, _ *[]extensionsv1alpha1.Unit) error {
 	var (
 		command           = "start"
 		trueVar           = true
@@ -256,7 +256,7 @@ ExecStart=/opt/bin/merge-docker-json.sh
 `
 	)
 
-	cloudProfileConfig, err := getCloudProfileConfig(ctx, ectx)
+	cloudProfileConfig, err := getCloudProfileConfig(ctx, gctx)
 	if err != nil {
 		return err
 	}
