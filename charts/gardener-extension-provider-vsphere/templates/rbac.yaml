@@ -29,16 +29,21 @@ rules:
   verbs:
   - "*"
 - apiGroups:
-  - ""
+  - coordination.k8s.io
   resources:
-  - configmaps
+  - leases
+  verbs:
+  - create
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
   resourceNames:
   - provider-vsphere-leader-election
   verbs:
+  - update
   - get
   - watch
-  - update
-  - patch
 - apiGroups:
   - ""
   - apps

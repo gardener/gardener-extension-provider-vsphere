@@ -17,7 +17,6 @@ package healthcheck
 import (
 	"time"
 
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	genericcontrolplaneactuator "github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck"
 	healthcheckconfig "github.com/gardener/gardener/extensions/pkg/controller/healthcheck/config"
@@ -25,11 +24,13 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck/worker"
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	extensionspredicate "github.com/gardener/gardener/extensions/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
@@ -48,7 +49,7 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 	if err := healthcheck.DefaultRegistration(
 		vsphere.Type,
 		extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.ControlPlaneResource),
-		func() runtime.Object { return &extensionsv1alpha1.ControlPlaneList{} },
+		func() client.ObjectList { return &extensionsv1alpha1.ControlPlaneList{} },
 		func() extensionsv1alpha1.Object { return &extensionsv1alpha1.ControlPlane{} },
 		mgr,
 		opts,
@@ -73,7 +74,7 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 	return healthcheck.DefaultRegistration(
 		vsphere.Type,
 		extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.WorkerResource),
-		func() runtime.Object { return &extensionsv1alpha1.WorkerList{} },
+		func() client.ObjectList { return &extensionsv1alpha1.WorkerList{} },
 		func() extensionsv1alpha1.Object { return &extensionsv1alpha1.Worker{} },
 		mgr,
 		opts,

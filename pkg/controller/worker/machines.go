@@ -22,6 +22,8 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
@@ -33,7 +35,6 @@ import (
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // MachineClassKind yields the name of the machine class.
@@ -42,12 +43,12 @@ func (w *workerDelegate) MachineClassKind() string {
 }
 
 // MachineClass yields a newly initialized MachineClass object.
-func (w *workerDelegate) MachineClass() runtime.Object {
+func (w *workerDelegate) MachineClass() client.Object {
 	return &machinev1alpha1.MachineClass{}
 }
 
 // MachineClassList yields a newly initialized MachineClassList object.
-func (w *workerDelegate) MachineClassList() runtime.Object {
+func (w *workerDelegate) MachineClassList() client.ObjectList {
 	return &machinev1alpha1.MachineClassList{}
 }
 

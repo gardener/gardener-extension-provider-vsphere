@@ -15,9 +15,10 @@
 package main
 
 import (
+	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+
 	"github.com/gardener/gardener-extension-provider-vsphere/cmd/gardener-extension-validator-vsphere/app"
 
-	"github.com/gardener/gardener/extensions/pkg/controller"
 	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/extensions/pkg/log"
 	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
@@ -25,7 +26,7 @@ import (
 
 func main() {
 	runtimelog.SetLogger(log.ZapLogger(false))
-	cmd := app.NewValidatorCommand(controller.SetupSignalHandlerContext())
+	cmd := app.NewValidatorCommand(signals.SetupSignalHandler())
 
 	if err := cmd.Execute(); err != nil {
 		controllercmd.LogErrAndExit(err, "error executing the main command")
