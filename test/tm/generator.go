@@ -39,7 +39,7 @@ var (
 )
 
 func main() {
-	log.SetLogger(zap.Logger(false))
+	log.SetLogger(zap.New(zap.UseDevMode(false)))
 	logger := log.Log.WithName("vsphere-generator")
 	flag.Parse()
 	if err := validate(); err != nil {

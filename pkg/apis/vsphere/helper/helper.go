@@ -17,10 +17,10 @@ package helper
 import (
 	"fmt"
 
-	"github.com/gardener/controller-manager-library/pkg/utils"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/utils"
 )
 
 // FindMachineImage takes a list of machine images and tries to find the first entry

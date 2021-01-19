@@ -151,7 +151,7 @@ var _ = Describe("Infrastructure tests", func() {
 		vsphere.InternalChartsPath = filepath.Join(repoRoot, vsphere.InternalChartsPath)
 
 		// enable manager logs
-		logf.SetLogger(zap.LoggerTo(GinkgoWriter, true))
+		logf.SetLogger(zap.New(zap.UseDevMode(true), zap.WriteTo(GinkgoWriter)))
 
 		log := logrus.New()
 		log.SetOutput(GinkgoWriter)
@@ -202,7 +202,7 @@ var _ = Describe("Infrastructure tests", func() {
 
 		By("start manager")
 		go func() {
-			err := mgr.Start(mgrContext.Done())
+			err := mgr.Start(mgrContext)
 			Expect(err).NotTo(HaveOccurred())
 		}()
 
@@ -454,7 +454,7 @@ func runTest(
 		ctx,
 		c,
 		logger,
-		func() runtime.Object { return &extensionsv1alpha1.Infrastructure{} },
+		func() client.Object { return &extensionsv1alpha1.Infrastructure{} },
 		"Infrastucture",
 		infra.Namespace,
 		infra.Name,
