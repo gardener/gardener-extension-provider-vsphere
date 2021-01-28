@@ -159,7 +159,7 @@ var configChart = &chart.Chart{
 	Name: "cloud-provider-config",
 	Path: filepath.Join(vsphere.InternalChartsPath, "cloud-provider-config"),
 	Objects: []*chart.Object{
-		{Type: &corev1.ConfigMap{}, Name: vsphere.CloudProviderConfig},
+		{Type: &corev1.Secret{}, Name: vsphere.CloudProviderConfig},
 	},
 }
 
@@ -309,6 +309,11 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	credentials, err := vsphere.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get vSphere credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
+	}
+
+	secretCloudProviderConfig := &corev1.Secret{}
+	if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, vsphere.CloudProviderConfig), secretCloudProviderConfig); err == nil {
+		checksums[vsphere.CloudProviderConfig] = gutils.ComputeChecksum(secretCloudProviderConfig.Data)
 	}
 
 	secretCSIVsphereConfig := &corev1.Secret{}
@@ -566,7 +571,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 				"checksum/secret-" + vsphere.CloudControllerManagerName:       checksums[vsphere.CloudControllerManagerName],
 				"checksum/secret-" + vsphere.CloudControllerManagerServerName: checksums[vsphere.CloudControllerManagerServerName],
 				"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
-				"checksum/configmap-" + vsphere.CloudProviderConfig:           checksums[vsphere.CloudProviderConfig],
+				"checksum/secret-" + vsphere.CloudProviderConfig:              checksums[vsphere.CloudProviderConfig],
 			},
 			"podLabels": map[string]interface{}{
 				v1beta1constants.LabelPodMaintenanceRestart: "true",
