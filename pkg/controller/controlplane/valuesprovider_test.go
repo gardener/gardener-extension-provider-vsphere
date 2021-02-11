@@ -249,6 +249,14 @@ insecure-flag = "true"
 			},
 		}
 
+		// TODO remove legacyCloudProviderConfigMap in next version
+		legacyCloudProviderConfigMap = &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: namespace,
+				Name:      vsphere.CloudProviderConfig,
+			},
+		}
+
 		checksums = map[string]string{
 			v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
 			vsphere.CloudProviderConfig:              "08a7bc7fe8f59b055f173145e211760a83f02cf89635cef26ebb351378635606",
@@ -401,6 +409,7 @@ insecure-flag = "true"
 		It("should return correct control plane chart values", func() {
 			vp := prepareValueProvider(true)
 			c.EXPECT().Delete(context.TODO(), ccmMonitoringConfigmap).DoAndReturn(clientDeleteSuccess())
+			c.EXPECT().Delete(context.TODO(), legacyCloudProviderConfigMap).DoAndReturn(clientDeleteSuccess())
 
 			// Call GetControlPlaneChartValues method and check the result
 			values, err := vp.GetControlPlaneChartValues(context.TODO(), cp, cluster, checksums, false)

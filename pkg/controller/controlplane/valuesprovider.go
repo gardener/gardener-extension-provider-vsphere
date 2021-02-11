@@ -326,6 +326,11 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 		return nil, err
 	}
 
+	// TODO: Remove this code in a future version again.
+	if err := vp.deleteLegacyCloudProviderConfigMap(ctx, cp.Namespace); err != nil {
+		return nil, err
+	}
+
 	// Get control plane chart values
 	return vp.getControlPlaneChartValues(cpConfig, cp, cluster, credentials, checksums, scaledDown)
 }
