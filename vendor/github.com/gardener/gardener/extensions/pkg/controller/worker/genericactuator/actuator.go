@@ -24,7 +24,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -253,14 +252,11 @@ func (a *genericActuator) shallowDeleteMachineClassSecrets(ctx context.Context, 
 	return nil
 }
 
-// cleanupMachineClassSecrets deletes MachineSets having number of desired and actual replicas equaling 0
+// cleanupMachineSets deletes MachineSets having number of desired and actual replicas equaling 0
 func (a *genericActuator) cleanupMachineSets(ctx context.Context, logger logr.Logger, namespace string) error {
 	logger.Info("Cleaning up machine sets")
 	machineSetList := &machinev1alpha1.MachineSetList{}
 	if err := a.client.List(ctx, machineSetList, client.InNamespace(namespace)); err != nil {
-		if apierrors.IsNotFound(err) {
-			return nil
-		}
 		return err
 	}
 
@@ -321,6 +317,9 @@ const (
 	// mcmFinalizer is the finalizer used by the machine controller manager
 	// not imported from the MCM to reduce dependencies
 	mcmFinalizer = "machine.sapcloud.io/machine-controller-manager"
+	// mcmProviderFinalizer is the finalizer used by the out-of-tree machine controller provider
+	// not imported from the out-of-tree MCM provider to reduce dependencies
+	mcmProviderFinalizer = "machine.sapcloud.io/machine-controller"
 )
 
 // isMachineControllerStuck determines if the machine controller pod is stuck.

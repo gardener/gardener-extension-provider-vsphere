@@ -17,7 +17,6 @@ package seed
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -158,7 +157,7 @@ func generateWantedSecrets(seed *Seed, certificateAuthorities map[string]*secret
 			Name: common.GrafanaTLS,
 
 			CommonName:   "grafana",
-			Organization: []string{"garden.sapcloud.io:monitoring:ingress"},
+			Organization: []string{"gardener.cloud:monitoring:ingress"},
 			DNSNames:     []string{seed.GetIngressFQDN(grafanaPrefix)},
 			IPAddresses:  nil,
 
@@ -170,7 +169,7 @@ func generateWantedSecrets(seed *Seed, certificateAuthorities map[string]*secret
 			Name: prometheusTLS,
 
 			CommonName:   "prometheus",
-			Organization: []string{"garden.sapcloud.io:monitoring:ingress"},
+			Organization: []string{"gardener.cloud:monitoring:ingress"},
 			DNSNames:     []string{seed.GetIngressFQDN(prometheusPrefix)},
 			IPAddresses:  nil,
 
@@ -413,7 +412,9 @@ func BootstrapCluster(ctx context.Context, k8sGardenClient, k8sSeedClient kubern
 			// shoot system components
 			metricsserver.CentralLoggingConfiguration,
 		}
-		userAllowedComponents := []string{v1beta1constants.DeploymentNameKubeAPIServer}
+		userAllowedComponents := []string{v1beta1constants.DeploymentNameKubeAPIServer,
+			v1beta1constants.DeploymentNameVPAExporter, v1beta1constants.DeploymentNameVPARecommender,
+			v1beta1constants.DeploymentNameVPAAdmissionController}
 
 		// Fetch component specific logging configurations
 		for _, componentFn := range componentsFunctions {
@@ -469,7 +470,7 @@ func BootstrapCluster(ctx context.Context, k8sGardenClient, k8sSeedClient kubern
 			}
 		}
 	} else {
-		if err := common.DeleteLoggingStack(ctx, k8sSeedClient.Client(), v1beta1constants.GardenNamespace); client.IgnoreNotFound(err) != nil {
+		if err := common.DeleteSeedLoggingStack(ctx, k8sSeedClient.Client()); err != nil {
 			return err
 		}
 	}
@@ -672,8 +673,10 @@ func BootstrapCluster(ctx context.Context, k8sGardenClient, k8sSeedClient kubern
 			return err
 		}
 
+		seedCopy := seed.Info.DeepCopy()
 		seed.Info.Status.ClusterIdentity = &seedClusterIdentity
-		if err := k8sGardenClient.Client().Status().Update(ctx, seed.Info); err != nil {
+
+		if err := k8sGardenClient.Client().Status().Patch(ctx, seed.Info, client.MergeFrom(seedCopy)); err != nil {
 			return err
 		}
 	}
@@ -883,21 +886,18 @@ func bootstrapComponents(c kubernetes.Interface, namespace string, imageVector i
 	}
 	components = append(components, seedadmission.New(c.Client(), namespace, gsacImage.String(), kubernetesVersion))
 
-	// gardener-seed-scheduler.
+	// kube-scheduler for shoot control plane pods
 	var schedulerImage *imagevector.Image
-
 	if imageVector != nil {
 		schedulerImage, err = imageVector.FindImage(common.KubeSchedulerImageName, imagevector.TargetVersion(kubernetesVersion.String()))
 		if err != nil {
 			return nil, err
 		}
 	}
-
 	sched, err := scheduler.Bootstrap(c.DirectClient(), namespace, schedulerImage, kubernetesVersion)
 	if err != nil {
 		return nil, err
 	}
-
 	components = append(components, sched)
 
 	return components, nil
@@ -1160,8 +1160,10 @@ func migrateIngressClassForShootIngresses(ctx context.Context, gardenClient, see
 		}
 	}
 
+	seedCopy := seed.Info.DeepCopy()
 	metav1.SetMetaDataAnnotation(&seed.Info.ObjectMeta, annotationSeedIngressClass, newClass)
-	return gardenClient.Update(ctx, seed.Info)
+
+	return gardenClient.Patch(ctx, seed.Info, client.MergeFrom(seedCopy))
 }
 
 func switchIngressClass(ctx context.Context, seedClient client.Client, ingressKey types.NamespacedName, newClass string) error {
@@ -1181,10 +1183,6 @@ func copySecretFromGardenerToSeed(ctx context.Context, gardenClient, seedClient 
 	gardenSecret := &corev1.Secret{}
 	if err := gardenClient.Get(ctx, secretKey, gardenSecret); err != nil {
 		return err
-	}
-
-	if gardenSecret == nil {
-		return errors.New("error during seed bootstrap: secret referenced in dns.provider.SecretRef not found")
 	}
 
 	_, err := controllerutil.CreateOrUpdate(ctx, seedClient, targetSecret, func() error {
