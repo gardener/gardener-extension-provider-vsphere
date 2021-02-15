@@ -98,7 +98,7 @@ func ensureKubeControllerManagerAnnotations(t *corev1.PodTemplateSpec) {
 }
 
 func (e *ensurer) ensureChecksumAnnotations(ctx context.Context, template *corev1.PodTemplateSpec, namespace string) error {
-	return controlplane.EnsureConfigMapChecksumAnnotation(ctx, template, e.client, namespace, vsphere.CloudProviderConfig)
+	return controlplane.EnsureSecretChecksumAnnotation(ctx, template, e.client, namespace, vsphere.CloudProviderConfig)
 }
 
 // EnsureKubeletServiceUnitOptions ensures that the kubelet.service unit options conform to the provider requirements.
@@ -139,24 +139,24 @@ func (e *ensurer) ShouldProvisionKubeletCloudProviderConfig(context.Context, gco
 
 // EnsureKubeletCloudProviderConfig ensures that the cloud provider config file conforms to the provider requirements.
 func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, gctx gcontext.GardenContext, data *string, namespace string) error {
-	// Get `cloud-provider-config` ConfigMap
-	var cm corev1.ConfigMap
-	err := e.client.Get(ctx, kutil.Key(namespace, vsphere.CloudProviderConfig), &cm)
+	// Get `cloud-provider-config` secret
+	var secret corev1.Secret
+	err := e.client.Get(ctx, kutil.Key(namespace, vsphere.CloudProviderConfig), &secret)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			e.logger.Info("configmap not found", "name", vsphere.CloudProviderConfig, "namespace", namespace)
+			e.logger.Info("secret not found", "name", vsphere.CloudProviderConfig, "namespace", namespace)
 			return nil
 		}
-		return errors.Wrapf(err, "could not get configmap '%s/%s'", namespace, vsphere.CloudProviderConfig)
+		return errors.Wrapf(err, "could not get secret '%s/%s'", namespace, vsphere.CloudProviderConfig)
 	}
 
 	// Check if the data has "cloudprovider.conf" key
-	if cm.Data == nil || cm.Data[vsphere.CloudProviderConfigMapKey] == "" {
+	if secret.Data == nil || len(secret.Data[vsphere.CloudProviderConfigMapKey]) == 0 {
 		return nil
 	}
 
 	// Overwrite data variable
-	*data = cm.Data[vsphere.CloudProviderConfigMapKey]
+	*data = string(secret.Data[vsphere.CloudProviderConfigMapKey])
 	return nil
 }
 

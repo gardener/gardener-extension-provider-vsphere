@@ -20,6 +20,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
 func (vp *valuesProvider) deleteCCMMonitoringConfig(ctx context.Context, ns string) error {
@@ -27,6 +29,18 @@ func (vp *valuesProvider) deleteCCMMonitoringConfig(ctx context.Context, ns stri
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: ns,
 			Name:      "cloud-controller-manager-monitoring-config",
+		},
+	}
+
+	return client.IgnoreNotFound(vp.Client().Delete(ctx, cm))
+}
+
+// TODO: Remove this in a future version again.
+func (vp *valuesProvider) deleteLegacyCloudProviderConfigMap(ctx context.Context, ns string) error {
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: ns,
+			Name:      vsphere.CloudProviderConfig,
 		},
 	}
 

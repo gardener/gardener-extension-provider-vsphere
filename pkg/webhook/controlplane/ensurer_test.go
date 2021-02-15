@@ -40,7 +40,7 @@ import (
 
 const (
 	namespace                  = "test"
-	cloudProviderConfigContent = "[Global]\nsoap-roundtrip-count = \"1\"\nip-family = \"ipv4\"\n"
+	cloudProviderConfigContent = "global:\n  soap-roundtrip-count: \"1\"\n  ip-family: \"ipv4\"\n"
 )
 
 func TestController(t *testing.T) {
@@ -54,14 +54,14 @@ var _ = Describe("Ensurer", func() {
 
 		dummyContext = gcontext.NewGardenContext(nil, nil)
 
-		cmKey = client.ObjectKey{Namespace: namespace, Name: vsphere.CloudProviderConfig}
-		cm    = &corev1.ConfigMap{
+		secretObjectKey = client.ObjectKey{Namespace: namespace, Name: vsphere.CloudProviderConfig}
+		secret          = &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: vsphere.CloudProviderConfig},
-			Data:       map[string]string{"abc": "xyz", vsphere.CloudProviderConfigMapKey: cloudProviderConfigContent},
+			Data:       map[string][]byte{"abc": []byte("xyz"), vsphere.CloudProviderConfigMapKey: []byte(cloudProviderConfigContent)},
 		}
 
 		annotations = map[string]string{
-			"checksum/configmap-" + vsphere.CloudProviderConfig: "65ce1f311ffd66c6a66c6086910ed7b5443cd495cb601a21de1d685f8c146a2c",
+			"checksum/secret-" + vsphere.CloudProviderConfig: "77666f4cd38d72a694c95f07bd98683012f5762a60e783d0b89863a3515fcf2e",
 		}
 
 		kubeControllerManagerLabels = map[string]string{
@@ -99,7 +99,7 @@ var _ = Describe("Ensurer", func() {
 
 			// Create mock client
 			client := mockclient.NewMockClient(ctrl)
-			client.EXPECT().Get(context.TODO(), cmKey, &corev1.ConfigMap{}).DoAndReturn(clientGet(cm))
+			client.EXPECT().Get(context.TODO(), secretObjectKey, &corev1.Secret{}).DoAndReturn(clientGet(secret))
 
 			// Create ensurer
 			ensurer := NewEnsurer(logger)
@@ -137,7 +137,7 @@ var _ = Describe("Ensurer", func() {
 
 			// Create mock client
 			client := mockclient.NewMockClient(ctrl)
-			client.EXPECT().Get(context.TODO(), cmKey, &corev1.ConfigMap{}).DoAndReturn(clientGet(cm))
+			client.EXPECT().Get(context.TODO(), secretObjectKey, &corev1.Secret{}).DoAndReturn(clientGet(secret))
 
 			// Create ensurer
 			ensurer := NewEnsurer(logger)
@@ -177,7 +177,7 @@ var _ = Describe("Ensurer", func() {
 
 			// Create mock client
 			client := mockclient.NewMockClient(ctrl)
-			client.EXPECT().Get(context.TODO(), cmKey, &corev1.ConfigMap{}).DoAndReturn(clientGet(cm))
+			client.EXPECT().Get(context.TODO(), secretObjectKey, &corev1.Secret{}).DoAndReturn(clientGet(secret))
 
 			// Create ensurer
 			ensurer := NewEnsurer(logger)
@@ -226,7 +226,7 @@ var _ = Describe("Ensurer", func() {
 
 			// Create mock client
 			client := mockclient.NewMockClient(ctrl)
-			client.EXPECT().Get(context.TODO(), cmKey, &corev1.ConfigMap{}).DoAndReturn(clientGet(cm))
+			client.EXPECT().Get(context.TODO(), secretObjectKey, &corev1.Secret{}).DoAndReturn(clientGet(secret))
 
 			// Create ensurer
 			ensurer := NewEnsurer(logger)
