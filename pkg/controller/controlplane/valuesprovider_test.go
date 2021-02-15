@@ -209,6 +209,17 @@ var _ = Describe("ValuesProvider", func() {
 			},
 		}
 
+		cpcSecretKey = client.ObjectKey{Namespace: namespace, Name: vsphere.CloudProviderConfig}
+		cpcSecret    = &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      vsphere.CloudProviderConfig,
+				Namespace: namespace,
+			},
+			Type: corev1.SecretTypeOpaque,
+			Data: map[string][]byte{
+				"cloudprovider.conf": []byte{}},
+		}
+
 		csiSecretKey = client.ObjectKey{Namespace: namespace, Name: vsphere.SecretCSIVsphereConfig}
 		csiSecret    = &corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
@@ -235,6 +246,14 @@ insecure-flag = "true"
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: namespace,
 				Name:      "cloud-controller-manager-monitoring-config",
+			},
+		}
+
+		// TODO remove legacyCloudProviderConfigMap in next version
+		legacyCloudProviderConfigMap = &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: namespace,
+				Name:      vsphere.CloudProviderConfig,
 			},
 		}
 
@@ -295,7 +314,7 @@ insecure-flag = "true"
 					"checksum/secret-" + vsphere.CloudControllerManagerName:       "3d791b164a808638da9a8df03924be2a41e34cd664e42231c00fe369e3588272",
 					"checksum/secret-" + vsphere.CloudControllerManagerServerName: "6dff2a2e6f14444b66d8e4a351c049f7e89ee24ba3eaab95dbec40ba6bdebb52",
 					"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
-					"checksum/configmap-" + vsphere.CloudProviderConfig:           "08a7bc7fe8f59b055f173145e211760a83f02cf89635cef26ebb351378635606",
+					"checksum/secret-" + vsphere.CloudProviderConfig:              "67234961d8244bf8bd661e1d165036e691b6570a8981a09942df2314644a8b97",
 				},
 				"podLabels": map[string]interface{}{
 					"maintenance.gardener.cloud/restart": "true",
@@ -346,10 +365,11 @@ insecure-flag = "true"
 
 		logger = log.Log.WithName("test")
 
-		prepareValueProvider = func(csi bool) genericactuator.ValuesProvider {
+		prepareValueProvider = func(cpcAndCsi bool) genericactuator.ValuesProvider {
 			// Create mock client
 			c = mockclient.NewMockClient(ctrl)
-			if csi {
+			if cpcAndCsi {
+				c.EXPECT().Get(context.TODO(), cpcSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(cpcSecret))
 				c.EXPECT().Get(context.TODO(), csiSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(csiSecret))
 			}
 			c.EXPECT().Get(context.TODO(), cpSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(cpSecret))
@@ -389,6 +409,7 @@ insecure-flag = "true"
 		It("should return correct control plane chart values", func() {
 			vp := prepareValueProvider(true)
 			c.EXPECT().Delete(context.TODO(), ccmMonitoringConfigmap).DoAndReturn(clientDeleteSuccess())
+			c.EXPECT().Delete(context.TODO(), legacyCloudProviderConfigMap).DoAndReturn(clientDeleteSuccess())
 
 			// Call GetControlPlaneChartValues method and check the result
 			values, err := vp.GetControlPlaneChartValues(context.TODO(), cp, cluster, checksums, false)

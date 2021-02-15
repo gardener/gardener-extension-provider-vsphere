@@ -51,7 +51,7 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 	return controlplane.Add(mgr, controlplane.AddArgs{
 		Actuator: genericactuator.NewActuator(vsphere.Name, controlPlaneSecrets, nil, configChart, controlPlaneChart, controlPlaneShootChart,
 			storageClassChart, nil, NewValuesProvider(logger, opts.GardenId), extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
-			imagevector.ImageVector(), vsphere.CloudProviderConfig, nil, mgr.GetWebhookServer().Port, logger),
+			imagevector.ImageVector(), "", nil, mgr.GetWebhookServer().Port, logger),
 		ControllerOptions: opts.Controller,
 		Predicates:        controlplane.DefaultPredicates(opts.IgnoreOperationAnnotation),
 		Type:              vsphere.Type,
