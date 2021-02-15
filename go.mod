@@ -7,7 +7,7 @@ require (
 	github.com/coreos/go-systemd/v22 v22.1.0
 	github.com/gardener/etcd-druid v0.3.0
 	github.com/gardener/gardener v1.15.1-0.20210115062544-6dc08568692a
-	github.com/gardener/machine-controller-manager v0.35.0
+	github.com/gardener/machine-controller-manager v0.37.0
 	github.com/go-logr/logr v0.3.0
 	github.com/gobuffalo/packr/v2 v2.8.1
 	github.com/golang/mock v1.4.4-0.20200731163441-8734ec565a4d
