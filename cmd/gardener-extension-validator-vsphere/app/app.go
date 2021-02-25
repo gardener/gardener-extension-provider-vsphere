@@ -18,6 +18,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pkg/errors"
+
 	vsphereinstall "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/validator"
 	providervsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
@@ -27,6 +29,7 @@ import (
 	"github.com/gardener/gardener/pkg/apis/core/install"
 	"github.com/spf13/cobra"
 	componentbaseconfig "k8s.io/component-base/config"
+	"k8s.io/component-base/version/verflag"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -51,9 +54,11 @@ func NewValidatorCommand(ctx context.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: fmt.Sprintf("validator-%s", providervsphere.Type),
 
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			verflag.PrintAndExitIfRequested()
+
 			if err := aggOption.Complete(); err != nil {
-				controllercmd.LogErrAndExit(err, "Error completing options")
+				return errors.Wrap(err, "Error completing options")
 			}
 
 			util.ApplyClientConnectionConfigurationToRESTConfig(&componentbaseconfig.ClientConnectionConfiguration{
@@ -63,13 +68,13 @@ func NewValidatorCommand(ctx context.Context) *cobra.Command {
 
 			mgr, err := manager.New(restOpts.Completed().Config, mgrOpts.Completed().Options())
 			if err != nil {
-				controllercmd.LogErrAndExit(err, "Could not instantiate manager")
+				return errors.Wrap(err, "Could not instantiate manager")
 			}
 
 			install.Install(mgr.GetScheme())
 
 			if err := vsphereinstall.AddToScheme(mgr.GetScheme()); err != nil {
-				controllercmd.LogErrAndExit(err, "Could not update manager scheme")
+				return errors.Wrap(err, "Could not update manager scheme")
 			}
 
 			log.Info("Setting up webhook server")
@@ -79,12 +84,16 @@ func NewValidatorCommand(ctx context.Context) *cobra.Command {
 			hookServer.Register("/webhooks/validate", &webhook.Admission{Handler: &validator.Shoot{Logger: log.WithName("shoot-validator")}})
 
 			if err := mgr.Start(ctx); err != nil {
-				controllercmd.LogErrAndExit(err, "Error running manager")
+				return errors.Wrap(err, "Error running manager")
 			}
+
+			return nil
 		},
 	}
 
-	aggOption.AddFlags(cmd.Flags())
+	flags := cmd.Flags()
+	aggOption.AddFlags(flags)
+	verflag.AddFlags(flags)
 
 	return cmd
 }
