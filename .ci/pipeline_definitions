@@ -5,6 +5,7 @@ gardener-extension-provider-vsphere:
     traits:
       version:
         preprocess: 'inject-commit-hash'
+        inject_effective_version: true
       publish:
         dockerimages:
           gardener-extension-provider-vsphere:

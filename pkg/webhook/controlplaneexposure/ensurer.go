@@ -17,6 +17,9 @@ package controlplaneexposure
 import (
 	"context"
 
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/config"
 
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
@@ -71,7 +74,13 @@ func (e *ensurer) EnsureKubeAPIServerDeployment(ctx context.Context, gctx gconte
 	}
 
 	// Get load balancer address of the kube-apiserver service
-	address, err := kutil.GetLoadBalancerIngress(ctx, e.client, new.Namespace, v1beta1constants.DeploymentNameKubeAPIServer)
+	service := &v1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: new.Namespace,
+			Name:      v1beta1constants.DeploymentNameKubeAPIServer,
+		},
+	}
+	address, err := kutil.GetLoadBalancerIngress(ctx, e.client, service)
 	if err != nil {
 		return errors.Wrap(err, "could not get kube-apiserver service load balancer address")
 	}

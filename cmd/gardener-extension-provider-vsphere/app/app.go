@@ -27,6 +27,7 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
+	"github.com/pkg/errors"
 
 	vsphereinstall "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
 	vspherecmd "github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd"
@@ -42,6 +43,7 @@ import (
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
+	"k8s.io/component-base/version/verflag"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
@@ -108,39 +110,41 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: fmt.Sprintf("%s-controller-manager", vsphere.Name),
 
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			verflag.PrintAndExitIfRequested()
+
 			if err := aggOption.Complete(); err != nil {
-				controllercmd.LogErrAndExit(err, "Error completing options")
+				return errors.Wrap(err, "Error completing options")
 			}
 
 			util.ApplyClientConnectionConfigurationToRESTConfig(configFileOpts.Completed().Config.ClientConnection, restOpts.Completed().Config)
 
 			if workerReconcileOpts.Completed().DeployCRDs {
 				if err := worker.ApplyMachineResourcesForConfig(ctx, restOpts.Completed().Config); err != nil {
-					controllercmd.LogErrAndExit(err, "Error ensuring the machine CRDs")
+					return errors.Wrap(err, "Error ensuring the machine CRDs")
 				}
 			}
 
 			mgr, err := manager.New(restOpts.Completed().Config, mgrOpts.Completed().Options())
 			if err != nil {
-				controllercmd.LogErrAndExit(err, "Could not instantiate manager")
+				return errors.Wrap(err, "Could not instantiate manager")
 			}
 
 			scheme := mgr.GetScheme()
 			if err := controller.AddToScheme(scheme); err != nil {
-				controllercmd.LogErrAndExit(err, "Could not update manager scheme")
+				return errors.Wrap(err, "Could not update manager scheme")
 			}
 			if err := vsphereinstall.AddToScheme(scheme); err != nil {
-				controllercmd.LogErrAndExit(err, "Could not update manager scheme")
+				return errors.Wrap(err, "Could not update manager scheme")
 			}
 			if err := druidv1alpha1.AddToScheme(scheme); err != nil {
-				controllercmd.LogErrAndExit(err, "Could not update manager scheme")
+				return errors.Wrap(err, "Could not update manager scheme")
 			}
 			if err := machinev1alpha1.AddToScheme(scheme); err != nil {
-				controllercmd.LogErrAndExit(err, "Could not update manager scheme")
+				return errors.Wrap(err, "Could not update manager scheme")
 			}
 			if err := autoscalingv1beta2.AddToScheme(scheme); err != nil {
-				controllercmd.LogErrAndExit(err, "Could not update manager scheme")
+				return errors.Wrap(err, "Could not update manager scheme")
 			}
 
 			// add common meta types to schema for controller-runtime to use v1.ListOptions
@@ -159,20 +163,24 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			workerCtrlOpts.Completed().Apply(&vsphereworker.DefaultAddOptions.Controller)
 
 			if _, _, err := webhookOptions.Completed().AddToManager(mgr); err != nil {
-				controllercmd.LogErrAndExit(err, "Could not add webhooks to manager")
+				return errors.Wrap(err, "Could not add webhooks to manager")
 			}
 
 			if err := controllerSwitches.Completed().AddToManager(mgr); err != nil {
-				controllercmd.LogErrAndExit(err, "Could not add controllers to manager")
+				return errors.Wrap(err, "Could not add controllers to manager")
 			}
 
 			if err := mgr.Start(ctx); err != nil {
-				controllercmd.LogErrAndExit(err, "Error running manager")
+				return errors.Wrap(err, "Error running manager")
 			}
+
+			return nil
 		},
 	}
 
-	aggOption.AddFlags(cmd.Flags())
+	flags := cmd.Flags()
+	aggOption.AddFlags(flags)
+	verflag.AddFlags(flags)
 
 	return cmd
 }

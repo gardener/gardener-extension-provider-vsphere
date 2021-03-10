@@ -20,6 +20,7 @@ IMAGE_PREFIX                := $(REGISTRY)/extensions
 REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 HACK_DIR                    := $(REPO_ROOT)/hack
 VERSION                     := $(shell cat "$(REPO_ROOT)/VERSION")
+EFFECTIVE_VERSION           := $(VERSION)-$(shell git rev-parse HEAD)
 LD_FLAGS                    := "-w -X github.com/gardener/$(EXTENSION_PREFIX)-$(NAME)/pkg/version.Version=$(IMAGE_TAG)"
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := true
@@ -32,6 +33,10 @@ EXTENSION_NAMESPACE	:=
 WEBHOOK_PARAM := --webhook-config-url=$(WEBHOOK_CONFIG_URL)
 ifeq ($(WEBHOOK_CONFIG_MODE), service)
   WEBHOOK_PARAM := --webhook-config-namespace=$(EXTENSION_NAMESPACE)
+endif
+
+ifneq ($(strip $(shell git status --porcelain 2>/dev/null)),)
+	EFFECTIVE_VERSION := $(EFFECTIVE_VERSION)-dirty
 endif
 
 NSXT_HOST              := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_host")
@@ -77,8 +82,8 @@ start-validator:
 
 .PHONY: install
 install:
-	@LD_FLAGS="-w -X github.com/gardener/$(EXTENSION_PREFIX)-$(NAME)/pkg/version.Version=$(VERSION)" \
-	$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/install.sh ./...
+	@EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) LD_FLAGS="$(shell $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/get-build-ld-flags.sh "k8s.io/component-base" "$(REPO_ROOT)/VERSION" "$(EXTENSION_PREFIX)-$(NAME)")" \
+	   $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/install.sh ./...
 
 .PHONY: docker-login
 docker-login:
@@ -86,8 +91,9 @@ docker-login:
 
 .PHONY: docker-images
 docker-images:
-	@docker build -t $(IMAGE_PREFIX)/$(NAME):$(VERSION)           -t $(IMAGE_PREFIX)/$(NAME):latest           -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(NAME)           .
-	@docker build -t $(IMAGE_PREFIX)/$(VALIDATOR_NAME):$(VERSION) -t $(IMAGE_PREFIX)/$(VALIDATOR_NAME):latest -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(VALIDATOR_NAME) .
+	@echo "Building docker images with version and tag $(EFFECTIVE_VERSION)"
+	@docker build --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(IMAGE_PREFIX)/$(NAME):$(VERSION)           -t $(IMAGE_PREFIX)/$(NAME):latest           -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(NAME)           .
+	@docker build --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(IMAGE_PREFIX)/$(VALIDATOR_NAME):$(VERSION) -t $(IMAGE_PREFIX)/$(VALIDATOR_NAME):latest -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(VALIDATOR_NAME) .
 
 #####################################################################
 # Rules for verification, formatting, linting, testing and cleaning #
