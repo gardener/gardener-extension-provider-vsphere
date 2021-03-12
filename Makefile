@@ -131,10 +131,7 @@ check:
 
 .PHONY: generate
 generate:
-	@cp $(REPO_ROOT)/example/controller-registration.yaml /tmp/controller-registration.yaml
 	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/generate.sh ./charts/... ./cmd/... ./pkg/... ./test/...
-	@diff $(REPO_ROOT)/example/controller-registration.yaml /tmp/controller-registration.yaml
-	@git diff
 
 .PHONY: format
 format:
