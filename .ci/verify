@@ -14,4 +14,6 @@ mkdir -p /go/src/github.com/gardener/gardener-extension-provider-vsphere
 cp -r . /go/src/github.com/gardener/gardener-extension-provider-vsphere
 cd /go/src/github.com/gardener/gardener-extension-provider-vsphere
 
+make install-requirements
+make generate
 make verify-extended
