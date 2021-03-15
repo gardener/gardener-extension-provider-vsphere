@@ -14,4 +14,10 @@ mkdir -p /go/src/github.com/gardener/gardener-extension-provider-vsphere
 cp -r . /go/src/github.com/gardener/gardener-extension-provider-vsphere
 cd /go/src/github.com/gardener/gardener-extension-provider-vsphere
 
+# restore original VERSION (if it was overwritten by 'inject_effective_version: true' in the pipeline definitions)
+git checkout ./VERSION
+echo -n "Original VERSION: "
+cat ./VERSION
+echo ""
+
 make verify-extended
