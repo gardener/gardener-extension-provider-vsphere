@@ -37,7 +37,7 @@ spec:
     spec:
       automountServiceAccountToken: false
       containers:
-        - name: vsphere-csi-attacher
+        - name: csi-attacher
           image: {{ index .Values.images "csi-attacher" }}
           args:
             - "--v=4"
@@ -58,11 +58,11 @@ spec:
             - name: csi-attacher
               mountPath: /var/lib/csi-attacher
 {{- if .Values.resizerEnabled }}
-        - name: vsphere-csi-resizer
+        - name: csi-resizer
           image: {{ index .Values.images "csi-resizer" }}
           args:
             - "--v=4"
-            - "--csiTimeout=300s"
+            - "--timeout=300s"
             - "--csi-address=$(ADDRESS)"
             - "--leader-election"
             - --kubeconfig=/var/lib/csi-resizer/kubeconfig
@@ -81,17 +81,27 @@ spec:
 {{- end }}
         - name: vsphere-csi-controller
           image: {{ index .Values.images "vsphere-csi-driver-controller" }}
+          args:
+            - "--fss-name=internal-feature-states.csi.vsphere.vmware.com"
+            - "--fss-namespace=$(CSI_NAMESPACE)"
+            - "--kubeconfig=/var/lib/vsphere-csi-controller/kubeconfig"
           env:
-            - name: KUBECONFIG
-              value: /var/lib/vsphere-csi-controller/kubeconfig
             - name: CSI_ENDPOINT
-              value: unix:///var/lib/csi/sockets/pluginproxy/csi.sock
+              value: unix:///csi/csi.sock
             - name: X_CSI_MODE
               value: "controller"
             - name: VSPHERE_CSI_CONFIG
               value: "/etc/cloud/csi-vsphere.conf"
             - name: LOGGER_LEVEL
               value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
+            - name: INCLUSTER_CLIENT_QPS
+              value: "100"
+            - name: INCLUSTER_CLIENT_BURST
+              value: "100"
+            - name: CSI_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
 {{- if .Values.resources.controller }}
           resources:
 {{ toYaml .Values.resources.controller | indent 12 }}
@@ -100,7 +110,7 @@ spec:
             - mountPath: /etc/cloud
               name: vsphere-config-volume
               readOnly: true
-            - mountPath: /var/lib/csi/sockets/pluginproxy/
+            - mountPath: /csi
               name: socket-dir
             - name: vsphere-csi-controller
               mountPath: /var/lib/vsphere-csi-controller
@@ -121,6 +131,8 @@ spec:
           args:
             - "--leader-election"
             - "--kubeconfig=/var/lib/csi-syncer/kubeconfig"
+            - "--fss-name=internal-feature-states.csi.vsphere.vmware.com"
+            - "--fss-namespace=$(CSI_NAMESPACE)"
           env:
             - name: FULL_SYNC_INTERVAL_MINUTES
               value: "30"
@@ -128,6 +140,14 @@ spec:
               value: "/etc/cloud/csi-vsphere.conf"
             - name: LOGGER_LEVEL
               value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
+            - name: INCLUSTER_CLIENT_QPS
+              value: "100"
+            - name: INCLUSTER_CLIENT_BURST
+              value: "100"
+            - name: CSI_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
 {{- if .Values.resources.syncer }}
           resources:
 {{ toYaml .Values.resources.syncer | indent 12 }}
@@ -138,13 +158,11 @@ spec:
             - mountPath: /etc/cloud
               name: vsphere-config-volume
               readOnly: true
-        - name: vsphere-csi-liveness-probe
+        - name: csi-liveness-probe
           image: {{ index .Values.images "liveness-probe" }}
           args:
-            - "--csi-address=$(ADDRESS)"
-          env:
-            - name: ADDRESS
-              value: /csi/csi.sock
+            - "--v=4"
+            - "--csi-address=/csi/csi.sock"
 {{- if .Values.resources.liveness }}
           resources:
 {{ toYaml .Values.resources.liveness | indent 12 }}
@@ -152,20 +170,17 @@ spec:
           volumeMounts:
             - mountPath: /csi
               name: socket-dir
-        - name: vsphere-csi-provisioner
+        - name: csi-provisioner
           image: {{ index .Values.images "csi-provisioner" }}
           args:
             - "--v=4"
             - "--timeout=300s"
-            - "--csi-address=$(ADDRESS)"
+            - "--csi-address=/csi/csi.sock"
             - "--feature-gates=Topology=true"
             - "--strict-topology"
-            - "--enable-leader-election"
-            - "--leader-election-type=leases"
+            - "--leader-election"
             - "--kubeconfig=/var/lib/csi-provisioner/kubeconfig"
-          env:
-            - name: ADDRESS
-              value: /csi/csi.sock
+            - "--default-fstype=ext4"
 {{- if .Values.resources.provisioner }}
           resources:
 {{ toYaml .Values.resources.provisioner | indent 12 }}
@@ -196,6 +211,14 @@ spec:
             secretName: csi-vsphere-config
         - name: socket-dir
           emptyDir: {}
+---
+apiVersion: v1
+data:
+  "csi-migration": "false" # csi-migration feature is only available for vSphere 7.0U1
+kind: ConfigMap
+metadata:
+  name: internal-feature-states.csi.vsphere.vmware.com
+  namespace: {{ .Release.Namespace }}
 ---
 apiVersion: storage.k8s.io/v1beta1
 kind: CSIDriver
