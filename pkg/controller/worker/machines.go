@@ -143,6 +143,12 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		if err != nil {
 			return errors.Wrap(err, "extracting machine values failed")
 		}
+		if pool.Volume != nil {
+			values.systemDiskSizeInGB, err = worker.DiskSize(pool.Volume.Size)
+			if err != nil {
+				return err
+			}
+		}
 
 		for zoneIndex, zone := range pool.Zones {
 			zoneIdx := int32(zoneIndex)
