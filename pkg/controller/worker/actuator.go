@@ -30,9 +30,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
+	"github.com/gardener/gardener-extension-provider-vsphere/charts"
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/imagevector"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
@@ -53,7 +53,7 @@ func NewActuator() worker.Actuator {
 		vsphere.MachineControllerManagerName,
 		mcmChart,
 		mcmShootChart,
-		imagevector.ImageVector(),
+		charts.ImageVector(),
 		extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
 	)
 }

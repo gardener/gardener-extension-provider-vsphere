@@ -17,7 +17,7 @@
 package controlplane
 
 import (
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/imagevector"
+	"github.com/gardener/gardener-extension-provider-vsphere/charts"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
@@ -51,7 +51,7 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 	return controlplane.Add(mgr, controlplane.AddArgs{
 		Actuator: genericactuator.NewActuator(vsphere.Name, controlPlaneSecrets, nil, configChart, controlPlaneChart, controlPlaneShootChart,
 			nil, storageClassChart, nil, NewValuesProvider(logger, opts.GardenId), extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
-			imagevector.ImageVector(), "", nil, mgr.GetWebhookServer().Port, logger),
+			charts.ImageVector(), "", nil, mgr.GetWebhookServer().Port, logger),
 		ControllerOptions: opts.Controller,
 		Predicates:        controlplane.DefaultPredicates(opts.IgnoreOperationAnnotation),
 		Type:              vsphere.Type,
