@@ -46,7 +46,7 @@ func init() {
 	Scheme = runtime.NewScheme()
 	utilruntime.Must(install.AddToScheme(Scheme))
 
-	decoder = serializer.NewCodecFactory(Scheme).UniversalDecoder()
+	decoder = serializer.NewCodecFactory(Scheme, serializer.EnableStrict).UniversalDecoder()
 }
 
 func GetCloudProfileConfigFromProfile(profile *gardencorev1beta1.CloudProfile) (*vsphere.CloudProfileConfig, error) {
