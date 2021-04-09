@@ -42,8 +42,8 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/operation/botanist/component"
-	"github.com/gardener/gardener/pkg/operation/common"
 	"github.com/gardener/gardener/pkg/seedadmissioncontroller/webhooks/admission/extensioncrds"
+	gutil "github.com/gardener/gardener/pkg/utils/gardener"
 	"github.com/gardener/gardener/pkg/utils/managedresources"
 )
 
@@ -60,6 +60,8 @@ const (
 	port            = 10250
 	volumeName      = Name + "-tls"
 	volumeMountPath = "/srv/gardener-seed-admission-controller"
+
+	defaultReplicas = int32(3)
 )
 
 // New creates a new instance of DeployWaiter for the gardener-seed-admission-controller.
@@ -85,6 +87,11 @@ type gardenerSeedAdmissionController struct {
 }
 
 func (g *gardenerSeedAdmissionController) Deploy(ctx context.Context) error {
+	replicas, err := g.getReplicas(ctx)
+	if err != nil {
+		return err
+	}
+
 	var (
 		registry = managedresources.NewRegistry(kubernetes.SeedScheme, kubernetes.SeedCodec, kubernetes.SeedSerializer)
 
@@ -174,7 +181,10 @@ func (g *gardenerSeedAdmissionController) Deploy(ctx context.Context) error {
 			},
 		}
 
-		deployment = &appsv1.Deployment{
+		// if maxUnavailable would not be set, new pods don't come up in small seed clusters
+		// (due to the pod anti affinity new pods are stuck in pending state)
+		maxUnavailable = intstr.FromInt(1)
+		deployment     = &appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      deploymentName,
 				Namespace: g.namespace,
@@ -182,8 +192,14 @@ func (g *gardenerSeedAdmissionController) Deploy(ctx context.Context) error {
 			},
 			Spec: appsv1.DeploymentSpec{
 				RevisionHistoryLimit: pointer.Int32Ptr(1),
-				Replicas:             pointer.Int32Ptr(3),
-				Selector:             &metav1.LabelSelector{MatchLabels: getLabels()},
+				Replicas:             &replicas,
+				Strategy: appsv1.DeploymentStrategy{
+					Type: appsv1.RollingUpdateDeploymentStrategyType,
+					RollingUpdate: &appsv1.RollingUpdateDeployment{
+						MaxUnavailable: &maxUnavailable,
+					},
+				},
+				Selector: &metav1.LabelSelector{MatchLabels: getLabels()},
 				Template: corev1.PodTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{Labels: getLabels()},
 					Spec: corev1.PodSpec{
@@ -242,7 +258,6 @@ func (g *gardenerSeedAdmissionController) Deploy(ctx context.Context) error {
 			},
 		}
 
-		minAvailable        = intstr.FromInt(1)
 		podDisruptionBudget = &policyv1beta1.PodDisruptionBudget{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      Name,
@@ -250,7 +265,7 @@ func (g *gardenerSeedAdmissionController) Deploy(ctx context.Context) error {
 				Labels:    getLabels(),
 			},
 			Spec: policyv1beta1.PodDisruptionBudgetSpec{
-				MinAvailable: &minAvailable,
+				MaxUnavailable: &maxUnavailable,
 				Selector: &metav1.LabelSelector{
 					MatchLabels: getLabels(),
 				},
@@ -345,7 +360,7 @@ func (g *gardenerSeedAdmissionController) Deploy(ctx context.Context) error {
 
 	if versionConstraintK8sGreaterEqual115.Check(g.kubernetesVersion) {
 		validatingWebhookConfiguration.Webhooks[0].ObjectSelector = &metav1.LabelSelector{
-			MatchLabels: map[string]string{common.GardenerDeletionProtected: "true"},
+			MatchLabels: map[string]string{gutil.DeletionProtected: "true"},
 		}
 	}
 
@@ -364,11 +379,11 @@ func (g *gardenerSeedAdmissionController) Deploy(ctx context.Context) error {
 		return err
 	}
 
-	return common.DeployManagedResourceForSeed(ctx, g.client, managedResourceName, g.namespace, false, resources)
+	return managedresources.CreateForSeed(ctx, g.client, g.namespace, managedResourceName, false, resources)
 }
 
 func (g *gardenerSeedAdmissionController) Destroy(ctx context.Context) error {
-	return common.DeleteManagedResourceForSeed(ctx, g.client, managedResourceName, g.namespace)
+	return managedresources.DeleteForSeed(ctx, g.client, g.namespace, managedResourceName)
 }
 
 func getLabels() map[string]string {
@@ -386,14 +401,14 @@ func (g *gardenerSeedAdmissionController) Wait(ctx context.Context) error {
 	timeoutCtx, cancel := context.WithTimeout(ctx, TimeoutWaitForManagedResource)
 	defer cancel()
 
-	return managedresources.WaitUntilManagedResourceHealthy(timeoutCtx, g.client, g.namespace, managedResourceName)
+	return managedresources.WaitUntilHealthy(timeoutCtx, g.client, g.namespace, managedResourceName)
 }
 
 func (g *gardenerSeedAdmissionController) WaitCleanup(ctx context.Context) error {
 	timeoutCtx, cancel := context.WithTimeout(ctx, TimeoutWaitForManagedResource)
 	defer cancel()
 
-	return managedresources.WaitUntilManagedResourceDeleted(timeoutCtx, g.client, g.namespace, managedResourceName)
+	return managedresources.WaitUntilDeleted(timeoutCtx, g.client, g.namespace, managedResourceName)
 }
 
 var versionConstraintK8sGreaterEqual115 *semver.Constraints
@@ -403,6 +418,23 @@ func init() {
 
 	versionConstraintK8sGreaterEqual115, err = semver.NewConstraint(">= 1.15")
 	utilruntime.Must(err)
+}
+
+func (g *gardenerSeedAdmissionController) getReplicas(ctx context.Context) (int32, error) {
+	nodeList := &metav1.PartialObjectMetadataList{}
+	nodeList.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("NodeList"))
+
+	err := g.client.List(ctx, nodeList)
+	if err != nil {
+		return 0, err
+	}
+
+	nodeCount := int32(len(nodeList.Items))
+	if nodeCount < defaultReplicas {
+		return nodeCount, nil
+	}
+
+	return defaultReplicas, nil
 }
 
 const (
