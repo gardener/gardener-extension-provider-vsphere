@@ -68,5 +68,5 @@ providerSpec:
 secretRef:
   name: {{ $machineClass.name }}
   namespace: {{ $.Release.Namespace }}
-provider: vspheredriver//127.0.0.1:8080
+provider: vsphere
 {{- end }}
