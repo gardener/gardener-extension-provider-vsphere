@@ -11,7 +11,6 @@ require (
 	github.com/gardener/gardener v1.20.1-0.20210413194105-25338518ed90
 	github.com/gardener/machine-controller-manager v0.37.0
 	github.com/go-logr/logr v0.3.0
-	github.com/gobuffalo/packr/v2 v2.8.1
 	github.com/golang/mock v1.5.0
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/google/uuid v1.1.2
