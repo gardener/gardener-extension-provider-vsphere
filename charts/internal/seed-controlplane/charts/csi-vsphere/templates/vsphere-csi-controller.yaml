@@ -10,6 +10,7 @@ labels:
   role: csi-plugin-controller
 spec:
   serviceName: vsphere-csi-controller
+  revisionHistoryLimit: 1
   replicas: {{ .Values.replicas }}
   updateStrategy:
     type: RollingUpdate
