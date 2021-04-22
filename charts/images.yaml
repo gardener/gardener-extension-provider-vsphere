@@ -3,7 +3,6 @@ images:
   sourceRepository: https://github.com/kubernetes-csi/external-attacher
   repository: quay.io/k8scsi/csi-attacher
   tag: v3.0.0
-  targetVersion: ">= 1.14"
 - name: csi-resizer
   sourceRepository: github.com/kubernetes-csi/external-resizer
   repository: quay.io/k8scsi/csi-resizer
@@ -12,12 +11,10 @@ images:
   sourceRepository: https://github.com/kubernetes-csi/node-driver-registrar
   repository: quay.io/k8scsi/csi-node-driver-registrar
   tag: v2.0.1
-  targetVersion: ">= 1.14"
 - name: csi-provisioner
   sourceRepository: https://github.com/kubernetes-csi/external-provisioner
   repository: quay.io/k8scsi/csi-provisioner
   tag: v2.0.0
-  targetVersion: ">= 1.14"
 - name: vsphere-cloud-controller-manager
   sourceRepository: github.com/MartinWeindel/cloud-provider-vsphere
   repository: eu.gcr.io/gardener-project/test/cloud-provider-vsphere-martinweindel

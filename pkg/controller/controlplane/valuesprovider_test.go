@@ -181,7 +181,7 @@ var _ = Describe("ValuesProvider", func() {
 						Pods: &cidr,
 					},
 					Kubernetes: gardencorev1beta1.Kubernetes{
-						Version: "1.14.0",
+						Version: "1.15.0",
 					},
 					Provider: gardencorev1beta1.Provider{
 						ControlPlaneConfig: &runtime.RawExtension{
@@ -307,7 +307,7 @@ insecure-flag = "true"
 		controlPlaneChartValues = map[string]interface{}{
 			"vsphere-cloud-controller-manager": map[string]interface{}{
 				"replicas":          1,
-				"kubernetesVersion": "1.14.0",
+				"kubernetesVersion": "1.15.0",
 				"clusterName":       "shoot--foo--bar-garden1234",
 				"podNetwork":        cidr,
 				"podAnnotations": map[string]interface{}{
@@ -325,7 +325,7 @@ insecure-flag = "true"
 			},
 			"csi-vsphere": map[string]interface{}{
 				"replicas":          1,
-				"kubernetesVersion": "1.14.0",
+				"kubernetesVersion": "1.15.0",
 				"serverName":        "vsphere.host.internal",
 				"clusterID":         "shoot--foo--bar-garden1234",
 				"username":          "admin",
@@ -357,7 +357,7 @@ insecure-flag = "true"
 				"serverPort":        443,
 				"datacenters":       "scc01-DC",
 				"insecureFlag":      "true",
-				"kubernetesVersion": "1.14.0",
+				"kubernetesVersion": "1.15.0",
 				"labelRegion":       "k8s-region",
 				"labelZone":         "k8s-zone",
 			},
