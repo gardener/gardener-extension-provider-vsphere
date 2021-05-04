@@ -15,7 +15,6 @@
       - [Sizing the IP pools](#sizing-the-ip-pools)
     - [Check edge cluster sizing](#check-edge-cluster-sizing)
   - [Get VDS UUIDs](#get-vds-uuids)
-  - [Create Tanzu Cluster](#create-tanzu-cluster)
 
 Several preparational steps are necessary for VMware vSphere and NSX-T, before this extension can be used
 to create Gardener shoot clusters.
