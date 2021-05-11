@@ -39,7 +39,7 @@ type EnsurerContext interface {
 	GetNSXTVersion() (*string, error)
 	// ShootNamespace returns the shoot namespace used for authorization
 	ShootNamespace() string
-	// GardenID returns the garden identity used for authorization
+	// GardenID returns the garden cluster identity used for authorization
 	GardenID() string
 }
 

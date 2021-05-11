@@ -68,7 +68,7 @@ config:
 
 gardener:
   garden:
-    identity: ""
+    clusterIdentity: ""
   seed:
     provider: vsphere
     region: someregion
