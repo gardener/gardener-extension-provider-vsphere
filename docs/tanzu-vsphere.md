@@ -12,7 +12,8 @@ For the deployment it is possible to provision the cluster with a minimal amount
 The `storageClass` Parameter should be defined to avoid problems during deployment. 
 
   Example:
-    ```
+
+    ```yaml
     apiVersion: run.tanzu.vmware.com/v1alpha1      #TKG API endpoint
     kind: TanzuKubernetesCluster                   #required parameter
     metadata:
@@ -23,12 +24,12 @@ The `storageClass` Parameter should be defined to avoid problems during deployme
         version: v1.17				 #resolved kubernetes version
     topology:
         controlPlane:
-        count: 3                                 #number of control plane nodes
+        count: 1                                 #number of control plane nodes
         class: best-effort-small                 #vmclass for control plane nodes
         storageClass: vsan-default-storage-policy         #storageclass for control plane
         workers:
-        count: 4                                 #number of worker nodes
-        class: best-effort-medium                 #vmclass for worker nodes
+        count: 3                                 #number of worker nodes
+        class: best-effort-large                 #vmclass for worker nodes
         storageClass: vsan-default-storage-policy         #storageclass for worker nodes
     settings:
         network:
