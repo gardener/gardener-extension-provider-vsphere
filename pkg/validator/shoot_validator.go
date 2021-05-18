@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -43,6 +44,7 @@ var (
 	providerConfigPath = specPath.Child("providerConfig")
 	nwPath             = specPath.Child("networking")
 	providerPath       = specPath.Child("provider")
+	secretBindintPath  = specPath.Child("secretBindingName")
 	infraConfigPath    = providerPath.Child("infrastructureConfig")
 	cpConfigPath       = providerPath.Child("controlPlaneConfig")
 	workersPath        = providerPath.Child("workers")
@@ -59,6 +61,9 @@ func (v *Shoot) validateShootCreation(ctx context.Context, shoot *core.Shoot) er
 	allErrs = append(allErrs, vspherevalidation.ValidateInfrastructureConfigAgainstCloudProfile(valContext.infraConfig, shoot.Spec.Region, valContext.cloudProfileConfig, infraConfigPath)...)
 	allErrs = append(allErrs, vspherevalidation.ValidateControlPlaneConfigAgainstCloudProfile(valContext.cpConfig, shoot.Spec.Region, valContext.cloudProfile, valContext.cloudProfileConfig, cpConfigPath)...)
 	allErrs = append(allErrs, v.validateShoot(valContext)...)
+	if err := v.validateShootSecret(ctx, shoot); err != nil {
+		allErrs = append(allErrs, field.Invalid(secretBindintPath, shoot.Spec.SecretBindingName, fmt.Sprintf("invalid cloud provider credentials: %v", err)))
+	}
 	return allErrs.ToAggregate()
 }
 
@@ -101,6 +106,29 @@ func (v *Shoot) validateShoot(context *validationContext) field.ErrorList {
 	allErrs = append(allErrs, vspherevalidation.ValidateControlPlaneConfig(context.cpConfig, cpConfigPath)...)
 	allErrs = append(allErrs, vspherevalidation.ValidateWorkers(context.shoot.Spec.Provider.Workers, workersPath)...)
 	return allErrs
+}
+
+func (v *Shoot) validateShootSecret(ctx context.Context, shoot *core.Shoot) error {
+	var (
+		secretBinding    = &gardencorev1beta1.SecretBinding{}
+		secretBindingKey = kutil.Key(shoot.Namespace, shoot.Spec.SecretBindingName)
+	)
+
+	if err := kutil.LookupObject(ctx, v.client, v.apiReader, secretBindingKey, secretBinding); err != nil {
+		return err
+	}
+
+	var (
+		secret    = &corev1.Secret{}
+		secretKey = kutil.Key(secretBinding.SecretRef.Namespace, secretBinding.SecretRef.Name)
+	)
+	// Explicitly use the client.Reader to prevent controller-runtime to start Informer for Secrets
+	// under the hood. The latter increases the memory usage of the component.
+	if err := v.apiReader.Get(ctx, secretKey, secret); err != nil {
+		return err
+	}
+
+	return vspherevalidation.ValidateCloudProviderSecret(secret)
 }
 
 func newValidationContext(ctx context.Context, c client.Client, shoot *core.Shoot) (*validationContext, error) {
