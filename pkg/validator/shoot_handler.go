@@ -33,9 +33,10 @@ import (
 
 // Shoot validates shoots
 type Shoot struct {
-	client  client.Client
-	decoder runtime.Decoder
-	Logger  logr.Logger
+	client    client.Client
+	apiReader client.Reader
+	decoder   runtime.Decoder
+	Logger    logr.Logger
 }
 
 // Handle implements Handler.Handle
@@ -77,6 +78,12 @@ func (v *Shoot) Handle(ctx context.Context, req admission.Request) admission.Res
 // InjectClient injects the client.
 func (v *Shoot) InjectClient(c client.Client) error {
 	v.client = c
+	return nil
+}
+
+// InjectAPIReader injects the given apiReader into the validator.
+func (v *Shoot) InjectAPIReader(apiReader client.Reader) error {
+	v.apiReader = apiReader
 	return nil
 }
 

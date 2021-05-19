@@ -26,7 +26,9 @@ import (
 
 	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/extensions/pkg/util"
+	"github.com/gardener/gardener/extensions/pkg/util/index"
 	"github.com/gardener/gardener/pkg/apis/core/install"
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/spf13/cobra"
 	componentbaseconfig "k8s.io/component-base/config"
 	"k8s.io/component-base/version/verflag"
@@ -77,11 +79,20 @@ func NewValidatorCommand(ctx context.Context) *cobra.Command {
 				return errors.Wrap(err, "Could not update manager scheme")
 			}
 
+			if err := mgr.GetFieldIndexer().IndexField(ctx, &gardencorev1beta1.SecretBinding{}, index.SecretRefNamespaceField, index.SecretRefNamespaceIndexerFunc); err != nil {
+				return err
+			}
+
+			if err := mgr.GetFieldIndexer().IndexField(ctx, &gardencorev1beta1.Shoot{}, index.SecretBindingNameField, index.SecretBindingNameIndexerFunc); err != nil {
+				return err
+			}
+
 			log.Info("Setting up webhook server")
 			hookServer := mgr.GetWebhookServer()
 
 			log.Info("Registering webhooks")
 			hookServer.Register("/webhooks/validate", &webhook.Admission{Handler: &validator.Shoot{Logger: log.WithName("shoot-validator")}})
+			hookServer.Register("/webhooks/validate/secrets", &webhook.Admission{Handler: &validator.Secret{Logger: log.WithName("secret-validator")}})
 
 			if err := mgr.Start(ctx); err != nil {
 				return errors.Wrap(err, "Error running manager")
