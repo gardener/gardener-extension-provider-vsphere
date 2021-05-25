@@ -13,3 +13,8 @@ data:
   dashboard_users: |
     vsphere-csi-controller-dashboard.json: |-
 {{- .Files.Get "vsphere-csi-controller-dashboard.json" | nindent 6 }}
+
+  observedComponents: |
+    observedPods:
+    - podPrefix: csi-driver-controller
+      isExposedToUser: true
