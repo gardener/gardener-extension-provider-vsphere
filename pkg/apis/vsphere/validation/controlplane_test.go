@@ -43,13 +43,13 @@ var _ = Describe("ControlPlaneConfig validation", func() {
 
 	Describe("#ValidateControlPlaneConfig", func() {
 		It("should return no errors for a valid configuration", func() {
-			Expect(ValidateControlPlaneConfig(controlPlane, nilPath)).To(BeEmpty())
+			Expect(ValidateControlPlaneConfig(controlPlane, "", nilPath)).To(BeEmpty())
 		})
 
 		It("should require the name of a load balancer class", func() {
 			controlPlane.LoadBalancerClasses[0].Name = ""
 
-			errorList := ValidateControlPlaneConfig(controlPlane, nilPath)
+			errorList := ValidateControlPlaneConfig(controlPlane, "", nilPath)
 
 			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 				"Type":  Equal(field.ErrorTypeRequired),
@@ -60,16 +60,39 @@ var _ = Describe("ControlPlaneConfig validation", func() {
 		It("should check valid value for load balancer size", func() {
 			s := "LARGE"
 			controlPlane.LoadBalancerSize = &s
-			errorList := ValidateControlPlaneConfig(controlPlane, nilPath)
+			errorList := ValidateControlPlaneConfig(controlPlane, "", nilPath)
 			Expect(errorList).To(BeEmpty())
 
 			s2 := "foo"
 			controlPlane.LoadBalancerSize = &s2
-			errorList = ValidateControlPlaneConfig(controlPlane, nilPath)
+			errorList = ValidateControlPlaneConfig(controlPlane, "", nilPath)
 			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 				"Type":  Equal(field.ErrorTypeNotSupported),
 				"Field": Equal("loadBalancerSize"),
 			}))))
+		})
+
+		It("should fail with invalid CCM feature gates", func() {
+			controlPlane.CloudControllerManager = &api.CloudControllerManagerConfig{
+				FeatureGates: map[string]bool{
+					"AnyVolumeDataSource":      true,
+					"CustomResourceValidation": true,
+					"Foo":                      true,
+				},
+			}
+
+			errorList := ValidateControlPlaneConfig(controlPlane, "1.18.14", nilPath)
+
+			Expect(errorList).To(ConsistOf(
+				PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeForbidden),
+					"Field": Equal("cloudControllerManager.featureGates.CustomResourceValidation"),
+				})),
+				PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeInvalid),
+					"Field": Equal("cloudControllerManager.featureGates.Foo"),
+				})),
+			))
 		})
 	})
 
