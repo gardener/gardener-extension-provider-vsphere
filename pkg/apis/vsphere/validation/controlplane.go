@@ -17,17 +17,17 @@ package validation
 import (
 	"fmt"
 
-	"k8s.io/apimachinery/pkg/api/equality"
-	"k8s.io/apimachinery/pkg/util/validation/field"
-
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/utils"
 
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	corevalidation "github.com/gardener/gardener/pkg/apis/core/validation"
+	"k8s.io/apimachinery/pkg/api/equality"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 
 // ValidateControlPlaneConfig validates a ControlPlaneConfig object.
-func ValidateControlPlaneConfig(controlPlaneConfig *apisvsphere.ControlPlaneConfig, fldPath *field.Path) field.ErrorList {
+func ValidateControlPlaneConfig(controlPlaneConfig *apisvsphere.ControlPlaneConfig, version string, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	for _, lbclass := range controlPlaneConfig.LoadBalancerClasses {
@@ -41,6 +41,10 @@ func ValidateControlPlaneConfig(controlPlaneConfig *apisvsphere.ControlPlaneConf
 			allErrs = append(allErrs, field.NotSupported(field.NewPath("loadBalancerSize"),
 				*controlPlaneConfig.LoadBalancerSize, validLoadBalancerSizeValues.List()))
 		}
+	}
+
+	if controlPlaneConfig.CloudControllerManager != nil {
+		allErrs = append(allErrs, corevalidation.ValidateFeatureGates(controlPlaneConfig.CloudControllerManager.FeatureGates, version, fldPath.Child("cloudControllerManager", "featureGates"))...)
 	}
 
 	return allErrs
