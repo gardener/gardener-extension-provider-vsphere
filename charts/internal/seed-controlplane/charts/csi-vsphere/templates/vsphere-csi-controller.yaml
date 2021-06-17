@@ -64,7 +64,10 @@ spec:
           args:
             - "--v=4"
             - "--timeout=300s"
+            - "--handle-volume-inuse-error=false"
             - "--csi-address=$(ADDRESS)"
+            - "--kube-api-qps=100"
+            - "--kube-api-burst=100"
             - "--leader-election"
             - --kubeconfig=/var/lib/csi-resizer/kubeconfig
           env:
@@ -118,6 +121,9 @@ spec:
           ports:
             - name: healthz
               containerPort: 9808
+              protocol: TCP
+            - name: prometheus
+              containerPort: 2112
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -177,6 +183,8 @@ spec:
             - "--v=4"
             - "--timeout=300s"
             - "--csi-address=/csi/csi.sock"
+            - "--kube-api-qps=100"
+            - "--kube-api-burst=100"
             - "--feature-gates=Topology=true"
             - "--strict-topology"
             - "--leader-election"

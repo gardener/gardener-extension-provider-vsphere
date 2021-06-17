@@ -17,7 +17,7 @@ spec:
         app: vsphere-csi-node
         role: vsphere-csi
     spec:
-      automountServiceAccountToken: false
+      automountServiceAccountToken: true
       hostNetwork: true
       priorityClassName: system-node-critical
       serviceAccount: csi-driver-node
@@ -44,8 +44,6 @@ spec:
           value: /csi/csi.sock
         - name: DRIVER_REG_SOCK_PATH
           value: /var/lib/kubelet/plugins_registry/csi.vsphere.vmware.com/csi.sock
-        securityContext:
-          privileged: true
         volumeMounts:
         - name: plugin-dir
           mountPath: /csi
@@ -69,6 +67,12 @@ spec:
         - name: VSPHERE_CSI_CONFIG
           value: "/etc/cloud/csi-vsphere.conf" # here csi-vsphere.conf is the name of the file used for creating secret using "--from-file" flag
 {{- end }}
+        - name: LOGGER_LEVEL
+          value: "PRODUCTION" # Options: DEVELOPMENT, PRODUCTION
+        - name: CSI_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         securityContext:
           privileged: true
           capabilities:
@@ -87,6 +91,10 @@ spec:
             mountPropagation: "Bidirectional"
           - name: device-dir
             mountPath: /dev
+          - name: blocks-dir
+            mountPath: /sys/block
+          - name: sys-devices-dir
+            mountPath: /sys/devices
         ports:
           - name: healthz
             containerPort: 9808
@@ -128,3 +136,11 @@ spec:
         - name: device-dir
           hostPath:
             path: /dev
+        - name: blocks-dir
+          hostPath:
+            path: /sys/block
+            type: Directory
+        - name: sys-devices-dir
+          hostPath:
+            path: /sys/devices
+            type: Directory
