@@ -472,7 +472,7 @@ func sp(s string) *string {
 }
 
 func clientDeleteSuccess() interface{} {
-	return func(ctx context.Context, cm runtime.Object) error {
+	return func(ctx context.Context, cm client.Object, opts ...client.DeleteOptions) error {
 		return nil
 	}
 }
