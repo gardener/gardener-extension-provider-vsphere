@@ -65,7 +65,7 @@ spec:
         - mountPath: /var/lib/machine-controller-manager
           name: machine-controller-manager
           readOnly: true
-      - name: machine-controller-manager
+      - name: vsphere-machine-controller-manager
         image: {{ index .Values.images "machine-controller-manager" }}
         imagePullPolicy: IfNotPresent
         command:

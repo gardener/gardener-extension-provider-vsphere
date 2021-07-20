@@ -23,6 +23,13 @@ data:
 
     [FILTER]
         Name                parser
+        Match               kubernetes.*machine-controller-manager*machine-controller-manager-provider-vsphere*
+        Key_Name            log
+        Parser              kubeapiserverParser
+        Reserve_Data        True
+
+    [FILTER]
+        Name                parser
         Match               kubernetes.*vsphere-csi-controller*vsphere-csi*
         Key_Name            log
         Parser              kubeapiserverParser
@@ -33,3 +40,9 @@ data:
         Match               kubernetes.*
         Rule                $tag ^kubernetes\.var\.log\.containers\.(cloud-controller-manager-.+?_.+?_vsphere-cloud-controller-manager|vsphere-csi-controller-.+?_.+?_vsphere-csi) user-exposed.$TAG true
         Emitter_Name        re_emitted-provider-vsphere
+
+    [FILTER]
+        Name                rewrite_tag
+        Match               kubernetes.*
+        Rule                $tag ^kubernetes\.var\.log\.containers\.machine-controller-manager-.+?_.+?_(machine-controller-manager-provider-vsphere|vsphere-machine-controller-manager) user-exposed.$TAG true
+        Emitter_Name        re_emitted-provider-vsphere-mcm
