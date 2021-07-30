@@ -74,6 +74,8 @@ const (
 	PasswordCSI = "vspherePasswordCSI"
 	// InsecureSSL is a constant for the key in a cloud provider secret holding the boolean flag to allow insecure HTTPS connections to the VSphere host
 	InsecureSSL = "vsphereInsecureSSL"
+	// Kubeconfig is a constant for the key in a cloud provider secret holding the VSphere kubeconfige (only relevant for vSphere with Kubernetes)
+	Kubeconfig = "vsphereKubeconfig"
 
 	// NSXTUsername is a constant for the key in a cloud provider secret holding the NSX-T user name with role 'Enterprise Admin' (optional, for all components)
 	NSXTUsername = "nsxtUsername"

@@ -21,11 +21,13 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/kubernetes"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd/api"
 	"k8s.io/client-go/util/retry"
+	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -42,10 +44,15 @@ import (
 type preparedReconcile struct {
 	cloudProfileConfig *apisvsphere.CloudProfileConfig
 	infraConfig        *apisvsphere.InfrastructureConfig
-	nsxtConfig         *infrastructure.NSXTConfig
-	region             *apisvsphere.RegionSpec
-	spec               infrastructure.NSXTInfraSpec
-	ensurer            infrastructure.NSXTInfrastructureEnsurer
+
+	nsxtConfig *infrastructure.NSXTConfig
+	region     *apisvsphere.RegionSpec
+	spec       infrastructure.NSXTInfraSpec
+	ensurer    infrastructure.NSXTInfrastructureEnsurer
+
+	k8sRegion *apisvsphere.K8sRegionSpec
+	k8sClient ctrlClient.Client
+	apiClient *kubernetes.VsphereAPIClient
 }
 
 func (p *preparedReconcile) getDefaultLoadBalancerIPPoolName() (*string, error) {
@@ -75,6 +82,29 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 	creds, err := vsphere.GetCredentials(ctx, a.Client(), infra.Spec.SecretRef)
 	if err != nil {
 		return nil, err
+	}
+
+	if creds.IsVsphereKubernetes() {
+		if cloudProfileConfig.VsphereWithKubernetes == nil {
+			return nil, fmt.Errorf("cloudProfileConfig.vsphereWithKubernetes is missing")
+		}
+		region := apishelper.FindK8sRegion(infra.Spec.Region, cloudProfileConfig)
+		if region == nil {
+			return nil, fmt.Errorf("k8s region %q not found in cloud profile", infra.Spec.Region)
+		}
+		client, err := kubernetes.CreateVsphereKubernetesClient(creds.VsphereKubeconfig())
+		if err != nil {
+			return nil, fmt.Errorf("cannot create client from kubeconfig: %w", err)
+		}
+		apiClient, err := kubernetes.GetVsphereAPISession(*region, creds.VsphereAPI())
+		prepared := &preparedReconcile{
+			cloudProfileConfig: cloudProfileConfig,
+			infraConfig:        infraConfig,
+			k8sClient:          client,
+			apiClient:          apiClient,
+			k8sRegion:          region,
+		}
+		return prepared, nil
 	}
 
 	region := apishelper.FindRegion(infra.Spec.Region, cloudProfileConfig)
@@ -153,6 +183,13 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 	}
 
 	prepared, err := a.prepareReconcile(ctx, infra, cluster)
+	if prepared.k8sClient != nil {
+		if creationStarted != nil {
+			return fmt.Errorf("invalid state: creationStarted for vsphere with kubernetes?")
+		}
+		return a.reconcileK8s(ctx, prepared, infra, cluster)
+	}
+
 	if creationStarted == nil || !*creationStarted {
 		// early status update to allow deletion on wrong credentials
 		if err == nil {
@@ -294,4 +331,31 @@ func (a *actuator) logFailedSaveState(err error, state *apisvsphere.NSXTInfraSta
 		stateString = err2.Error()
 	}
 	a.logger.Error(err, "persisting infrastructure state failed", "state", stateString)
+}
+
+func (a *actuator) reconcileK8s(ctx context.Context, prepared *preparedReconcile, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
+	namespace := cluster.ObjectMeta.Name
+	createNamespace := true
+	vwk := prepared.cloudProfileConfig.VsphereWithKubernetes
+	if vwk.Namespace != nil {
+		namespace = *vwk.Namespace
+		createNamespace = false
+	}
+
+	if createNamespace {
+		err := prepared.apiClient.CreateNamespace(namespace, vwk)
+		if err != nil {
+			return fmt.Errorf("creation of namespace %s failed: %w", err)
+		}
+	} else {
+		cluster, err := prepared.apiClient.GetNamespaceCluster(namespace)
+		if err != nil {
+			return fmt.Errorf("namespace %s cannot looked up: %w", err)
+		}
+		if cluster != prepared.k8sRegion.Cluster {
+			return fmt.Errorf("namespace %s has wrong cluster: %s != %s (region=%s)", cluster, prepared.k8sRegion.Cluster, prepared.k8sRegion.Name)
+		}
+	}
+	println(namespace, createNamespace)
+	return nil
 }

@@ -122,5 +122,37 @@ var _ = Describe("Secret validation", func() {
 			},
 			BeNil(),
 		),
+
+		Entry("should return error when the kubeconfig credential is empty",
+			map[string][]byte{
+				vsphere.Kubeconfig: []byte(""),
+			},
+			HaveOccurred(),
+		),
+
+		Entry("should return error when the kubeconfig credential is given, but not the vsphere username",
+			map[string][]byte{
+				vsphere.Kubeconfig: []byte("xxx"),
+				vsphere.Password:   []byte("password"),
+			},
+			HaveOccurred(),
+		),
+
+		Entry("should return error when the kubeconfig credential is given, but not the vsphere password",
+			map[string][]byte{
+				vsphere.Kubeconfig: []byte("xxx"),
+				vsphere.Username:   []byte("username"),
+			},
+			HaveOccurred(),
+		),
+
+		Entry("should succeed when the kubeconfig credential is set",
+			map[string][]byte{
+				vsphere.Kubeconfig: []byte("xxx"),
+				vsphere.Username:   []byte("username"),
+				vsphere.Password:   []byte("password"),
+			},
+			BeNil(),
+		),
 	)
 })

@@ -39,6 +39,8 @@ type Credentials struct {
 	vsphereCSI *UserPass
 
 	nsxt *UserPass
+
+	kubeconfig []byte
 }
 
 func (c *Credentials) VsphereMCM() UserPass {
@@ -62,8 +64,20 @@ func (c *Credentials) VsphereCSI() UserPass {
 	return *c.vsphere
 }
 
+func (c *Credentials) VsphereAPI() UserPass {
+	return *c.vsphere
+}
+
 func (c *Credentials) NSXT() UserPass {
 	return *c.nsxt
+}
+
+func (c *Credentials) IsVsphereKubernetes() bool {
+	return c.kubeconfig != nil
+}
+
+func (c *Credentials) VsphereKubeconfig() []byte {
+	return c.kubeconfig
 }
 
 // GetCredentials computes for a given context and infrastructure the corresponding credentials object.

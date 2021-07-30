@@ -11,6 +11,7 @@ require (
 	github.com/gardener/gardener v1.32.0
 	github.com/gardener/machine-controller-manager v0.37.0
 	github.com/go-logr/logr v0.4.0
+	github.com/go-resty/resty/v2 v2.6.0
 	github.com/golang/mock v1.6.0
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/google/uuid v1.1.2

@@ -44,11 +44,13 @@ func ValidateCloudProfileConfig(profileSpec *gardencorev1beta1.CloudProfileSpec,
 		}
 	}
 
-	if profileConfig.NamePrefix == "" {
-		allErrs = append(allErrs, field.Required(field.NewPath("namePrefix"), "must provide name prefix for NSX-T resources"))
-	} else if !namePrefixPattern.MatchString(profileConfig.NamePrefix) {
-		allErrs = append(allErrs, field.Invalid(field.NewPath("namePrefix"), profileConfig.NamePrefix,
-			"must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character"))
+	if profileConfig.VsphereWithKubernetes == nil {
+		if profileConfig.NamePrefix == "" {
+			allErrs = append(allErrs, field.Required(field.NewPath("namePrefix"), "must provide name prefix for NSX-T resources"))
+		} else if !namePrefixPattern.MatchString(profileConfig.NamePrefix) {
+			allErrs = append(allErrs, field.Invalid(field.NewPath("namePrefix"), profileConfig.NamePrefix,
+				"must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character"))
+		}
 	}
 	if profileConfig.DefaultClassStoragePolicyName == "" {
 		allErrs = append(allErrs, field.Required(field.NewPath("defaultClassStoragePolicyName"), "must provide defaultClassStoragePolicyName"))
@@ -127,62 +129,101 @@ func ValidateCloudProfileConfig(profileSpec *gardencorev1beta1.CloudProfileSpec,
 		}
 	}
 
-	regionsPath := field.NewPath("regions")
-	if len(profileConfig.Regions) == 0 {
-		allErrs = append(allErrs, field.Required(regionsPath, "must provide at least one region"))
+	if profileConfig.VsphereWithKubernetes == nil {
+		regionsPath := field.NewPath("regions")
+		if len(profileConfig.Regions) == 0 {
+			allErrs = append(allErrs, field.Required(regionsPath, "must provide at least one region"))
+		}
+		for i, region := range profileConfig.Regions {
+			regionPath := regionsPath.Index(i)
+			if region.Name == "" {
+				allErrs = append(allErrs, field.Required(regionPath.Child("name"), "must provide region name"))
+			}
+			if region.VsphereHost == "" {
+				allErrs = append(allErrs, field.Required(regionPath.Child("vsphereHost"), fmt.Sprintf("must provide vSphere host for region %s", region.Name)))
+			}
+			if region.NSXTHost == "" {
+				allErrs = append(allErrs, field.Required(regionPath.Child("nsxtHost"), fmt.Sprintf("must provide NSX-T  host for region %s", region.Name)))
+			}
+			if region.SNATIPPool == "" {
+				allErrs = append(allErrs, field.Required(regionPath.Child("snatIPPool"), fmt.Sprintf("must provide SNAT IP pool for region %s", region.Name)))
+			}
+			if region.TransportZone == "" {
+				allErrs = append(allErrs, field.Required(regionPath.Child("transportZone"), fmt.Sprintf("must provide transport zone for region %s", region.Name)))
+			}
+			if region.LogicalTier0Router == "" {
+				allErrs = append(allErrs, field.Required(regionPath.Child("logicalTier0Router"), fmt.Sprintf("must provide logical tier 0 router for region %s", region.Name)))
+			}
+			if region.EdgeCluster == "" {
+				allErrs = append(allErrs, field.Required(regionPath.Child("edgeCluster"), fmt.Sprintf("must provide edge cluster for region %s", region.Name)))
+			}
+			if len(region.Zones) == 0 {
+				allErrs = append(allErrs, field.Required(regionPath.Child("zones"), fmt.Sprintf("must provide edge cluster for region %s", region.Name)))
+			}
+			if len(profileConfig.DNSServers) == 0 && len(region.DNSServers) == 0 {
+				allErrs = append(allErrs, field.Required(field.NewPath("dnsServers"), "must provide dnsServers globally or for each region"))
+				allErrs = append(allErrs, field.Required(regionPath.Child("dnsServers"), fmt.Sprintf("must provide dnsServers globally or for region %s", region.Name)))
+			}
+			for i, option := range profileConfig.DHCPOptions {
+				if option.Code <= 0 {
+					allErrs = append(allErrs, field.Required(field.NewPath("dhcpOptions").Index(i).Child("code"), "must be positive integer"))
+				}
+			}
+			for j, zone := range region.Zones {
+				zonePath := regionPath.Child("zones").Index(j)
+				if zone.Name == "" {
+					allErrs = append(allErrs, field.Required(zonePath.Child("name"), fmt.Sprintf("must provide zone name in zones for region %s", region.Name)))
+				}
+				if !isSet(zone.Datacenter) && !isSet(region.Datacenter) {
+					allErrs = append(allErrs, field.Required(zonePath.Child("datacenter"), fmt.Sprintf("must provide data center either for region %s or its zone %s", region.Name, zone.Name)))
+				}
+				if !isSet(zone.Datastore) && !isSet(zone.DatastoreCluster) && !isSet(region.Datastore) && !isSet(region.DatastoreCluster) {
+					allErrs = append(allErrs, field.Required(zonePath.Child("datastore"), fmt.Sprintf("must provide either data store or data store cluster for either region %s or its zone %s", region.Name, zone.Name)))
+				}
+				if !isSet(zone.ComputeCluster) && !isSet(zone.ResourcePool) && !isSet(zone.HostSystem) {
+					allErrs = append(allErrs, field.Required(zonePath.Child("resourcePool"), fmt.Sprintf("must provide either compute cluster, resource pool, or hostsystem for region %s, zone %s", region.Name, zone.Name)))
+				}
+			}
+			for i, machineImage := range region.MachineImages {
+				checkMachineImage(regionPath.Child("machineImages").Index(i), machineImage)
+			}
+		}
 	}
-	for i, region := range profileConfig.Regions {
-		regionPath := regionsPath.Index(i)
-		if region.Name == "" {
-			allErrs = append(allErrs, field.Required(regionPath.Child("name"), "must provide region name"))
+
+	if profileConfig.VsphereWithKubernetes != nil {
+		vsphereWithKubernetesPath := field.NewPath("vsphereWithKubernetes")
+		if len(profileConfig.VsphereWithKubernetes.ContentLibraries) == 0 {
+			allErrs = append(allErrs, field.Required(vsphereWithKubernetesPath.Child("contentLibraries"), fmt.Sprintf("must provide at least one content library")))
 		}
-		if region.VsphereHost == "" {
-			allErrs = append(allErrs, field.Required(regionPath.Child("vsphereHost"), fmt.Sprintf("must provide vSphere host for region %s", region.Name)))
+		if len(profileConfig.VsphereWithKubernetes.VirtualMachineClasses) == 0 {
+			allErrs = append(allErrs, field.Required(vsphereWithKubernetesPath.Child("virtualMachineClasses"), fmt.Sprintf("must provide at least one virtual machine class")))
 		}
-		if region.NSXTHost == "" {
-			allErrs = append(allErrs, field.Required(regionPath.Child("nsxtHost"), fmt.Sprintf("must provide NSX-T  host for region %s", region.Name)))
-		}
-		if region.SNATIPPool == "" {
-			allErrs = append(allErrs, field.Required(regionPath.Child("snatIPPool"), fmt.Sprintf("must provide SNAT IP pool for region %s", region.Name)))
-		}
-		if region.TransportZone == "" {
-			allErrs = append(allErrs, field.Required(regionPath.Child("transportZone"), fmt.Sprintf("must provide transport zone for region %s", region.Name)))
-		}
-		if region.LogicalTier0Router == "" {
-			allErrs = append(allErrs, field.Required(regionPath.Child("logicalTier0Router"), fmt.Sprintf("must provide logical tier 0 router for region %s", region.Name)))
-		}
-		if region.EdgeCluster == "" {
-			allErrs = append(allErrs, field.Required(regionPath.Child("edgeCluster"), fmt.Sprintf("must provide edge cluster for region %s", region.Name)))
-		}
-		if len(region.Zones) == 0 {
-			allErrs = append(allErrs, field.Required(regionPath.Child("zones"), fmt.Sprintf("must provide edge cluster for region %s", region.Name)))
-		}
-		if len(profileConfig.DNSServers) == 0 && len(region.DNSServers) == 0 {
-			allErrs = append(allErrs, field.Required(field.NewPath("dnsServers"), "must provide dnsServers globally or for each region"))
-			allErrs = append(allErrs, field.Required(regionPath.Child("dnsServers"), fmt.Sprintf("must provide dnsServers globally or for region %s", region.Name)))
-		}
-		for i, option := range profileConfig.DHCPOptions {
-			if option.Code <= 0 {
-				allErrs = append(allErrs, field.Required(field.NewPath("dhcpOptions").Index(i).Child("code"), "must be positive integer"))
+		if len(profileConfig.VsphereWithKubernetes.StoragePolicies) == 0 {
+			allErrs = append(allErrs, field.Required(vsphereWithKubernetesPath.Child("storagePolicies"), fmt.Sprintf("must provide at least one storage policy")))
+		} else {
+			policiesPath := vsphereWithKubernetesPath.Child("storagePolicies")
+			for i, policy := range profileConfig.VsphereWithKubernetes.StoragePolicies {
+				if policy == "" {
+					allErrs = append(allErrs, field.Required(policiesPath.Index(i), "must provide storage policy id"))
+				}
 			}
 		}
-		for j, zone := range region.Zones {
-			zonePath := regionPath.Child("zones").Index(j)
-			if zone.Name == "" {
-				allErrs = append(allErrs, field.Required(zonePath.Child("name"), fmt.Sprintf("must provide zone name in zones for region %s", region.Name)))
-			}
-			if !isSet(zone.Datacenter) && !isSet(region.Datacenter) {
-				allErrs = append(allErrs, field.Required(zonePath.Child("datacenter"), fmt.Sprintf("must provide data center either for region %s or its zone %s", region.Name, zone.Name)))
-			}
-			if !isSet(zone.Datastore) && !isSet(zone.DatastoreCluster) && !isSet(region.Datastore) && !isSet(region.DatastoreCluster) {
-				allErrs = append(allErrs, field.Required(zonePath.Child("datastore"), fmt.Sprintf("must provide either data store or data store cluster for either region %s or its zone %s", region.Name, zone.Name)))
-			}
-			if !isSet(zone.ComputeCluster) && !isSet(zone.ResourcePool) && !isSet(zone.HostSystem) {
-				allErrs = append(allErrs, field.Required(zonePath.Child("resourcePool"), fmt.Sprintf("must provide either compute cluster, resource pool, or hostsystem for region %s, zone %s", region.Name, zone.Name)))
-			}
+
+		regionsPath := vsphereWithKubernetesPath.Child("regions")
+		if len(profileConfig.VsphereWithKubernetes.Regions) == 0 {
+			allErrs = append(allErrs, field.Required(regionsPath, "must provide at least one region"))
 		}
-		for i, machineImage := range region.MachineImages {
-			checkMachineImage(regionPath.Child("machineImages").Index(i), machineImage)
+		for i, region := range profileConfig.VsphereWithKubernetes.Regions {
+			regionPath := regionsPath.Index(i)
+			if region.Name == "" {
+				allErrs = append(allErrs, field.Required(regionPath.Child("name"), "must provide region name"))
+			}
+			if region.Cluster == "" {
+				allErrs = append(allErrs, field.Required(regionPath.Child("cluster"), "must provide cluster id"))
+			}
+			if region.VsphereHost == "" {
+				allErrs = append(allErrs, field.Required(regionPath.Child("vsphereHost"), "must provide vsphereHost"))
+			}
 		}
 	}
 

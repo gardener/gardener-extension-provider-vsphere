@@ -25,32 +25,44 @@ import (
 // resource.
 type CloudProfileConfig struct {
 	metav1.TypeMeta `json:",inline"`
+
+	// VsphereWithKubernetes if true, infrastructure and VMs are created on vSphere Kubernetes workloads (supervisor cluster)
+	// +optional
+	VsphereWithKubernetes *VsphereWithKubernetes `json:"vsphereWithKubernetes,omitempty"`
+
 	// NamePrefix is used for naming NSX-T resources
-	NamePrefix string `json:"namePrefix"`
+	// unused if VsphereWithKubernetes is set
+	NamePrefix string `json:"namePrefix,omitempty"`
 	// Folder is the vSphere folder name to store the cloned machine VM (worker nodes)
-	Folder string `json:"folder"`
+	// unused if VsphereWithKubernetes is set
+	Folder string `json:"folder,omitempty"`
 	// Regions is the specification of regions and zones topology
-	Regions []RegionSpec `json:"regions"`
+	// unused if VsphereWithKubernetes is set
+	Regions []RegionSpec `json:"regions,omitempty"`
 	// DefaultClassStoragePolicyName is the name of the vSphere storage policy to use for the 'default-class' storage class
 	DefaultClassStoragePolicyName string `json:"defaultClassStoragePolicyName"`
 	// FailureDomainLabels are the tag categories used for regions and zones.
+	// unused if VsphereWithKubernetes is set
 	// +optional
 	FailureDomainLabels *FailureDomainLabels `json:"failureDomainLabels,omitempty"`
 	// DNSServers is a list of IPs of DNS servers used while creating subnets.
-	DNSServers []string `json:"dnsServers"`
+	// unused if VsphereWithKubernetes is set
+	DNSServers []string `json:"dnsServers,omitempty"`
 	// DHCPOptions contains optional options for DHCP like Domain name, NTP server,...
+	// unused if VsphereWithKubernetes is set
 	// +optional
 	DHCPOptions []DHCPOption `json:"dhcpOptions,omitempty"`
 
 	// MachineImages is the list of machine images that are understood by the controller. It maps
 	// logical names and versions to provider-specific identifiers.
-	MachineImages []MachineImages `json:"machineImages"`
+	MachineImages []MachineImages `json:"machineImages,omitempty"`
 	// Constraints is an object containing constraints for certain values in the control plane config.
 	Constraints Constraints `json:"constraints"`
 	// CSIResizerDisabled is a flag to disable the CSI resizer (e.g. resizer is not supported for vSphere 6.7)
 	// +optional
 	CSIResizerDisabled *bool `json:"csiResizerDisabled,omitempty"`
 	// MachineTypeOptions is the list of machine type options to set additional options for individual machine types.
+	// unused if VsphereWithKubernetes is set
 	// +optional
 	MachineTypeOptions []MachineTypeOptions `json:"machineTypeOptions,omitempty"`
 	// DockerDaemonOptions contains configuration options for docker daemon service
@@ -189,8 +201,10 @@ type MachineImageVersion struct {
 	// Version is the version of the image.
 	Version string `json:"version"`
 	// Path is the path of the VM template.
+	// if VsphereWithKubernetes is set, it contains the name of the `VirtualMachineImage.vmoperator.vmware.com` resource
 	Path string `json:"path"`
 	// GuestID is the optional guestId to overwrite the guestId of the VM template.
+	// unused if VsphereWithKubernetes is set
 	// +optional
 	GuestID *string `json:"guestId,omitempty"`
 }
@@ -240,4 +254,38 @@ type DockerDaemonOptions struct {
 	// (see https://docs.docker.com/registry/insecure/)
 	// +optional
 	InsecureRegistries []string `json:"insecureRegistries,omitempty"`
+}
+
+// VsphereWithKubernetes contains settings for using "VSphere with Kubernetes" (experimental)
+type VsphereWithKubernetes struct {
+	// Namespace optionally specifies the namespace on the vSphere supervisor cluster (and implicitly the T1 Gateway)
+	// If two shoot clusters use the same namespace, they can see the node network segments of each other.
+	// +optional
+	Namespace *string `json:"namespace,omitempty"`
+
+	// StoragePolicies are the identifier of the storage policy assigned to a namespace (at least one is needed)
+	StoragePolicies []string `json:"storagePolicies,omitempty"`
+
+	// ContentLibraries are the content libraries identifiers to use to find OS images (at least one is needed)
+	ContentLibraries []string `json:"contentLibraries,omitempty"`
+
+	// VirtualMachineClasses are the names of `virtualmachineclass.vmoperator.vmware.com` allowed (at least one is needed)
+	VirtualMachineClasses []string `json:"virtualMachineClasses,omitempty"`
+
+	// Regions is the specification of regions and zones topology
+	Regions []K8sRegionSpec `json:"regions"`
+}
+
+// K8sRegionSpec is the VsphereWithKubernetes specific region spec
+type K8sRegionSpec struct {
+	// Name is the name of the region
+	Name string `json:"name"`
+
+	// Cluster is the vSphere cluster id
+	Cluster string `json:"cluster"`
+
+	// VsphereHost is the vSphere host
+	VsphereHost string `json:"vsphereHost"`
+	// VsphereInsecureSSL is a flag if insecure HTTPS is allowed for VsphereHost
+	VsphereInsecureSSL bool `json:"vsphereInsecureSSL"`
 }

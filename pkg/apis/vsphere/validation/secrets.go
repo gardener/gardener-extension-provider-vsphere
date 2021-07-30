@@ -25,7 +25,18 @@ import (
 func ValidateCloudProviderSecret(secret *corev1.Secret) error {
 	secretKey := fmt.Sprintf("%s/%s", secret.Namespace, secret.Name)
 
-	for _, key := range []string{vsphere.Username, vsphere.Password, vsphere.NSXTUsername, vsphere.NSXTPassword} {
+	keys := []string{vsphere.Username, vsphere.Password, vsphere.NSXTUsername, vsphere.NSXTPassword}
+
+	if val, ok := secret.Data[vsphere.Kubeconfig]; ok {
+		if len(val) == 0 {
+			return fmt.Errorf("field %q in secret %s cannot be empty", vsphere.Kubeconfig, secretKey)
+		}
+
+		// vsphere account needed for managing namespaces
+		keys = []string{vsphere.Username, vsphere.Password}
+	}
+
+	for _, key := range keys {
 		val, ok := secret.Data[key]
 		if !ok {
 			return fmt.Errorf("missing %q field in secret %s", key, secretKey)

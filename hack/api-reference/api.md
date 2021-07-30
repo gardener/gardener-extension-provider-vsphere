@@ -51,13 +51,28 @@ string
 </tr>
 <tr>
 <td>
+<code>vsphereWithKubernetes</code></br>
+<em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.VsphereWithKubernetes">
+VsphereWithKubernetes
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>VsphereWithKubernetes if true, infrastructure and VMs are created on vSphere Kubernetes workloads (supervisor cluster)</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>namePrefix</code></br>
 <em>
 string
 </em>
 </td>
 <td>
-<p>NamePrefix is used for naming NSX-T resources</p>
+<p>NamePrefix is used for naming NSX-T resources
+unused if VsphereWithKubernetes is set</p>
 </td>
 </tr>
 <tr>
@@ -68,7 +83,8 @@ string
 </em>
 </td>
 <td>
-<p>Folder is the vSphere folder name to store the cloned machine VM (worker nodes)</p>
+<p>Folder is the vSphere folder name to store the cloned machine VM (worker nodes)
+unused if VsphereWithKubernetes is set</p>
 </td>
 </tr>
 <tr>
@@ -81,7 +97,8 @@ string
 </em>
 </td>
 <td>
-<p>Regions is the specification of regions and zones topology</p>
+<p>Regions is the specification of regions and zones topology
+unused if VsphereWithKubernetes is set</p>
 </td>
 </tr>
 <tr>
@@ -106,7 +123,8 @@ FailureDomainLabels
 </td>
 <td>
 <em>(Optional)</em>
-<p>FailureDomainLabels are the tag categories used for regions and zones.</p>
+<p>FailureDomainLabels are the tag categories used for regions and zones.
+unused if VsphereWithKubernetes is set</p>
 </td>
 </tr>
 <tr>
@@ -117,7 +135,8 @@ FailureDomainLabels
 </em>
 </td>
 <td>
-<p>DNSServers is a list of IPs of DNS servers used while creating subnets.</p>
+<p>DNSServers is a list of IPs of DNS servers used while creating subnets.
+unused if VsphereWithKubernetes is set</p>
 </td>
 </tr>
 <tr>
@@ -131,7 +150,8 @@ FailureDomainLabels
 </td>
 <td>
 <em>(Optional)</em>
-<p>DHCPOptions contains optional options for DHCP like Domain name, NTP server,&hellip;</p>
+<p>DHCPOptions contains optional options for DHCP like Domain name, NTP server,&hellip;
+unused if VsphereWithKubernetes is set</p>
 </td>
 </tr>
 <tr>
@@ -184,7 +204,8 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
-<p>MachineTypeOptions is the list of machine type options to set additional options for individual machine types.</p>
+<p>MachineTypeOptions is the list of machine type options to set additional options for individual machine types.
+unused if VsphereWithKubernetes is set</p>
 </td>
 </tr>
 <tr>
@@ -317,7 +338,8 @@ Networks
 <td>
 <em>(Optional)</em>
 <p>Networks contains optional existing network infrastructure to use.
-If not defined, NSX-T Tier-1 gateway and load balancer are created for the shoot cluster.</p>
+If not defined, NSX-T Tier-1 gateway and load balancer are created for the shoot cluster.
+unused if VsphereWithKubernetes is set</p>
 </td>
 </tr>
 <tr>
@@ -330,7 +352,8 @@ string
 <td>
 <em>(Optional)</em>
 <p>OverwriteNSXTInfraVersion allows to fix the ensurer version used to create the NSXT-T infrastructure.
-This is an advanced configuration to overwrite the automatic version selection.</p>
+This is an advanced configuration to overwrite the automatic version selection.
+unused if VsphereWithKubernetes is set</p>
 </td>
 </tr>
 </tbody>
@@ -757,6 +780,82 @@ NSXTInfraState
 </em>
 </td>
 <td>
+<p>not filled if VsphereWithKubernetes is set</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>virtualNetwork</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>VirtualNetwork is the name of the network segment in the vSphere Kubernetes namespace
+only filled if VsphereWithKubernetes is set</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.K8sRegionSpec">K8sRegionSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.VsphereWithKubernetes">VsphereWithKubernetes</a>)
+</p>
+<p>
+<p>K8sRegionSpec is the VsphereWithKubernetes specific region spec</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the name of the region</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>cluster</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Cluster is the vSphere cluster id</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>vsphereHost</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>VsphereHost is the vSphere host</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>vsphereInsecureSSL</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>VsphereInsecureSSL is a flag if insecure HTTPS is allowed for VsphereHost</p>
 </td>
 </tr>
 </tbody>
@@ -969,7 +1068,8 @@ string
 </em>
 </td>
 <td>
-<p>Path is the path of the VM template.</p>
+<p>Path is the path of the VM template.
+if VsphereWithKubernetes is set, it contains the name of the <code>VirtualMachineImage.vmoperator.vmware.com</code> resource</p>
 </td>
 </tr>
 <tr>
@@ -981,7 +1081,8 @@ string
 </td>
 <td>
 <em>(Optional)</em>
-<p>GuestID is the optional guestId to overwrite the guestId of the VM template.</p>
+<p>GuestID is the optional guestId to overwrite the guestId of the VM template.
+unused if VsphereWithKubernetes is set</p>
 </td>
 </tr>
 </tbody>
@@ -1629,7 +1730,8 @@ string
 </em>
 </td>
 <td>
-<p>Folder is the folder name to store the cloned machine VM</p>
+<p>Folder is the folder name to store the cloned machine VM
+not filled if VsphereWithKubernetes is set</p>
 </td>
 </tr>
 <tr>
@@ -1653,7 +1755,98 @@ map[string]github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsph
 </em>
 </td>
 <td>
-<p>ZoneConfig holds information about zone</p>
+<p>ZoneConfig holds information about zone
+not filled if VsphereWithKubernetes is set</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>namespace</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Namespace is the vSphere Kubernetes namespace
+only filled if VsphereWithKubernetes is set</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.VsphereWithKubernetes">VsphereWithKubernetes
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.CloudProfileConfig">CloudProfileConfig</a>)
+</p>
+<p>
+<p>VsphereWithKubernetes contains settings for using &ldquo;VSphere with Kubernetes&rdquo; (experimental)</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>namespace</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Namespace optionally specifies the namespace on the vSphere supervisor cluster (and implicitly the T1 Gateway)
+If two shoot clusters use the same namespace, they can see the node network segments of each other.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>storagePolicies</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>StoragePolicies are the identifier of the storage policy assigned to a namespace (at least one is needed)</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>contentLibraries</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>ContentLibraries are the content libraries identifiers to use to find OS images (at least one is needed)</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>virtualMachineClasses</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>VirtualMachineClasses are the names of <code>virtualmachineclass.vmoperator.vmware.com</code> allowed (at least one is needed)</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>regions</code></br>
+<em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.K8sRegionSpec">
+[]K8sRegionSpec
+</a>
+</em>
+</td>
+<td>
+<p>Regions is the specification of regions and zones topology</p>
 </td>
 </tr>
 </tbody>
