@@ -21,9 +21,11 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 
+	"k8s.io/apimachinery/pkg/api/errors"
 	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
@@ -65,6 +67,17 @@ func TestCreateUpdateDeleteVirtualNetwork(t *testing.T) {
 		Namespace: cfg.Namespace,
 		Name:      "functest",
 	}
+
+	_, err = GetVirtualNetworkStatus(ctx, client, name)
+	if err == nil {
+		t.Errorf("first GetVirtualNetworkStatus should return error")
+		return
+	}
+	if !errors.IsNotFound(err) {
+		t.Errorf("first GetVirtualNetworkStatus returned unexpected error: %s", err)
+		return
+	}
+
 	spec := VirtualNetworkSpec{
 		Private:     true,
 		EnableDHCP:  true,
@@ -73,6 +86,16 @@ func TestCreateUpdateDeleteVirtualNetwork(t *testing.T) {
 	err = CreateVirtualNetwork(ctx, client, name, spec)
 	if err != nil {
 		t.Errorf("CreateVirtualNetwork failed with %s", err)
+		return
+	}
+
+	err = CreateVirtualNetwork(ctx, client, name, spec)
+	if err == nil {
+		t.Errorf("second CreateVirtualNetwork should return error")
+		return
+	}
+	if !errors.IsAlreadyExists(err) {
+		t.Errorf("second CreateVirtualNetwork returned unexpected error: %s", err)
 		return
 	}
 
@@ -94,6 +117,10 @@ func TestCreateUpdateDeleteVirtualNetwork(t *testing.T) {
 	}
 	if status.DefaultSNATIP == nil {
 		t.Errorf("VirtualNetworkStatus DefaultSNATIP == nil")
+		return
+	}
+	if !reflect.DeepEqual(spec, status.VirtualNetworkSpec) {
+		t.Errorf("spec mismatch: %v != %v", spec, status.VirtualNetworkSpec)
 		return
 	}
 

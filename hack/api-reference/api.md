@@ -858,6 +858,50 @@ bool
 <p>VsphereInsecureSSL is a flag if insecure HTTPS is allowed for VsphereHost</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>zones</code></br>
+<em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.K8sZoneSpec">
+[]K8sZoneSpec
+</a>
+</em>
+</td>
+<td>
+<p>Zones is the list of zone specifications of the region.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.K8sZoneSpec">K8sZoneSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#vsphere.provider.extensions.gardener.cloud/v1alpha1.K8sRegionSpec">K8sRegionSpec</a>)
+</p>
+<p>
+<p>K8sZoneSpec specifies a zone of a K8s region.
+currently only a placeholder</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the name of the zone</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.LoadBalancerClass">LoadBalancerClass

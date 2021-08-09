@@ -20,9 +20,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"time"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/kubernetes"
 	"github.com/pkg/errors"
+	errors2 "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd/api"
@@ -97,6 +100,9 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 			return nil, fmt.Errorf("cannot create client from kubeconfig: %w", err)
 		}
 		apiClient, err := kubernetes.GetVsphereAPISession(*region, creds.VsphereAPI())
+		if err != nil {
+			return nil, fmt.Errorf("cannot create vsphere client for user: %s: %w", creds.VsphereAPI().Username, err)
+		}
 		prepared := &preparedReconcile{
 			cloudProfileConfig: cloudProfileConfig,
 			infraConfig:        infraConfig,
@@ -178,11 +184,12 @@ func (a *actuator) getInfrastructureState(infra *extensionsv1alpha1.Infrastructu
 
 func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	state, creationStarted, err := a.getInfrastructureState(infra)
-	if err != nil {
-		return err
-	}
+	// error handling later
 
-	prepared, err := a.prepareReconcile(ctx, infra, cluster)
+	prepared, err2 := a.prepareReconcile(ctx, infra, cluster)
+	if err2 != nil {
+		return err2
+	}
 	if prepared.k8sClient != nil {
 		if creationStarted != nil {
 			return fmt.Errorf("invalid state: creationStarted for vsphere with kubernetes?")
@@ -342,20 +349,74 @@ func (a *actuator) reconcileK8s(ctx context.Context, prepared *preparedReconcile
 		createNamespace = false
 	}
 
-	if createNamespace {
-		err := prepared.apiClient.CreateNamespace(namespace, vwk)
+	err := a.checkOrCreateNamespace(prepared, namespace, createNamespace, vwk)
+	if err != nil {
+		return err
+	}
+
+	nodes := cluster.Shoot.Spec.Networking.Nodes
+	if nodes == nil {
+		return fmt.Errorf("unexpected: networking nodes == nil")
+	}
+	err = a.checkOrCreateNetwork(ctx, prepared.k8sClient, ctrlClient.ObjectKey{Namespace: namespace, Name: cluster.ObjectMeta.Name}, *nodes)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *actuator) checkOrCreateNamespace(prepared *preparedReconcile, namespace string, create bool, vwk *apisvsphere.VsphereWithKubernetes) error {
+	vsphereCluster, err := prepared.apiClient.GetNamespaceCluster(namespace)
+
+	if create && kubernetes.IsNotFoundError(err) {
+		err = prepared.apiClient.CreateNamespace(namespace, vwk)
 		if err != nil {
 			return fmt.Errorf("creation of namespace %s failed: %w", err)
 		}
-	} else {
-		cluster, err := prepared.apiClient.GetNamespaceCluster(namespace)
+	} else if err != nil {
+		return fmt.Errorf("namespace %s cannot looked up: %w", err)
+	} else if vsphereCluster != prepared.k8sRegion.Cluster {
+		return fmt.Errorf("namespace %s has wrong cluster: %s != %s (region=%s)", vsphereCluster, prepared.k8sRegion.Cluster, prepared.k8sRegion.Name)
+	}
+	return nil
+}
+
+func (a *actuator) checkOrCreateNetwork(ctx context.Context, client ctrlClient.Client, name ctrlClient.ObjectKey, nodesCIDR string) error {
+	spec := kubernetes.VirtualNetworkSpec{
+		Private:     true,
+		EnableDHCP:  true,
+		AddressCIDR: nodesCIDR,
+	}
+
+	status, err := kubernetes.GetVirtualNetworkStatus(ctx, client, name)
+	if err != nil && errors2.IsNotFound(err) {
+		err = kubernetes.CreateVirtualNetwork(ctx, client, name, spec)
 		if err != nil {
-			return fmt.Errorf("namespace %s cannot looked up: %w", err)
+			return fmt.Errorf("creating virtual network %s failed: %v", name, err)
 		}
-		if cluster != prepared.k8sRegion.Cluster {
-			return fmt.Errorf("namespace %s has wrong cluster: %s != %s (region=%s)", cluster, prepared.k8sRegion.Cluster, prepared.k8sRegion.Name)
+	} else if err != nil {
+		return fmt.Errorf("getting status of virtual network %s failed: %v", name, err)
+	}
+
+	// wait for status == ready
+	for i := 0; i < 20; i++ {
+		if status != nil && status.Ready {
+			break
+		}
+		time.Sleep(500 * time.Millisecond)
+		status, err = kubernetes.GetVirtualNetworkStatus(ctx, client, name)
+		if err != nil {
+			return fmt.Errorf("getting status of virtual network %s failed: %v", name, err)
 		}
 	}
-	println(namespace, createNamespace)
+	if !status.Ready {
+		return fmt.Errorf("virtual network %s still not ready", name)
+	}
+
+	if !reflect.DeepEqual(spec, status.VirtualNetworkSpec) {
+		return fmt.Errorf("virtual network %s spec mismatch: %v != %v", name, spec, status.VirtualNetworkSpec)
+	}
+
 	return nil
 }

@@ -158,7 +158,7 @@ func ValidateCloudProfileConfig(profileSpec *gardencorev1beta1.CloudProfileSpec,
 				allErrs = append(allErrs, field.Required(regionPath.Child("edgeCluster"), fmt.Sprintf("must provide edge cluster for region %s", region.Name)))
 			}
 			if len(region.Zones) == 0 {
-				allErrs = append(allErrs, field.Required(regionPath.Child("zones"), fmt.Sprintf("must provide edge cluster for region %s", region.Name)))
+				allErrs = append(allErrs, field.Required(regionPath.Child("zones"), fmt.Sprintf("must provide zones for region %s", region.Name)))
 			}
 			if len(profileConfig.DNSServers) == 0 && len(region.DNSServers) == 0 {
 				allErrs = append(allErrs, field.Required(field.NewPath("dnsServers"), "must provide dnsServers globally or for each region"))
@@ -223,6 +223,9 @@ func ValidateCloudProfileConfig(profileSpec *gardencorev1beta1.CloudProfileSpec,
 			}
 			if region.VsphereHost == "" {
 				allErrs = append(allErrs, field.Required(regionPath.Child("vsphereHost"), "must provide vsphereHost"))
+			}
+			if len(region.Zones) == 0 {
+				allErrs = append(allErrs, field.Required(regionPath.Child("zones"), fmt.Sprintf("must provide zones for region %s", region.Name)))
 			}
 		}
 	}

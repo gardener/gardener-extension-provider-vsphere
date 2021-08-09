@@ -84,9 +84,29 @@ func TestCreateUpdateDeleteNamespace(t *testing.T) {
 		return
 	}
 
+	_, err = client.GetNamespaceCluster("foo")
+	if err == nil {
+		t.Errorf("first GetNamespaceCluster should fail")
+		return
+	}
+	if !IsNotFoundError(err) {
+		t.Errorf("first GetNamespaceCluster should return NotFoundError")
+		return
+	}
+
 	err = client.CreateNamespace("foo", vwk)
 	if err != nil {
 		t.Errorf("CreateNamespace failed with %s", err)
+		return
+	}
+
+	err = client.CreateNamespace("foo", vwk)
+	if err == nil {
+		t.Errorf("second CreateNamespace should fail")
+		return
+	}
+	if !IsAlreadyExistsError(err) {
+		t.Errorf("second CreateNamespace should return AlreadyExistsError")
 		return
 	}
 
@@ -124,6 +144,12 @@ func TestCreateUpdateDeleteNamespace(t *testing.T) {
 	err = client.DeleteNamespace("foo")
 	if err != nil {
 		t.Errorf("DeleteNamespace failed with %s", err)
+		return
+	}
+
+	err = client.DeleteNamespace("foo")
+	if err != nil {
+		t.Errorf("second DeleteNamespace failed with %s", err)
 		return
 	}
 }

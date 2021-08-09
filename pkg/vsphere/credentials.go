@@ -40,7 +40,7 @@ type Credentials struct {
 
 	nsxt *UserPass
 
-	kubeconfig []byte
+	vsphereKubeconfig []byte
 }
 
 func (c *Credentials) VsphereMCM() UserPass {
@@ -73,11 +73,11 @@ func (c *Credentials) NSXT() UserPass {
 }
 
 func (c *Credentials) IsVsphereKubernetes() bool {
-	return c.kubeconfig != nil
+	return c.vsphereKubeconfig != nil
 }
 
 func (c *Credentials) VsphereKubeconfig() []byte {
-	return c.kubeconfig
+	return c.vsphereKubeconfig
 }
 
 // GetCredentials computes for a given context and infrastructure the corresponding credentials object.
@@ -109,6 +109,8 @@ func ExtractCredentials(secret *corev1.Secret) (*Credentials, error) {
 		return nil, fmt.Errorf("secret does not contain any data")
 	}
 
+	vsphereKubeconfig := secret.Data[Kubeconfig]
+
 	vsphere, vsphereErr := extractUserPass(secret, Username, Password)
 
 	mcm, err := extractUserPass(secret, UsernameMCM, PasswordMCM)
@@ -130,10 +132,11 @@ func ExtractCredentials(secret *corev1.Secret) (*Credentials, error) {
 	}
 
 	return &Credentials{
-		vsphere:    vsphere,
-		vsphereMCM: mcm,
-		vsphereCCM: ccm,
-		vsphereCSI: csi,
-		nsxt:       nsxt,
+		vsphereKubeconfig: vsphereKubeconfig,
+		vsphere:           vsphere,
+		vsphereMCM:        mcm,
+		vsphereCCM:        ccm,
+		vsphereCSI:        csi,
+		nsxt:              nsxt,
 	}, nil
 }

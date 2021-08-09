@@ -18,10 +18,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd/infra-cli/loadbalancer"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/kubernetes"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd/infra-cli/loadbalancer"
+	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
@@ -29,14 +30,21 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 	if err != nil {
 		return err
 	}
+
+	prepared, err2 := a.prepareReconcile(ctx, infra, cluster)
+	if err2 != nil {
+		return err2
+	}
+	if prepared.k8sClient != nil {
+		if creationStarted != nil {
+			return fmt.Errorf("invalid state: creationStarted for vsphere with kubernetes?")
+		}
+		return a.deleteK8s(ctx, prepared, infra, cluster)
+	}
+
 	if state == nil || creationStarted == nil || !*creationStarted {
 		// no state or creation has not started (e.g. wrong credentials) => nothing to do
 		return nil
-	}
-
-	prepared, err := a.prepareReconcile(ctx, infra, cluster)
-	if err != nil {
-		return err
 	}
 
 	// try to cleanup any possible left-offs from the cloud-provider-vsphere load balancer controller
@@ -59,4 +67,37 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 		return err
 	}
 	return errUpdate
+}
+
+func (a *actuator) deleteK8s(ctx context.Context, prepared *preparedReconcile, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
+	namespace := cluster.ObjectMeta.Name
+	createNamespace := true
+	vwk := prepared.cloudProfileConfig.VsphereWithKubernetes
+	if vwk.Namespace != nil {
+		namespace = *vwk.Namespace
+		createNamespace = false
+	}
+
+	err := a.deleteNetwork(ctx, prepared.k8sClient, ctrlClient.ObjectKey{Namespace: namespace, Name: cluster.ObjectMeta.Name})
+	if err != nil {
+		return err
+	}
+
+	if createNamespace {
+		err = prepared.apiClient.DeleteNamespace(namespace)
+		if err != nil {
+			return fmt.Errorf("deletion of namespace %s failed: %s", namespace, err)
+		}
+	}
+
+	return nil
+}
+
+func (a *actuator) deleteNetwork(ctx context.Context, client ctrlClient.Client, name ctrlClient.ObjectKey) error {
+	err := kubernetes.DeleteVirtualNetwork(ctx, client, name)
+	if err != nil {
+		return fmt.Errorf("deletion of virtual network %s failed: %s", name, err)
+	}
+
+	return nil
 }

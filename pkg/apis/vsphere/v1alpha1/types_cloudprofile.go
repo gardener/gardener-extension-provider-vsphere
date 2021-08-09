@@ -288,4 +288,14 @@ type K8sRegionSpec struct {
 	VsphereHost string `json:"vsphereHost"`
 	// VsphereInsecureSSL is a flag if insecure HTTPS is allowed for VsphereHost
 	VsphereInsecureSSL bool `json:"vsphereInsecureSSL"`
+
+	// Zones is the list of zone specifications of the region.
+	Zones []K8sZoneSpec `json:"zones"`
+}
+
+// K8sZoneSpec specifies a zone of a K8s region.
+// currently only a placeholder
+type K8sZoneSpec struct {
+	// Name is the name of the zone
+	Name string `json:"name"`
 }

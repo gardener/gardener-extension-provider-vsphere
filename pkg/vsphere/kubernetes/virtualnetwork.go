@@ -36,8 +36,15 @@ type VirtualNetworkSpec struct {
 
 // VirtualNetworkStatus is a partial status of VirtualNetwork.vmware.com/v1alpha1
 type VirtualNetworkStatus struct {
+	VirtualNetworkSpec
 	Ready         bool
 	DefaultSNATIP *string
+}
+
+type internalVirtualNetworkSpec struct {
+	Private     bool   `json:"private,omitempty"`
+	EnableDHCP  bool   `json:"enableDHCP,omitempty"`
+	AddressCIDR string `json:"addressCIDR,omitempty"`
 }
 
 type internalVirtualNetworkStatus struct {
@@ -48,10 +55,10 @@ type internalVirtualNetworkStatus struct {
 // CreateVirtualNetwork creates a VirtualNetwork for a shoot cluster
 func CreateVirtualNetwork(ctx context.Context, client ctrlClient.Client, name ctrlClient.ObjectKey, spec VirtualNetworkSpec) error {
 	obj := newVirtualNetworkObj(name)
-	obj.Object["spec"] = map[string]interface{}{
-		"private":     spec.Private,
-		"enableDHCP":  spec.EnableDHCP,
-		"addressCIDR": spec.AddressCIDR,
+	obj.Object["spec"] = &internalVirtualNetworkSpec{
+		Private:     spec.Private,
+		EnableDHCP:  spec.EnableDHCP,
+		AddressCIDR: spec.AddressCIDR,
 	}
 
 	return client.Create(ctx, obj)
@@ -63,6 +70,23 @@ func GetVirtualNetworkStatus(ctx context.Context, client ctrlClient.Client, name
 	err := client.Get(ctx, name, obj)
 	if err != nil {
 		return nil, err
+	}
+
+	vnspec := internalVirtualNetworkSpec{}
+	if status := obj.Object["spec"]; status != nil {
+		bytes, err := json.Marshal(status)
+		if err != nil {
+			return nil, err
+		}
+		err = json.Unmarshal(bytes, &vnspec)
+		if err != nil {
+			return nil, err
+		}
+	}
+	spec := VirtualNetworkSpec{
+		Private:     vnspec.Private,
+		EnableDHCP:  vnspec.EnableDHCP,
+		AddressCIDR: vnspec.AddressCIDR,
 	}
 
 	vnstatus := internalVirtualNetworkStatus{}
@@ -85,7 +109,7 @@ func GetVirtualNetworkStatus(ctx context.Context, client ctrlClient.Client, name
 		}
 	}
 	snat = vnstatus.DefaultSNATIP
-	return &VirtualNetworkStatus{Ready: ready, DefaultSNATIP: snat}, nil
+	return &VirtualNetworkStatus{VirtualNetworkSpec: spec, Ready: ready, DefaultSNATIP: snat}, nil
 }
 
 // DeleteVirtualNetwork deletes a VirtualNetwork

@@ -115,7 +115,7 @@ func (apiclient *VsphereAPIClient) CreateNamespace(namespace string, vwk *vspher
 	case http.StatusNotFound:
 		// expected
 	case http.StatusOK:
-		return fmt.Errorf("namespace %s is already existing", namespace)
+		return NewAlreadyExistsError(fmt.Sprintf("namespace %s is already existing", namespace))
 	default:
 		return fmt.Errorf("GET request %s has unexpected status %s", url, resp.Status())
 	}
@@ -172,7 +172,7 @@ func (apiclient *VsphereAPIClient) getNamespace(namespace string) (*namespaceBod
 	}
 	switch resp.StatusCode() {
 	case http.StatusNotFound:
-		return nil, fmt.Errorf("namespace %s is not existing", namespace)
+		return nil, NewNotFoundError(fmt.Sprintf("namespace %s is not existing", namespace))
 	case http.StatusOK:
 		// expected
 	default:
