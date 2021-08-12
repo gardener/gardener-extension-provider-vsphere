@@ -636,6 +636,7 @@ func Convert_vsphere_K8sRegionSpec_To_v1alpha1_K8sRegionSpec(in *vsphere.K8sRegi
 
 func autoConvert_v1alpha1_K8sZoneSpec_To_vsphere_K8sZoneSpec(in *K8sZoneSpec, out *vsphere.K8sZoneSpec, s conversion.Scope) error {
 	out.Name = in.Name
+	out.VMStorageClassName = in.VMStorageClassName
 	return nil
 }
 
@@ -646,6 +647,7 @@ func Convert_v1alpha1_K8sZoneSpec_To_vsphere_K8sZoneSpec(in *K8sZoneSpec, out *v
 
 func autoConvert_vsphere_K8sZoneSpec_To_v1alpha1_K8sZoneSpec(in *vsphere.K8sZoneSpec, out *K8sZoneSpec, s conversion.Scope) error {
 	out.Name = in.Name
+	out.VMStorageClassName = in.VMStorageClassName
 	return nil
 }
 

@@ -341,13 +341,8 @@ func (a *actuator) logFailedSaveState(err error, state *apisvsphere.NSXTInfraSta
 }
 
 func (a *actuator) reconcileK8s(ctx context.Context, prepared *preparedReconcile, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
-	namespace := cluster.ObjectMeta.Name
-	createNamespace := true
 	vwk := prepared.cloudProfileConfig.VsphereWithKubernetes
-	if vwk.Namespace != nil {
-		namespace = *vwk.Namespace
-		createNamespace = false
-	}
+	namespace, createNamespace := kubernetes.CalcNamespace(cluster, vwk)
 
 	err := a.checkOrCreateNamespace(prepared, namespace, createNamespace, vwk)
 	if err != nil {
@@ -372,12 +367,12 @@ func (a *actuator) checkOrCreateNamespace(prepared *preparedReconcile, namespace
 	if create && kubernetes.IsNotFoundError(err) {
 		err = prepared.apiClient.CreateNamespace(namespace, vwk)
 		if err != nil {
-			return fmt.Errorf("creation of namespace %s failed: %w", err)
+			return fmt.Errorf("creation of namespace %s failed: %w", namespace, err)
 		}
 	} else if err != nil {
-		return fmt.Errorf("namespace %s cannot looked up: %w", err)
+		return fmt.Errorf("namespace %s cannot looked up: %w", namespace, err)
 	} else if vsphereCluster != prepared.k8sRegion.Cluster {
-		return fmt.Errorf("namespace %s has wrong cluster: %s != %s (region=%s)", vsphereCluster, prepared.k8sRegion.Cluster, prepared.k8sRegion.Name)
+		return fmt.Errorf("namespace %s has wrong cluster: %s != %s (region=%s)", namespace, vsphereCluster, prepared.k8sRegion.Cluster, prepared.k8sRegion.Name)
 	}
 	return nil
 }

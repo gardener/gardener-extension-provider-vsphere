@@ -83,11 +83,7 @@ func GetVirtualNetworkStatus(ctx context.Context, client ctrlClient.Client, name
 			return nil, err
 		}
 	}
-	spec := VirtualNetworkSpec{
-		Private:     vnspec.Private,
-		EnableDHCP:  vnspec.EnableDHCP,
-		AddressCIDR: vnspec.AddressCIDR,
-	}
+	spec := VirtualNetworkSpec(vnspec)
 
 	vnstatus := internalVirtualNetworkStatus{}
 	if status := obj.Object["status"]; status != nil {

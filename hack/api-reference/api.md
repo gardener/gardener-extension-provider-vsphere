@@ -902,6 +902,17 @@ string
 <p>Name is the name of the zone</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>vmStorageClassName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>VMStorageClassName is the name of the storage class object used for VMs</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="vsphere.provider.extensions.gardener.cloud/v1alpha1.LoadBalancerClass">LoadBalancerClass

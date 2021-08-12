@@ -128,7 +128,7 @@ func (apiclient *VsphereAPIClient) CreateNamespace(namespace string, vwk *vspher
 	content := &namespaceBody{
 		Namespace:    namespace,
 		Cluster:      apiclient.region.Cluster,
-		Description:  fmt.Sprintf("created by gardener-extension-provider-vsphere"),
+		Description:  "created by gardener-extension-provider-vsphere",
 		StorageSpecs: storageSpecs,
 		VmServiceSpec: &vmServiceSpec{
 			ContentLibraries: vwk.ContentLibraries,

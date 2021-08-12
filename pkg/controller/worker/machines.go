@@ -18,15 +18,19 @@ package worker
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"path/filepath"
 	"strconv"
+	"strings"
 
+	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	vspherekubernetes "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/kubernetes"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
@@ -59,7 +63,8 @@ func (w *workerDelegate) DeployMachineClasses(ctx context.Context) error {
 			return err
 		}
 	}
-	return w.seedChartApplier.Apply(ctx, filepath.Join(vsphere.InternalChartsPath, "machineclass"), w.worker.Namespace, "machineclass", kubernetes.Values(map[string]interface{}{"machineClasses": w.machineClasses}))
+	return w.seedChartApplier.Apply(ctx, filepath.Join(vsphere.InternalChartsPath, "machineclass"), w.worker.Namespace, "machineclass",
+		kubernetes.Values(map[string]interface{}{"machineClasses": w.machineClasses, "vsphereWithKubernetes": w.isVsphereWithKubernetes()}))
 }
 
 // GenerateMachineDeployments generates the configuration for the desired machine deployments.
@@ -81,6 +86,15 @@ func (w *workerDelegate) generateMachineClassSecretData(ctx context.Context) (ma
 	credentials, err := vsphere.ExtractCredentials(secret)
 	if err != nil {
 		return nil, err
+	}
+
+	if credentials.IsVsphereKubernetes() != w.isVsphereWithKubernetes() {
+		return nil, fmt.Errorf("inconsistent secret and cloud profile config for vSphere with Kubernetes = %t", credentials.IsVsphereKubernetes())
+	}
+	if credentials.IsVsphereKubernetes() {
+		return map[string][]byte{
+			vsphere.Kubeconfig: credentials.VsphereKubeconfig(),
+		}, nil
 	}
 
 	region := helper.FindRegion(w.cluster.Shoot.Spec.Region, w.cloudProfileConfig)
@@ -108,12 +122,15 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		return err
 	}
 
-	infrastructureStatus, err := helper.GetInfrastructureStatus(w.worker.Namespace, w.worker.Spec.InfrastructureProviderStatus)
-	if err != nil {
-		return err
-	}
-	if infrastructureStatus.NSXTInfraState == nil || infrastructureStatus.NSXTInfraState.SegmentName == nil {
-		return fmt.Errorf("SegmentName not set in nsxtInfraState")
+	var infrastructureStatus *apisvsphere.InfrastructureStatus
+	if !w.isVsphereWithKubernetes() {
+		infrastructureStatus, err = helper.GetInfrastructureStatus(w.worker.Namespace, w.worker.Spec.InfrastructureProviderStatus)
+		if err != nil {
+			return err
+		}
+		if infrastructureStatus.NSXTInfraState == nil || infrastructureStatus.NSXTInfraState.SegmentName == nil {
+			return fmt.Errorf("SegmentName not set in nsxtInfraState")
+		}
 	}
 
 	if len(w.worker.Spec.SSHPublicKey) == 0 {
@@ -152,50 +169,6 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 
 		for zoneIndex, zone := range pool.Zones {
 			zoneIdx := int32(zoneIndex)
-			zoneConfig, ok := infrastructureStatus.VsphereConfig.ZoneConfigs[zone]
-			if !ok {
-				return fmt.Errorf("zoneConfig not found for zone %s", zone)
-			}
-			machineClassSpec := map[string]interface{}{
-				"region":     infrastructureStatus.VsphereConfig.Region,
-				"sshKeys":    []string{string(w.worker.Spec.SSHPublicKey)},
-				"datacenter": zoneConfig.Datacenter,
-				"network":    *infrastructureStatus.NSXTInfraState.SegmentName,
-				"templateVM": machineImagePath,
-				"numCpus":    values.numCpus,
-				"memory":     values.memoryInMB,
-				"systemDisk": map[string]interface{}{
-					"size": values.systemDiskSizeInGB,
-				},
-				"tags": map[string]string{
-					"mcm.gardener.cloud/cluster": w.worker.Namespace,
-					"mcm.gardener.cloud/role":    "node",
-				},
-				"secret": map[string]interface{}{
-					"cloudConfig": string(pool.UserData),
-				},
-			}
-			addOptional := func(key, value string) {
-				if value != "" {
-					machineClassSpec[key] = value
-				}
-			}
-			addOptional("folder", infrastructureStatus.VsphereConfig.Folder)
-			addOptional("guestId", machineImageGuestID)
-			addOptional("hostSystem", zoneConfig.HostSystem)
-			addOptional("resourcePool", zoneConfig.ResourcePool)
-			addOptional("computeCluster", zoneConfig.ComputeCluster)
-			addOptional("datastore", zoneConfig.Datastore)
-			addOptional("datastoreCluster", zoneConfig.DatastoreCluster)
-			addOptional("switchUuid", zoneConfig.SwitchUUID)
-			if values.MachineTypeOptions != nil {
-				if values.MachineTypeOptions.MemoryReservationLockedToMax != nil {
-					machineClassSpec["memoryReservationLockedToMax"] = fmt.Sprintf("%t", *values.MachineTypeOptions.MemoryReservationLockedToMax)
-				}
-				if len(values.MachineTypeOptions.ExtraConfig) > 0 {
-					machineClassSpec["extraConfig"] = values.MachineTypeOptions.ExtraConfig
-				}
-			}
 
 			var (
 				deploymentName = fmt.Sprintf("%s-%s-z%d", w.worker.Namespace, pool.Name, zoneIndex+1)
@@ -216,6 +189,11 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 				MachineConfiguration: genericworkeractuator.ReadMachineConfiguration(pool),
 			})
 
+			machineClassSpec, err := w.makeMachineClassSpec(pool, zone, infrastructureStatus, machineImagePath, machineImageGuestID, values)
+			if err != nil {
+				return err
+			}
+
 			machineClassSpec["name"] = className
 			secretMap := machineClassSpec["secret"].(map[string]interface{})
 			for k, v := range machineClassSecretData {
@@ -231,6 +209,118 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 	w.machineImages = machineImages
 
 	return nil
+}
+
+func (w *workerDelegate) makeMachineClassSpec(pool v1alpha1.WorkerPool, zone string, infrastructureStatus *apisvsphere.InfrastructureStatus,
+	machineImagePath, machineImageGuestID string, values *machineValues) (map[string]interface{}, error) {
+	if w.isVsphereWithKubernetes() {
+		return w.makeMachineClassSpecVsphereWithKubernetes(pool, zone, machineImagePath, values.systemDiskSizeInGB)
+	}
+	return w.makeMachineClassSpecClassic(pool, zone, infrastructureStatus, machineImagePath, machineImageGuestID, values)
+}
+
+func (w *workerDelegate) makeMachineClassSpecClassic(pool v1alpha1.WorkerPool, zone string, infrastructureStatus *apisvsphere.InfrastructureStatus,
+	machineImagePath, machineImageGuestID string, values *machineValues) (map[string]interface{}, error) {
+	zoneConfig, ok := infrastructureStatus.VsphereConfig.ZoneConfigs[zone]
+	if !ok {
+		return nil, fmt.Errorf("zoneConfig not found for zone %s", zone)
+	}
+	machineClassSpec := map[string]interface{}{
+		"region":     infrastructureStatus.VsphereConfig.Region,
+		"sshKeys":    []string{string(w.worker.Spec.SSHPublicKey)},
+		"datacenter": zoneConfig.Datacenter,
+		"network":    *infrastructureStatus.NSXTInfraState.SegmentName,
+		"templateVM": machineImagePath,
+		"numCpus":    values.numCpus,
+		"memory":     values.memoryInMB,
+		"systemDisk": map[string]interface{}{
+			"size": values.systemDiskSizeInGB,
+		},
+		"tags": map[string]string{
+			"mcm.gardener.cloud/cluster": w.worker.Namespace,
+			"mcm.gardener.cloud/role":    "node",
+		},
+		"secret": map[string]interface{}{
+			"cloudConfig": string(pool.UserData),
+		},
+	}
+	addOptional := func(key, value string) {
+		if value != "" {
+			machineClassSpec[key] = value
+		}
+	}
+	addOptional("folder", infrastructureStatus.VsphereConfig.Folder)
+	addOptional("guestId", machineImageGuestID)
+	addOptional("hostSystem", zoneConfig.HostSystem)
+	addOptional("resourcePool", zoneConfig.ResourcePool)
+	addOptional("computeCluster", zoneConfig.ComputeCluster)
+	addOptional("datastore", zoneConfig.Datastore)
+	addOptional("datastoreCluster", zoneConfig.DatastoreCluster)
+	addOptional("switchUuid", zoneConfig.SwitchUUID)
+	if values.MachineTypeOptions != nil {
+		if values.MachineTypeOptions.MemoryReservationLockedToMax != nil {
+			machineClassSpec["memoryReservationLockedToMax"] = fmt.Sprintf("%t", *values.MachineTypeOptions.MemoryReservationLockedToMax)
+		}
+		if len(values.MachineTypeOptions.ExtraConfig) > 0 {
+			machineClassSpec["extraConfig"] = values.MachineTypeOptions.ExtraConfig
+		}
+	}
+	return machineClassSpec, nil
+}
+
+func (w *workerDelegate) makeMachineClassSpecVsphereWithKubernetes(pool v1alpha1.WorkerPool, zone string, machineImagePath string, systemDiskSizeInGB int) (map[string]interface{}, error) {
+	vwk := w.cloudProfileConfig.VsphereWithKubernetes
+	namespace, _ := vspherekubernetes.CalcNamespace(w.cluster, vwk)
+
+	// work around for missing fields for DNS servers in virtual network
+	// overwrite the file `/etc/resolv.conf` in the cloud-init user data
+	userData := appendResolvConf(pool.UserData, w.cloudProfileConfig.DNSServers)
+
+	machineClassSpec := map[string]interface{}{
+		"vsphereWithKubernetes": true,
+		"namespace":             namespace,
+		"imageName":             machineImagePath,
+		"className":             pool.MachineType,
+		"networkType":           "nsx-t",
+		"networkName":           w.cluster.ObjectMeta.Name,
+		"systemDisk": map[string]interface{}{
+			"size": systemDiskSizeInGB,
+		},
+		"sshKeys": []string{string(w.worker.Spec.SSHPublicKey)},
+		"tags": map[string]string{
+			"mcm.gardener.cloud/cluster": w.worker.Namespace,
+			"mcm.gardener.cloud/role":    "node",
+		},
+		"secret": map[string]interface{}{
+			"cloudConfig": string(userData),
+		},
+	}
+
+	addOptional := func(key, value string) {
+		if value != "" {
+			machineClassSpec[key] = value
+		}
+	}
+
+	regionSpec := helper.FindK8sRegion(w.worker.Spec.Region, w.cloudProfileConfig)
+	if regionSpec == nil {
+		return nil, fmt.Errorf("regionSpec for region %s not found", w.worker.Spec.Region)
+	}
+
+	storageClass := ""
+	for _, z := range regionSpec.Zones {
+		if z.Name == zone {
+			storageClass = z.VMStorageClassName
+		}
+	}
+	if storageClass == "" {
+		return nil, fmt.Errorf("VMStorageClassName not found for zone %s of region %s", zone, w.worker.Spec.Region)
+	}
+
+	addOptional("storageClass", storageClass)
+	addOptional("resourcePolicyName", "") // TODO
+
+	return machineClassSpec, nil
 }
 
 type machineValues struct {
@@ -296,4 +386,34 @@ func (w *workerDelegate) extractMachineValues(machineTypeName string) (*machineV
 	}
 
 	return values, nil
+}
+
+func appendResolvConf(userData []byte, dnsServers []string) []byte {
+	if len(dnsServers) == 0 {
+		return userData
+	}
+
+	content := "#cloud-config\n"
+	if len(userData) > 0 {
+		content = string(userData)
+	}
+
+	rformat := `# generated by gardener-extension-provider-vsphere
+# as work around for missing DNS servers in DHCP
+[Resolve]
+DNS=%s
+`
+	resolvedConf := fmt.Sprintf(rformat, strings.Join(dnsServers, " "))
+	resolvedConfBytes := base64.StdEncoding.EncodeToString([]byte(resolvedConf))
+
+	format := `%s
+
+rm /etc/resolv.conf
+ln -s /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+cat << EOF | base64 -d > '/etc/systemd/resolved.conf'
+%s
+EOF
+systemctl restart systemd-resolved
+`
+	return []byte(fmt.Sprintf(format, content, resolvedConfBytes))
 }

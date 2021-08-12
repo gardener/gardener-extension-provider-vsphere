@@ -193,13 +193,13 @@ func ValidateCloudProfileConfig(profileSpec *gardencorev1beta1.CloudProfileSpec,
 	if profileConfig.VsphereWithKubernetes != nil {
 		vsphereWithKubernetesPath := field.NewPath("vsphereWithKubernetes")
 		if len(profileConfig.VsphereWithKubernetes.ContentLibraries) == 0 {
-			allErrs = append(allErrs, field.Required(vsphereWithKubernetesPath.Child("contentLibraries"), fmt.Sprintf("must provide at least one content library")))
+			allErrs = append(allErrs, field.Required(vsphereWithKubernetesPath.Child("contentLibraries"), "must provide at least one content library"))
 		}
 		if len(profileConfig.VsphereWithKubernetes.VirtualMachineClasses) == 0 {
-			allErrs = append(allErrs, field.Required(vsphereWithKubernetesPath.Child("virtualMachineClasses"), fmt.Sprintf("must provide at least one virtual machine class")))
+			allErrs = append(allErrs, field.Required(vsphereWithKubernetesPath.Child("virtualMachineClasses"), "must provide at least one virtual machine class"))
 		}
 		if len(profileConfig.VsphereWithKubernetes.StoragePolicies) == 0 {
-			allErrs = append(allErrs, field.Required(vsphereWithKubernetesPath.Child("storagePolicies"), fmt.Sprintf("must provide at least one storage policy")))
+			allErrs = append(allErrs, field.Required(vsphereWithKubernetesPath.Child("storagePolicies"), "must provide at least one storage policy"))
 		} else {
 			policiesPath := vsphereWithKubernetesPath.Child("storagePolicies")
 			for i, policy := range profileConfig.VsphereWithKubernetes.StoragePolicies {

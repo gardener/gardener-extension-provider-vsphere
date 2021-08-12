@@ -37,3 +37,5 @@ nsxt:
   password: super-secret
   insecureFlag: true
   remoteAuth: false
+
+vsphereWithKubernetes: false

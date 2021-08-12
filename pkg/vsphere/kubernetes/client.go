@@ -20,6 +20,7 @@ package kubernetes
 import (
 	"crypto/md5"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
@@ -33,13 +34,11 @@ import (
 	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var scheme *runtime.Scheme
+var globalScheme *runtime.Scheme
+var globalSchemeLock sync.Mutex
 var clientCache *cache.LRUExpireCache
 
 func init() {
-	scheme = runtime.NewScheme()
-	corev1.AddToScheme(scheme)
-
 	clientCache = cache.NewLRUExpireCache(50)
 }
 
@@ -78,6 +77,10 @@ func createRealVsphereKubernetesClient(kubeconfig []byte) (ctrlClient.Client, er
 		config.Burst = 10
 	}
 
+	scheme, err := getScheme()
+	if err != nil {
+		return nil, fmt.Errorf("build config from kubeconfig failed: %w", err)
+	}
 	client, err := ctrlClient.New(
 		rest.AddUserAgent(config, "machine-controller-manager-provider-vsphere"),
 		ctrlClient.Options{
@@ -85,6 +88,24 @@ func createRealVsphereKubernetesClient(kubeconfig []byte) (ctrlClient.Client, er
 		})
 
 	return client, err
+}
+
+func getScheme() (*runtime.Scheme, error) {
+	globalSchemeLock.Lock()
+	defer globalSchemeLock.Unlock()
+
+	if globalScheme != nil {
+		return globalScheme, nil
+	}
+
+	scheme := runtime.NewScheme()
+	err := corev1.AddToScheme(scheme)
+	if err != nil {
+		return nil, err
+	}
+
+	globalScheme = scheme
+	return globalScheme, nil
 }
 
 // GetVsphereAPISession gets a vsphere-api-session from cache or creates a new one

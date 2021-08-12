@@ -86,3 +86,5 @@ csiSnapshotController:
 
 volumesnapshots:
   enabled: false # currently not supported by vsphere-csi-driver
+
+vsphereWithKubernetes: false

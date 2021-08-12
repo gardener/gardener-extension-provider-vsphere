@@ -298,4 +298,7 @@ type K8sRegionSpec struct {
 type K8sZoneSpec struct {
 	// Name is the name of the zone
 	Name string `json:"name"`
+
+	// VMStorageClassName is the name of the storage class object used for VMs
+	VMStorageClassName string `json:"vmStorageClassName"`
 }

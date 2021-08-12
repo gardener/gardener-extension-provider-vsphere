@@ -1,3 +1,4 @@
+{{- if not .Values.vsphereWithKubernetes }}
 ---
 kind: Deployment
 apiVersion: apps/v1

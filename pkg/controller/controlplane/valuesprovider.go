@@ -363,6 +363,10 @@ func (vp *valuesProvider) GetConfigChartValues(
 		return nil, errors.Wrapf(err, "could not get vSphere credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
 	}
 
+	if credentials.IsVsphereKubernetes() {
+		return vp.getConfigChartValuesForVsphereKubernetes(cp, cpConfig, cluster, credentials)
+	}
+
 	// Get config chart values
 	return vp.getConfigChartValues(cp, cpConfig, cluster, credentials)
 }
@@ -406,6 +410,10 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 		return nil, err
 	}
 
+	if credentials.IsVsphereKubernetes() {
+		return vp.getControlPlaneChartValuesForVsphereKubernetes(cpConfig, cp, cluster, credentials, checksums, scaledDown)
+	}
+
 	// Get control plane chart values
 	return vp.getControlPlaneChartValues(cpConfig, cp, cluster, credentials, checksums, scaledDown)
 }
@@ -421,6 +429,10 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 	credentials, err := vsphere.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get vSphere credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
+	}
+
+	if credentials.IsVsphereKubernetes() {
+		return vp.getControlPlaneShootChartValuesForVsphereKubernetes(cp, cluster, credentials)
 	}
 
 	// Get control plane shoot chart values
@@ -597,6 +609,31 @@ func (vp *valuesProvider) getConfigChartValues(
 	return values, nil
 }
 
+// getConfigChartValuesForVsphereKubernetes collects and returns the configuration chart values.
+func (vp *valuesProvider) getConfigChartValuesForVsphereKubernetes(
+	cp *extensionsv1alpha1.ControlPlane,
+	cpConfig *apisvsphere.ControlPlaneConfig,
+	cluster *extensionscontroller.Cluster,
+	credentials *vsphere.Credentials,
+) (map[string]interface{}, error) {
+
+	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	region := helper.FindK8sRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
+	if region == nil {
+		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
+	}
+
+	values := map[string]interface{}{
+		"vsphereWithKubernetes": true,
+	}
+
+	return values, nil
+}
+
 func (vp *valuesProvider) checkAuthorizationOfOverwrittenIPPoolName(cluster *extensionscontroller.Cluster,
 	cloudProfileConfig *apisvsphere.CloudProfileConfig, credentials *vsphere.Credentials) func(ipPoolName string) error {
 
@@ -738,6 +775,28 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	return values, nil
 }
 
+// getControlPlaneChartValues collects and returns the control plane chart values.
+func (vp *valuesProvider) getControlPlaneChartValuesForVsphereKubernetes(
+	cpConfig *apisvsphere.ControlPlaneConfig,
+	cp *extensionsv1alpha1.ControlPlane,
+	cluster *extensionscontroller.Cluster,
+	credentials *vsphere.Credentials,
+	checksums map[string]string,
+	scaledDown bool,
+) (map[string]interface{}, error) {
+
+	values := map[string]interface{}{
+		"vsphere-cloud-controller-manager": map[string]interface{}{
+			"vsphereWithKubernetes": true,
+		},
+		"csi-vsphere": map[string]interface{}{
+			"vsphereWithKubernetes": true,
+		},
+	}
+
+	return values, nil
+}
+
 // getControlPlaneShootChartValues collects and returns the control plane shoot chart values.
 func (vp *valuesProvider) getControlPlaneShootChartValues(
 	cp *extensionsv1alpha1.ControlPlane,
@@ -782,6 +841,25 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 	if cloudProfileConfig.FailureDomainLabels != nil {
 		values["csi-vsphere"].(map[string]interface{})["labelRegion"] = cloudProfileConfig.FailureDomainLabels.Region
 		values["csi-vsphere"].(map[string]interface{})["labelZone"] = cloudProfileConfig.FailureDomainLabels.Zone
+	}
+
+	return values, nil
+}
+
+// getControlPlaneShootChartValuesForVsphereKubernetes collects and returns the control plane shoot chart values.
+func (vp *valuesProvider) getControlPlaneShootChartValuesForVsphereKubernetes(
+	cp *extensionsv1alpha1.ControlPlane,
+	cluster *extensionscontroller.Cluster,
+	credentials *vsphere.Credentials,
+) (map[string]interface{}, error) {
+
+	values := map[string]interface{}{
+		"vsphere-cloud-controller-manager": map[string]interface{}{
+			"vsphereWithKubernetes": true,
+		},
+		"csi-vsphere": map[string]interface{}{
+			"vsphereWithKubernetes": true,
+		},
 	}
 
 	return values, nil

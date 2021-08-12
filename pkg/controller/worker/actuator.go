@@ -124,3 +124,7 @@ func NewWorkerDelegate(
 		worker:             worker,
 	}, nil
 }
+
+func (w *workerDelegate) isVsphereWithKubernetes() bool {
+	return w.cloudProfileConfig.VsphereWithKubernetes != nil
+}
