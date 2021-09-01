@@ -71,11 +71,15 @@ var (
 		string(core.CRINameContainerD),
 		string(core.CRINameDocker),
 	)
-	// https://datatracker.ietf.org/doc/html/rfc7518#section-3.1
+	availableClusterAutoscalerExpanderModes = sets.NewString(
+		string(core.ClusterAutoscalerExpanderLeastWaste),
+		string(core.ClusterAutoscalerExpanderMostPods),
+		string(core.ClusterAutoscalerExpanderPriority),
+		string(core.ClusterAutoscalerExpanderRandom),
+	)
+
+	// assymetric algorithms from https://datatracker.ietf.org/doc/html/rfc7518#section-3.1
 	availableOIDCSigningAlgs = sets.NewString(
-		"HS256",
-		"HS384",
-		"HS512",
 		"RS256",
 		"RS384",
 		"RS512",
@@ -105,6 +109,7 @@ func ValidateShootUpdate(newShoot, oldShoot *core.Shoot) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	allErrs = append(allErrs, apivalidation.ValidateObjectMetaUpdate(&newShoot.ObjectMeta, &oldShoot.ObjectMeta, field.NewPath("metadata"))...)
+	allErrs = append(allErrs, ValidateShootObjectMetaUpdate(newShoot.ObjectMeta, oldShoot.ObjectMeta, field.NewPath("metadata"))...)
 	allErrs = append(allErrs, ValidateShootSpecUpdate(&newShoot.Spec, &oldShoot.Spec, newShoot.ObjectMeta, field.NewPath("spec"))...)
 	allErrs = append(allErrs, ValidateShoot(newShoot)...)
 
@@ -127,6 +132,41 @@ func ValidateShootTemplateUpdate(newShootTemplate, oldShootTemplate *core.ShootT
 	allErrs := field.ErrorList{}
 
 	allErrs = append(allErrs, ValidateShootSpecUpdate(&newShootTemplate.Spec, &oldShootTemplate.Spec, newShootTemplate.ObjectMeta, fldPath.Child("spec"))...)
+
+	return allErrs
+}
+
+// ValidateShootObjectMetaUpdate validates the object metadata of a Shoot object.
+func ValidateShootObjectMetaUpdate(newMeta, oldMeta metav1.ObjectMeta, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+
+	allErrs = append(allErrs, validateShootKubeconfigRotation(newMeta, oldMeta, fldPath)...)
+
+	return allErrs
+}
+
+// validateShootKubeconfigRotation validates that shoot in deletion cannot rotate its kubeconfig.
+func validateShootKubeconfigRotation(newMeta, oldMeta metav1.ObjectMeta, fldPath *field.Path) field.ErrorList {
+	// if the feature gate `DisallowKubeconfigRotationForShootInDeletion` is disabled, allow kubeconfig rotation
+	if !utilfeature.DefaultFeatureGate.Enabled(features.DisallowKubeconfigRotationForShootInDeletion) {
+		return field.ErrorList{}
+	}
+
+	if newMeta.DeletionTimestamp == nil {
+		return field.ErrorList{}
+	}
+
+	// already set operation is valid use case
+	if oldOperation, oldOk := oldMeta.Annotations[v1beta1constants.GardenerOperation]; oldOk && oldOperation == v1beta1constants.ShootOperationRotateKubeconfigCredentials {
+		return field.ErrorList{}
+	}
+
+	allErrs := field.ErrorList{}
+
+	// disallow kubeconfig rotation
+	if operation, ok := newMeta.Annotations[v1beta1constants.GardenerOperation]; ok && operation == v1beta1constants.ShootOperationRotateKubeconfigCredentials {
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("annotations").Key(v1beta1constants.GardenerOperation), v1beta1constants.ShootOperationRotateKubeconfigCredentials, "kubeconfig rotations is not allowed for clusters in deletion"))
+	}
 
 	return allErrs
 }
@@ -172,11 +212,6 @@ func ValidateShootSpec(meta metav1.ObjectMeta, spec *core.ShootSpec, fldPath *fi
 		}
 	}
 	allErrs = append(allErrs, ValidateTolerations(spec.Tolerations, fldPath.Child("tolerations"))...)
-
-	// TODO(dkister) This can be removed once the exposureclass implementation has been completed.
-	if spec.ExposureClassName != nil {
-		allErrs = append(allErrs, field.Forbidden(fldPath.Child("exposureClassName"), "exposure class can currently not be referenced"))
-	}
 
 	return allErrs
 }
@@ -764,6 +799,14 @@ func ValidateClusterAutoscaler(autoScaler core.ClusterAutoscaler, fldPath *field
 			allErrs = append(allErrs, field.Invalid(fldPath.Child("scaleDownUtilizationThreshold"), *threshold, "can not be greater than 1.0"))
 		}
 	}
+	if maxNodeProvisionTime := autoScaler.MaxNodeProvisionTime; maxNodeProvisionTime != nil && maxNodeProvisionTime.Duration < 0 {
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("maxNodeProvisionTime"), *maxNodeProvisionTime, "can not be negative"))
+	}
+
+	if expander := autoScaler.Expander; expander != nil && !availableClusterAutoscalerExpanderModes.Has(string(*expander)) {
+		allErrs = append(allErrs, field.NotSupported(fldPath.Child("expander"), *expander, availableClusterAutoscalerExpanderModes.List()))
+	}
+
 	return allErrs
 }
 
@@ -943,7 +986,7 @@ const (
 )
 
 // ValidateWorker validates the worker object.
-func ValidateWorker(worker core.Worker, version string, fldPath *field.Path, inTemplate bool) field.ErrorList {
+func ValidateWorker(worker core.Worker, kubernetesVersion string, fldPath *field.Path, inTemplate bool) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	allErrs = append(allErrs, validateDNS1123Label(worker.Name, fldPath.Child("name"))...)
@@ -986,7 +1029,7 @@ func ValidateWorker(worker core.Worker, version string, fldPath *field.Path, inT
 		allErrs = append(allErrs, validateTaints(worker.Taints, fldPath.Child("taints"))...)
 	}
 	if worker.Kubernetes != nil && worker.Kubernetes.Kubelet != nil {
-		allErrs = append(allErrs, ValidateKubeletConfig(*worker.Kubernetes.Kubelet, version, fldPath.Child("kubernetes", "kubelet"))...)
+		allErrs = append(allErrs, ValidateKubeletConfig(*worker.Kubernetes.Kubelet, kubernetesVersion, fldPath.Child("kubernetes", "kubelet"))...)
 	}
 
 	if worker.CABundle != nil {
@@ -1043,7 +1086,7 @@ func ValidateWorker(worker core.Worker, version string, fldPath *field.Path, inT
 	}
 
 	if worker.CRI != nil {
-		allErrs = append(allErrs, ValidateCRI(worker.CRI, fldPath.Child("cri"))...)
+		allErrs = append(allErrs, ValidateCRI(worker.CRI, kubernetesVersion, fldPath.Child("cri"))...)
 	}
 
 	return allErrs
@@ -1090,6 +1133,15 @@ func ValidateKubeletConfig(kubeletConfig core.KubeletConfig, version string, fld
 	}
 	if kubeletConfig.SystemReserved != nil {
 		allErrs = append(allErrs, validateKubeletConfigReserved(kubeletConfig.SystemReserved, fldPath.Child("systemReserved"))...)
+	}
+	if v := kubeletConfig.ImageGCHighThresholdPercent; v != nil && (*v < 0 || *v > 100) {
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("imageGCHighThresholdPercent"), *v, "value must be in [0,100]"))
+	}
+	if v := kubeletConfig.ImageGCLowThresholdPercent; v != nil && (*v < 0 || *v > 100) {
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("imageGCLowThresholdPercent"), *v, "value must be in [0,100]"))
+	}
+	if kubeletConfig.ImageGCHighThresholdPercent != nil && kubeletConfig.ImageGCLowThresholdPercent != nil && *kubeletConfig.ImageGCLowThresholdPercent >= *kubeletConfig.ImageGCHighThresholdPercent {
+		allErrs = append(allErrs, field.Forbidden(fldPath.Child("imageGCLowThresholdPercent"), "imageGCLowThresholdPercent must be less than imageGCHighThresholdPercent"))
 	}
 	allErrs = append(allErrs, ValidateFeatureGates(kubeletConfig.FeatureGates, version, fldPath.Child("featureGates"))...)
 	return allErrs
@@ -1428,8 +1480,14 @@ func IsNotMoreThan100Percent(intOrStringValue *intstr.IntOrString, fldPath *fiel
 }
 
 // ValidateCRI validates container runtime interface name and its container runtimes
-func ValidateCRI(CRI *core.CRI, fldPath *field.Path) field.ErrorList {
+func ValidateCRI(CRI *core.CRI, kubernetesVersion string, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
+
+	k8sVersionIs123OrGreater, _ := versionutils.CompareVersions(kubernetesVersion, ">=", "1.23")
+
+	if k8sVersionIs123OrGreater && CRI.Name == core.CRINameDocker {
+		allErrs = append(allErrs, field.Forbidden(fldPath.Child("name"), "'docker' is only allowed for kubernetes versions < 1.23"))
+	}
 
 	if !availableWorkerCRINames.Has(string(CRI.Name)) {
 		allErrs = append(allErrs, field.NotSupported(fldPath.Child("name"), CRI.Name, availableWorkerCRINames.List()))

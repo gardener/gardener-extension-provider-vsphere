@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/gardener/gardener/pkg/operation/botanist/component/extensions/operatingsystemconfig/original/components"
+	"github.com/gardener/gardener/pkg/utils/version"
 
 	"github.com/Masterminds/semver"
 	corev1 "k8s.io/api/core/v1"
@@ -75,8 +76,8 @@ func Config(kubernetesVersion *semver.Version, clusterDNSAddress, clusterDomain 
 		FileCheckFrequency:               metav1.Duration{Duration: 20 * time.Second},
 		HairpinMode:                      kubeletconfigv1beta1.PromiscuousBridge,
 		HTTPCheckFrequency:               metav1.Duration{Duration: 20 * time.Second},
-		ImageGCHighThresholdPercent:      pointer.Int32(50),
-		ImageGCLowThresholdPercent:       pointer.Int32(40),
+		ImageGCHighThresholdPercent:      params.ImageGCHighThresholdPercent,
+		ImageGCLowThresholdPercent:       params.ImageGCLowThresholdPercent,
 		ImageMinimumGCAge:                metav1.Duration{Duration: 2 * time.Minute},
 		KubeAPIBurst:                     50,
 		KubeAPIQPS:                       pointer.Int32(50),
@@ -98,7 +99,7 @@ func Config(kubernetesVersion *semver.Version, clusterDNSAddress, clusterDomain 
 		VolumeStatsAggPeriod:             metav1.Duration{Duration: time.Minute},
 	}
 
-	if versionConstraintK8sGreaterEqual119.Check(kubernetesVersion) {
+	if !version.ConstraintK8sLess119.Check(kubernetesVersion) {
 		config.VolumePluginDir = pathVolumePluginDirectory
 	}
 
@@ -195,6 +196,14 @@ func setConfigDefaults(c *components.ConfigurableKubeletConfigParameters) {
 
 	if c.FailSwapOn == nil {
 		c.FailSwapOn = pointer.Bool(true)
+	}
+
+	if c.ImageGCHighThresholdPercent == nil {
+		c.ImageGCHighThresholdPercent = pointer.Int32(50)
+	}
+
+	if c.ImageGCLowThresholdPercent == nil {
+		c.ImageGCLowThresholdPercent = pointer.Int32(40)
 	}
 
 	if c.KubeReserved == nil {

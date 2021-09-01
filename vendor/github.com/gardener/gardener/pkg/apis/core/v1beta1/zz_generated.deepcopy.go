@@ -626,6 +626,16 @@ func (in *ClusterAutoscaler) DeepCopyInto(out *ClusterAutoscaler) {
 		*out = new(metav1.Duration)
 		**out = **in
 	}
+	if in.Expander != nil {
+		in, out := &in.Expander, &out.Expander
+		*out = new(ExpanderMode)
+		**out = **in
+	}
+	if in.MaxNodeProvisionTime != nil {
+		in, out := &in.MaxNodeProvisionTime, &out.MaxNodeProvisionTime
+		*out = new(metav1.Duration)
+		**out = **in
+	}
 	return
 }
 
@@ -1647,6 +1657,16 @@ func (in *KubeletConfig) DeepCopyInto(out *KubeletConfig) {
 		in, out := &in.SystemReserved, &out.SystemReserved
 		*out = new(KubeletConfigReserved)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.ImageGCHighThresholdPercent != nil {
+		in, out := &in.ImageGCHighThresholdPercent, &out.ImageGCHighThresholdPercent
+		*out = new(int32)
+		**out = **in
+	}
+	if in.ImageGCLowThresholdPercent != nil {
+		in, out := &in.ImageGCLowThresholdPercent, &out.ImageGCLowThresholdPercent
+		*out = new(int32)
+		**out = **in
 	}
 	return
 }
@@ -2699,6 +2719,10 @@ func (in *ProjectStatus) DeepCopyInto(out *ProjectStatus) {
 	}
 	if in.StaleAutoDeleteTimestamp != nil {
 		in, out := &in.StaleAutoDeleteTimestamp, &out.StaleAutoDeleteTimestamp
+		*out = (*in).DeepCopy()
+	}
+	if in.LastActivityTimestamp != nil {
+		in, out := &in.LastActivityTimestamp, &out.LastActivityTimestamp
 		*out = (*in).DeepCopy()
 	}
 	return

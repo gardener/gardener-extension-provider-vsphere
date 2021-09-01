@@ -1937,6 +1937,8 @@ func autoConvert_v1beta1_ClusterAutoscaler_To_core_ClusterAutoscaler(in *Cluster
 	out.ScaleDownUnneededTime = (*metav1.Duration)(unsafe.Pointer(in.ScaleDownUnneededTime))
 	out.ScaleDownUtilizationThreshold = (*float64)(unsafe.Pointer(in.ScaleDownUtilizationThreshold))
 	out.ScanInterval = (*metav1.Duration)(unsafe.Pointer(in.ScanInterval))
+	out.Expander = (*core.ExpanderMode)(unsafe.Pointer(in.Expander))
+	out.MaxNodeProvisionTime = (*metav1.Duration)(unsafe.Pointer(in.MaxNodeProvisionTime))
 	return nil
 }
 
@@ -1952,6 +1954,8 @@ func autoConvert_core_ClusterAutoscaler_To_v1beta1_ClusterAutoscaler(in *core.Cl
 	out.ScaleDownUnneededTime = (*metav1.Duration)(unsafe.Pointer(in.ScaleDownUnneededTime))
 	out.ScaleDownUtilizationThreshold = (*float64)(unsafe.Pointer(in.ScaleDownUtilizationThreshold))
 	out.ScanInterval = (*metav1.Duration)(unsafe.Pointer(in.ScanInterval))
+	out.Expander = (*ExpanderMode)(unsafe.Pointer(in.Expander))
+	out.MaxNodeProvisionTime = (*metav1.Duration)(unsafe.Pointer(in.MaxNodeProvisionTime))
 	return nil
 }
 
@@ -2846,6 +2850,8 @@ func autoConvert_v1beta1_KubeletConfig_To_core_KubeletConfig(in *KubeletConfig, 
 	out.FailSwapOn = (*bool)(unsafe.Pointer(in.FailSwapOn))
 	out.KubeReserved = (*core.KubeletConfigReserved)(unsafe.Pointer(in.KubeReserved))
 	out.SystemReserved = (*core.KubeletConfigReserved)(unsafe.Pointer(in.SystemReserved))
+	out.ImageGCHighThresholdPercent = (*int32)(unsafe.Pointer(in.ImageGCHighThresholdPercent))
+	out.ImageGCLowThresholdPercent = (*int32)(unsafe.Pointer(in.ImageGCLowThresholdPercent))
 	return nil
 }
 
@@ -2872,6 +2878,8 @@ func autoConvert_core_KubeletConfig_To_v1beta1_KubeletConfig(in *core.KubeletCon
 	out.FailSwapOn = (*bool)(unsafe.Pointer(in.FailSwapOn))
 	out.KubeReserved = (*KubeletConfigReserved)(unsafe.Pointer(in.KubeReserved))
 	out.SystemReserved = (*KubeletConfigReserved)(unsafe.Pointer(in.SystemReserved))
+	out.ImageGCHighThresholdPercent = (*int32)(unsafe.Pointer(in.ImageGCHighThresholdPercent))
+	out.ImageGCLowThresholdPercent = (*int32)(unsafe.Pointer(in.ImageGCLowThresholdPercent))
 	return nil
 }
 
@@ -3798,6 +3806,7 @@ func autoConvert_v1beta1_ProjectStatus_To_core_ProjectStatus(in *ProjectStatus, 
 	out.Phase = core.ProjectPhase(in.Phase)
 	out.StaleSinceTimestamp = (*metav1.Time)(unsafe.Pointer(in.StaleSinceTimestamp))
 	out.StaleAutoDeleteTimestamp = (*metav1.Time)(unsafe.Pointer(in.StaleAutoDeleteTimestamp))
+	out.LastActivityTimestamp = (*metav1.Time)(unsafe.Pointer(in.LastActivityTimestamp))
 	return nil
 }
 
@@ -3811,6 +3820,7 @@ func autoConvert_core_ProjectStatus_To_v1beta1_ProjectStatus(in *core.ProjectSta
 	out.Phase = ProjectPhase(in.Phase)
 	out.StaleSinceTimestamp = (*metav1.Time)(unsafe.Pointer(in.StaleSinceTimestamp))
 	out.StaleAutoDeleteTimestamp = (*metav1.Time)(unsafe.Pointer(in.StaleAutoDeleteTimestamp))
+	out.LastActivityTimestamp = (*metav1.Time)(unsafe.Pointer(in.LastActivityTimestamp))
 	return nil
 }
 
