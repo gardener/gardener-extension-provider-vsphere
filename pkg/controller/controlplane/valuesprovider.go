@@ -24,6 +24,9 @@ import (
 	"strconv"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/util/sets"
+
+	"github.com/Masterminds/semver"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
@@ -561,6 +564,20 @@ func (vp *valuesProvider) checkAuthorizationOfOverwrittenIPPoolName(cluster *ext
 	}
 }
 
+func getTLSCipherSuites(kubeVersion *semver.Version) []string {
+	// the following suites are not supported by the deployed cloud-controller-manager
+	// TODO: This can be removed as soon as the cloud-controller-manager was updated to support the TLS suites.
+	unsupportedSuites := []string{
+		"TLS_AES_128_GCM_SHA256",
+		"TLS_AES_256_GCM_SHA384",
+		"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+	}
+
+	return sets.NewString(kutil.TLSCipherSuites(kubeVersion)...).
+		Delete(unsupportedSuites...).
+		List()
+}
+
 // getControlPlaneChartValues collects and returns the control plane chart values.
 func (vp *valuesProvider) getControlPlaneChartValues(
 	cpConfig *apisvsphere.ControlPlaneConfig,
@@ -586,6 +603,10 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 		return nil, err
 	}
 
+	kubeVersion, err := semver.NewVersion(cluster.Shoot.Spec.Kubernetes.Version)
+	if err != nil {
+		return nil, err
+	}
 	clusterID, csiClusterID := vp.calcClusterIDs(cp)
 	csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
 	values := map[string]interface{}{
@@ -603,6 +624,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"podLabels": map[string]interface{}{
 				v1beta1constants.LabelPodMaintenanceRestart: "true",
 			},
+			"tlsCipherSuites": getTLSCipherSuites(kubeVersion),
 		},
 		"csi-vsphere": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
