@@ -210,6 +210,12 @@ func SetDefaults_Shoot(obj *Shoot) {
 	if obj.Spec.Kubernetes.Kubelet.FailSwapOn == nil {
 		obj.Spec.Kubernetes.Kubelet.FailSwapOn = pointer.Bool(true)
 	}
+	if obj.Spec.Kubernetes.Kubelet.ImageGCHighThresholdPercent == nil {
+		obj.Spec.Kubernetes.Kubelet.ImageGCHighThresholdPercent = pointer.Int32(50)
+	}
+	if obj.Spec.Kubernetes.Kubelet.ImageGCLowThresholdPercent == nil {
+		obj.Spec.Kubernetes.Kubelet.ImageGCLowThresholdPercent = pointer.Int32(40)
+	}
 
 	var (
 		kubeReservedMemory = resource.MustParse("1Gi")
@@ -312,6 +318,35 @@ func SetDefaults_Worker(obj *Worker) {
 		obj.SystemComponents = &WorkerSystemComponents{
 			Allow: DefaultWorkerSystemComponentsAllow,
 		}
+	}
+}
+
+// SetDefaults_ClusterAutoscaler sets default values for ClusterAutoscaler object.
+func SetDefaults_ClusterAutoscaler(obj *ClusterAutoscaler) {
+	if obj.ScaleDownDelayAfterAdd == nil {
+		obj.ScaleDownDelayAfterAdd = &metav1.Duration{Duration: 1 * time.Hour}
+	}
+	if obj.ScaleDownDelayAfterDelete == nil {
+		obj.ScaleDownDelayAfterDelete = &metav1.Duration{Duration: 0}
+	}
+	if obj.ScaleDownDelayAfterFailure == nil {
+		obj.ScaleDownDelayAfterFailure = &metav1.Duration{Duration: 3 * time.Minute}
+	}
+	if obj.ScaleDownUnneededTime == nil {
+		obj.ScaleDownUnneededTime = &metav1.Duration{Duration: 30 * time.Minute}
+	}
+	if obj.ScaleDownUtilizationThreshold == nil {
+		obj.ScaleDownUtilizationThreshold = pointer.Float64(0.5)
+	}
+	if obj.ScanInterval == nil {
+		obj.ScanInterval = &metav1.Duration{Duration: 10 * time.Second}
+	}
+	if obj.Expander == nil {
+		leastWaste := ClusterAutoscalerExpanderLeastWaste
+		obj.Expander = &leastWaste
+	}
+	if obj.MaxNodeProvisionTime == nil {
+		obj.MaxNodeProvisionTime = &metav1.Duration{Duration: 20 * time.Minute}
 	}
 }
 

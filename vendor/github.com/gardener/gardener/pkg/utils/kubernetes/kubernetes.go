@@ -179,25 +179,25 @@ func WaitUntilResourceDeletedWithDefaults(ctx context.Context, c client.Client, 
 
 // WaitUntilLoadBalancerIsReady waits until the given external load balancer has
 // been created (i.e., its ingress information has been updated in the service status).
-func WaitUntilLoadBalancerIsReady(ctx context.Context, kubeClient kubernetes.Interface, namespace, name string, timeout time.Duration, logger *logrus.Entry) (string, error) {
+func WaitUntilLoadBalancerIsReady(ctx context.Context, c client.Client, namespace, name string, timeout time.Duration, logger logrus.FieldLogger) (string, error) {
 	var (
 		loadBalancerIngress string
 		service             = &corev1.Service{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: namespace}}
 	)
 
 	if err := retry.UntilTimeout(ctx, 5*time.Second, timeout, func(ctx context.Context) (done bool, err error) {
-		loadBalancerIngress, err = GetLoadBalancerIngress(ctx, kubeClient.Client(), service)
+		loadBalancerIngress, err = GetLoadBalancerIngress(ctx, c, service)
 		if err != nil {
-			logger.Infof("Waiting until the %s service deployed is ready...", name)
+			logger.Infof("Waiting until the %s service is ready...", name)
 			// TODO(AC): This is a quite optimistic check / we should differentiate here
-			return retry.MinorError(fmt.Errorf("%s service deployed is not ready: %v", name, err))
+			return retry.MinorError(fmt.Errorf("%s service is not ready: %v", name, err))
 		}
 		return retry.Ok()
 	}); err != nil {
 		logger.Errorf("error %v occurred while waiting for load balancer to be ready", err)
 
 		// use API reader here, we don't want to cache all events
-		eventsErrorMessage, err2 := FetchEventMessages(ctx, kubeClient.Client().Scheme(), kubeClient.Client(), service, corev1.EventTypeWarning, 2)
+		eventsErrorMessage, err2 := FetchEventMessages(ctx, c.Scheme(), c, service, corev1.EventTypeWarning, 2)
 		if err2 != nil {
 			logger.Errorf("error %v occurred while fetching events for load balancer service", err2)
 			return "", fmt.Errorf("'%w' occurred but could not fetch events for more information", err)
@@ -344,7 +344,7 @@ func FetchEventMessages(ctx context.Context, scheme *runtime.Scheme, reader clie
 	}
 	eventList := &corev1.EventList{}
 	if err := reader.List(ctx, eventList, fieldSelector); err != nil {
-		return "", fmt.Errorf("error '%v' occurred while fetching more details", err)
+		return "", fmt.Errorf("error '%w' occurred while fetching more details", err)
 	}
 
 	if len(eventList.Items) > 0 {
@@ -533,7 +533,7 @@ func NewestPodForDeployment(ctx context.Context, c client.Reader, deployment *ap
 
 	podSelector, err := metav1.LabelSelectorAsSelector(newestReplicaSet.Spec.Selector)
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert the pod selector from ReplicaSet %s/%s: %v", newestReplicaSet.Namespace, newestReplicaSet.Name, err)
+		return nil, fmt.Errorf("failed to convert the pod selector from ReplicaSet %s/%s: %w", newestReplicaSet.Namespace, newestReplicaSet.Name, err)
 	}
 
 	listOpts = append(listOpts, client.MatchingLabelsSelector{Selector: podSelector})

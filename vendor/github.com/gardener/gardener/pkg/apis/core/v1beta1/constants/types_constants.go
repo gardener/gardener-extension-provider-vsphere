@@ -36,6 +36,10 @@ const (
 	// SecretNameSSHKeyPair is a constant for the name of a Kubernetes secret object that contains the SSH key pair
 	// (public and private key) that can be used to SSH into the shoot nodes.
 	SecretNameSSHKeyPair = "ssh-keypair"
+	// SecretNameOldSSHKeyPair is a constant for the name of a Kubernetes secret object that contains the previous
+	// SSH key pair for a shoot cluster. This exists only after the first key rotation. Both the current and the
+	// old key are placed onto each shoot node.
+	SecretNameOldSSHKeyPair = "ssh-keypair.old"
 	// SecretNameServiceAccountKey is a constant for the name of a Kubernetes secret object that contains a
 	// PEM-encoded private RSA or ECDSA key used by the Kube Controller Manager to sign service account tokens
 	SecretNameServiceAccountKey = "service-account-key"
@@ -247,6 +251,9 @@ const (
 	// ShootOperationRotateKubeconfigCredentials is a constant for an annotation on a Shoot indicating that the credentials
 	// contained in the kubeconfig that is handed out to the user shall be rotated.
 	ShootOperationRotateKubeconfigCredentials = "rotate-kubeconfig-credentials"
+	// ShootOperationRotateSSHKeypair is a constant for an annotation on a Shoot indicating that the SSH keypair for the shoot
+	// nodes shall be rotated.
+	ShootOperationRotateSSHKeypair = "rotate-ssh-keypair"
 
 	// SeedResourceManagerClass is the resource-class managed by the Gardener-Resource-Manager
 	// instance in the garden namespace on the seeds.
@@ -259,8 +266,10 @@ const (
 	LabelShootProvider = "shoot.gardener.cloud/provider"
 	// LabelNetworkingProvider is used to identify the networking provider for the cni plugin.
 	LabelNetworkingProvider = "networking.shoot.gardener.cloud/provider"
+	// LabelExtensionPrefix is used to prefix extension specific labels.
+	LabelExtensionPrefix = "extensions.gardener.cloud/"
 	// LabelExtensionConfiguration is used to identify the provider's configuration which will be added to Gardener configuration
-	LabelExtensionConfiguration = "extensions.gardener.cloud/configuration"
+	LabelExtensionConfiguration = LabelExtensionPrefix + "configuration"
 	// LabelLogging is a constant for a label for logging stack configurations
 	LabelLogging = "logging"
 	// LabelMonitoring is a constant for a label for monitoring stack configurations
@@ -368,9 +377,6 @@ const (
 	// namespaces' step. Concretely, after the specified seconds, all the finalizers of the affected resources are
 	// forcefully removed.
 	AnnotationShootCleanupNamespaceResourcesFinalizeGracePeriodSeconds = "shoot.gardener.cloud/cleanup-namespaces-finalize-grace-period-seconds"
-	// AnnotationShootKonnectivityTunnel is the key for an annotation of a Shoot cluster whose value indicates
-	// if a konnectivity-tunnel should be deployed into the shoot cluster or not.
-	AnnotationShootKonnectivityTunnel = "alpha.featuregates.shoot.gardener.cloud/konnectivity-tunnel"
 	// AnnotationReversedVPN moves the vpn-server to the seed.
 	AnnotationReversedVPN = "alpha.featuregates.shoot.gardener.cloud/reversed-vpn"
 	// AnnotationNodeLocalDNS enables a per node dns cache on the shoot cluster.
@@ -395,6 +401,12 @@ const (
 	OperatingSystemConfigFilePathKernelSettings = "/etc/sysctl.d/99-k8s-general.conf"
 	// OperatingSystemConfigFilePathKubeletConfig is a constant for a path to a file in the operating system config that contains the kubelet configuration.
 	OperatingSystemConfigFilePathKubeletConfig = "/var/lib/kubelet/config/kubelet"
+	// OperatingSystemConfigUnitNamePromtailService is a constant for a unit in the operating system config that contains the promtail service.
+	OperatingSystemConfigUnitNamePromtailService = "promtail.service"
+	// OperatingSystemConfigFilePathPromtailConfig is a constant for a path to a file in the operating system config that contains the kubelet configuration.
+	OperatingSystemConfigFilePathPromtailConfig = "/var/lib/promtail/config/config"
+	// OperatingSystemConfigFilePathBinaries is a constant for a path to a directory in the operating system config that contains the binaries.
+	OperatingSystemConfigFilePathBinaries = "/opt/bin"
 
 	// FluentBitConfigMapKubernetesFilter is a constant for the Fluent Bit ConfigMap's section regarding Kubernetes filters
 	FluentBitConfigMapKubernetesFilter = "filter-kubernetes.conf"

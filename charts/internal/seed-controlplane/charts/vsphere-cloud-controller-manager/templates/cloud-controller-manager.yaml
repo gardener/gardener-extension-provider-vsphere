@@ -56,7 +56,7 @@ spec:
         - --authorization-kubeconfig=/var/lib/cloud-controller-manager/kubeconfig
         - --tls-cert-file=/var/lib/cloud-controller-manager-server/cloud-controller-manager-server.crt
         - --tls-private-key-file=/var/lib/cloud-controller-manager-server/cloud-controller-manager-server.key
-        - --tls-cipher-suites={{ include "kubernetes.tlsCipherSuites" . | replace "\n" "," | trimPrefix "," }}
+        - --tls-cipher-suites={{ .Values.tlsCipherSuites | join "," }}
         - --v=2
         env:
         - name: ENABLE_ALPHA_NSXT_LB

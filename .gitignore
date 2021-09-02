@@ -21,3 +21,7 @@ TODO
 
 # Packr generated files
 *-packr.go
+
+# GitGuardian
+.cache_ggshield
+.gitguardian.yaml
