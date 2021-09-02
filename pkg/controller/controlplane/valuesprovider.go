@@ -567,15 +567,21 @@ func (vp *valuesProvider) checkAuthorizationOfOverwrittenIPPoolName(cluster *ext
 func getTLSCipherSuites(kubeVersion *semver.Version) []string {
 	// the following suites are not supported by the deployed cloud-controller-manager
 	// TODO: This can be removed as soon as the cloud-controller-manager was updated to support the TLS suites.
-	unsupportedSuites := []string{
+	unsupportedSuites := sets.NewString(
 		"TLS_AES_128_GCM_SHA256",
 		"TLS_AES_256_GCM_SHA384",
 		"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+	)
+
+	var ciphers []string
+	for _, cipher := range kutil.TLSCipherSuites(kubeVersion) {
+		if unsupportedSuites.Has(cipher) {
+			continue
+		}
+		ciphers = append(ciphers, cipher)
 	}
 
-	return sets.NewString(kutil.TLSCipherSuites(kubeVersion)...).
-		Delete(unsupportedSuites...).
-		List()
+	return ciphers
 }
 
 // getControlPlaneChartValues collects and returns the control plane chart values.
