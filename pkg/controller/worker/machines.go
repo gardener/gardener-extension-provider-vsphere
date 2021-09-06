@@ -30,7 +30,7 @@ import (
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-	vspherekubernetes "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/kubernetes"
+	vspherekubernetes "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/withkubernetes"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
@@ -288,8 +288,10 @@ func (w *workerDelegate) makeMachineClassSpecVsphereWithKubernetes(pool v1alpha1
 		},
 		"sshKeys": []string{string(w.worker.Spec.SSHPublicKey)},
 		"tags": map[string]string{
-			"mcm.gardener.cloud/cluster": w.worker.Namespace,
-			"mcm.gardener.cloud/role":    "node",
+			"mcm.gardener.cloud/cluster":             w.worker.Namespace,
+			"mcm.gardener.cloud/role":                "node",
+			"vsphere.provider.gardener.cloud/region": w.worker.Spec.Region,
+			"vsphere.provider.gardener.cloud/zone":   zone,
 		},
 		"secret": map[string]interface{}{
 			"cloudConfig": string(userData),

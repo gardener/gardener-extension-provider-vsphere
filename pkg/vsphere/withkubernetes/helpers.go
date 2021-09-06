@@ -15,7 +15,7 @@
  *
  */
 
-package kubernetes
+package withkubernetes
 
 import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"

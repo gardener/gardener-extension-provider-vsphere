@@ -15,7 +15,7 @@
  *
  */
 
-package kubernetes
+package withkubernetes
 
 var _ error = &NotFoundError{}
 var _ error = &AlreadyExistsError{}

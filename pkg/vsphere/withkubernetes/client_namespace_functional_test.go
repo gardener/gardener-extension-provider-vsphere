@@ -15,7 +15,7 @@
  *
  */
 
-package kubernetes
+package withkubernetes
 
 import (
 	"io/ioutil"

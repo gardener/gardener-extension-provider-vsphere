@@ -5,8 +5,4 @@ metadata:
   namespace: {{ .Release.Namespace }}
 type: Opaque
 data:
-{{- if .Values.vsphereWithKubernetes }}
-  cloudprovider.conf: {{ b64enc "nothing" }}
-{{- else }}
   cloudprovider.conf: {{ include "cloud-provider-config" . | b64enc }}
-{{- end }}

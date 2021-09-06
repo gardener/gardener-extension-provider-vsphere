@@ -69,6 +69,12 @@ var _ = Describe("ValidateCloudProfileConfig for vSphere with Kubernetes", func(
 							Name:        "region1",
 							Cluster:     "domain-c123",
 							VsphereHost: "vsphere.somewhere",
+							Zones: []apisvsphere.K8sZoneSpec{
+								{
+									Name:               "region1a",
+									VMStorageClassName: "vmstorageclass",
+								},
+							},
 						},
 					},
 				},
@@ -214,6 +220,22 @@ var _ = Describe("ValidateCloudProfileConfig for vSphere with Kubernetes", func(
 				})), PointTo(MatchFields(IgnoreExtras, Fields{
 					"Type":  Equal(field.ErrorTypeRequired),
 					"Field": Equal("vsphereWithKubernetes.regions[1].vsphereHost"),
+				})), PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeRequired),
+					"Field": Equal("vsphereWithKubernetes.regions[1].zones"),
+				}))))
+			})
+
+			It("should complain about incomplete vsphereWithKubernetes.regions.zones", func() {
+				cloudProfileConfig.VsphereWithKubernetes.Regions[0].Zones = []apisvsphere.K8sZoneSpec{{}}
+
+				errorList := ValidateCloudProfileConfig(cloudProfileSpec, cloudProfileConfig)
+				Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeRequired),
+					"Field": Equal("vsphereWithKubernetes.regions[0].zones[0].name"),
+				})), PointTo(MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeRequired),
+					"Field": Equal("vsphereWithKubernetes.regions[0].zones[0].vmStorageClassName"),
 				}))))
 			})
 

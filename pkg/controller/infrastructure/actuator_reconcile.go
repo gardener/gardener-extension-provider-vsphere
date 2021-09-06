@@ -20,14 +20,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"time"
 
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/kubernetes"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/withkubernetes"
 	"github.com/pkg/errors"
 	errors2 "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd/api"
 	"k8s.io/client-go/util/retry"
 	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -53,9 +55,10 @@ type preparedReconcile struct {
 	spec       infrastructure.NSXTInfraSpec
 	ensurer    infrastructure.NSXTInfrastructureEnsurer
 
-	k8sRegion *apisvsphere.K8sRegionSpec
-	k8sClient ctrlClient.Client
-	apiClient *kubernetes.VsphereAPIClient
+	k8sRegion     *apisvsphere.K8sRegionSpec
+	k8sRestConfig *rest.Config
+	k8sClient     ctrlClient.Client
+	apiClient     *withkubernetes.VsphereAPIClient
 }
 
 func (p *preparedReconcile) getDefaultLoadBalancerIPPoolName() (*string, error) {
@@ -95,11 +98,15 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 		if region == nil {
 			return nil, fmt.Errorf("k8s region %q not found in cloud profile", infra.Spec.Region)
 		}
-		client, err := kubernetes.CreateVsphereKubernetesClient(creds.VsphereKubeconfig())
+		restConfig, err := withkubernetes.CreateVsphereKubernetesRestConfig(creds.VsphereKubeconfig())
+		if err != nil {
+			return nil, fmt.Errorf("cannot create rest config from kubeconfig: %w", err)
+		}
+		client, err := withkubernetes.CreateVsphereKubernetesClient(creds.VsphereKubeconfig())
 		if err != nil {
 			return nil, fmt.Errorf("cannot create client from kubeconfig: %w", err)
 		}
-		apiClient, err := kubernetes.GetVsphereAPISession(*region, creds.VsphereAPI())
+		apiClient, err := withkubernetes.GetVsphereAPISession(*region, creds.VsphereAPI())
 		if err != nil {
 			return nil, fmt.Errorf("cannot create vsphere client for user: %s: %w", creds.VsphereAPI().Username, err)
 		}
@@ -107,6 +114,7 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 			cloudProfileConfig: cloudProfileConfig,
 			infraConfig:        infraConfig,
 			k8sClient:          client,
+			k8sRestConfig:      restConfig,
 			apiClient:          apiClient,
 			k8sRegion:          region,
 		}
@@ -342,9 +350,14 @@ func (a *actuator) logFailedSaveState(err error, state *apisvsphere.NSXTInfraSta
 
 func (a *actuator) reconcileK8s(ctx context.Context, prepared *preparedReconcile, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	vwk := prepared.cloudProfileConfig.VsphereWithKubernetes
-	namespace, createNamespace := kubernetes.CalcNamespace(cluster, vwk)
+	namespace, createNamespace := withkubernetes.CalcNamespace(cluster, vwk)
 
 	err := a.checkOrCreateNamespace(prepared, namespace, createNamespace, vwk)
+	if err != nil {
+		return err
+	}
+
+	err = a.checkOrCreateCCMServiceAccount(ctx, prepared, namespace)
 	if err != nil {
 		return err
 	}
@@ -364,7 +377,7 @@ func (a *actuator) reconcileK8s(ctx context.Context, prepared *preparedReconcile
 func (a *actuator) checkOrCreateNamespace(prepared *preparedReconcile, namespace string, create bool, vwk *apisvsphere.VsphereWithKubernetes) error {
 	vsphereCluster, err := prepared.apiClient.GetNamespaceCluster(namespace)
 
-	if create && kubernetes.IsNotFoundError(err) {
+	if create && withkubernetes.IsNotFoundError(err) {
 		err = prepared.apiClient.CreateNamespace(namespace, vwk)
 		if err != nil {
 			return fmt.Errorf("creation of namespace %s failed: %w", namespace, err)
@@ -377,16 +390,21 @@ func (a *actuator) checkOrCreateNamespace(prepared *preparedReconcile, namespace
 	return nil
 }
 
+func (a *actuator) checkOrCreateCCMServiceAccount(ctx context.Context, prepared *preparedReconcile, namespace string) error {
+	chartPath := filepath.Join(vsphere.InternalChartsPath, "supervisor-service-account-ccm")
+	return withkubernetes.ApplyServiceAccount(ctx, prepared.k8sClient, prepared.k8sRestConfig, chartPath, "", namespace)
+}
+
 func (a *actuator) checkOrCreateNetwork(ctx context.Context, client ctrlClient.Client, name ctrlClient.ObjectKey, nodesCIDR string) error {
-	spec := kubernetes.VirtualNetworkSpec{
+	spec := withkubernetes.VirtualNetworkSpec{
 		Private:     true,
 		EnableDHCP:  true,
 		AddressCIDR: nodesCIDR,
 	}
 
-	status, err := kubernetes.GetVirtualNetworkStatus(ctx, client, name)
+	status, err := withkubernetes.GetVirtualNetworkStatus(ctx, client, name)
 	if err != nil && errors2.IsNotFound(err) {
-		err = kubernetes.CreateVirtualNetwork(ctx, client, name, spec)
+		err = withkubernetes.CreateVirtualNetwork(ctx, client, name, spec)
 		if err != nil {
 			return fmt.Errorf("creating virtual network %s failed: %v", name, err)
 		}
@@ -400,7 +418,7 @@ func (a *actuator) checkOrCreateNetwork(ctx context.Context, client ctrlClient.C
 			break
 		}
 		time.Sleep(500 * time.Millisecond)
-		status, err = kubernetes.GetVirtualNetworkStatus(ctx, client, name)
+		status, err = withkubernetes.GetVirtualNetworkStatus(ctx, client, name)
 		if err != nil {
 			return fmt.Errorf("getting status of virtual network %s failed: %v", name, err)
 		}

@@ -39,3 +39,8 @@ nsxt:
   remoteAuth: false
 
 vsphereWithKubernetes: false
+
+#supervisor:
+#  token: foo
+#  namespace: foo
+#  apiserver: foo

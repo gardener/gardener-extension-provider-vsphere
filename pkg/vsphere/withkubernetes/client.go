@@ -15,12 +15,11 @@
  *
  */
 
-package kubernetes
+package withkubernetes
 
 import (
 	"crypto/md5"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
@@ -34,8 +33,6 @@ import (
 	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var globalScheme *runtime.Scheme
-var globalSchemeLock sync.Mutex
 var clientCache *cache.LRUExpireCache
 
 func init() {
@@ -63,6 +60,42 @@ func CreateVsphereKubernetesClient(kubeconfig []byte) (ctrlClient.Client, error)
 }
 
 func createRealVsphereKubernetesClient(kubeconfig []byte) (ctrlClient.Client, error) {
+	config, err := createRealVsphereKubernetesRestConfig(kubeconfig)
+	if err != nil {
+		return nil, fmt.Errorf("build config from kubeconfig failed: %w", err)
+	}
+
+	scheme := runtime.NewScheme()
+	err = corev1.AddToScheme(scheme)
+	if err != nil {
+		return nil, fmt.Errorf("build scheme failed: %w", err)
+	}
+	client, err := ctrlClient.New(
+		rest.AddUserAgent(config, "gardener-extension-provider-vsphere"),
+		ctrlClient.Options{
+			Scheme: scheme,
+		})
+
+	return client, err
+}
+
+// CreateVsphereKubernetesRestConfig creates a kubernetes rest config
+func CreateVsphereKubernetesRestConfig(kubeconfig []byte) (*rest.Config, error) {
+	hash := "restConfig:" + hashMD5(kubeconfig)
+	if value, ok := clientCache.Get(hash); ok {
+		return value.(*rest.Config), nil
+	}
+
+	config, err := createRealVsphereKubernetesRestConfig(kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+
+	clientCache.Add(hash, config, 1*time.Hour)
+	return config, nil
+}
+
+func createRealVsphereKubernetesRestConfig(kubeconfig []byte) (*rest.Config, error) {
 	config, err := clientcmd.BuildConfigFromKubeconfigGetter("", func() (*clientcmdapi.Config, error) {
 		return clientcmd.Load([]byte(kubeconfig))
 	})
@@ -77,35 +110,7 @@ func createRealVsphereKubernetesClient(kubeconfig []byte) (ctrlClient.Client, er
 		config.Burst = 10
 	}
 
-	scheme, err := getScheme()
-	if err != nil {
-		return nil, fmt.Errorf("build config from kubeconfig failed: %w", err)
-	}
-	client, err := ctrlClient.New(
-		rest.AddUserAgent(config, "machine-controller-manager-provider-vsphere"),
-		ctrlClient.Options{
-			Scheme: scheme,
-		})
-
-	return client, err
-}
-
-func getScheme() (*runtime.Scheme, error) {
-	globalSchemeLock.Lock()
-	defer globalSchemeLock.Unlock()
-
-	if globalScheme != nil {
-		return globalScheme, nil
-	}
-
-	scheme := runtime.NewScheme()
-	err := corev1.AddToScheme(scheme)
-	if err != nil {
-		return nil, err
-	}
-
-	globalScheme = scheme
-	return globalScheme, nil
+	return config, nil
 }
 
 // GetVsphereAPISession gets a vsphere-api-session from cache or creates a new one

@@ -32,6 +32,8 @@ const (
 	MCMProviderVsphereImageName = "machine-controller-manager-provider-vsphere"
 	// CloudControllerImageName is the name of the external vSphere CloudProvider image.
 	CloudControllerImageName = "vsphere-cloud-controller-manager"
+	// CloudControllerImageName is the name of the external vSphere CloudProvider image.
+	CloudControllerImageNameVWK8s = "vsphere-with-k8s-cloud-controller-manager"
 
 	// CSIAttacherImageName is the name of the CSI attacher image.
 	CSIAttacherImageName = "csi-attacher"

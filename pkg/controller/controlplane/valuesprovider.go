@@ -18,6 +18,7 @@ package controlplane
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"hash/fnv"
 	"path/filepath"
@@ -36,6 +37,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apiserver/pkg/authentication/user"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
+	client2 "sigs.k8s.io/controller-runtime/pkg/client"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
@@ -56,6 +58,7 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/helpers"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/withkubernetes"
 )
 
 var controlPlaneSecrets = &secrets.Secrets{
@@ -213,12 +216,13 @@ var controlPlaneChart = &chart.Chart{
 	SubCharts: []*chart.Chart{
 		{
 			Name:   "vsphere-cloud-controller-manager",
-			Images: []string{vsphere.CloudControllerImageName},
+			Images: []string{vsphere.CloudControllerImageName, vsphere.CloudControllerImageNameVWK8s},
 			Objects: []*chart.Object{
 				{Type: &corev1.Service{}, Name: vsphere.CloudControllerManagerName},
 				{Type: &appsv1.Deployment{}, Name: vsphere.CloudControllerManagerName},
 				{Type: &corev1.ConfigMap{}, Name: vsphere.CloudControllerManagerName + "-observability-config"},
 				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: vsphere.CloudControllerManagerName + "-vpa"},
+				{Type: &corev1.Secret{}, Name: vsphere.CloudControllerManagerName + "-supervisor"},
 			},
 		},
 		{
@@ -364,7 +368,7 @@ func (vp *valuesProvider) GetConfigChartValues(
 	}
 
 	if credentials.IsVsphereKubernetes() {
-		return vp.getConfigChartValuesForVsphereKubernetes(cp, cpConfig, cluster, credentials)
+		return vp.getConfigChartValuesForVsphereKubernetes(ctx, cp, cpConfig, cluster, credentials)
 	}
 
 	// Get config chart values
@@ -411,7 +415,7 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	}
 
 	if credentials.IsVsphereKubernetes() {
-		return vp.getControlPlaneChartValuesForVsphereKubernetes(cpConfig, cp, cluster, credentials, checksums, scaledDown)
+		return vp.getControlPlaneChartValuesForVsphereKubernetes(ctx, cpConfig, cp, cluster, credentials, checksums, scaledDown)
 	}
 
 	// Get control plane chart values
@@ -611,6 +615,7 @@ func (vp *valuesProvider) getConfigChartValues(
 
 // getConfigChartValuesForVsphereKubernetes collects and returns the configuration chart values.
 func (vp *valuesProvider) getConfigChartValuesForVsphereKubernetes(
+	ctx context.Context,
 	cp *extensionsv1alpha1.ControlPlane,
 	cpConfig *apisvsphere.ControlPlaneConfig,
 	cluster *extensionscontroller.Cluster,
@@ -627,8 +632,38 @@ func (vp *valuesProvider) getConfigChartValuesForVsphereKubernetes(
 		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
 	}
 
+	kubeconfig := credentials.VsphereKubeconfig()
+	cfg, err := withkubernetes.CreateVsphereKubernetesRestConfig(kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+
+	vwk := cloudProfileConfig.VsphereWithKubernetes
+	namespace, _ := withkubernetes.CalcNamespace(cluster, vwk)
+
+	client, err := withkubernetes.CreateVsphereKubernetesClient(kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+	name := client2.ObjectKey{
+		Namespace: namespace,
+		Name:      "cloud-controller-manager",
+	}
+	token, err := withkubernetes.GetServiceAccountToken(ctx, client, name)
+	if err != nil {
+		return nil, err
+	}
+
 	values := map[string]interface{}{
 		"vsphereWithKubernetes": true,
+		"supervisor": map[string]interface{}{
+			"token":         token,
+			"namespace":     namespace,
+			"apiserver":     cfg.Host,
+			"caData":        base64.StdEncoding.EncodeToString(cfg.TLSClientConfig.CAData),
+			"apiserverFQDN": cfg.TLSClientConfig.ServerName,
+			"insecure":      cfg.TLSClientConfig.Insecure,
+		},
 	}
 
 	return values, nil
@@ -777,6 +812,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 
 // getControlPlaneChartValues collects and returns the control plane chart values.
 func (vp *valuesProvider) getControlPlaneChartValuesForVsphereKubernetes(
+	ctx context.Context,
 	cpConfig *apisvsphere.ControlPlaneConfig,
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,

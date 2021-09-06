@@ -17,9 +17,11 @@ package infrastructure
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd/infra-cli/loadbalancer"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/kubernetes"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/withkubernetes"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	ctrlClient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -71,7 +73,7 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 
 func (a *actuator) deleteK8s(ctx context.Context, prepared *preparedReconcile, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	vwk := prepared.cloudProfileConfig.VsphereWithKubernetes
-	namespace, createNamespace := kubernetes.CalcNamespace(cluster, vwk)
+	namespace, createNamespace := withkubernetes.CalcNamespace(cluster, vwk)
 
 	err := a.deleteNetwork(ctx, prepared.k8sClient, ctrlClient.ObjectKey{Namespace: namespace, Name: cluster.ObjectMeta.Name})
 	if err != nil {
@@ -79,6 +81,11 @@ func (a *actuator) deleteK8s(ctx context.Context, prepared *preparedReconcile, i
 	}
 
 	if createNamespace {
+		err := a.deleteCCMServiceAccount(ctx, prepared, namespace)
+		if err != nil {
+			return err
+		}
+
 		err = prepared.apiClient.DeleteNamespace(namespace)
 		if err != nil {
 			return fmt.Errorf("deletion of namespace %s failed: %s", namespace, err)
@@ -88,8 +95,13 @@ func (a *actuator) deleteK8s(ctx context.Context, prepared *preparedReconcile, i
 	return nil
 }
 
+func (a *actuator) deleteCCMServiceAccount(ctx context.Context, prepared *preparedReconcile, namespace string) error {
+	chartPath := filepath.Join(vsphere.InternalChartsPath, "supervisor-service-account-ccm")
+	return withkubernetes.DeleteServiceAccount(ctx, prepared.k8sRestConfig, chartPath, "", namespace)
+}
+
 func (a *actuator) deleteNetwork(ctx context.Context, client ctrlClient.Client, name ctrlClient.ObjectKey) error {
-	err := kubernetes.DeleteVirtualNetwork(ctx, client, name)
+	err := withkubernetes.DeleteVirtualNetwork(ctx, client, name)
 	if err != nil {
 		return fmt.Errorf("deletion of virtual network %s failed: %s", name, err)
 	}

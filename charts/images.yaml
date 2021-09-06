@@ -47,6 +47,10 @@ images:
   tag: v1.22.0-patch1
   #repository: gcr.io/cloud-provider-vsphere/cpi/release/manager
   #tag: v1.0.0
+- name: vsphere-with-k8s-cloud-controller-manager
+  sourceRepository: github.com/MartinWeindel/cloud-controller-manager-vsphere-with-k8s
+  repository: eu.gcr.io/gardener-project/test/cloud-controller-manager-vsphere-with-k8s
+  tag: 0.1.0-dev-mw20210906c
 - name: machine-controller-manager
   sourceRepository: github.com/gardener/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
@@ -55,7 +59,7 @@ images:
   sourceRepository: github.com/gardener/machine-controller-manager-provider-vsphere
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager-provider-vsphere
   # experimental support for vm-operator-api PR #14
-  tag: "v0.11.0-dev-312f3dd05ed81e4f39f11b199326b1142fa40666"
+  tag: "v0.11.0-dev-586903274236d7c4d7edf5d0c8fba64203864d1b"
 - name: vsphere-csi-driver-controller
   #sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   #repository: gcr.io/cloud-provider-vsphere/csi/release/driver
