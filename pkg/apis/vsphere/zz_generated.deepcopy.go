@@ -359,7 +359,11 @@ func (in *InfrastructureConfig) DeepCopyObject() runtime.Object {
 func (in *InfrastructureStatus) DeepCopyInto(out *InfrastructureStatus) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	in.VsphereConfig.DeepCopyInto(&out.VsphereConfig)
+	if in.VsphereConfig != nil {
+		in, out := &in.VsphereConfig, &out.VsphereConfig
+		*out = new(VsphereConfig)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.CreationStarted != nil {
 		in, out := &in.CreationStarted, &out.CreationStarted
 		*out = new(bool)
@@ -372,6 +376,11 @@ func (in *InfrastructureStatus) DeepCopyInto(out *InfrastructureStatus) {
 	}
 	if in.VirtualNetwork != nil {
 		in, out := &in.VirtualNetwork, &out.VirtualNetwork
+		*out = new(string)
+		**out = **in
+	}
+	if in.NCPRouterID != nil {
+		in, out := &in.NCPRouterID, &out.NCPRouterID
 		*out = new(string)
 		**out = **in
 	}

@@ -288,6 +288,12 @@ type K8sRegionSpec struct {
 	VsphereHost string `json:"vsphereHost"`
 	// VsphereInsecureSSL is a flag if insecure HTTPS is allowed for VsphereHost
 	VsphereInsecureSSL bool `json:"vsphereInsecureSSL"`
+	// NSXTHost is the NSX-T host
+	NSXTHost string `json:"nsxtHost"`
+	// NSXTInsecureSSL is a flag if insecure HTTPS is allowed for NSXTHost
+	NSXTInsecureSSL bool `json:"nsxtInsecureSSL"`
+	// NSXTRemoteAuth is a flag if NSX-T uses remote authentication (authentication done through the vIDM).
+	NSXTRemoteAuth bool `json:"nsxtRemoteAuth"`
 
 	// Zones is the list of zone specifications of the region.
 	Zones []K8sZoneSpec `json:"zones"`

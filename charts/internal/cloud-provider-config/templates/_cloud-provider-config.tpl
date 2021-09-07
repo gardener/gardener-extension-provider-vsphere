@@ -35,6 +35,9 @@ labels:
 {{- end }}
 
 loadBalancer:
+  {{- if .Values.vsphereWithKubernetes }}
+  enabled: true
+  {{- end }}
   {{- if .Values.loadbalancer.lbServiceId }}
   lbServiceId: "{{ .Values.loadbalancer.lbServiceId }}"
   {{- end }}
@@ -63,14 +66,12 @@ loadBalancerClass:
     {{- end }}
 {{- end }}
 
-{{- if not .Values.vsphereWithKubernetes }}
 nsxt:
   user: "{{ .Values.nsxt.username }}"
   password: "{{ .Values.nsxt.password }}"
   host: "{{ .Values.nsxt.host }}"
   insecureFlag: {{ .Values.nsxt.insecureFlag }}
   remoteAuth: {{ .Values.nsxt.remoteAuth }}
-{{- end }}
 
 {{- if .Values.vsphereWithKubernetes }}
 supervisor:

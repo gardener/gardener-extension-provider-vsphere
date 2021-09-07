@@ -577,12 +577,11 @@ func Convert_vsphere_InfrastructureConfig_To_v1alpha1_InfrastructureConfig(in *v
 }
 
 func autoConvert_v1alpha1_InfrastructureStatus_To_vsphere_InfrastructureStatus(in *InfrastructureStatus, out *vsphere.InfrastructureStatus, s conversion.Scope) error {
-	if err := Convert_v1alpha1_VsphereConfig_To_vsphere_VsphereConfig(&in.VsphereConfig, &out.VsphereConfig, s); err != nil {
-		return err
-	}
+	out.VsphereConfig = (*vsphere.VsphereConfig)(unsafe.Pointer(in.VsphereConfig))
 	out.CreationStarted = (*bool)(unsafe.Pointer(in.CreationStarted))
 	out.NSXTInfraState = (*vsphere.NSXTInfraState)(unsafe.Pointer(in.NSXTInfraState))
 	out.VirtualNetwork = (*string)(unsafe.Pointer(in.VirtualNetwork))
+	out.NCPRouterID = (*string)(unsafe.Pointer(in.NCPRouterID))
 	return nil
 }
 
@@ -592,12 +591,11 @@ func Convert_v1alpha1_InfrastructureStatus_To_vsphere_InfrastructureStatus(in *I
 }
 
 func autoConvert_vsphere_InfrastructureStatus_To_v1alpha1_InfrastructureStatus(in *vsphere.InfrastructureStatus, out *InfrastructureStatus, s conversion.Scope) error {
-	if err := Convert_vsphere_VsphereConfig_To_v1alpha1_VsphereConfig(&in.VsphereConfig, &out.VsphereConfig, s); err != nil {
-		return err
-	}
+	out.VsphereConfig = (*VsphereConfig)(unsafe.Pointer(in.VsphereConfig))
 	out.CreationStarted = (*bool)(unsafe.Pointer(in.CreationStarted))
 	out.NSXTInfraState = (*NSXTInfraState)(unsafe.Pointer(in.NSXTInfraState))
 	out.VirtualNetwork = (*string)(unsafe.Pointer(in.VirtualNetwork))
+	out.NCPRouterID = (*string)(unsafe.Pointer(in.NCPRouterID))
 	return nil
 }
 
@@ -611,6 +609,9 @@ func autoConvert_v1alpha1_K8sRegionSpec_To_vsphere_K8sRegionSpec(in *K8sRegionSp
 	out.Cluster = in.Cluster
 	out.VsphereHost = in.VsphereHost
 	out.VsphereInsecureSSL = in.VsphereInsecureSSL
+	out.NSXTHost = in.NSXTHost
+	out.NSXTInsecureSSL = in.NSXTInsecureSSL
+	out.NSXTRemoteAuth = in.NSXTRemoteAuth
 	out.Zones = *(*[]vsphere.K8sZoneSpec)(unsafe.Pointer(&in.Zones))
 	return nil
 }
@@ -625,6 +626,9 @@ func autoConvert_vsphere_K8sRegionSpec_To_v1alpha1_K8sRegionSpec(in *vsphere.K8s
 	out.Cluster = in.Cluster
 	out.VsphereHost = in.VsphereHost
 	out.VsphereInsecureSSL = in.VsphereInsecureSSL
+	out.NSXTHost = in.NSXTHost
+	out.NSXTInsecureSSL = in.NSXTInsecureSSL
+	out.NSXTRemoteAuth = in.NSXTRemoteAuth
 	out.Zones = *(*[]K8sZoneSpec)(unsafe.Pointer(&in.Zones))
 	return nil
 }

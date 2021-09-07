@@ -515,11 +515,6 @@ func (vp *valuesProvider) getConfigChartValues(
 		return nil, err
 	}
 
-	infraConfig, err := helper.GetInfrastructureConfig(cluster)
-	if err != nil {
-		return nil, err
-	}
-
 	region := helper.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
 	if region == nil {
 		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
@@ -531,6 +526,58 @@ func (vp *valuesProvider) getConfigChartValues(
 	}
 
 	infraStatus, err := helper.GetInfrastructureStatus(cp.Name, cp.Spec.InfrastructureProviderStatus)
+	if err != nil {
+		return nil, err
+	}
+	var tier1GatewayPath *string
+	if infraStatus.NSXTInfraState != nil && infraStatus.NSXTInfraState.Tier1GatewayRef != nil {
+		tier1GatewayPath = &infraStatus.NSXTInfraState.Tier1GatewayRef.Path
+	}
+
+	loadBalancer, err := vp.prepareLoadBalancerValues(cluster, cloudProfileConfig, credentials, cpConfig, tier1GatewayPath)
+	if err != nil {
+		return nil, err
+	}
+
+	// Collect config chart values
+	values := map[string]interface{}{
+		"serverName":   serverName,
+		"serverPort":   port,
+		"insecureFlag": region.VsphereInsecureSSL,
+		"datacenters":  helper.CollectDatacenters(region),
+		"username":     credentials.VsphereCCM().Username,
+		"password":     credentials.VsphereCCM().Password,
+		"loadbalancer": loadBalancer,
+		"nsxt": map[string]interface{}{
+			"host":         region.NSXTHost,
+			"insecureFlag": region.VsphereInsecureSSL,
+			"username":     credentials.NSXT().Username,
+			"password":     credentials.NSXT().Password,
+			"remoteAuth":   region.NSXTRemoteAuth,
+		},
+	}
+
+	if !utils.IsEmptyString(region.CaFile) {
+		values["caFile"] = *region.CaFile
+	}
+	if !utils.IsEmptyString(region.Thumbprint) {
+		values["thumbprint"] = *region.Thumbprint
+	}
+	if cloudProfileConfig.FailureDomainLabels != nil {
+		values["labelRegion"] = cloudProfileConfig.FailureDomainLabels.Region
+		values["labelZone"] = cloudProfileConfig.FailureDomainLabels.Zone
+	}
+
+	return values, nil
+}
+
+func (vp *valuesProvider) prepareLoadBalancerValues(cluster *extensionscontroller.Cluster,
+	cloudProfileConfig *apisvsphere.CloudProfileConfig,
+	credentials *vsphere.Credentials,
+	cpConfig *apisvsphere.ControlPlaneConfig,
+	tier1GatewayPath *string,
+) (map[string]interface{}, error) {
+	infraConfig, err := helper.GetInfrastructureConfig(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -574,43 +621,14 @@ func (vp *valuesProvider) getConfigChartValues(
 	if !utils.IsEmptyString(defaultClass.UDPAppProfileName) {
 		loadBalancer["udpAppProfileName"] = *defaultClass.UDPAppProfileName
 	}
-	if infraStatus.NSXTInfraState != nil && infraStatus.NSXTInfraState.Tier1GatewayRef != nil {
-		loadBalancer["tier1GatewayPath"] = infraStatus.NSXTInfraState.Tier1GatewayRef.Path
+	if tier1GatewayPath != nil {
+		loadBalancer["tier1GatewayPath"] = *tier1GatewayPath
 	}
 	if infraConfig.Networks != nil {
 		loadBalancer["lbServiceId"] = task.IdFromPath(infraConfig.Networks.LoadBalancerServicePath)
 	}
 
-	// Collect config chart values
-	values := map[string]interface{}{
-		"serverName":   serverName,
-		"serverPort":   port,
-		"insecureFlag": region.VsphereInsecureSSL,
-		"datacenters":  helper.CollectDatacenters(region),
-		"username":     credentials.VsphereCCM().Username,
-		"password":     credentials.VsphereCCM().Password,
-		"loadbalancer": loadBalancer,
-		"nsxt": map[string]interface{}{
-			"host":         region.NSXTHost,
-			"insecureFlag": region.NSXTInsecureSSL,
-			"username":     credentials.NSXT().Username,
-			"password":     credentials.NSXT().Password,
-			"remoteAuth":   region.NSXTRemoteAuth,
-		},
-	}
-
-	if !utils.IsEmptyString(region.CaFile) {
-		values["caFile"] = *region.CaFile
-	}
-	if !utils.IsEmptyString(region.Thumbprint) {
-		values["thumbprint"] = *region.Thumbprint
-	}
-	if cloudProfileConfig.FailureDomainLabels != nil {
-		values["labelRegion"] = cloudProfileConfig.FailureDomainLabels.Region
-		values["labelZone"] = cloudProfileConfig.FailureDomainLabels.Zone
-	}
-
-	return values, nil
+	return loadBalancer, nil
 }
 
 // getConfigChartValuesForVsphereKubernetes collects and returns the configuration chart values.
@@ -654,6 +672,20 @@ func (vp *valuesProvider) getConfigChartValuesForVsphereKubernetes(
 		return nil, err
 	}
 
+	infraStatus, err := helper.GetInfrastructureStatus(cp.Name, cp.Spec.InfrastructureProviderStatus)
+	if err != nil {
+		return nil, err
+	}
+	if infraStatus.NCPRouterID == nil {
+		return nil, fmt.Errorf("missing NCPRouterID in InfrastructureProviderStatus")
+	}
+	tier1GatewayPath := "/infra/tier-1s/" + *infraStatus.NCPRouterID
+
+	loadBalancer, err := vp.prepareLoadBalancerValues(cluster, cloudProfileConfig, credentials, cpConfig, &tier1GatewayPath)
+	if err != nil {
+		return nil, err
+	}
+
 	values := map[string]interface{}{
 		"vsphereWithKubernetes": true,
 		"supervisor": map[string]interface{}{
@@ -663,6 +695,14 @@ func (vp *valuesProvider) getConfigChartValuesForVsphereKubernetes(
 			"caData":        base64.StdEncoding.EncodeToString(cfg.TLSClientConfig.CAData),
 			"apiserverFQDN": cfg.TLSClientConfig.ServerName,
 			"insecure":      cfg.TLSClientConfig.Insecure,
+		},
+		"loadbalancer": loadBalancer,
+		"nsxt": map[string]interface{}{
+			"host":         region.NSXTHost,
+			"insecureFlag": region.NSXTInsecureSSL,
+			"username":     credentials.NSXT().Username,
+			"password":     credentials.NSXT().Password,
+			"remoteAuth":   region.NSXTRemoteAuth,
 		},
 	}
 
@@ -821,9 +861,11 @@ func (vp *valuesProvider) getControlPlaneChartValuesForVsphereKubernetes(
 	scaledDown bool,
 ) (map[string]interface{}, error) {
 
+	clusterID, _ := vp.calcClusterIDs(cp)
 	values := map[string]interface{}{
 		"vsphere-cloud-controller-manager": map[string]interface{}{
 			"vsphereWithKubernetes": true,
+			"clusterName":           clusterID,
 		},
 		"csi-vsphere": map[string]interface{}{
 			"vsphereWithKubernetes": true,

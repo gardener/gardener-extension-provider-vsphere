@@ -26,6 +26,7 @@ import (
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/withkubernetes"
 	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
 	errors2 "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -309,7 +310,7 @@ func (a *actuator) makeProviderInfrastructureStatus(
 				SwitchUUID:       safe(z.SwitchUUID),
 			}
 		}
-		status.VsphereConfig = apisvsphere.VsphereConfig{
+		status.VsphereConfig = &apisvsphere.VsphereConfig{
 			Folder:      cloudProfileConfig.Folder,
 			Region:      region.Name,
 			ZoneConfigs: zoneConfigs,
@@ -370,8 +371,9 @@ func (a *actuator) reconcileK8s(ctx context.Context, prepared *preparedReconcile
 	if err != nil {
 		return err
 	}
+	ncpRouterID, err := a.lookupNCPRouterID(ctx, prepared.k8sClient, namespace)
 
-	return nil
+	return a.updateProviderStatusK8s(ctx, infra, cluster.ObjectMeta.Name, ncpRouterID)
 }
 
 func (a *actuator) checkOrCreateNamespace(prepared *preparedReconcile, namespace string, create bool, vwk *apisvsphere.VsphereWithKubernetes) error {
@@ -432,4 +434,33 @@ func (a *actuator) checkOrCreateNetwork(ctx context.Context, client ctrlClient.C
 	}
 
 	return nil
+}
+
+func (a *actuator) lookupNCPRouterID(ctx context.Context, client ctrlClient.Client, namespace string) (string, error) {
+	ns := &corev1.Namespace{}
+	err := client.Get(ctx, ctrlClient.ObjectKey{Name: namespace}, ns)
+	if err != nil {
+		return "", fmt.Errorf("get namespace object %s failed: %w", namespace, err)
+	}
+
+	key := "ncp/router_id"
+	if annots := ns.GetAnnotations(); annots != nil {
+		if value, ok := annots[key]; ok {
+			return value, nil
+		}
+	}
+
+	return "", fmt.Errorf("cannot find namespace annotation %s", key)
+}
+
+func (a *actuator) updateProviderStatusK8s(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, networkName, ncpRouterID string) error {
+	status := &apisvsphere.InfrastructureStatus{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: api.SchemeGroupVersion.String(),
+			Kind:       "InfrastructureStatus",
+		},
+		VirtualNetwork: &networkName,
+		NCPRouterID:    &ncpRouterID,
+	}
+	return a.doUpdateProviderStatus(ctx, infra, status)
 }

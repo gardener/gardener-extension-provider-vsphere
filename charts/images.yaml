@@ -50,7 +50,7 @@ images:
 - name: vsphere-with-k8s-cloud-controller-manager
   sourceRepository: github.com/MartinWeindel/cloud-controller-manager-vsphere-with-k8s
   repository: eu.gcr.io/gardener-project/test/cloud-controller-manager-vsphere-with-k8s
-  tag: 0.1.0-dev-mw20210906c
+  tag: 0.1.0-dev-mw20210907a
 - name: machine-controller-manager
   sourceRepository: github.com/gardener/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager

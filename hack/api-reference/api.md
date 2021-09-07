@@ -758,6 +758,8 @@ VsphereConfig
 </em>
 </td>
 <td>
+<em>(Optional)</em>
+<p>not filled if VsphereWithKubernetes is set</p>
 </td>
 </tr>
 <tr>
@@ -768,6 +770,8 @@ bool
 </em>
 </td>
 <td>
+<em>(Optional)</em>
+<p>not filled if VsphereWithKubernetes is set</p>
 </td>
 </tr>
 <tr>
@@ -780,6 +784,7 @@ NSXTInfraState
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>not filled if VsphereWithKubernetes is set</p>
 </td>
 </tr>
@@ -791,7 +796,21 @@ string
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>VirtualNetwork is the name of the network segment in the vSphere Kubernetes namespace
+only filled if VsphereWithKubernetes is set</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>ncpRouterID</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>NCPRouterID is the identifier of the Tier1 gateway (router) of the vSphere Kubernetes namespace
 only filled if VsphereWithKubernetes is set</p>
 </td>
 </tr>
@@ -856,6 +875,39 @@ bool
 </td>
 <td>
 <p>VsphereInsecureSSL is a flag if insecure HTTPS is allowed for VsphereHost</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>nsxtHost</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>NSXTHost is the NSX-T host</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>nsxtInsecureSSL</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>NSXTInsecureSSL is a flag if insecure HTTPS is allowed for NSXTHost</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>nsxtRemoteAuth</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>NSXTRemoteAuth is a flag if NSX-T uses remote authentication (authentication done through the vIDM).</p>
 </td>
 </tr>
 <tr>

@@ -117,13 +117,22 @@ type NSXTInfraState struct {
 type InfrastructureStatus struct {
 	metav1.TypeMeta `json:",inline"`
 
-	VsphereConfig VsphereConfig `json:"vsphereConfig"`
-
+	// not filled if VsphereWithKubernetes is set
+	// +optional
+	VsphereConfig *VsphereConfig `json:"vsphereConfig,omitempty"`
+	// not filled if VsphereWithKubernetes is set
+	// +optional
 	CreationStarted *bool `json:"creationStarted,omitempty"`
 	// not filled if VsphereWithKubernetes is set
+	// +optional
 	NSXTInfraState *NSXTInfraState `json:"nsxtInfraState,omitempty"`
 
 	// VirtualNetwork is the name of the network segment in the vSphere Kubernetes namespace
 	// only filled if VsphereWithKubernetes is set
+	// +optional
 	VirtualNetwork *string `json:"virtualNetwork,omitempty"`
+	// NCPRouterID is the identifier of the Tier1 gateway (router) of the vSphere Kubernetes namespace
+	// only filled if VsphereWithKubernetes is set
+	// +optional
+	NCPRouterID *string `json:"ncpRouterID,omitempty"`
 }
