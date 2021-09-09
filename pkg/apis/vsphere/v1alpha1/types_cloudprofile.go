@@ -263,6 +263,11 @@ type VsphereWithKubernetes struct {
 	// +optional
 	Namespace *string `json:"namespace,omitempty"`
 
+	// NamespacePrefix specified the prefix for generated namespaces on the vSphere supervisor cluster.
+	// unused if namespace is set
+	// +optional
+	NamespacePrefix *string `json:"namespacePrefix,omitempty"`
+
 	// StoragePolicies are the identifier of the storage policy assigned to a namespace (at least one is needed)
 	StoragePolicies []string `json:"storagePolicies,omitempty"`
 
@@ -274,6 +279,10 @@ type VsphereWithKubernetes struct {
 
 	// Regions is the specification of regions and zones topology
 	Regions []K8sRegionSpec `json:"regions"`
+
+	// CaData is the optional CA to be trusted when connecting to the supervisor cluster. If not set, the node's CA certificates will be used. Only relevant if InsecureFlag=0
+	// +optional
+	CaData *string `json:"caData,omitempty"`
 }
 
 // K8sRegionSpec is the VsphereWithKubernetes specific region spec

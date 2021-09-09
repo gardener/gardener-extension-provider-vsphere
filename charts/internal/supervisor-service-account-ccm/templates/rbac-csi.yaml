@@ -1,0 +1,31 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gardener:vsphere-csi-controller
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: gardener:vsphere-csi-controller
+subjects:
+  - kind: ServiceAccount
+    name: vsphere-csi-controller
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gardener:vsphere-csi-controller
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
+  - apiGroups: ["vmoperator.vmware.com"]
+    resources: ["virtualmachines"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+  - apiGroups: ["cns.vmware.com"]
+    resources: ["cnsvolumemetadatas"]
+    verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
+

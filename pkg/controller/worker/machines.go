@@ -270,7 +270,7 @@ func (w *workerDelegate) makeMachineClassSpecClassic(pool v1alpha1.WorkerPool, z
 
 func (w *workerDelegate) makeMachineClassSpecVsphereWithKubernetes(pool v1alpha1.WorkerPool, zone string, machineImagePath string, systemDiskSizeInGB int) (map[string]interface{}, error) {
 	vwk := w.cloudProfileConfig.VsphereWithKubernetes
-	namespace, _ := vspherekubernetes.CalcNamespace(w.cluster, vwk)
+	namespace, _ := vspherekubernetes.CalcSupervisorNamespace(w.cluster, vwk)
 
 	// work around for missing fields for DNS servers in virtual network
 	// overwrite the file `/etc/resolv.conf` in the cloud-init user data

@@ -37,6 +37,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apiserver/pkg/authentication/user"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
+	"k8s.io/client-go/rest"
 	client2 "sigs.k8s.io/controller-runtime/pkg/client"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
@@ -242,6 +243,8 @@ var controlPlaneChart = &chart.Chart{
 				{Type: &appsv1.Deployment{}, Name: vsphere.VsphereCSIControllerName},
 				{Type: &corev1.ConfigMap{}, Name: vsphere.VsphereCSIControllerName + "-observability-config"},
 				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: vsphere.VsphereCSIControllerName + "-vpa"},
+				{Type: &corev1.Secret{}, Name: vsphere.SecretVspherePVCSIProviderCreds},
+				{Type: &corev1.ConfigMap{}, Name: vsphere.VspherePVCSIConfig},
 				// csi-snapshot-controller
 				{Type: &appsv1.Deployment{}, Name: vsphere.CSISnapshotControllerName},
 				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: vsphere.CSISnapshotControllerName + "-vpa"},
@@ -399,11 +402,6 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 		checksums[vsphere.CloudProviderConfig] = gutils.ComputeChecksum(secretCloudProviderConfig.Data)
 	}
 
-	secretCSIVsphereConfig := &corev1.Secret{}
-	if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, vsphere.SecretCSIVsphereConfig), secretCSIVsphereConfig); err == nil {
-		checksums[vsphere.SecretCSIVsphereConfig] = gutils.ComputeChecksum(secretCSIVsphereConfig.Data)
-	}
-
 	// TODO: Remove this code in next version. Delete old config
 	if err := vp.deleteCCMMonitoringConfig(ctx, cp.Namespace); err != nil {
 		return nil, err
@@ -415,7 +413,21 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	}
 
 	if credentials.IsVsphereKubernetes() {
-		return vp.getControlPlaneChartValuesForVsphereKubernetes(ctx, cpConfig, cp, cluster, credentials, checksums, scaledDown)
+		secretVspherePVCSIProviderCreds := &corev1.Secret{}
+		if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, vsphere.SecretVspherePVCSIProviderCreds), secretVspherePVCSIProviderCreds); err == nil {
+			checksums[vsphere.SecretVspherePVCSIProviderCreds] = gutils.ComputeChecksum(secretVspherePVCSIProviderCreds.Data)
+		}
+		vspherePVCSIConfig := &corev1.ConfigMap{}
+		if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, vsphere.VspherePVCSIConfig), vspherePVCSIConfig); err == nil {
+			checksums[vsphere.VspherePVCSIConfig] = gutils.ComputeChecksum(vspherePVCSIConfig.Data)
+		}
+
+		return vp.getControlPlaneChartValuesForVsphereKubernetes(ctx, cp, cluster, credentials, checksums, scaledDown)
+	}
+
+	secretCSIVsphereConfig := &corev1.Secret{}
+	if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, vsphere.SecretCSIVsphereConfig), secretCSIVsphereConfig); err == nil {
+		checksums[vsphere.SecretCSIVsphereConfig] = gutils.ComputeChecksum(secretCSIVsphereConfig.Data)
 	}
 
 	// Get control plane chart values
@@ -460,8 +472,8 @@ func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(
 
 // GetStorageClassesChartValues returns the values for the shoot storageclasses chart applied by the generic actuator.
 func (vp *valuesProvider) GetStorageClassesChartValues(
-	_ context.Context,
-	_ *extensionsv1alpha1.ControlPlane,
+	ctx context.Context,
+	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
 
@@ -477,7 +489,18 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	}
 	allowVolumeExpansion := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
 
+	// Get credentials
+	credentials, err := vsphere.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
+	if err != nil {
+		return nil, errors.Wrapf(err, "could not get vSphere credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
+	}
+
+	storagePolicyNameKey := "storagePolicyName"
+	if credentials.IsVsphereKubernetes() {
+		storagePolicyNameKey = "svStorageClass"
+	}
 	return map[string]interface{}{
+		"storagePolicyNameKey": storagePolicyNameKey,
 		"storagePolicyName":    cloudProfileConfig.DefaultClassStoragePolicyName,
 		"volumeBindingMode":    volumeBindingMode,
 		"allowVolumeExpansion": allowVolumeExpansion,
@@ -650,24 +673,10 @@ func (vp *valuesProvider) getConfigChartValuesForVsphereKubernetes(
 		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
 	}
 
-	kubeconfig := credentials.VsphereKubeconfig()
-	cfg, err := withkubernetes.CreateVsphereKubernetesRestConfig(kubeconfig)
-	if err != nil {
-		return nil, err
-	}
-
 	vwk := cloudProfileConfig.VsphereWithKubernetes
-	namespace, _ := withkubernetes.CalcNamespace(cluster, vwk)
+	namespace, _ := withkubernetes.CalcSupervisorNamespace(cluster, vwk)
 
-	client, err := withkubernetes.CreateVsphereKubernetesClient(kubeconfig)
-	if err != nil {
-		return nil, err
-	}
-	name := client2.ObjectKey{
-		Namespace: namespace,
-		Name:      "cloud-controller-manager",
-	}
-	token, err := withkubernetes.GetServiceAccountToken(ctx, client, name)
+	cfg, token, err := vp.getServiceAccountToken(ctx, credentials, namespace, vsphere.CloudControllerManagerName)
 	if err != nil {
 		return nil, err
 	}
@@ -853,7 +862,6 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 // getControlPlaneChartValues collects and returns the control plane chart values.
 func (vp *valuesProvider) getControlPlaneChartValuesForVsphereKubernetes(
 	ctx context.Context,
-	cpConfig *apisvsphere.ControlPlaneConfig,
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 	credentials *vsphere.Credentials,
@@ -861,15 +869,71 @@ func (vp *valuesProvider) getControlPlaneChartValuesForVsphereKubernetes(
 	scaledDown bool,
 ) (map[string]interface{}, error) {
 
-	clusterID, _ := vp.calcClusterIDs(cp)
+	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	vwk := cloudProfileConfig.VsphereWithKubernetes
+	namespace, _ := withkubernetes.CalcSupervisorNamespace(cluster, vwk)
+
+	cfg, token, err := vp.getServiceAccountToken(ctx, credentials, namespace, vsphere.VsphereCSIController)
+	if err != nil {
+		return nil, err
+	}
+
+	endpoint := strings.TrimPrefix(cfg.Host, "https://")
+	port := "443"
+	if parts := strings.SplitN(endpoint, ":", 2); len(parts) == 2 {
+		endpoint = parts[0]
+		port = parts[1]
+	}
+
+	clusterID, csiClusterID := vp.calcClusterIDs(cp)
 	values := map[string]interface{}{
 		"vsphere-cloud-controller-manager": map[string]interface{}{
 			"vsphereWithKubernetes": true,
+			"replicas":              extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
 			"clusterName":           clusterID,
+			"kubernetesVersion":     cluster.Shoot.Spec.Kubernetes.Version,
+			"podNetwork":            extensionscontroller.GetPodNetwork(cluster),
+			"podAnnotations": map[string]interface{}{
+				"checksum/secret-" + vsphere.CloudControllerManagerName:       checksums[vsphere.CloudControllerManagerName],
+				"checksum/secret-" + vsphere.CloudControllerManagerServerName: checksums[vsphere.CloudControllerManagerServerName],
+				"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
+				"checksum/secret-" + vsphere.CloudProviderConfig:              checksums[vsphere.CloudProviderConfig],
+			},
+			"podLabels": map[string]interface{}{
+				v1beta1constants.LabelPodMaintenanceRestart: "true",
+			},
 		},
 		"csi-vsphere": map[string]interface{}{
 			"vsphereWithKubernetes": true,
+			"replicas":              extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
+			"kubernetesVersion":     cluster.Shoot.Spec.Kubernetes.Version,
+			"clusterID":             csiClusterID,
+			"clusterName":           cluster.ObjectMeta.Name,
+			"podAnnotations": map[string]interface{}{
+				"checksum/secret-" + vsphere.CSIProvisionerName:               checksums[vsphere.CSIProvisionerName],
+				"checksum/secret-" + vsphere.CSIAttacherName:                  checksums[vsphere.CSIAttacherName],
+				"checksum/secret-" + vsphere.CSIResizerName:                   checksums[vsphere.CSIResizerName],
+				"checksum/secret-" + vsphere.VsphereCSIController:             checksums[vsphere.VsphereCSIController],
+				"checksum/secret-" + vsphere.VsphereCSISyncer:                 checksums[vsphere.VsphereCSISyncer],
+				"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
+				"checksum/configmap-" + vsphere.VspherePVCSIConfig:            checksums[vsphere.VspherePVCSIConfig],
+				"checksum/secret-" + vsphere.SecretVspherePVCSIProviderCreds:  checksums[vsphere.SecretVspherePVCSIProviderCreds],
+			},
+			"supervisor": map[string]interface{}{
+				"namespace":  namespace,
+				"token":      token,
+				"endpointIP": endpoint,
+				"port":       port,
+			},
 		},
+	}
+
+	if vwk.CaData != nil {
+		values["csi-vsphere"].(map[string]interface{})["supervisor"].(map[string]interface{})["caData"] = *vwk.CaData
 	}
 
 	return values, nil
@@ -930,6 +994,13 @@ func (vp *valuesProvider) getControlPlaneShootChartValuesForVsphereKubernetes(
 	cluster *extensionscontroller.Cluster,
 	credentials *vsphere.Credentials,
 ) (map[string]interface{}, error) {
+	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	vwk := cloudProfileConfig.VsphereWithKubernetes
+	namespace, _ := withkubernetes.CalcSupervisorNamespace(cluster, vwk)
 
 	values := map[string]interface{}{
 		"vsphere-cloud-controller-manager": map[string]interface{}{
@@ -937,6 +1008,9 @@ func (vp *valuesProvider) getControlPlaneShootChartValuesForVsphereKubernetes(
 		},
 		"csi-vsphere": map[string]interface{}{
 			"vsphereWithKubernetes": true,
+			"supervisor": map[string]interface{}{
+				"namespace": namespace,
+			},
 		},
 	}
 
@@ -947,6 +1021,29 @@ func (vp *valuesProvider) calcClusterIDs(cp *extensionsv1alpha1.ControlPlane) (c
 	clusterID = cp.Namespace + "-" + vp.gardenID
 	csiClusterID = shortenID(clusterID, 63)
 	return
+}
+
+func (vp *valuesProvider) getServiceAccountToken(ctx context.Context, credentials *vsphere.Credentials, namespace, name string) (*rest.Config, string, error) {
+	kubeconfig := credentials.VsphereKubeconfig()
+	cfg, err := withkubernetes.CreateVsphereKubernetesRestConfig(kubeconfig)
+	if err != nil {
+		return nil, "", err
+	}
+
+	client, err := withkubernetes.CreateVsphereKubernetesClient(kubeconfig)
+	if err != nil {
+		return nil, "", err
+	}
+
+	key := client2.ObjectKey{
+		Namespace: namespace,
+		Name:      name,
+	}
+	token, err := withkubernetes.GetServiceAccountToken(ctx, client, key)
+	if err != nil {
+		return nil, "", err
+	}
+	return cfg, token, nil
 }
 
 func shortenID(id string, maxlen int) string {

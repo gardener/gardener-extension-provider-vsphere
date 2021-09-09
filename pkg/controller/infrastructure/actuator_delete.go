@@ -71,9 +71,9 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 	return errUpdate
 }
 
-func (a *actuator) deleteK8s(ctx context.Context, prepared *preparedReconcile, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
+func (a *actuator) deleteK8s(ctx context.Context, prepared *preparedReconcile, _ *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	vwk := prepared.cloudProfileConfig.VsphereWithKubernetes
-	namespace, createNamespace := withkubernetes.CalcNamespace(cluster, vwk)
+	namespace, createNamespace := withkubernetes.CalcSupervisorNamespace(cluster, vwk)
 
 	err := a.deleteNetwork(ctx, prepared.k8sClient, ctrlClient.ObjectKey{Namespace: namespace, Name: cluster.ObjectMeta.Name})
 	if err != nil {

@@ -1,0 +1,17 @@
+{{- if .Values.vsphereWithKubernetes }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vsphere-pvcsi-config
+  namespace: {{ .Release.Namespace }}
+data:
+  cns-csi.conf: |-
+    [GC]
+    endpoint = "supervisor.default.svc"
+    port = "{{ .Values.supervisor.port }}"
+    tanzukubernetescluster-uid = "{{ .Values.clusterID }}"
+    tanzukubernetescluster-name = "{{ .Values.clusterName }}"
+    {{- if .Values.clusterDistribution }}
+    cluster-distribution = "{{- .Values.clusterDistribution }}"
+    {{- end -}}
+{{- end }}

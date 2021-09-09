@@ -984,10 +984,12 @@ func Convert_vsphere_VsphereConfig_To_v1alpha1_VsphereConfig(in *vsphere.Vsphere
 
 func autoConvert_v1alpha1_VsphereWithKubernetes_To_vsphere_VsphereWithKubernetes(in *VsphereWithKubernetes, out *vsphere.VsphereWithKubernetes, s conversion.Scope) error {
 	out.Namespace = (*string)(unsafe.Pointer(in.Namespace))
+	out.NamespacePrefix = (*string)(unsafe.Pointer(in.NamespacePrefix))
 	out.StoragePolicies = *(*[]string)(unsafe.Pointer(&in.StoragePolicies))
 	out.ContentLibraries = *(*[]string)(unsafe.Pointer(&in.ContentLibraries))
 	out.VirtualMachineClasses = *(*[]string)(unsafe.Pointer(&in.VirtualMachineClasses))
 	out.Regions = *(*[]vsphere.K8sRegionSpec)(unsafe.Pointer(&in.Regions))
+	out.CaData = (*string)(unsafe.Pointer(in.CaData))
 	return nil
 }
 
@@ -998,10 +1000,12 @@ func Convert_v1alpha1_VsphereWithKubernetes_To_vsphere_VsphereWithKubernetes(in 
 
 func autoConvert_vsphere_VsphereWithKubernetes_To_v1alpha1_VsphereWithKubernetes(in *vsphere.VsphereWithKubernetes, out *VsphereWithKubernetes, s conversion.Scope) error {
 	out.Namespace = (*string)(unsafe.Pointer(in.Namespace))
+	out.NamespacePrefix = (*string)(unsafe.Pointer(in.NamespacePrefix))
 	out.StoragePolicies = *(*[]string)(unsafe.Pointer(&in.StoragePolicies))
 	out.ContentLibraries = *(*[]string)(unsafe.Pointer(&in.ContentLibraries))
 	out.VirtualMachineClasses = *(*[]string)(unsafe.Pointer(&in.VirtualMachineClasses))
 	out.Regions = *(*[]K8sRegionSpec)(unsafe.Pointer(&in.Regions))
+	out.CaData = (*string)(unsafe.Pointer(in.CaData))
 	return nil
 }
 

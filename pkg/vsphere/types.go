@@ -90,6 +90,10 @@ const (
 	CloudProviderConfigMapKey = "cloudprovider.conf"
 	// SecretCSIVsphereConfig is a constant for the secret containing the CSI vSphere config.
 	SecretCSIVsphereConfig = "csi-vsphere-config"
+	// SecretVspherePVCSIProviderCreds is the name for the secret containing the PVCSI provider credentials
+	SecretVspherePVCSIProviderCreds = "vsphere-pvcsi-provider-creds"
+	// VspherePVCSIConfig  is the name for the configmap containing the PVCSI config
+	VspherePVCSIConfig = "vsphere-pvcsi-config"
 	// MachineControllerManagerName is a constant for the name of the machine-controller-manager.
 	MachineControllerManagerName = "machine-controller-manager"
 	// MachineControllerManagerVpaName is the name of the VerticalPodAutoscaler of the machine-controller-manager deployment.

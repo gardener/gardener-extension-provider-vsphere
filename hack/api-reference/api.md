@@ -1912,6 +1912,19 @@ If two shoot clusters use the same namespace, they can see the node network segm
 </tr>
 <tr>
 <td>
+<code>namespacePrefix</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>NamespacePrefix specified the prefix for generated namespaces on the vSphere supervisor cluster.
+unused if namespace is set</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>storagePolicies</code></br>
 <em>
 []string
@@ -1954,6 +1967,18 @@ If two shoot clusters use the same namespace, they can see the node network segm
 </td>
 <td>
 <p>Regions is the specification of regions and zones topology</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>caData</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>CaData is the optional CA to be trusted when connecting to the supervisor cluster. If not set, the node&rsquo;s CA certificates will be used. Only relevant if InsecureFlag=0</p>
 </td>
 </tr>
 </tbody>

@@ -236,6 +236,10 @@ type VsphereWithKubernetes struct {
 	// If two shoot clusters use the same namespace, they can see the node network segments of each other.
 	Namespace *string
 
+	// NamespacePrefix specified the prefix for generated namespaces on the vSphere supervisor cluster.
+	// unused if namespace is set
+	NamespacePrefix *string
+
 	// StoragePolicies are the identifier of the storage policy assigned to a namespace (at least one is needed)
 	StoragePolicies []string
 
@@ -247,6 +251,9 @@ type VsphereWithKubernetes struct {
 
 	// Regions is the specification of regions and zones topology
 	Regions []K8sRegionSpec
+
+	// CaData is the optional CA to be trusted when connecting to the supervisor cluster. If not set, the node's CA certificates will be used. Only relevant if InsecureFlag=0
+	CaData *string
 }
 
 // K8sRegionSpec is the VsphereWithKubernetes specific region spec

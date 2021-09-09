@@ -351,7 +351,7 @@ func (a *actuator) logFailedSaveState(err error, state *apisvsphere.NSXTInfraSta
 
 func (a *actuator) reconcileK8s(ctx context.Context, prepared *preparedReconcile, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	vwk := prepared.cloudProfileConfig.VsphereWithKubernetes
-	namespace, createNamespace := withkubernetes.CalcNamespace(cluster, vwk)
+	namespace, createNamespace := withkubernetes.CalcSupervisorNamespace(cluster, vwk)
 
 	err := a.checkOrCreateNamespace(prepared, namespace, createNamespace, vwk)
 	if err != nil {

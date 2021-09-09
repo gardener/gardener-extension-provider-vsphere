@@ -1,4 +1,3 @@
-{{- if not .Values.vsphereWithKubernetes }}
 kind: DaemonSet
 apiVersion: apps/v1
 metadata:
@@ -54,6 +53,10 @@ spec:
         args:
         - "--fss-name=internal-feature-states.csi.vsphere.vmware.com"
         - "--fss-namespace=$(CSI_NAMESPACE)"
+        {{- if .Values.vsphereWithKubernetes }}
+        - "--supervisor-fss-name=internal-feature-states.csi.vsphere.vmware.com"
+        - "--supervisor-fss-namespace=kube-system"
+        {{- end }}
         env:
         - name: NODE_NAME
           valueFrom:
@@ -71,11 +74,16 @@ spec:
           value: "true"
         - name: NODEGETINFO_WATCH_TIMEOUT_MINUTES
           value: "1"
-{{- if .Values.topologyAware }}
+        {{- if .Values.vsphereWithKubernetes }}
+        - name: CLUSTER_FLAVOR
+          value: "GUEST_CLUSTER"
+        {{- else }}
+        {{- if .Values.topologyAware }}
         # needed only for topology aware setups
         - name: VSPHERE_CSI_CONFIG
           value: "/etc/cloud/csi-vsphere.conf" # here csi-vsphere.conf is the name of the file used for creating secret using "--from-file" flag
-{{- end }}
+        {{- end }}
+        {{- end }}
         - name: LOGGER_LEVEL
           value: "PRODUCTION" # Options: DEVELOPMENT, PRODUCTION
         - name: CSI_NAMESPACE
@@ -86,9 +94,11 @@ spec:
             add: ["SYS_ADMIN"]
           allowPrivilegeEscalation: true
         volumeMounts:
+          {{- if and (not .Values.vsphereWithKubernetes) .Values.topologyAware }}
           - name: vsphere-config-volume
             mountPath: /etc/cloud
             readOnly: true
+          {{- end }}
           - name: plugin-dir
             mountPath: /csi
           - name: pods-mount-dir
@@ -122,9 +132,11 @@ spec:
           - name: plugin-dir
             mountPath: /csi
       volumes:
+        {{- if and (not .Values.vsphereWithKubernetes) .Values.topologyAware }}
         - name: vsphere-config-volume
           secret:
             secretName: csi-vsphere-config
+        {{- end }}
         - name: registration-dir
           hostPath:
             path: /var/lib/kubelet/plugins_registry
@@ -148,4 +160,3 @@ spec:
           hostPath:
             path: /sys/devices
             type: Directory
-{{- end }}

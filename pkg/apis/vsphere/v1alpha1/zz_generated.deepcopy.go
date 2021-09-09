@@ -801,6 +801,11 @@ func (in *VsphereWithKubernetes) DeepCopyInto(out *VsphereWithKubernetes) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.NamespacePrefix != nil {
+		in, out := &in.NamespacePrefix, &out.NamespacePrefix
+		*out = new(string)
+		**out = **in
+	}
 	if in.StoragePolicies != nil {
 		in, out := &in.StoragePolicies, &out.StoragePolicies
 		*out = make([]string, len(*in))
@@ -822,6 +827,11 @@ func (in *VsphereWithKubernetes) DeepCopyInto(out *VsphereWithKubernetes) {
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
+	}
+	if in.CaData != nil {
+		in, out := &in.CaData, &out.CaData
+		*out = new(string)
+		**out = **in
 	}
 	return
 }

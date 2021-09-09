@@ -22,11 +22,15 @@ import (
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 )
 
-// CalcNamespace gets namespace for shoot cluster and if it should be created
-func CalcNamespace(cluster *extensionscontroller.Cluster, vwk *vsphere.VsphereWithKubernetes) (string, bool) {
+// CalcSupervisorNamespace gets namespace for shoot cluster on supervisor and if it should be created
+func CalcSupervisorNamespace(cluster *extensionscontroller.Cluster, vwk *vsphere.VsphereWithKubernetes) (string, bool) {
 	if vwk.Namespace != nil {
 		return *vwk.Namespace, false
 	}
 
-	return cluster.ObjectMeta.Name, true
+	prefix := ""
+	if vwk.NamespacePrefix != nil {
+		prefix = *vwk.NamespacePrefix
+	}
+	return prefix + cluster.ObjectMeta.Name, true
 }
