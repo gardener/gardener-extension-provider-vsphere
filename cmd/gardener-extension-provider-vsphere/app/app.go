@@ -162,9 +162,11 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			reconcileOpts.Completed().Apply(&vsphereworker.DefaultAddOptions.IgnoreOperationAnnotation)
 			workerCtrlOpts.Completed().Apply(&vsphereworker.DefaultAddOptions.Controller)
 
-			if _, _, err := webhookOptions.Completed().AddToManager(mgr); err != nil {
+			_, shootWebhooks, err := webhookOptions.Completed().AddToManager(mgr)
+			if err != nil {
 				return errors.Wrap(err, "Could not add webhooks to manager")
 			}
+			vspherecontrolplane.DefaultAddOptions.ShootWebhooks = shootWebhooks
 
 			if err := controllerSwitches.Completed().AddToManager(mgr); err != nil {
 				return errors.Wrap(err, "Could not add controllers to manager")

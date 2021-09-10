@@ -18,8 +18,8 @@
 package charts
 
 import (
-	"strings"
 	_ "embed"
+	"strings"
 
 	"github.com/gardener/gardener/pkg/utils/imagevector"
 	"k8s.io/apimachinery/pkg/util/runtime"
