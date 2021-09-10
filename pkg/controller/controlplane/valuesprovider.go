@@ -511,17 +511,13 @@ func (vp *valuesProvider) getConfigChartValues(
 		"loadbalancer": loadBalancer,
 		"nsxt": map[string]interface{}{
 			"host":         region.NSXTHost,
-			"insecureFlag": region.VsphereInsecureSSL,
-			"username":     credentials.NSXT_LBAdmin().Username,
-			"password":     credentials.NSXT_LBAdmin().Password,
+			"insecureFlag": region.NSXTInsecureSSL,
+			"username":     credentials.NSXT().Username,
+			"password":     credentials.NSXT().Password,
 			"remoteAuth":   region.NSXTRemoteAuth,
 		},
 	}
 
-	if credentials.NSXT_LBAdmin().Username != credentials.NSXT_NetworkEngineer().Username {
-		values["nsxt"].(map[string]interface{})["usernameNE"] = credentials.NSXT_NetworkEngineer().Username
-		values["nsxt"].(map[string]interface{})["passwordNE"] = credentials.NSXT_NetworkEngineer().Password
-	}
 	if !utils.IsEmptyString(region.CaFile) {
 		values["caFile"] = *region.CaFile
 	}

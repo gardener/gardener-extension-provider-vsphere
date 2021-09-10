@@ -293,11 +293,9 @@ insecure-flag = "true"
 			},
 			"nsxt": map[string]interface{}{
 				"password":     "nsxt-lbadmin-pw",
-				"passwordNE":   "nsxt-ne-pw",
 				"host":         "nsxt.host.internal",
 				"insecureFlag": true,
 				"username":     "nsxt-lbadmin",
-				"usernameNE":   "nsxt-ne",
 				"remoteAuth":   true,
 			},
 			"labelRegion": "k8s-region",

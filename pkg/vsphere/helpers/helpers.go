@@ -25,8 +25,8 @@ import (
 
 func NewNSXTConfig(credentials *vsphere.Credentials, region *api.RegionSpec) *infrastructure.NSXTConfig {
 	return &infrastructure.NSXTConfig{
-		User:         credentials.NSXT_NetworkEngineer().Username,
-		Password:     credentials.NSXT_NetworkEngineer().Password,
+		User:         credentials.NSXT().Username,
+		Password:     credentials.NSXT().Password,
 		Host:         region.NSXTHost,
 		InsecureFlag: region.NSXTInsecureSSL,
 		RemoteAuth:   region.NSXTRemoteAuth,

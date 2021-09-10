@@ -64,10 +64,6 @@ loadBalancerClass:
 nsxt:
   user: "{{ .Values.nsxt.username }}"
   password: "{{ .Values.nsxt.password }}"
-  {{- if .Values.nsxt.usernameNE }}
-  userNE: "{{ .Values.nsxt.usernameNE }}"
-  passwordNE: "{{ .Values.nsxt.passwordNE }}"
-  {{- end }}
   host: "{{ .Values.nsxt.host }}"
   insecureFlag: {{ .Values.nsxt.insecureFlag }}
   remoteAuth: {{ .Values.nsxt.remoteAuth }}

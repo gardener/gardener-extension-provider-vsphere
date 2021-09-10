@@ -18,11 +18,14 @@
 package loadbalancer
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer"
 	"k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer/config"
+	"k8s.io/cloud-provider-vsphere/pkg/nsxt"
+	nsxtconf "k8s.io/cloud-provider-vsphere/pkg/nsxt/config"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 )
@@ -47,17 +50,22 @@ func DestroyAll(cfg *infrastructure.NSXTConfig, state *DestroyState) error {
 			},
 		},
 		LoadBalancerClass: map[string]*config.LoadBalancerClassConfig{},
-		NSXT: config.NsxtConfig{
-			User:         cfg.User,
-			Password:     cfg.Password,
-			Host:         cfg.Host,
-			InsecureFlag: cfg.InsecureFlag,
-			RemoteAuth:   cfg.RemoteAuth,
-		},
 	}
-	lbProvider, err := loadbalancer.NewLBProvider(lbCfg)
+
+	nsxtConfig := &nsxtconf.Config{
+		User:         cfg.User,
+		Password:     cfg.Password,
+		Host:         cfg.Host,
+		InsecureFlag: cfg.InsecureFlag,
+		RemoteAuth:   cfg.RemoteAuth,
+	}
+	connectorManager, err := nsxt.NewConnectorManager(nsxtConfig)
 	if err != nil {
-		return errors.Wrapf(err, "NewLBProvider failed")
+		return fmt.Errorf("NSX-T NewConnectorManager failed: %w", err)
+	}
+	lbProvider, err := loadbalancer.NewLBProvider(lbCfg, connectorManager.GetConnector())
+	if err != nil {
+		return fmt.Errorf("NewLBProvider failed: %w", err)
 	}
 
 	return lbProvider.CleanupServices(state.ClusterName, map[types.NamespacedName]corev1.Service{}, true)
