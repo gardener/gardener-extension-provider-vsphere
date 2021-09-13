@@ -1,20 +1,46 @@
 images:
 - name: csi-attacher
   sourceRepository: https://github.com/kubernetes-csi/external-attacher
-  repository: quay.io/k8scsi/csi-attacher
+  repository: k8s.gcr.io/sig-storage/csi-attacher
   tag: v3.3.0
 - name: csi-resizer
   sourceRepository: github.com/kubernetes-csi/external-resizer
-  repository: quay.io/k8scsi/csi-resizer
-  tag: v1.1.0
+  repository: k8s.gcr.io/sig-storage/csi-resizer
+  tag: v1.3.0
 - name: csi-node-driver-registrar
   sourceRepository: https://github.com/kubernetes-csi/node-driver-registrar
-  repository: quay.io/k8scsi/csi-node-driver-registrar
-  tag: v2.1.0
+  repository: k8s.gcr.io/sig-storage/csi-node-driver-registrar
+  tag: v2.3.0
 - name: csi-provisioner
   sourceRepository: https://github.com/kubernetes-csi/external-provisioner
-  repository: quay.io/k8scsi/csi-provisioner
-  tag: v2.1.0
+  repository: k8s.gcr.io/sig-storage/csi-provisioner
+  tag: v2.2.2
+  targetVersion: "< 1.20"
+- name: csi-provisioner
+  sourceRepository: https://github.com/kubernetes-csi/external-provisioner
+  repository: k8s.gcr.io/sig-storage/csi-provisioner
+  tag: v3.0.0
+  targetVersion: ">= 1.20"
+- name: csi-snapshotter
+  sourceRepository: github.com/kubernetes-csi/external-snapshotter
+  repository: k8s.gcr.io/sig-storage/csi-snapshotter
+  tag: "v3.0.3"
+  targetVersion: "< 1.20"
+- name: csi-snapshotter
+  sourceRepository: github.com/kubernetes-csi/external-snapshotter
+  repository: k8s.gcr.io/sig-storage/csi-snapshotter
+  tag: "v4.2.1"
+  targetVersion: ">= 1.20"
+- name: csi-snapshot-controller
+  sourceRepository: github.com/kubernetes-csi/external-snapshotter
+  repository: k8s.gcr.io/sig-storage/snapshot-controller
+  tag: "v3.0.3"
+  targetVersion: "< 1.20"
+- name: csi-snapshot-controller
+  sourceRepository: github.com/kubernetes-csi/external-snapshotter
+  repository: k8s.gcr.io/sig-storage/snapshot-controller
+  tag: "v4.2.1"
+  targetVersion: ">= 1.20"
 - name: vsphere-cloud-controller-manager
   sourceRepository: github.com/MartinWeindel/cloud-provider-vsphere
   repository: eu.gcr.io/gardener-project/test/cloud-provider-vsphere-martinweindel
@@ -30,21 +56,18 @@ images:
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager-provider-vsphere
   tag: "v0.10.0"
 - name: vsphere-csi-driver-controller
-  #sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
-  #repository: gcr.io/cloud-provider-vsphere/csi/release/driver
-  #tag: v2.0.1
-  sourceRepository: github.com/MartinWeindel/vsphere-csi-driver
-  repository: eu.gcr.io/gardener-project/patches/vsphere-csi-driver/driver
-  tag: v2.2.1-gardener1
+  sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
+  repository: gcr.io/cloud-provider-vsphere/csi/release/driver
+  tag: v2.3.0
 - name: vsphere-csi-driver-node
   sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   repository: gcr.io/cloud-provider-vsphere/csi/release/driver
-  tag: v2.2.1
+  tag: v2.3.0
 - name: vsphere-csi-driver-syncer
   sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   repository: gcr.io/cloud-provider-vsphere/csi/release/syncer
-  tag: v2.2.1
+  tag: v2.3.0
 - name: liveness-probe
   sourceRepository: github.com/kubernetes-csi/livenessprobe
   repository: k8s.gcr.io/sig-storage/livenessprobe
-  tag: v2.3.0
+  tag: v2.4.0

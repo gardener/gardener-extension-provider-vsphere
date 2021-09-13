@@ -6,6 +6,8 @@ images:
   vsphere-csi-driver-controller: image-repository:image-tag
   vsphere-csi-driver-syncer: image-repository:image-tag
   liveness-probe: image-repository:image-tag
+  csi-snapshot-controller: image-repository:image-tag
+
 podAnnotations: {}
 serverName: my.vcenter.server.ip.or.fqdn
 clusterID: shoot--foo--bar
@@ -63,3 +65,24 @@ resources:
     limits:
       cpu: 30m
       memory: 50Mi
+  snapshotter:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 30m
+      memory: 50Mi
+
+csiSnapshotController:
+  replicas: 1
+  podAnnotations: {}
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 30m
+      memory: 50Mi
+
+volumesnapshots:
+  enabled: false # currently not supported by vsphere-csi-driver

@@ -33,6 +33,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apiserver/pkg/authentication/user"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
 
@@ -123,8 +124,22 @@ var controlPlaneSecrets = &secrets.Secrets{
 			},
 			&secrets.ControlPlaneSecretConfig{
 				CertificateSecretConfig: &secrets.CertificateSecretConfig{
-					Name:         vsphere.VsphereCSIController,
-					CommonName:   vsphere.UsernamePrefix + vsphere.VsphereCSIController,
+					Name:       vsphere.CSISnapshotterName,
+					CommonName: vsphere.UsernamePrefix + vsphere.CSISnapshotterName,
+					CertType:   secrets.ClientCert,
+					SigningCA:  cas[v1beta1constants.SecretNameCACluster],
+				},
+				KubeConfigRequests: []secrets.KubeConfigRequest{
+					{
+						ClusterName:   clusterName,
+						APIServerHost: v1beta1constants.DeploymentNameKubeAPIServer,
+					},
+				},
+			},
+			&secrets.ControlPlaneSecretConfig{
+				CertificateSecretConfig: &secrets.CertificateSecretConfig{
+					Name:         vsphere.VsphereCSIControllerName,
+					CommonName:   vsphere.UsernamePrefix + vsphere.VsphereCSIControllerName,
 					Organization: []string{user.SystemPrivilegedGroup},
 					CertType:     secrets.ClientCert,
 					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
@@ -138,8 +153,8 @@ var controlPlaneSecrets = &secrets.Secrets{
 			},
 			&secrets.ControlPlaneSecretConfig{
 				CertificateSecretConfig: &secrets.CertificateSecretConfig{
-					Name:         vsphere.VsphereCSISyncer,
-					CommonName:   vsphere.UsernamePrefix + vsphere.VsphereCSISyncer,
+					Name:         vsphere.VsphereCSISyncerName,
+					CommonName:   vsphere.UsernamePrefix + vsphere.VsphereCSISyncerName,
 					Organization: []string{user.SystemPrivilegedGroup},
 					CertType:     secrets.ClientCert,
 					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
@@ -158,6 +173,20 @@ var controlPlaneSecrets = &secrets.Secrets{
 					Organization: []string{user.SystemPrivilegedGroup},
 					CertType:     secrets.ClientCert,
 					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
+				},
+				KubeConfigRequests: []secrets.KubeConfigRequest{
+					{
+						ClusterName:   clusterName,
+						APIServerHost: v1beta1constants.DeploymentNameKubeAPIServer,
+					},
+				},
+			},
+			&secrets.ControlPlaneSecretConfig{
+				CertificateSecretConfig: &secrets.CertificateSecretConfig{
+					Name:       vsphere.CSISnapshotControllerName,
+					CommonName: vsphere.UsernamePrefix + vsphere.CSISnapshotControllerName,
+					CertType:   secrets.ClientCert,
+					SigningCA:  cas[v1beta1constants.SecretNameCACluster],
 				},
 				KubeConfigRequests: []secrets.KubeConfigRequest{
 					{
@@ -200,12 +229,18 @@ var controlPlaneChart = &chart.Chart{
 				vsphere.CSIDriverControllerImageName,
 				vsphere.CSIDriverSyncerImageName,
 				vsphere.CSIResizerImageName,
-				vsphere.LivenessProbeImageName},
+				vsphere.CSISnapshotterImageName,
+				vsphere.LivenessProbeImageName,
+				vsphere.CSISnapshotControllerImageName},
 			Objects: []*chart.Object{
+				// csi-driver-controller
 				{Type: &corev1.Secret{}, Name: vsphere.SecretCSIVsphereConfig},
-				{Type: &appsv1.Deployment{}, Name: vsphere.VsphereCSIController},
-				{Type: &corev1.ConfigMap{}, Name: vsphere.VsphereCSIController + "-observability-config"},
-				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: vsphere.VsphereCSIController + "-vpa"},
+				{Type: &appsv1.Deployment{}, Name: vsphere.VsphereCSIControllerName},
+				{Type: &corev1.ConfigMap{}, Name: vsphere.VsphereCSIControllerName + "-observability-config"},
+				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: vsphere.VsphereCSIControllerName + "-vpa"},
+				// csi-snapshot-controller
+				{Type: &appsv1.Deployment{}, Name: vsphere.CSISnapshotControllerName},
+				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: vsphere.CSISnapshotControllerName + "-vpa"},
 			},
 		},
 	},
@@ -255,11 +290,36 @@ var controlPlaneShootChart = &chart.Chart{
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIResizerName},
 				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.CSIResizerName},
 				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIResizerName},
+				// csi-snapshotter
+				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotterName},
+				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotterName},
+				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotterName},
+				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotterName},
+				// csi-snapshot-controller
+				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotControllerName},
+				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotControllerName},
+				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotControllerName},
+				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotControllerName},
 				// csi-syncer
-				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncer},
-				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncer},
-				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncer},
-				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncer},
+				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncerName},
+				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncerName},
+				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncerName},
+				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncerName},
+			},
+		},
+	},
+}
+
+var controlPlaneShootCRDsChart = &chart.Chart{
+	Name: "shoot-crds",
+	Path: filepath.Join(vsphere.InternalChartsPath, "shoot-crds"),
+	SubCharts: []*chart.Chart{
+		{
+			Name: "volumesnapshots",
+			Objects: []*chart.Object{
+				{Type: &apiextensionsv1.CustomResourceDefinition{}, Name: "volumesnapshotclasses.snapshot.storage.k8s.io"},
+				{Type: &apiextensionsv1.CustomResourceDefinition{}, Name: "volumesnapshotcontents.snapshot.storage.k8s.io"},
+				{Type: &apiextensionsv1.CustomResourceDefinition{}, Name: "volumesnapshots.snapshot.storage.k8s.io"},
 			},
 		},
 	},
@@ -372,9 +432,14 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(
 	_ context.Context,
 	_ *extensionsv1alpha1.ControlPlane,
-	_ *extensionscontroller.Cluster,
+	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	return map[string]interface{}{}, nil
+	return map[string]interface{}{
+		"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
+		"volumesnapshots": map[string]interface{}{
+			"enabled": false, // not supported in vsphere-csi-driver v2.3.0
+		},
+	}, nil
 }
 
 // GetStorageClassesChartValues returns the values for the shoot storageclasses chart applied by the generic actuator.
@@ -643,10 +708,20 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 				"checksum/secret-" + vsphere.CSIProvisionerName:               checksums[vsphere.CSIProvisionerName],
 				"checksum/secret-" + vsphere.CSIAttacherName:                  checksums[vsphere.CSIAttacherName],
 				"checksum/secret-" + vsphere.CSIResizerName:                   checksums[vsphere.CSIResizerName],
-				"checksum/secret-" + vsphere.VsphereCSIController:             checksums[vsphere.VsphereCSIController],
-				"checksum/secret-" + vsphere.VsphereCSISyncer:                 checksums[vsphere.VsphereCSISyncer],
+				"checksum/secret-" + vsphere.CSISnapshotterName:               checksums[vsphere.CSISnapshotterName],
+				"checksum/secret-" + vsphere.VsphereCSIControllerName:         checksums[vsphere.VsphereCSIControllerName],
+				"checksum/secret-" + vsphere.VsphereCSISyncerName:             checksums[vsphere.VsphereCSISyncerName],
 				"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
 				"checksum/secret-" + vsphere.SecretCSIVsphereConfig:           checksums[vsphere.SecretCSIVsphereConfig],
+			},
+			"csiSnapshotController": map[string]interface{}{
+				"replicas": extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
+				"podAnnotations": map[string]interface{}{
+					"checksum/secret-" + vsphere.CSISnapshotControllerName: checksums[vsphere.CSISnapshotControllerName],
+				},
+			},
+			"volumesnapshots": map[string]interface{}{
+				"enabled": false, // not supported in vsphere-csi-driver v2.3.0
 			},
 		},
 	}

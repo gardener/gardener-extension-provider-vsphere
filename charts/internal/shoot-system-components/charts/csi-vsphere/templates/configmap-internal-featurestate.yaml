@@ -3,6 +3,10 @@ data:
   "csi-migration": "false"
   "csi-auth-check": "true"
   "online-volume-extend": "true"
+  "trigger-csi-fullsync": "false"
+  "async-query-volume": "false"
+  "improved-csi-idempotency": "false"
+  "block-volume-snapshot": "false"
 kind: ConfigMap
 metadata:
   name: internal-feature-states.csi.vsphere.vmware.com

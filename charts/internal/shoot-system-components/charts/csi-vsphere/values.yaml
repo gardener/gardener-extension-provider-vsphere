@@ -3,6 +3,7 @@ images:
   csi-driver-registrar: image-repository:image-tag
   liveness-probe: image-repository:image-tag
 serverName: my.vcenter.server.ip.or.fqdn
+kubernetesVersion: 1.20.1
 clusterID: shoot--foo--bar
 username: myuser
 password: mypassword

@@ -19,6 +19,7 @@ spec:
     spec:
       automountServiceAccountToken: true
       hostNetwork: true
+      dnsPolicy: "ClusterFirstWithHostNet"
       priorityClassName: system-node-critical
       serviceAccount: csi-driver-node
       tolerations:
@@ -37,11 +38,9 @@ spec:
               command: ["/bin/sh", "-c", "rm -rf /registration/csi.vsphere.vmware.com-reg.sock /csi/csi.sock /var/lib/kubelet/plugins_registry/csi.vsphere.vmware.com-reg.sock"]
         args:
         - "--v=5"
-        - "--csi-address=$(ADDRESS)"
+        - "--csi-address=/csi/csi.sock"
         - "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)"
         env:
-        - name: ADDRESS
-          value: /csi/csi.sock
         - name: DRIVER_REG_SOCK_PATH
           value: /var/lib/kubelet/plugins_registry/csi.vsphere.vmware.com/csi.sock
         volumeMounts:
@@ -51,6 +50,9 @@ spec:
           mountPath: /registration
       - name: vsphere-csi-node
         image: {{ index .Values.images "vsphere-csi-driver-node" }}
+        args:
+        - "--fss-name=internal-feature-states.csi.vsphere.vmware.com"
+        - "--fss-namespace=$(CSI_NAMESPACE)"
         env:
         - name: NODE_NAME
           valueFrom:
@@ -58,10 +60,16 @@ spec:
               fieldPath: spec.nodeName
         - name: CSI_ENDPOINT
           value: unix:///csi/csi.sock
+        - name: MAX_VOLUMES_PER_NODE
+          value: "0" # Maximum number of volumes that controller can publish to the node. If value is not set or zero Kubernetes decide how many volumes can be published by the controller to the node.
         - name: X_CSI_MODE
           value: "node"
         - name: X_CSI_SPEC_REQ_VALIDATION
           value: "false"
+        - name: X_CSI_SPEC_DISABLE_LEN_CHECK
+          value: "true"
+        - name: NODEGETINFO_WATCH_TIMEOUT_MINUTES
+          value: "1"
 {{- if .Values.topologyAware }}
         # needed only for topology aware setups
         - name: VSPHERE_CSI_CONFIG
@@ -70,9 +78,7 @@ spec:
         - name: LOGGER_LEVEL
           value: "PRODUCTION" # Options: DEVELOPMENT, PRODUCTION
         - name: CSI_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
+          value: kube-system
         securityContext:
           privileged: true
           capabilities:
@@ -110,10 +116,7 @@ spec:
       - name: liveness-probe
         image: {{ index .Values.images "liveness-probe" }}
         args:
-          - "--csi-address=$(ADDRESS)"
-        env:
-          - name: ADDRESS
-            value: /csi/csi.sock
+          - "--csi-address=/csi/csi.sock"
         volumeMounts:
           - name: plugin-dir
             mountPath: /csi
