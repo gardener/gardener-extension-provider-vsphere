@@ -38,9 +38,7 @@ type Credentials struct {
 	vsphereCCM *UserPass
 	vsphereCSI *UserPass
 
-	nsxt        *UserPass
-	nsxtLBAdmin *UserPass
-	nsxtNE      *UserPass
+	nsxt *UserPass
 }
 
 func (c *Credentials) VsphereMCM() UserPass {
@@ -64,17 +62,7 @@ func (c *Credentials) VsphereCSI() UserPass {
 	return *c.vsphere
 }
 
-func (c *Credentials) NSXT_LBAdmin() UserPass {
-	if c.nsxtLBAdmin != nil {
-		return *c.nsxtLBAdmin
-	}
-	return *c.nsxt
-}
-
-func (c *Credentials) NSXT_NetworkEngineer() UserPass {
-	if c.nsxtNE != nil {
-		return *c.nsxtNE
-	}
+func (c *Credentials) NSXT() UserPass {
 	return *c.nsxt
 }
 
@@ -122,24 +110,16 @@ func ExtractCredentials(secret *corev1.Secret) (*Credentials, error) {
 		return nil, fmt.Errorf("Need either common or CSI specific vSphere account credentials: %s, %s", vsphereErr, err)
 	}
 
-	nsxt, nsxtErr := extractUserPass(secret, NSXTUsername, NSXTPassword)
-
-	nsxtLBAdmin, err := extractUserPass(secret, NSXTUsernameLBAdmin, NSXTPasswordLBAdmin)
-	if err != nil && nsxtErr != nil {
-		return nil, fmt.Errorf("Need either common or LB admin NSX-T account credentials: %s, %s", nsxtErr, err)
-	}
-	nsxtNE, err := extractUserPass(secret, NSXTUsernameNE, NSXTPasswordNE)
-	if err != nil && nsxtErr != nil {
-		return nil, fmt.Errorf("Need either common or network engineer NSX-T account credentials: %s, %s", nsxtErr, err)
+	nsxt, err := extractUserPass(secret, NSXTUsername, NSXTPassword)
+	if err != nil {
+		return nil, fmt.Errorf("Need NSX-T account credentials: %s", err)
 	}
 
 	return &Credentials{
-		vsphere:     vsphere,
-		vsphereMCM:  mcm,
-		vsphereCCM:  ccm,
-		vsphereCSI:  csi,
-		nsxt:        nsxt,
-		nsxtLBAdmin: nsxtLBAdmin,
-		nsxtNE:      nsxtNE,
+		vsphere:    vsphere,
+		vsphereMCM: mcm,
+		vsphereCCM: ccm,
+		vsphereCSI: csi,
+		nsxt:       nsxt,
 	}, nil
 }

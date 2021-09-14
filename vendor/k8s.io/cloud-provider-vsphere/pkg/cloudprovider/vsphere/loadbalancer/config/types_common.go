@@ -20,7 +20,6 @@ package config
 type LBConfig struct {
 	LoadBalancer      LoadBalancerConfig
 	LoadBalancerClass map[string]*LoadBalancerClassConfig
-	NSXT              NsxtConfig
 }
 
 // LoadBalancerConfig contains the configuration for the load balancer itself
@@ -40,24 +39,4 @@ type LoadBalancerClassConfig struct {
 	TCPAppProfilePath string
 	UDPAppProfileName string
 	UDPAppProfilePath string
-}
-
-// NsxtConfig contains the NSX-T specific configuration
-type NsxtConfig struct {
-	// NSX-T username.
-	User string
-	// NSX-T password in clear text.
-	Password string
-	// NSX-T host.
-	Host string
-	// InsecureFlag is to be set to true if NSX-T uses self-signed cert.
-	InsecureFlag bool
-	// RemoteAuth is to be set to true if NSX-T uses remote authentication (authentication done through the vIDM).
-	RemoteAuth bool
-
-	VMCAccessToken     string
-	VMCAuthHost        string
-	ClientAuthCertFile string
-	ClientAuthKeyFile  string
-	CAFile             string
 }

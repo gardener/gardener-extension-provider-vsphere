@@ -43,12 +43,9 @@ spec:
           args:
             - "--v=4"
             - "--timeout=300s"
-            - "--csi-address=$(ADDRESS)"
+            - "--csi-address=/csi/csi.sock"
             - "--leader-election"
             - "--kubeconfig=/var/lib/csi-attacher/kubeconfig"
-          env:
-            - name: ADDRESS
-              value: /csi/csi.sock
 {{- if .Values.resources.attacher }}
           resources:
 {{ toYaml .Values.resources.attacher | indent 12 }}
@@ -65,14 +62,11 @@ spec:
             - "--v=4"
             - "--timeout=300s"
             - "--handle-volume-inuse-error=false"
-            - "--csi-address=$(ADDRESS)"
+            - "--csi-address=/csi/csi.sock"
             - "--kube-api-qps=100"
             - "--kube-api-burst=100"
             - "--leader-election"
             - --kubeconfig=/var/lib/csi-resizer/kubeconfig
-          env:
-            - name: ADDRESS
-              value: /csi/csi.sock
 {{- if .Values.resources.resizer }}
           resources:
 {{ toYaml .Values.resources.resizer | indent 12 }}
@@ -103,9 +97,7 @@ spec:
             - name: INCLUSTER_CLIENT_BURST
               value: "100"
             - name: CSI_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: kube-system
 {{- if .Values.resources.controller }}
           resources:
 {{ toYaml .Values.resources.controller | indent 12 }}
@@ -152,9 +144,7 @@ spec:
             - name: INCLUSTER_CLIENT_BURST
               value: "100"
             - name: CSI_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: kube-system
 {{- if .Values.resources.syncer }}
           resources:
 {{ toYaml .Values.resources.syncer | indent 12 }}
@@ -199,6 +189,27 @@ spec:
               name: socket-dir
             - name: csi-provisioner
               mountPath: /var/lib/csi-provisioner
+{{- if .Values.volumesnapshots.enabled }}
+        - name: csi-snapshotter
+          image: {{ index .Values.images "csi-snapshotter" }}
+          args:
+            - "--v=4"
+            - "--timeout=300s"
+            - "--csi-address=/csi/csi.sock"
+            - "--kubeconfig=/var/lib/csi-snapshotter/kubeconfig"
+            - "--leader-election"
+            - "--leader-election-namespace=kube-system"
+            - "--snapshot-name-prefix={{ .Release.Namespace }}"
+{{- if .Values.resources.snapshotter }}
+          resources:
+{{ toYaml .Values.resources.snapshotter | indent 12 }}
+{{- end }}
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /csi
+            - name: csi-snapshotter
+              mountPath: /var/lib/csi-snapshotter
+{{- end }}
       volumes:
         - name: vsphere-csi-controller
           secret:
@@ -215,24 +226,13 @@ spec:
         - name: csi-resizer
           secret:
             secretName: csi-resizer
+{{- if .Values.volumesnapshots.enabled }}
+        - name: csi-snapshotter
+          secret:
+            secretName: csi-snapshotter
+{{- end }}
         - name: vsphere-config-volume
           secret:
             secretName: csi-vsphere-config
         - name: socket-dir
           emptyDir: {}
----
-apiVersion: v1
-data:
-  "csi-migration": "false" # csi-migration feature is only available for vSphere 7.0U1
-kind: ConfigMap
-metadata:
-  name: internal-feature-states.csi.vsphere.vmware.com
-  namespace: {{ .Release.Namespace }}
----
-apiVersion: storage.k8s.io/v1beta1
-kind: CSIDriver
-metadata:
-  name: csi.vsphere.vmware.com
-spec:
-  attachRequired: true
-  podInfoOnMount: false

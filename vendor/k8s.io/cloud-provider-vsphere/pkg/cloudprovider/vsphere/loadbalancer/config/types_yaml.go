@@ -24,14 +24,12 @@ package config
 	LBConfigYAML -> LBConfig
 	LoadBalancerClassConfigYAML -> LoadBalancerClassConfig
 	LoadBalancerClassConfigYAML -> LoadBalancerClassConfig
-	NsxtConfigYAML -> NsxtConfig
 */
 
 // LBConfigYAML  is used to read and store information from the cloud configuration file
 type LBConfigYAML struct {
 	LoadBalancer      LoadBalancerConfigYAML                  `yaml:"loadBalancer"`
 	LoadBalancerClass map[string]*LoadBalancerClassConfigYAML `yaml:"loadBalancerClass"`
-	NSXT              NsxtConfigYAML                          `yaml:"nsxt"`
 }
 
 // LoadBalancerConfigYAML contains the configuration for the load balancer itself
@@ -59,24 +57,4 @@ type LoadBalancerClassConfigYAML struct {
 	TCPAppProfilePath string `yaml:"tcpAppProfilePath"`
 	UDPAppProfileName string `yaml:"udpAppProfileName"`
 	UDPAppProfilePath string `yaml:"udpAppProfilePath"`
-}
-
-// NsxtConfigYAML contains the NSX-T specific configuration
-type NsxtConfigYAML struct {
-	// NSX-T username.
-	User string `yaml:"user"`
-	// NSX-T password in clear text.
-	Password string `yaml:"password"`
-	// NSX-T host.
-	Host string `yaml:"host"`
-	// InsecureFlag is to be set to true if NSX-T uses self-signed cert.
-	InsecureFlag bool `yaml:"insecureFlag"`
-	// RemoteAuth is to be set to true if NSX-T uses remote authentication (authentication done through the vIDM).
-	RemoteAuth bool `yaml:"remoteAuth"`
-
-	VMCAccessToken     string `yaml:"vmcAccessToken"`
-	VMCAuthHost        string `yaml:"vmcAuthHost"`
-	ClientAuthCertFile string `yaml:"clientAuthCertFile"`
-	ClientAuthKeyFile  string `yaml:"clientAuthKeyFile"`
-	CAFile             string `yaml:"caFile"`
 }

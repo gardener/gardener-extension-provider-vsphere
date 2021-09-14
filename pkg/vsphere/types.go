@@ -47,8 +47,12 @@ const (
 	CSIDriverSyncerImageName = "vsphere-csi-driver-syncer"
 	// CSIResizerImageName is the name of the csi-resizer image.
 	CSIResizerImageName = "csi-resizer"
+	// CSISnapshotterImageName is the name of the csi-snapshotter image.
+	CSISnapshotterImageName = "csi-snapshotter"
 	// LivenessProbeImageName is the name of the liveness-probe image.
 	LivenessProbeImageName = "liveness-probe"
+	// CSISnapshotControllerImageName is the name of the csi-snapshot-controller image.
+	CSISnapshotControllerImageName = "csi-snapshot-controller"
 
 	// Host is a constant for the key in a cloud provider secret holding the VSphere host name
 	Host = "vsphereHost"
@@ -75,14 +79,6 @@ const (
 	NSXTUsername = "nsxtUsername"
 	// Password is a constant for the key in a cloud provider secret holding the NSX-T password for user with role 'Enterprise Admin'
 	NSXTPassword = "nsxtPassword"
-	// NSXTUsernameLBAdmin is a constant for the key in a cloud provider secret holding the NSX-T user name with role 'LB Admin' (needed for CloudControllerManager)
-	NSXTUsernameLBAdmin = "nsxtUsernameLBAdmin"
-	// NSXTPasswordLBAdmin is a constant for the key in a cloud provider secret holding the NSX-T password for user with role 'LB Admin'
-	NSXTPasswordLBAdmin = "nsxtPasswordLBAdmin"
-	// NSXTUsernameNE is a constant for the key in a cloud provider secret holding the NSX-T user name with role 'Network Engineer' (needed for infrastructure and IP pools address allocation in CloudControllerManager)
-	NSXTUsernameNE = "nsxtUsernameNE"
-	// NSXTPasswordNE is a constant for the key in a cloud provider secret holding the NSX-T password for user with role 'Network Engineer'
-	NSXTPasswordNE = "nsxtPasswordNE"
 
 	// CloudProviderConfig is the name of the configmap containing the cloud provider config.
 	CloudProviderConfig = "cloud-provider-config"
@@ -107,10 +103,14 @@ const (
 	CSIAttacherName = "csi-attacher"
 	// CSIResizerName is a constant for the name of the csi-resizer component.
 	CSIResizerName = "csi-resizer"
-	// VsphereCSIController is a constant for the name of the vsphere-csi-controller component.
-	VsphereCSIController = "vsphere-csi-controller"
-	// VsphereCSISyncer is a constant for the name of the vsphere-csi-syncer component.
-	VsphereCSISyncer = "csi-syncer"
+	// CSISnapshotterName is a constant for the name of the csi-snapshotter component.
+	CSISnapshotterName = "csi-snapshotter"
+	// CSISnapshotControllerName is a constant for the name of the csi-snapshot-controller component.
+	CSISnapshotControllerName = "csi-snapshot-controller"
+	// VsphereCSIControllerName is a constant for the name of the vsphere-csi-controller component.
+	VsphereCSIControllerName = "vsphere-csi-controller"
+	// VsphereCSISyncerName is a constant for the name of the vsphere-csi-syncer component.
+	VsphereCSISyncerName = "csi-syncer"
 	// CSINodeName is a constant for the chart name for a CSI node deployment in the shoot.
 	CSINodeName = "vsphere-csi-node"
 	// CSIDriverName is a constant for the name of the csi-driver component.
