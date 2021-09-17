@@ -59,7 +59,7 @@ images:
   sourceRepository: github.com/gardener/machine-controller-manager-provider-vsphere
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager-provider-vsphere
   # experimental support for vm-operator-api PR #14
-  tag: "v0.11.0-dev-586903274236d7c4d7edf5d0c8fba64203864d1b"
+  tag: "v0.11.0-dev-vmop1"
 - name: vsphere-csi-driver-controller
   #sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   #repository: gcr.io/cloud-provider-vsphere/csi/release/driver
