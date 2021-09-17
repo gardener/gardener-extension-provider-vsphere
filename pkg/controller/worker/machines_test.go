@@ -233,7 +233,7 @@ var _ = Describe("Machines", func() {
 									APIVersion: "vsphere.provider.extensions.gardener.cloud/v1alpha1",
 									Kind:       "InfrastructureStatus",
 								},
-								VsphereConfig: apiv1alpha1.VsphereConfig{
+								VsphereConfig: &apiv1alpha1.VsphereConfig{
 									Folder: folder,
 									Region: region,
 									ZoneConfigs: map[string]apiv1alpha1.ZoneConfig{

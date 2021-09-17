@@ -353,7 +353,7 @@ func (a *actuator) reconcileK8s(ctx context.Context, prepared *preparedReconcile
 	vwk := prepared.cloudProfileConfig.VsphereWithKubernetes
 	namespace, createNamespace := withkubernetes.CalcSupervisorNamespace(cluster, vwk)
 
-	err := a.checkOrCreateNamespace(prepared, namespace, createNamespace, vwk)
+	err := a.checkOrCreateNamespace(ctx, prepared, namespace, createNamespace, vwk)
 	if err != nil {
 		return err
 	}
@@ -372,11 +372,14 @@ func (a *actuator) reconcileK8s(ctx context.Context, prepared *preparedReconcile
 		return err
 	}
 	ncpRouterID, err := a.lookupNCPRouterID(ctx, prepared.k8sClient, namespace)
+	if err != nil {
+		return err
+	}
 
 	return a.updateProviderStatusK8s(ctx, infra, cluster.ObjectMeta.Name, ncpRouterID)
 }
 
-func (a *actuator) checkOrCreateNamespace(prepared *preparedReconcile, namespace string, create bool, vwk *apisvsphere.VsphereWithKubernetes) error {
+func (a *actuator) checkOrCreateNamespace(ctx context.Context, prepared *preparedReconcile, namespace string, create bool, vwk *apisvsphere.VsphereWithKubernetes) error {
 	vsphereCluster, err := prepared.apiClient.GetNamespaceCluster(namespace)
 
 	if create && withkubernetes.IsNotFoundError(err) {
@@ -388,6 +391,46 @@ func (a *actuator) checkOrCreateNamespace(prepared *preparedReconcile, namespace
 		return fmt.Errorf("namespace %s cannot looked up: %w", namespace, err)
 	} else if vsphereCluster != prepared.k8sRegion.Cluster {
 		return fmt.Errorf("namespace %s has wrong cluster: %s != %s (region=%s)", namespace, vsphereCluster, prepared.k8sRegion.Cluster, prepared.k8sRegion.Name)
+	}
+
+	return a.ensureNamespaceShootLabel(ctx, prepared, namespace)
+}
+
+func (a *actuator) ensureNamespaceShootLabel(ctx context.Context, prepared *preparedReconcile, namespace string) error {
+	key := ctrlClient.ObjectKey{Name: namespace}
+	ns := &corev1.Namespace{}
+	err := prepared.k8sClient.Get(ctx, key, ns)
+	if err != nil {
+		return fmt.Errorf("cannot get kubernetes namespace object %s: %w", namespace, err)
+	}
+	if labels := ns.GetLabels(); labels == nil || labels["gardener.cloud/purpose"] != "shoot" {
+		// currently this label is needed to disable patched webhooks on supervisor cluster:
+		// - "ValidatingWebhookConfiguration/vmware-system-tkg-validating-webhook-configuration"
+		//   - webhook named "capi.validating.tanzukubernetescluster.run.tanzu.vmware.com"
+		// - "ValidatingWebhookConfiguration/vmware-system-vmop-validating-webhook-configuration"
+		//   - webhook named "default.validating.virtualmachine.vmoperator.vmware.com"
+		//
+		// In both cases a namespaceSelector has been added to exclude this label
+		//      "namespaceSelector": {
+		//                "matchExpressions": [
+		//                    {
+		//                        "key": "gardener.cloud/purpose",
+		//                        "operator": "NotIn",
+		//                        "values": [
+		//                            "shoot"
+		//                        ]
+		//                    }
+		//                ]
+		//            }
+		if labels == nil {
+			labels = map[string]string{}
+		}
+		labels["gardener.cloud/purpose"] = "shoot"
+		ns.SetLabels(labels)
+		err = prepared.k8sClient.Update(ctx, ns)
+		if err != nil {
+			return fmt.Errorf("cannot set label for kubernetes namespace object %s: %w", namespace, err)
+		}
 	}
 	return nil
 }

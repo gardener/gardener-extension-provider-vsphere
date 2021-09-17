@@ -877,7 +877,7 @@ func (vp *valuesProvider) getControlPlaneChartValuesForVsphereKubernetes(
 	vwk := cloudProfileConfig.VsphereWithKubernetes
 	namespace, _ := withkubernetes.CalcSupervisorNamespace(cluster, vwk)
 
-	cfg, token, err := vp.getServiceAccountToken(ctx, credentials, namespace, vsphere.VsphereCSIController)
+	cfg, token, err := vp.getServiceAccountToken(ctx, credentials, namespace, vsphere.VsphereCSIControllerName)
 	if err != nil {
 		return nil, err
 	}
@@ -888,6 +888,8 @@ func (vp *valuesProvider) getControlPlaneChartValuesForVsphereKubernetes(
 		endpoint = parts[0]
 		port = parts[1]
 	}
+
+	csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
 
 	clusterID, csiClusterID := vp.calcClusterIDs(cp)
 	values := map[string]interface{}{
@@ -913,12 +915,13 @@ func (vp *valuesProvider) getControlPlaneChartValuesForVsphereKubernetes(
 			"kubernetesVersion":     cluster.Shoot.Spec.Kubernetes.Version,
 			"clusterID":             csiClusterID,
 			"clusterName":           cluster.ObjectMeta.Name,
+			"resizerEnabled":        csiResizerEnabled,
 			"podAnnotations": map[string]interface{}{
 				"checksum/secret-" + vsphere.CSIProvisionerName:               checksums[vsphere.CSIProvisionerName],
 				"checksum/secret-" + vsphere.CSIAttacherName:                  checksums[vsphere.CSIAttacherName],
 				"checksum/secret-" + vsphere.CSIResizerName:                   checksums[vsphere.CSIResizerName],
-				"checksum/secret-" + vsphere.VsphereCSIController:             checksums[vsphere.VsphereCSIController],
-				"checksum/secret-" + vsphere.VsphereCSISyncer:                 checksums[vsphere.VsphereCSISyncer],
+				"checksum/secret-" + vsphere.VsphereCSIControllerName:         checksums[vsphere.VsphereCSIControllerName],
+				"checksum/secret-" + vsphere.VsphereCSISyncerName:             checksums[vsphere.VsphereCSISyncerName],
 				"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
 				"checksum/configmap-" + vsphere.VspherePVCSIConfig:            checksums[vsphere.VspherePVCSIConfig],
 				"checksum/secret-" + vsphere.SecretVspherePVCSIProviderCreds:  checksums[vsphere.SecretVspherePVCSIProviderCreds],

@@ -28,4 +28,7 @@ rules:
   - apiGroups: ["cns.vmware.com"]
     resources: ["cnsvolumemetadatas"]
     verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
+  - apiGroups: ["cns.vmware.com"]
+    resources: ["cnscsisvfeaturestates"]
+    verbs: ["get", "list", "watch"]
 

@@ -227,6 +227,15 @@ func ValidateCloudProfileConfig(profileSpec *gardencorev1beta1.CloudProfileSpec,
 			if len(region.Zones) == 0 {
 				allErrs = append(allErrs, field.Required(regionPath.Child("zones"), fmt.Sprintf("must provide zones for region %s", region.Name)))
 			}
+			for j, zone := range region.Zones {
+				zonePath := regionPath.Child("zones").Index(j)
+				if zone.Name == "" {
+					allErrs = append(allErrs, field.Required(zonePath.Child("name"), "must provide zone name"))
+				}
+				if zone.VMStorageClassName == "" {
+					allErrs = append(allErrs, field.Required(zonePath.Child("vmStorageClassName"), "must provide VM storage class name"))
+				}
+			}
 		}
 	}
 
