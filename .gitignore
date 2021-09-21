@@ -19,9 +19,6 @@ TODO
 .virtualgo
 .fuse_hidden*
 
-# Packr generated files
-*-packr.go
-
 # GitGuardian
 .cache_ggshield
 .gitguardian.yaml
