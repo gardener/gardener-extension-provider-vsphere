@@ -410,8 +410,6 @@ DNS=%s
 
 	format := `%s
 
-rm /etc/resolv.conf
-ln -s /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 cat << EOF | base64 -d > '/etc/systemd/resolved.conf'
 %s
 EOF
