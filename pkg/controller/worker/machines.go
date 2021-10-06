@@ -274,6 +274,7 @@ func (w *workerDelegate) makeMachineClassSpecVsphereWithKubernetes(pool v1alpha1
 
 	// work around for missing fields for DNS servers in virtual network
 	// overwrite the file `/etc/resolv.conf` in the cloud-init user data
+	// cannot be performed in EnsureAdditionalFiles (webhook/controlplane) as it is needed in the initial cloudconfig
 	userData := appendResolvConf(pool.UserData, w.cloudProfileConfig.DNSServers)
 
 	machineClassSpec := map[string]interface{}{

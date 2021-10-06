@@ -94,7 +94,7 @@ vsphereWithKubernetes: false
 #  port: xxx
 #  token: xxx
 #  namespace: ns
-#  cacert: ca
+#  caData: ca
 
 #clusterName: shoot--foo--bar
 #clusterDistribution: ""
