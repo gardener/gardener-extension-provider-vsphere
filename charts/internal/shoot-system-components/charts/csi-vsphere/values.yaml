@@ -15,3 +15,5 @@ topologyAware: true
 
 #labelRegion: k8s-region
 #labelZone: k8s-zone
+
+vsphereWithKubernetes: false

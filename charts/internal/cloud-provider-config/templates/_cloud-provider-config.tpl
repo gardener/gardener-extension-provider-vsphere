@@ -10,6 +10,7 @@ global:
   thumbprint: "{{ .Values.thumbprint }}"
   {{- end }}
 
+{{- if not .Values.vsphereWithKubernetes }}
 vcenter:
   {{ .Values.serverName }}:
     server: {{ .Values.serverName }}
@@ -21,6 +22,7 @@ vcenter:
     user: "{{ .Values.username }}"
     password: "{{ .Values.password }}"
     insecureFlag: {{ .Values.insecureFlag }}
+{{- end }}
 
 {{- if (or .Values.labelRegion .Values.labelZone) }}
 labels:
@@ -33,6 +35,9 @@ labels:
 {{- end }}
 
 loadBalancer:
+  {{- if .Values.vsphereWithKubernetes }}
+  enabled: true
+  {{- end }}
   {{- if .Values.loadbalancer.lbServiceId }}
   lbServiceId: "{{ .Values.loadbalancer.lbServiceId }}"
   {{- end }}
@@ -67,4 +72,21 @@ nsxt:
   host: "{{ .Values.nsxt.host }}"
   insecureFlag: {{ .Values.nsxt.insecureFlag }}
   remoteAuth: {{ .Values.nsxt.remoteAuth }}
+
+{{- if .Values.vsphereWithKubernetes }}
+supervisor:
+  token: {{ .Values.supervisor.token }}
+  namespace: {{ .Values.supervisor.namespace }}
+  apiserver: {{ .Values.supervisor.apiserver }}
+{{- if .Values.supervisor.caData }}
+  caData: {{ .Values.supervisor.caData }}
+{{- end }}
+{{- if .Values.supervisor.apiserverFQDN }}
+  apiserverFQDN: {{ .Values.supervisor.apiserverFQDN }}
+{{- end }}
+{{- if .Values.supervisor.insecure }}
+  insecure: {{ .Values.supervisor.insecure }}
+{{- end }}
+{{- end }}
+
 {{- end -}}

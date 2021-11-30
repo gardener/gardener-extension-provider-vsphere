@@ -32,9 +32,11 @@ type InfrastructureConfig struct {
 	metav1.TypeMeta
 	// Networks contains optional existing network infrastructure to use.
 	// If not defined, NSX-T Tier-1 gateway and load balancer are created for the shoot cluster.
+	// unused if VsphereWithKubernetes is set
 	Networks *Networks
 	// OverwriteNSXTInfraVersion allows to fix the ensurer version used to create the NSXT-T infrastructure.
 	// This is an advanced configuration to overwrite the automatic version selection.
+	// unused if VsphereWithKubernetes is set
 	OverwriteNSXTInfraVersion *string
 }
 
@@ -49,11 +51,16 @@ type Networks struct {
 // VsphereConfig holds information about vSphere resources to use.
 type VsphereConfig struct {
 	// Folder is the folder name to store the cloned machine VM
+	// not filled if VsphereWithKubernetes is set
 	Folder string
 	// Region is the vSphere region
 	Region string
 	// ZoneConfig holds information about zone
+	// not filled if VsphereWithKubernetes is set
 	ZoneConfigs map[string]ZoneConfig
+	// Namespace is the vSphere Kubernetes namespace
+	// only filled if VsphereWithKubernetes is set
+	Namespace string
 }
 
 // ZoneConfig holds zone specific information about vSphere resources to use.
@@ -114,8 +121,17 @@ type NSXTInfraState struct {
 type InfrastructureStatus struct {
 	metav1.TypeMeta
 
-	VsphereConfig VsphereConfig
-
+	// not filled if VsphereWithKubernetes is set
+	VsphereConfig *VsphereConfig
+	// not filled if VsphereWithKubernetes is set
 	CreationStarted *bool
-	NSXTInfraState  *NSXTInfraState
+	// not filled if VsphereWithKubernetes is set
+	NSXTInfraState *NSXTInfraState
+
+	// VirtualNetwork is the name of the network segment in the vSphere Kubernetes namespace
+	// only filled if VsphereWithKubernetes is set
+	VirtualNetwork *string
+	// NCPRouterID is the identifier of the Tier1 gateway (router) of the vSphere Kubernetes namespace
+	// only filled if VsphereWithKubernetes is set
+	NCPRouterID *string
 }

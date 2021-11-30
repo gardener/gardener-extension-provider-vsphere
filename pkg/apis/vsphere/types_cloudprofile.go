@@ -24,19 +24,29 @@ import (
 // resource.
 type CloudProfileConfig struct {
 	metav1.TypeMeta
+
+	// VsphereWithKubernetes if true, infrastructure and VMs are created on vSphere Kubernetes workloads (supervisor cluster)
+	VsphereWithKubernetes *VsphereWithKubernetes
+
 	// NamePrefix is used for naming NSX-T resources
+	// unused if VsphereWithKubernetes is set
 	NamePrefix string
 	// Folder is the vSphere folder name to store the cloned machine VM (worker nodes)
+	// unused if VsphereWithKubernetes is set
 	Folder string
 	// Regions is the specification of regions and zones topology
+	// unused if VsphereWithKubernetes is set
 	Regions []RegionSpec
 	// DefaultClassStoragePolicyName is the name of the vSphere storage policy to use for the 'default-class' storage class
 	DefaultClassStoragePolicyName string
 	// FailureDomainLabels are the tag categories used for regions and zones.
+	// unused if VsphereWithKubernetes is set
 	FailureDomainLabels *FailureDomainLabels
 	// DNSServers is a list of IPs of DNS servers used while creating subnets.
+	// unused if VsphereWithKubernetes is set
 	DNSServers []string
 	// DHCPOptions contains optional options for DHCP like Domain name, NTP server,...
+	// unused if VsphereWithKubernetes is set
 	DHCPOptions []DHCPOption
 
 	// MachineImages is the list of machine images that are understood by the controller. It maps
@@ -47,6 +57,7 @@ type CloudProfileConfig struct {
 	// CSIResizerDisabled is a flag to disable the CSI resizer (e.g. resizer is not supported for vSphere 6.7)
 	CSIResizerDisabled *bool
 	// MachineTypeOptions is the list of machine type options to set additional options for individual machine types.
+	// unused if VsphereWithKubernetes is set
 	MachineTypeOptions []MachineTypeOptions
 	// DockerDaemonOptions contains configuration options for docker daemon service
 	DockerDaemonOptions *DockerDaemonOptions
@@ -168,8 +179,10 @@ type MachineImageVersion struct {
 	// Version is the version of the image.
 	Version string
 	// Path is the path of the VM template.
+	// if VsphereWithKubernetes is set, it contains the name of the `VirtualMachineImage.vmoperator.vmware.com` resource
 	Path string
 	// GuestID is the optional guestId to overwrite the guestId of the VM template.
+	// unused if VsphereWithKubernetes is set
 	GuestID *string
 }
 
@@ -215,4 +228,63 @@ type DockerDaemonOptions struct {
 	// InsecureRegistries adds the given registries to Docker on the worker nodes
 	// (see https://docs.docker.com/registry/insecure/)
 	InsecureRegistries []string
+}
+
+// VsphereWithKubernetes contains settings for using "VSphere with Kubernetes" (experimental)
+type VsphereWithKubernetes struct {
+	// Namespace optionally specifies the namespace on the vSphere supervisor cluster (and implicitly the T1 Gateway)
+	// If two shoot clusters use the same namespace, they can see the node network segments of each other.
+	Namespace *string
+
+	// NamespacePrefix specified the prefix for generated namespaces on the vSphere supervisor cluster.
+	// unused if namespace is set
+	NamespacePrefix *string
+
+	// StoragePolicies are the identifier of the storage policy assigned to a namespace (at least one is needed)
+	StoragePolicies []string
+
+	// ContentLibraries are the content libraries identifiers to use to find OS images (at least one is needed)
+	ContentLibraries []string
+
+	// VirtualMachineClasses are the names of `virtualmachineclass.vmoperator.vmware.com` allowed (at least one is needed)
+	VirtualMachineClasses []string
+
+	// Regions is the specification of regions and zones topology
+	Regions []K8sRegionSpec
+
+	// CaData is the optional CA to be trusted when connecting to the supervisor cluster. If not set, the node's CA certificates will be used. Only relevant if InsecureFlag=0
+	CaData *string
+}
+
+// K8sRegionSpec is the VsphereWithKubernetes specific region spec
+type K8sRegionSpec struct {
+	// Name is the name of the region
+	Name string
+
+	// Cluster is the vSphere cluster id
+	Cluster string
+
+	// VsphereHost is the vSphere host
+	VsphereHost string
+	// VsphereInsecureSSL is a flag if insecure HTTPS is allowed for VsphereHost
+	VsphereInsecureSSL bool
+	// NSXTHost is the NSX-T host
+	NSXTHost string
+	// NSXTInsecureSSL is a flag if insecure HTTPS is allowed for NSXTHost
+	NSXTInsecureSSL bool
+	// NSXTRemoteAuth is a flag if NSX-T uses remote authentication (authentication done through the vIDM).
+	NSXTRemoteAuth bool
+
+	// Zones is the list of zone specifications of the region.
+	Zones []K8sZoneSpec
+}
+
+// K8sZoneSpec specifies a zone of a K8s region.
+// currently only a placeholder
+type K8sZoneSpec struct {
+	// Name is the name of the zone
+	Name string
+
+	// VMStorageClassName is the name of the storage class object used for VMs
+	VMStorageClassName string
 }

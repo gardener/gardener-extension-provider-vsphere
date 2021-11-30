@@ -233,7 +233,7 @@ var _ = Describe("Machines", func() {
 									APIVersion: "vsphere.provider.extensions.gardener.cloud/v1alpha1",
 									Kind:       "InfrastructureStatus",
 								},
-								VsphereConfig: apiv1alpha1.VsphereConfig{
+								VsphereConfig: &apiv1alpha1.VsphereConfig{
 									Folder: folder,
 									Region: region,
 									ZoneConfigs: map[string]apiv1alpha1.ZoneConfig{
@@ -357,12 +357,15 @@ var _ = Describe("Machines", func() {
 						filepath.Join(vsphere.InternalChartsPath, "machineclass"),
 						namespace,
 						"machineclass",
-						kubernetes.Values(map[string]interface{}{"machineClasses": []map[string]interface{}{
-							machineClassPool1Zone1,
-							machineClassPool1Zone2,
-							machineClassPool2Zone1,
-							machineClassPool2Zone2,
-						}}),
+						kubernetes.Values(map[string]interface{}{
+							"machineClasses": []map[string]interface{}{
+								machineClassPool1Zone1,
+								machineClassPool1Zone2,
+								machineClassPool2Zone1,
+								machineClassPool2Zone2,
+							},
+							"vsphereWithKubernetes": false,
+						}),
 					).
 					Return(nil)
 

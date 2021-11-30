@@ -37,6 +37,12 @@ spec:
         networking.gardener.cloud/to-shoot-apiserver: allowed
     spec:
       automountServiceAccountToken: false
+      {{- if .Values.vsphereWithKubernetes }}
+      hostAliases:
+        - ip: {{ .Values.supervisor.endpointIP }}
+          hostnames:
+            - "supervisor.default.svc"
+      {{- end }}
       containers:
         - name: csi-attacher
           image: {{ index .Values.images "csi-attacher" }}
@@ -80,6 +86,10 @@ spec:
         - name: vsphere-csi-controller
           image: {{ index .Values.images "vsphere-csi-driver-controller" }}
           args:
+            {{- if .Values.vsphereWithKubernetes }}
+            - "--supervisor-fss-name=internal-feature-states.csi.vsphere.vmware.com"
+            - "--supervisor-fss-namespace=$(CSI_NAMESPACE)"
+            {{- end }}
             - "--fss-name=internal-feature-states.csi.vsphere.vmware.com"
             - "--fss-namespace=$(CSI_NAMESPACE)"
             - "--kubeconfig=/var/lib/vsphere-csi-controller/kubeconfig"
@@ -88,8 +98,6 @@ spec:
               value: unix:///csi/csi.sock
             - name: X_CSI_MODE
               value: "controller"
-            - name: VSPHERE_CSI_CONFIG
-              value: "/etc/cloud/csi-vsphere.conf"
             - name: LOGGER_LEVEL
               value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
             - name: INCLUSTER_CLIENT_QPS
@@ -98,14 +106,36 @@ spec:
               value: "100"
             - name: CSI_NAMESPACE
               value: kube-system
+            {{- if .Values.vsphereWithKubernetes }}
+            - name: CLUSTER_FLAVOR
+              value: "GUEST_CLUSTER"
+            - name: SUPERVISOR_CLIENT_QPS
+              value: "50"
+            - name: SUPERVISOR_CLIENT_BURST
+              value: "50"
+            - name: GC_CONFIG
+              value: /etc/cloud/pvcsi-config/cns-csi.conf
+            {{- else }}
+            - name: VSPHERE_CSI_CONFIG
+              value: "/etc/cloud/csi-vsphere.conf"
+            {{- end }}
 {{- if .Values.resources.controller }}
           resources:
 {{ toYaml .Values.resources.controller | indent 12 }}
 {{- end }}
           volumeMounts:
+            {{- if .Values.vsphereWithKubernetes }}
+            - mountPath: /etc/cloud/pvcsi-provider
+              name: pvcsi-provider-volume
+              readOnly: true
+            - mountPath: /etc/cloud/pvcsi-config
+              name: pvcsi-config-volume
+              readOnly: true
+            {{- else }}
             - mountPath: /etc/cloud
               name: vsphere-config-volume
               readOnly: true
+            {{- end }}
             - mountPath: /csi
               name: socket-dir
             - name: vsphere-csi-controller
@@ -132,11 +162,13 @@ spec:
             - "--kubeconfig=/var/lib/csi-syncer/kubeconfig"
             - "--fss-name=internal-feature-states.csi.vsphere.vmware.com"
             - "--fss-namespace=$(CSI_NAMESPACE)"
+            {{- if .Values.vsphereWithKubernetes }}
+            - "--supervisor-fss-name=csi-feature-states"
+            - "--supervisor-fss-namespace={{ .Values.supervisor.namespace }}"
+            {{- end }}
           env:
             - name: FULL_SYNC_INTERVAL_MINUTES
               value: "30"
-            - name: VSPHERE_CSI_CONFIG
-              value: "/etc/cloud/csi-vsphere.conf"
             - name: LOGGER_LEVEL
               value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
             - name: INCLUSTER_CLIENT_QPS
@@ -145,6 +177,19 @@ spec:
               value: "100"
             - name: CSI_NAMESPACE
               value: kube-system
+            {{- if .Values.vsphereWithKubernetes }}
+            - name: CLUSTER_FLAVOR
+              value: "GUEST_CLUSTER"
+            - name: SUPERVISOR_CLIENT_QPS
+              value: "50"
+            - name: SUPERVISOR_CLIENT_BURST
+              value: "50"
+            - name: GC_CONFIG
+              value: /etc/cloud/pvcsi-config/cns-csi.conf
+            {{- else }}
+            - name: VSPHERE_CSI_CONFIG
+              value: "/etc/cloud/csi-vsphere.conf"
+            {{- end }}
 {{- if .Values.resources.syncer }}
           resources:
 {{ toYaml .Values.resources.syncer | indent 12 }}
@@ -152,9 +197,18 @@ spec:
           volumeMounts:
             - name: csi-syncer
               mountPath: /var/lib/csi-syncer
+            {{- if .Values.vsphereWithKubernetes }}
+            - mountPath: /etc/cloud/pvcsi-provider
+              name: pvcsi-provider-volume
+              readOnly: true
+            - mountPath: /etc/cloud/pvcsi-config
+              name: pvcsi-config-volume
+              readOnly: true
+            {{- else }}
             - mountPath: /etc/cloud
               name: vsphere-config-volume
               readOnly: true
+            {{- end }}
         - name: csi-liveness-probe
           image: {{ index .Values.images "liveness-probe" }}
           args:
@@ -175,8 +229,10 @@ spec:
             - "--csi-address=/csi/csi.sock"
             - "--kube-api-qps=100"
             - "--kube-api-burst=100"
+            {{- if not .Values.vsphereWithKubernetes }}
             - "--feature-gates=Topology=true"
             - "--strict-topology"
+            {{- end }}
             - "--leader-election"
             - "--kubeconfig=/var/lib/csi-provisioner/kubeconfig"
             - "--default-fstype=ext4"
@@ -231,8 +287,17 @@ spec:
           secret:
             secretName: csi-snapshotter
 {{- end }}
+{{- if .Values.vsphereWithKubernetes }}
+        - name: pvcsi-provider-volume
+          secret:
+            secretName: vsphere-pvcsi-provider-creds
+        - name: pvcsi-config-volume
+          configMap:
+            name: vsphere-pvcsi-config
+{{- else }}
         - name: vsphere-config-volume
           secret:
             secretName: csi-vsphere-config
+{{- end }}
         - name: socket-dir
           emptyDir: {}

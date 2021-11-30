@@ -29,6 +29,17 @@ machineClasses:
     vsphereUsername: "a_user"
     vspherePassword: "a_password"
     vsphereInsecureSSL: "true"
+    # value for vsphereWithKubernetes == true
+    vsphereKubeconfig: ZHVtbXk=
   tags:
   - kubernetes.io/cluster/foo
   - kubernetes.io/role/node
+
+  # values for vsphereWithKubernetes == true
+  namespace: "shoot--foo--bar"
+  imageName: "gardenlinux-123.0"
+  className: "best-effort-medium"
+  networkType: "nsx-t"
+  networkName: "shoot--foo--bar"
+
+vsphereWithKubernetes: false

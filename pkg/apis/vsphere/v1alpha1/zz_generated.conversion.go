@@ -145,6 +145,26 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*K8sRegionSpec)(nil), (*vsphere.K8sRegionSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_K8sRegionSpec_To_vsphere_K8sRegionSpec(a.(*K8sRegionSpec), b.(*vsphere.K8sRegionSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*vsphere.K8sRegionSpec)(nil), (*K8sRegionSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_vsphere_K8sRegionSpec_To_v1alpha1_K8sRegionSpec(a.(*vsphere.K8sRegionSpec), b.(*K8sRegionSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*K8sZoneSpec)(nil), (*vsphere.K8sZoneSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_K8sZoneSpec_To_vsphere_K8sZoneSpec(a.(*K8sZoneSpec), b.(*vsphere.K8sZoneSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*vsphere.K8sZoneSpec)(nil), (*K8sZoneSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_vsphere_K8sZoneSpec_To_v1alpha1_K8sZoneSpec(a.(*vsphere.K8sZoneSpec), b.(*K8sZoneSpec), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*LoadBalancerClass)(nil), (*vsphere.LoadBalancerClass)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1alpha1_LoadBalancerClass_To_vsphere_LoadBalancerClass(a.(*LoadBalancerClass), b.(*vsphere.LoadBalancerClass), scope)
 	}); err != nil {
@@ -252,6 +272,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*vsphere.VsphereConfig)(nil), (*VsphereConfig)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_vsphere_VsphereConfig_To_v1alpha1_VsphereConfig(a.(*vsphere.VsphereConfig), b.(*VsphereConfig), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*VsphereWithKubernetes)(nil), (*vsphere.VsphereWithKubernetes)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_VsphereWithKubernetes_To_vsphere_VsphereWithKubernetes(a.(*VsphereWithKubernetes), b.(*vsphere.VsphereWithKubernetes), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*vsphere.VsphereWithKubernetes)(nil), (*VsphereWithKubernetes)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_vsphere_VsphereWithKubernetes_To_v1alpha1_VsphereWithKubernetes(a.(*vsphere.VsphereWithKubernetes), b.(*VsphereWithKubernetes), scope)
 	}); err != nil {
 		return err
 	}
@@ -363,6 +393,7 @@ func Convert_vsphere_CloudControllerManagerConfig_To_v1alpha1_CloudControllerMan
 }
 
 func autoConvert_v1alpha1_CloudProfileConfig_To_vsphere_CloudProfileConfig(in *CloudProfileConfig, out *vsphere.CloudProfileConfig, s conversion.Scope) error {
+	out.VsphereWithKubernetes = (*vsphere.VsphereWithKubernetes)(unsafe.Pointer(in.VsphereWithKubernetes))
 	out.NamePrefix = in.NamePrefix
 	out.Folder = in.Folder
 	out.Regions = *(*[]vsphere.RegionSpec)(unsafe.Pointer(&in.Regions))
@@ -386,6 +417,7 @@ func Convert_v1alpha1_CloudProfileConfig_To_vsphere_CloudProfileConfig(in *Cloud
 }
 
 func autoConvert_vsphere_CloudProfileConfig_To_v1alpha1_CloudProfileConfig(in *vsphere.CloudProfileConfig, out *CloudProfileConfig, s conversion.Scope) error {
+	out.VsphereWithKubernetes = (*VsphereWithKubernetes)(unsafe.Pointer(in.VsphereWithKubernetes))
 	out.NamePrefix = in.NamePrefix
 	out.Folder = in.Folder
 	out.Regions = *(*[]RegionSpec)(unsafe.Pointer(&in.Regions))
@@ -545,11 +577,11 @@ func Convert_vsphere_InfrastructureConfig_To_v1alpha1_InfrastructureConfig(in *v
 }
 
 func autoConvert_v1alpha1_InfrastructureStatus_To_vsphere_InfrastructureStatus(in *InfrastructureStatus, out *vsphere.InfrastructureStatus, s conversion.Scope) error {
-	if err := Convert_v1alpha1_VsphereConfig_To_vsphere_VsphereConfig(&in.VsphereConfig, &out.VsphereConfig, s); err != nil {
-		return err
-	}
+	out.VsphereConfig = (*vsphere.VsphereConfig)(unsafe.Pointer(in.VsphereConfig))
 	out.CreationStarted = (*bool)(unsafe.Pointer(in.CreationStarted))
 	out.NSXTInfraState = (*vsphere.NSXTInfraState)(unsafe.Pointer(in.NSXTInfraState))
+	out.VirtualNetwork = (*string)(unsafe.Pointer(in.VirtualNetwork))
+	out.NCPRouterID = (*string)(unsafe.Pointer(in.NCPRouterID))
 	return nil
 }
 
@@ -559,17 +591,73 @@ func Convert_v1alpha1_InfrastructureStatus_To_vsphere_InfrastructureStatus(in *I
 }
 
 func autoConvert_vsphere_InfrastructureStatus_To_v1alpha1_InfrastructureStatus(in *vsphere.InfrastructureStatus, out *InfrastructureStatus, s conversion.Scope) error {
-	if err := Convert_vsphere_VsphereConfig_To_v1alpha1_VsphereConfig(&in.VsphereConfig, &out.VsphereConfig, s); err != nil {
-		return err
-	}
+	out.VsphereConfig = (*VsphereConfig)(unsafe.Pointer(in.VsphereConfig))
 	out.CreationStarted = (*bool)(unsafe.Pointer(in.CreationStarted))
 	out.NSXTInfraState = (*NSXTInfraState)(unsafe.Pointer(in.NSXTInfraState))
+	out.VirtualNetwork = (*string)(unsafe.Pointer(in.VirtualNetwork))
+	out.NCPRouterID = (*string)(unsafe.Pointer(in.NCPRouterID))
 	return nil
 }
 
 // Convert_vsphere_InfrastructureStatus_To_v1alpha1_InfrastructureStatus is an autogenerated conversion function.
 func Convert_vsphere_InfrastructureStatus_To_v1alpha1_InfrastructureStatus(in *vsphere.InfrastructureStatus, out *InfrastructureStatus, s conversion.Scope) error {
 	return autoConvert_vsphere_InfrastructureStatus_To_v1alpha1_InfrastructureStatus(in, out, s)
+}
+
+func autoConvert_v1alpha1_K8sRegionSpec_To_vsphere_K8sRegionSpec(in *K8sRegionSpec, out *vsphere.K8sRegionSpec, s conversion.Scope) error {
+	out.Name = in.Name
+	out.Cluster = in.Cluster
+	out.VsphereHost = in.VsphereHost
+	out.VsphereInsecureSSL = in.VsphereInsecureSSL
+	out.NSXTHost = in.NSXTHost
+	out.NSXTInsecureSSL = in.NSXTInsecureSSL
+	out.NSXTRemoteAuth = in.NSXTRemoteAuth
+	out.Zones = *(*[]vsphere.K8sZoneSpec)(unsafe.Pointer(&in.Zones))
+	return nil
+}
+
+// Convert_v1alpha1_K8sRegionSpec_To_vsphere_K8sRegionSpec is an autogenerated conversion function.
+func Convert_v1alpha1_K8sRegionSpec_To_vsphere_K8sRegionSpec(in *K8sRegionSpec, out *vsphere.K8sRegionSpec, s conversion.Scope) error {
+	return autoConvert_v1alpha1_K8sRegionSpec_To_vsphere_K8sRegionSpec(in, out, s)
+}
+
+func autoConvert_vsphere_K8sRegionSpec_To_v1alpha1_K8sRegionSpec(in *vsphere.K8sRegionSpec, out *K8sRegionSpec, s conversion.Scope) error {
+	out.Name = in.Name
+	out.Cluster = in.Cluster
+	out.VsphereHost = in.VsphereHost
+	out.VsphereInsecureSSL = in.VsphereInsecureSSL
+	out.NSXTHost = in.NSXTHost
+	out.NSXTInsecureSSL = in.NSXTInsecureSSL
+	out.NSXTRemoteAuth = in.NSXTRemoteAuth
+	out.Zones = *(*[]K8sZoneSpec)(unsafe.Pointer(&in.Zones))
+	return nil
+}
+
+// Convert_vsphere_K8sRegionSpec_To_v1alpha1_K8sRegionSpec is an autogenerated conversion function.
+func Convert_vsphere_K8sRegionSpec_To_v1alpha1_K8sRegionSpec(in *vsphere.K8sRegionSpec, out *K8sRegionSpec, s conversion.Scope) error {
+	return autoConvert_vsphere_K8sRegionSpec_To_v1alpha1_K8sRegionSpec(in, out, s)
+}
+
+func autoConvert_v1alpha1_K8sZoneSpec_To_vsphere_K8sZoneSpec(in *K8sZoneSpec, out *vsphere.K8sZoneSpec, s conversion.Scope) error {
+	out.Name = in.Name
+	out.VMStorageClassName = in.VMStorageClassName
+	return nil
+}
+
+// Convert_v1alpha1_K8sZoneSpec_To_vsphere_K8sZoneSpec is an autogenerated conversion function.
+func Convert_v1alpha1_K8sZoneSpec_To_vsphere_K8sZoneSpec(in *K8sZoneSpec, out *vsphere.K8sZoneSpec, s conversion.Scope) error {
+	return autoConvert_v1alpha1_K8sZoneSpec_To_vsphere_K8sZoneSpec(in, out, s)
+}
+
+func autoConvert_vsphere_K8sZoneSpec_To_v1alpha1_K8sZoneSpec(in *vsphere.K8sZoneSpec, out *K8sZoneSpec, s conversion.Scope) error {
+	out.Name = in.Name
+	out.VMStorageClassName = in.VMStorageClassName
+	return nil
+}
+
+// Convert_vsphere_K8sZoneSpec_To_v1alpha1_K8sZoneSpec is an autogenerated conversion function.
+func Convert_vsphere_K8sZoneSpec_To_v1alpha1_K8sZoneSpec(in *vsphere.K8sZoneSpec, out *K8sZoneSpec, s conversion.Scope) error {
+	return autoConvert_vsphere_K8sZoneSpec_To_v1alpha1_K8sZoneSpec(in, out, s)
 }
 
 func autoConvert_v1alpha1_LoadBalancerClass_To_vsphere_LoadBalancerClass(in *LoadBalancerClass, out *vsphere.LoadBalancerClass, s conversion.Scope) error {
@@ -872,6 +960,7 @@ func autoConvert_v1alpha1_VsphereConfig_To_vsphere_VsphereConfig(in *VsphereConf
 	out.Folder = in.Folder
 	out.Region = in.Region
 	out.ZoneConfigs = *(*map[string]vsphere.ZoneConfig)(unsafe.Pointer(&in.ZoneConfigs))
+	out.Namespace = in.Namespace
 	return nil
 }
 
@@ -884,12 +973,45 @@ func autoConvert_vsphere_VsphereConfig_To_v1alpha1_VsphereConfig(in *vsphere.Vsp
 	out.Folder = in.Folder
 	out.Region = in.Region
 	out.ZoneConfigs = *(*map[string]ZoneConfig)(unsafe.Pointer(&in.ZoneConfigs))
+	out.Namespace = in.Namespace
 	return nil
 }
 
 // Convert_vsphere_VsphereConfig_To_v1alpha1_VsphereConfig is an autogenerated conversion function.
 func Convert_vsphere_VsphereConfig_To_v1alpha1_VsphereConfig(in *vsphere.VsphereConfig, out *VsphereConfig, s conversion.Scope) error {
 	return autoConvert_vsphere_VsphereConfig_To_v1alpha1_VsphereConfig(in, out, s)
+}
+
+func autoConvert_v1alpha1_VsphereWithKubernetes_To_vsphere_VsphereWithKubernetes(in *VsphereWithKubernetes, out *vsphere.VsphereWithKubernetes, s conversion.Scope) error {
+	out.Namespace = (*string)(unsafe.Pointer(in.Namespace))
+	out.NamespacePrefix = (*string)(unsafe.Pointer(in.NamespacePrefix))
+	out.StoragePolicies = *(*[]string)(unsafe.Pointer(&in.StoragePolicies))
+	out.ContentLibraries = *(*[]string)(unsafe.Pointer(&in.ContentLibraries))
+	out.VirtualMachineClasses = *(*[]string)(unsafe.Pointer(&in.VirtualMachineClasses))
+	out.Regions = *(*[]vsphere.K8sRegionSpec)(unsafe.Pointer(&in.Regions))
+	out.CaData = (*string)(unsafe.Pointer(in.CaData))
+	return nil
+}
+
+// Convert_v1alpha1_VsphereWithKubernetes_To_vsphere_VsphereWithKubernetes is an autogenerated conversion function.
+func Convert_v1alpha1_VsphereWithKubernetes_To_vsphere_VsphereWithKubernetes(in *VsphereWithKubernetes, out *vsphere.VsphereWithKubernetes, s conversion.Scope) error {
+	return autoConvert_v1alpha1_VsphereWithKubernetes_To_vsphere_VsphereWithKubernetes(in, out, s)
+}
+
+func autoConvert_vsphere_VsphereWithKubernetes_To_v1alpha1_VsphereWithKubernetes(in *vsphere.VsphereWithKubernetes, out *VsphereWithKubernetes, s conversion.Scope) error {
+	out.Namespace = (*string)(unsafe.Pointer(in.Namespace))
+	out.NamespacePrefix = (*string)(unsafe.Pointer(in.NamespacePrefix))
+	out.StoragePolicies = *(*[]string)(unsafe.Pointer(&in.StoragePolicies))
+	out.ContentLibraries = *(*[]string)(unsafe.Pointer(&in.ContentLibraries))
+	out.VirtualMachineClasses = *(*[]string)(unsafe.Pointer(&in.VirtualMachineClasses))
+	out.Regions = *(*[]K8sRegionSpec)(unsafe.Pointer(&in.Regions))
+	out.CaData = (*string)(unsafe.Pointer(in.CaData))
+	return nil
+}
+
+// Convert_vsphere_VsphereWithKubernetes_To_v1alpha1_VsphereWithKubernetes is an autogenerated conversion function.
+func Convert_vsphere_VsphereWithKubernetes_To_v1alpha1_VsphereWithKubernetes(in *vsphere.VsphereWithKubernetes, out *VsphereWithKubernetes, s conversion.Scope) error {
+	return autoConvert_vsphere_VsphereWithKubernetes_To_v1alpha1_VsphereWithKubernetes(in, out, s)
 }
 
 func autoConvert_v1alpha1_WorkerStatus_To_vsphere_WorkerStatus(in *WorkerStatus, out *vsphere.WorkerStatus, s conversion.Scope) error {

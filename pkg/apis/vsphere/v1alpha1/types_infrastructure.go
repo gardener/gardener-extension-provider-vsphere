@@ -26,10 +26,12 @@ type InfrastructureConfig struct {
 	metav1.TypeMeta `json:",inline"`
 	// Networks contains optional existing network infrastructure to use.
 	// If not defined, NSX-T Tier-1 gateway and load balancer are created for the shoot cluster.
+	// unused if VsphereWithKubernetes is set
 	// +optional
 	Networks *Networks `json:"networks,omitempty"`
 	// OverwriteNSXTInfraVersion allows to fix the ensurer version used to create the NSXT-T infrastructure.
 	// This is an advanced configuration to overwrite the automatic version selection.
+	// unused if VsphereWithKubernetes is set
 	// +optional
 	OverwriteNSXTInfraVersion *string `json:"overwriteNSXTInfraVersion,omitempty"`
 }
@@ -45,11 +47,16 @@ type Networks struct {
 // VsphereConfig holds information about vSphere resources to use.
 type VsphereConfig struct {
 	// Folder is the folder name to store the cloned machine VM
+	// not filled if VsphereWithKubernetes is set
 	Folder string `json:"folder,omitempty"`
 	// Region is the vSphere region
 	Region string `json:"region"`
 	// ZoneConfig holds information about zone
+	// not filled if VsphereWithKubernetes is set
 	ZoneConfigs map[string]ZoneConfig `json:"zoneConfigs"`
+	// Namespace is the vSphere Kubernetes namespace
+	// only filled if VsphereWithKubernetes is set
+	Namespace string `json:"namespace,omitempty"`
 }
 
 // ZoneConfig holds zone specific information about vSphere resources to use.
@@ -110,8 +117,22 @@ type NSXTInfraState struct {
 type InfrastructureStatus struct {
 	metav1.TypeMeta `json:",inline"`
 
-	VsphereConfig VsphereConfig `json:"vsphereConfig"`
+	// not filled if VsphereWithKubernetes is set
+	// +optional
+	VsphereConfig *VsphereConfig `json:"vsphereConfig,omitempty"`
+	// not filled if VsphereWithKubernetes is set
+	// +optional
+	CreationStarted *bool `json:"creationStarted,omitempty"`
+	// not filled if VsphereWithKubernetes is set
+	// +optional
+	NSXTInfraState *NSXTInfraState `json:"nsxtInfraState,omitempty"`
 
-	CreationStarted *bool           `json:"creationStarted,omitempty"`
-	NSXTInfraState  *NSXTInfraState `json:"nsxtInfraState,omitempty"`
+	// VirtualNetwork is the name of the network segment in the vSphere Kubernetes namespace
+	// only filled if VsphereWithKubernetes is set
+	// +optional
+	VirtualNetwork *string `json:"virtualNetwork,omitempty"`
+	// NCPRouterID is the identifier of the Tier1 gateway (router) of the vSphere Kubernetes namespace
+	// only filled if VsphereWithKubernetes is set
+	// +optional
+	NCPRouterID *string `json:"ncpRouterID,omitempty"`
 }

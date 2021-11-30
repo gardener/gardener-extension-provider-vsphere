@@ -32,6 +32,8 @@ const (
 	MCMProviderVsphereImageName = "machine-controller-manager-provider-vsphere"
 	// CloudControllerImageName is the name of the external vSphere CloudProvider image.
 	CloudControllerImageName = "vsphere-cloud-controller-manager"
+	// CloudControllerImageName is the name of the external vSphere CloudProvider image.
+	CloudControllerImageNameVWK8s = "vsphere-with-k8s-cloud-controller-manager"
 
 	// CSIAttacherImageName is the name of the CSI attacher image.
 	CSIAttacherImageName = "csi-attacher"
@@ -74,6 +76,8 @@ const (
 	PasswordCSI = "vspherePasswordCSI"
 	// InsecureSSL is a constant for the key in a cloud provider secret holding the boolean flag to allow insecure HTTPS connections to the VSphere host
 	InsecureSSL = "vsphereInsecureSSL"
+	// Kubeconfig is a constant for the key in a cloud provider secret holding the VSphere kubeconfige (only relevant for vSphere with Kubernetes)
+	Kubeconfig = "vsphereKubeconfig"
 
 	// NSXTUsername is a constant for the key in a cloud provider secret holding the NSX-T user name with role 'Enterprise Admin' (optional, for all components)
 	NSXTUsername = "nsxtUsername"
@@ -86,6 +90,10 @@ const (
 	CloudProviderConfigMapKey = "cloudprovider.conf"
 	// SecretCSIVsphereConfig is a constant for the secret containing the CSI vSphere config.
 	SecretCSIVsphereConfig = "csi-vsphere-config"
+	// SecretVspherePVCSIProviderCreds is the name for the secret containing the PVCSI provider credentials
+	SecretVspherePVCSIProviderCreds = "vsphere-pvcsi-provider-creds"
+	// VspherePVCSIConfig  is the name for the configmap containing the PVCSI config
+	VspherePVCSIConfig = "vsphere-pvcsi-config"
 	// MachineControllerManagerName is a constant for the name of the machine-controller-manager.
 	MachineControllerManagerName = "machine-controller-manager"
 	// MachineControllerManagerVpaName is the name of the VerticalPodAutoscaler of the machine-controller-manager deployment.

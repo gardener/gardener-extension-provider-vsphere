@@ -66,6 +66,19 @@ func FindRegion(name string, cloudProfileConfig *api.CloudProfileConfig) *api.Re
 	return nil
 }
 
+// FindK8sRegion finds a K8sRegionSpec by name in the clound profile config
+func FindK8sRegion(name string, cloudProfileConfig *api.CloudProfileConfig) *api.K8sRegionSpec {
+	if cloudProfileConfig.VsphereWithKubernetes == nil {
+		return nil
+	}
+	for _, r := range cloudProfileConfig.VsphereWithKubernetes.Regions {
+		if r.Name == name {
+			return &r
+		}
+	}
+	return nil
+}
+
 // CollectDatacenters collects all datacenters used in the region and its zones
 func CollectDatacenters(region *api.RegionSpec) []string {
 	dcSet := sets.NewString()

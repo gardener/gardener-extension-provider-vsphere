@@ -36,12 +36,21 @@ spec:
     spec:
       containers:
       - name: vsphere-cloud-controller-manager
+{{- if .Values.vsphereWithKubernetes }}
+        image: {{ index .Values.images "vsphere-with-k8s-cloud-controller-manager" }}
+{{- else}}
         image: {{ index .Values.images "vsphere-cloud-controller-manager" }}
+{{- end }}
         imagePullPolicy: IfNotPresent
         command:
+{{- if .Values.vsphereWithKubernetes }}
+        - /bin/vspherewk8s-cloud-controller-manager
+        - --cloud-provider=vsphere-with-k8s
+{{- else}}
         - /bin/vsphere-cloud-controller-manager
-        - --allocate-node-cidrs=true
         - --cloud-provider=vsphere
+{{- end }}
+        - --allocate-node-cidrs=true
         - --cloud-config=/etc/kubernetes/cloudprovider/cloudprovider.conf
         - --cluster-cidr={{ .Values.podNetwork }}
         - --cluster-name={{ .Values.clusterName }}

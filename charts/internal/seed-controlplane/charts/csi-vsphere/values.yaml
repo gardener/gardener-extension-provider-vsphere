@@ -86,3 +86,15 @@ csiSnapshotController:
 
 volumesnapshots:
   enabled: false # currently not supported by vsphere-csi-driver
+
+vsphereWithKubernetes: false
+
+#supervisor:
+#  endpointIP: 1.2.3.4
+#  port: xxx
+#  token: xxx
+#  namespace: ns
+#  caData: ca
+
+#clusterName: shoot--foo--bar
+#clusterDistribution: ""

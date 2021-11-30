@@ -37,3 +37,10 @@ nsxt:
   password: super-secret
   insecureFlag: true
   remoteAuth: false
+
+vsphereWithKubernetes: false
+
+#supervisor:
+#  token: foo
+#  namespace: foo
+#  apiserver: foo

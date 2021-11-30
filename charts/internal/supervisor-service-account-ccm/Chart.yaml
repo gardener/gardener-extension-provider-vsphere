@@ -1,0 +1,4 @@
+apiVersion: v1
+description: Service account and permissions for cloud controller manager on supervisor
+name: supervisor-service-account-ccm
+version: 0.1.0
