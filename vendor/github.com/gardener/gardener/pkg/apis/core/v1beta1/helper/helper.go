@@ -32,6 +32,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/json"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/pointer"
@@ -76,26 +77,15 @@ func GetOrInitCondition(conditions []gardencorev1beta1.Condition, conditionType 
 
 // UpdatedCondition updates the properties of one specific condition.
 func UpdatedCondition(condition gardencorev1beta1.Condition, status gardencorev1beta1.ConditionStatus, reason, message string, codes ...gardencorev1beta1.ErrorCode) gardencorev1beta1.Condition {
-	var (
-		newCondition = gardencorev1beta1.Condition{
-			Type:               condition.Type,
-			Status:             status,
-			Reason:             reason,
-			Message:            message,
-			LastTransitionTime: condition.LastTransitionTime,
-			LastUpdateTime:     condition.LastUpdateTime,
-			Codes:              codes,
-		}
-		now = Now()
-	)
-
-	if condition.Status != status {
-		newCondition.LastTransitionTime = now
-	}
-
-	if condition.Reason != reason || condition.Message != message || !apiequality.Semantic.DeepEqual(condition.Codes, codes) {
-		newCondition.LastUpdateTime = now
-	}
+	builder, err := NewConditionBuilder(condition.Type)
+	utilruntime.Must(err)
+	newCondition, _ := builder.
+		WithOldCondition(condition).
+		WithStatus(status).
+		WithReason(reason).
+		WithMessage(message).
+		WithCodes(codes...).
+		Build()
 
 	return newCondition
 }
@@ -132,6 +122,23 @@ func MergeConditions(oldConditions []gardencorev1beta1.Condition, newConditions 
 	}
 
 	return out
+}
+
+// RemoveConditions removes the conditions with the given types from the given conditions slice.
+func RemoveConditions(conditions []gardencorev1beta1.Condition, conditionTypes ...gardencorev1beta1.ConditionType) []gardencorev1beta1.Condition {
+	conditionTypesMap := make(map[gardencorev1beta1.ConditionType]struct{}, len(conditionTypes))
+	for _, conditionType := range conditionTypes {
+		conditionTypesMap[conditionType] = struct{}{}
+	}
+
+	var newConditions []gardencorev1beta1.Condition
+	for _, condition := range conditions {
+		if _, ok := conditionTypesMap[condition.Type]; !ok {
+			newConditions = append(newConditions, condition)
+		}
+	}
+
+	return newConditions
 }
 
 // ConditionsNeedUpdate returns true if the <existingConditions> must be updated based on <newConditions>.
@@ -874,6 +881,21 @@ func SeedSettingVerticalPodAutoscalerEnabled(settings *gardencorev1beta1.SeedSet
 	return settings == nil || settings.VerticalPodAutoscaler == nil || settings.VerticalPodAutoscaler.Enabled
 }
 
+// SeedSettingOwnerChecksEnabled returns true if the 'ownerChecks' setting is enabled.
+func SeedSettingOwnerChecksEnabled(settings *gardencorev1beta1.SeedSettings) bool {
+	return settings == nil || settings.OwnerChecks == nil || settings.OwnerChecks.Enabled
+}
+
+// SeedSettingDependencyWatchdogEndpointEnabled returns true if the depedency-watchdog-endpoint is enabled.
+func SeedSettingDependencyWatchdogEndpointEnabled(settings *gardencorev1beta1.SeedSettings) bool {
+	return settings == nil || settings.DependencyWatchdog == nil || settings.DependencyWatchdog.Endpoint == nil || settings.DependencyWatchdog.Endpoint.Enabled
+}
+
+// SeedSettingDependencyWatchdogProbeEnabled returns true if the depedency-watchdog-probe is enabled.
+func SeedSettingDependencyWatchdogProbeEnabled(settings *gardencorev1beta1.SeedSettings) bool {
+	return settings == nil || settings.DependencyWatchdog == nil || settings.DependencyWatchdog.Probe == nil || settings.DependencyWatchdog.Probe.Enabled
+}
+
 // DetermineMachineImageForName finds the cloud specific machine images in the <cloudProfile> for the given <name> and
 // region. In case it does not find the machine image with the <name>, it returns false. Otherwise, true and the
 // cloud-specific machine image will be returned.
@@ -1406,4 +1428,13 @@ func CalculateSeedUsage(shootList []gardencorev1beta1.Shoot) map[string]int {
 	}
 
 	return m
+}
+
+// CalculateEffectiveKubernetesVersion if a shoot has kubernetes version specified by worker group, return this,
+// otherwise the shoot kubernetes version
+func CalculateEffectiveKubernetesVersion(controlPlaneVersion *semver.Version, workerKubernetes *gardencorev1beta1.WorkerKubernetes) (*semver.Version, error) {
+	if workerKubernetes != nil && workerKubernetes.Version != nil {
+		return semver.NewVersion(*workerKubernetes.Version)
+	}
+	return controlPlaneVersion, nil
 }

@@ -23,6 +23,15 @@ rules:
   - patch
   - update
 - apiGroups:
+  - extensions.gardener.cloud
+  resources:
+  - dnsrecords
+  - dnsrecords/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - resources.gardener.cloud
   resources:
   - managedresources
