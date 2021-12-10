@@ -29,6 +29,7 @@ import (
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/gardener/gardener/pkg/controllerutils"
 
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	apishelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
@@ -273,7 +274,7 @@ func (a *actuator) doUpdateProviderStatus(
 	status *apisvsphere.InfrastructureStatus,
 ) error {
 
-	return extensionscontroller.TryUpdateStatus(ctx, retry.DefaultBackoff, a.Client(), infra, func() error {
+	return controllerutils.TryUpdateStatus(ctx, retry.DefaultBackoff, a.Client(), infra, func() error {
 		statusV1alpha1 := &apisvspherev1alpha1.InfrastructureStatus{}
 		err := a.Scheme().Convert(status, statusV1alpha1, nil)
 		if err != nil {

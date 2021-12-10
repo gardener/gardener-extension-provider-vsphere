@@ -20,12 +20,13 @@ package worker
 import (
 	"context"
 
-	"github.com/gardener/gardener/extensions/pkg/controller"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/util/retry"
+
+	"github.com/gardener/gardener/pkg/controllerutils"
+	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 
 	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
@@ -57,7 +58,7 @@ func (w *workerDelegate) updateWorkerProviderStatus(ctx context.Context, workerS
 		return err
 	}
 
-	return controller.TryUpdateStatus(ctx, retry.DefaultBackoff, w.Client(), w.worker, func() error {
+	return controllerutils.TryUpdateStatus(ctx, retry.DefaultBackoff, w.Client(), w.worker, func() error {
 		w.worker.Status.ProviderStatus = &runtime.RawExtension{Object: workerStatusV1alpha1}
 		return nil
 	})

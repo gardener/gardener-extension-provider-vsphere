@@ -20,12 +20,12 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/cmd/gardener-extension-validator-vsphere/app"
 
 	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
-	"github.com/gardener/gardener/extensions/pkg/log"
+	"github.com/gardener/gardener/pkg/logger"
 	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 func main() {
-	runtimelog.SetLogger(log.ZapLogger(false))
+	runtimelog.SetLogger(logger.ZapLogger(false))
 	cmd := app.NewValidatorCommand(signals.SetupSignalHandler())
 
 	if err := cmd.Execute(); err != nil {
