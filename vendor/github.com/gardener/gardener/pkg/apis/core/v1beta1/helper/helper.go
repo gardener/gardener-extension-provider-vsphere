@@ -22,6 +22,7 @@ import (
 
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	"github.com/gardener/gardener/pkg/utils"
 	versionutils "github.com/gardener/gardener/pkg/utils/version"
 
 	"github.com/Masterminds/semver"
@@ -957,20 +958,19 @@ func GetLatestQualifyingShootMachineImage(image gardencorev1beta1.MachineImage, 
 	return true, &gardencorev1beta1.ShootMachineImage{Name: image.Name, Version: &latestImageVersion.Version}, nil
 }
 
+// FindMachineTypeByName tries to find the machine type details with the given name. If it cannot be found it returns nil.
+func FindMachineTypeByName(machines []gardencorev1beta1.MachineType, name string) *gardencorev1beta1.MachineType {
+	for _, m := range machines {
+		if m.Name == name {
+			return &m
+		}
+	}
+	return nil
+}
+
 // SystemComponentsAllowed checks if the given worker allows system components to be scheduled onto it
 func SystemComponentsAllowed(worker *gardencorev1beta1.Worker) bool {
 	return worker.SystemComponents == nil || worker.SystemComponents.Allow
-}
-
-// UpdateMachineImages updates the machine images in place.
-func UpdateMachineImages(workers []gardencorev1beta1.Worker, machineImages []*gardencorev1beta1.ShootMachineImage) {
-	for _, machineImage := range machineImages {
-		for idx, worker := range workers {
-			if worker.Machine.Image != nil && machineImage.Name == worker.Machine.Image.Name {
-				workers[idx].Machine.Image = machineImage
-			}
-		}
-	}
 }
 
 // KubernetesVersionExistsInCloudProfile checks if the given Kubernetes version exists in the CloudProfile
@@ -1437,4 +1437,39 @@ func CalculateEffectiveKubernetesVersion(controlPlaneVersion *semver.Version, wo
 		return semver.NewVersion(*workerKubernetes.Version)
 	}
 	return controlPlaneVersion, nil
+}
+
+// GetSecretBindingTypes returns the SecretBinding provider types.
+func GetSecretBindingTypes(secretBinding *gardencorev1beta1.SecretBinding) []string {
+	return strings.Split(secretBinding.Provider.Type, ",")
+}
+
+// SecretBindingHasType checks if the given SecretBinding has the given provider type.
+func SecretBindingHasType(secretBinding *gardencorev1beta1.SecretBinding, providerType string) bool {
+	if secretBinding.Provider == nil {
+		return false
+	}
+
+	types := GetSecretBindingTypes(secretBinding)
+	if len(types) == 0 {
+		return false
+	}
+
+	return utils.ValueExists(providerType, types)
+}
+
+// AddTypeToSecretBinding adds the given provider type to the SecretBinding.
+func AddTypeToSecretBinding(secretBinding *gardencorev1beta1.SecretBinding, providerType string) {
+	if secretBinding.Provider == nil {
+		secretBinding.Provider = &gardencorev1beta1.SecretBindingProvider{
+			Type: providerType,
+		}
+		return
+	}
+
+	types := GetSecretBindingTypes(secretBinding)
+	if !utils.ValueExists(providerType, types) {
+		types = append(types, providerType)
+	}
+	secretBinding.Provider.Type = strings.Join(types, ",")
 }

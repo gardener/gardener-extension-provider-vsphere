@@ -197,6 +197,13 @@ type SeedControllerConfiguration struct {
 	ConcurrentSyncs *int
 	// SyncPeriod is the duration how often the existing resources are reconciled.
 	SyncPeriod *metav1.Duration
+	// LeaseResyncSeconds defines how often (in seconds) the seed lease is renewed.
+	// Default: 2s
+	LeaseResyncSeconds *int32
+	// LeaseResyncMissThreshold is the amount of missed lease resyncs before the health status
+	// is changed to false.
+	// Default: 10
+	LeaseResyncMissThreshold *int32
 }
 
 // ShootControllerConfiguration defines the configuration of the Shoot
@@ -419,14 +426,14 @@ type ETCDConfig struct {
 // ETCDController contains config specific to ETCD controller
 type ETCDController struct {
 	// Workers specify number of worker threads in ETCD controller
-	// Defaults to 3
+	// Defaults to 50
 	Workers *int64
 }
 
 // CustodianController contains config specific to custodian controller
 type CustodianController struct {
 	// Workers specify number of worker threads in custodian controller
-	// Defaults to 3
+	// Defaults to 10
 	Workers *int64
 }
 

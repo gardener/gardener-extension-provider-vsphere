@@ -243,6 +243,15 @@ type SeedControllerConfiguration struct {
 	// SyncPeriod is the duration how often the existing resources are reconciled.
 	// +optional
 	SyncPeriod *metav1.Duration `json:"syncPeriod,omitempty"`
+	// LeaseResyncSeconds defines how often (in seconds) the seed lease is renewed.
+	// Defaults to 2
+	// +optional
+	LeaseResyncSeconds *int32 `json:"leaseResyncSeconds,omitempty"`
+	// LeaseResyncMissThreshold is the amount of missed lease resyncs before the health status
+	// is changed to false.
+	// Defaults to 10
+	// +optional
+	LeaseResyncMissThreshold *int32 `json:"leaseResyncMissThreshold,omitempty"`
 }
 
 // ShootControllerConfiguration defines the configuration of the Shoot
@@ -504,17 +513,17 @@ type ETCDConfig struct {
 // ETCDController contains config specific to ETCD controller
 type ETCDController struct {
 	// Workers specify number of worker threads in ETCD controller
-	// Defaults to 3
+	// Defaults to 50
 	// +optional
-	Workers *int64 `json:"etcdControllerWorkers,omitempty"`
+	Workers *int64 `json:"workers,omitempty"`
 }
 
 // CustodianController contains config specific to custodian controller
 type CustodianController struct {
 	// Workers specify number of worker threads in custodian controller
-	// Defaults to 3
+	// Defaults to 10
 	// +optional
-	Workers *int64 `json:"custodianControllerWorkers,omitempty"`
+	Workers *int64 `json:"workers,omitempty"`
 }
 
 // BackupCompactionController contains config specific to backup compaction controller
@@ -522,7 +531,7 @@ type BackupCompactionController struct {
 	// Workers specify number of worker threads in backup compaction controller
 	// Defaults to 3
 	// +optional
-	Workers *int64 `json:"compactionControllerWorkers,omitempty"`
+	Workers *int64 `json:"workers,omitempty"`
 	// EnableBackupCompaction enables automatic compaction of etcd backups
 	// Defaults to false
 	// +optional
