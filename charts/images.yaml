@@ -42,11 +42,9 @@ images:
   tag: "v4.2.1"
   targetVersion: ">= 1.20"
 - name: vsphere-cloud-controller-manager
-  sourceRepository: github.com/MartinWeindel/cloud-provider-vsphere
-  repository: eu.gcr.io/gardener-project/test/cloud-provider-vsphere-martinweindel
-  tag: v1.22.0-patch1
-  #repository: gcr.io/cloud-provider-vsphere/cpi/release/manager
-  #tag: v1.0.0
+  sourceRepository: github.com/kubernetes/cloud-provider-vsphere
+  repository: gcr.io/cloud-provider-vsphere/cpi/release/manager
+  tag: v1.22.4
 - name: machine-controller-manager
   sourceRepository: github.com/gardener/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
