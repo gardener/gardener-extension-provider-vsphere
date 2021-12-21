@@ -154,6 +154,18 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			// add common meta types to schema for controller-runtime to use v1.ListOptions
 			metav1.AddToGroupVersion(scheme, machinev1alpha1.SchemeGroupVersion)
 
+			useTokenRequestor, err := controller.UseTokenRequestor(generalOpts.Completed().GardenerVersion)
+			if err != nil {
+				controllercmd.LogErrAndExit(err, "Could not determine whether token requestor should be used")
+			}
+			vsphereworker.DefaultAddOptions.UseTokenRequestor = useTokenRequestor
+
+			useProjectedTokenMount, err := controller.UseServiceAccountTokenVolumeProjection(generalOpts.Completed().GardenerVersion)
+			if err != nil {
+				controllercmd.LogErrAndExit(err, "Could not determine whether service account token volume projection should be used")
+			}
+			vsphereworker.DefaultAddOptions.UseProjectedTokenMount = useProjectedTokenMount
+
 			configFileOpts.Completed().ApplyETCDStorage(&vspherecontrolplaneexposure.DefaultAddOptions.ETCDStorage)
 			configFileOpts.Completed().ApplyGardenId(&vspherecontrolplane.DefaultAddOptions.GardenId)
 			configFileOpts.Completed().ApplyGardenId(&vsphereinfrastructure.DefaultAddOptions.GardenId)
