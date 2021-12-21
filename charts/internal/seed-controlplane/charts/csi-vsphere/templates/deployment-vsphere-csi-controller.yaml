@@ -35,6 +35,16 @@ spec:
         networking.gardener.cloud/to-private-networks: allowed
         networking.gardener.cloud/to-shoot-apiserver: allowed
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                      - vsphere-csi-controller
+              topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       containers:
         - name: csi-attacher
@@ -81,6 +91,7 @@ spec:
           args:
             - "--fss-name=internal-feature-states.csi.vsphere.vmware.com"
             - "--fss-namespace=$(CSI_NAMESPACE)"
+            - "--use-gocsi=false"
             - "--kubeconfig=/var/lib/vsphere-csi-controller/kubeconfig"
           env:
             - name: CSI_ENDPOINT

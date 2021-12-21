@@ -4,9 +4,11 @@ data:
   "csi-auth-check": "true"
   "online-volume-extend": "true"
   "trigger-csi-fullsync": "false"
-  "async-query-volume": "false"
-  "improved-csi-idempotency": "false"
+  "async-query-volume": "true"
+  "improved-csi-idempotency": "true"
   "block-volume-snapshot": "false"
+  "use-csinode-id": "true"
+  "improved-volume-topology": "true"
 kind: ConfigMap
 metadata:
   name: internal-feature-states.csi.vsphere.vmware.com
