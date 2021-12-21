@@ -13,11 +13,14 @@ spec:
     metadata:
       annotations:
         checksum/secret-csi-vsphere-config: {{ include (print $.Template.BasePath "/secret-csi-vsphere-config.yaml") . | sha256sum }}
+        {{- if .Values.global.useProjectedTokenMount }}
+        # TODO(rfranzke): Remove in a future release.
+        security.gardener.cloud/trigger: rollout
+        {{- end }}
       labels:
         app: vsphere-csi-node
         role: vsphere-csi
     spec:
-      automountServiceAccountToken: true
       hostNetwork: true
       dnsPolicy: "ClusterFirstWithHostNet"
       priorityClassName: system-node-critical
