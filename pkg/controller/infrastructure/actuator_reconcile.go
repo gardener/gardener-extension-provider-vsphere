@@ -21,16 +21,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/pkg/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/tools/clientcmd/api"
-	"k8s.io/client-go/util/retry"
-
-	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/gardener/gardener/pkg/controllerutils"
-
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	apishelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	apisvspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
@@ -38,6 +28,14 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/helpers"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
+
+	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/pkg/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/clientcmd/api"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type preparedReconcile struct {
@@ -273,17 +271,15 @@ func (a *actuator) doUpdateProviderStatus(
 	infra *extensionsv1alpha1.Infrastructure,
 	status *apisvsphere.InfrastructureStatus,
 ) error {
+	statusV1alpha1 := &apisvspherev1alpha1.InfrastructureStatus{}
+	if err := a.Scheme().Convert(status, statusV1alpha1, nil); err != nil {
+		return err
+	}
+	statusV1alpha1.SetGroupVersionKind(apisvspherev1alpha1.SchemeGroupVersion.WithKind("InfrastructureStatus"))
 
-	return controllerutils.TryUpdateStatus(ctx, retry.DefaultBackoff, a.Client(), infra, func() error {
-		statusV1alpha1 := &apisvspherev1alpha1.InfrastructureStatus{}
-		err := a.Scheme().Convert(status, statusV1alpha1, nil)
-		if err != nil {
-			return err
-		}
-		statusV1alpha1.SetGroupVersionKind(apisvspherev1alpha1.SchemeGroupVersion.WithKind("InfrastructureStatus"))
-		infra.Status.ProviderStatus = &runtime.RawExtension{Object: statusV1alpha1}
-		return nil
-	})
+	patch := client.MergeFrom(infra.DeepCopy())
+	infra.Status.ProviderStatus = &runtime.RawExtension{Object: statusV1alpha1}
+	return a.Client().Status().Patch(ctx, infra, patch)
 }
 
 func (a *actuator) logFailedSaveState(err error, state *apisvsphere.NSXTInfraState) {

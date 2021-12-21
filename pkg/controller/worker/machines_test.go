@@ -390,12 +390,8 @@ var _ = Describe("Machines", func() {
 				}
 
 				ctx := context.TODO()
-				c.EXPECT().Get(ctx, gomock.Any(), gomock.AssignableToTypeOf(&extensionsv1alpha1.Worker{})).
-					DoAndReturn(func(_ context.Context, _ client.ObjectKey, worker *extensionsv1alpha1.Worker) error {
-						return nil
-					})
 				c.EXPECT().Status().Return(statusWriter)
-				statusWriter.EXPECT().Update(ctx, workerWithExpectedImages).Return(nil)
+				statusWriter.EXPECT().Patch(ctx, workerWithExpectedImages, gomock.Any()).Return(nil)
 
 				err = workerDelegate.UpdateMachineImagesStatus(ctx)
 				Expect(err).NotTo(HaveOccurred())
