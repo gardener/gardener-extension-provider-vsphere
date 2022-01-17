@@ -48,6 +48,13 @@ NSXT_EDGE_CLUSTER      := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_e
 NSXT_SNAP_IP_POOL      := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_snat_ip_pool")
 
 #########################################
+# Tools                                 #
+#########################################
+
+TOOLS_DIR := hack/tools
+include vendor/github.com/gardener/gardener/hack/tools.mk
+
+#########################################
 # Rules for local development scenarios #
 #########################################
 
@@ -129,6 +136,10 @@ check-generate:
 check:
 	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/check.sh --golangci-lint-config=./.golangci.yaml ./cmd/... ./pkg/... ./test/...
 	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/check-charts.sh ./charts
+
+.PHONY: check-docforge
+check-docforge: $(DOCFORGE)
+	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/check-docforge.sh $(REPO_ROOT) $(REPO_ROOT)/.docforge/manifest.yaml ".docforge/;docs/" "gardener-extension-provider-vsphere" false
 
 .PHONY: generate
 generate:

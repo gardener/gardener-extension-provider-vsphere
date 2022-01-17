@@ -20,4 +20,4 @@ echo -n "Original VERSION: "
 cat ./VERSION
 echo ""
 
-make verify-extended
+make verify-extended check-docforge
