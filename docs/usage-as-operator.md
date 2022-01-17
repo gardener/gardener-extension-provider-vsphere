@@ -186,10 +186,10 @@ This extension targets Kubernetes >= `v1.15` and vSphere `6.7 U3` or later.
 
 - vSphere CSI driver needs vSphere `6.7 U3` or later,
   and Kubernetes >= `v1.14`
-  (see [cloud-provider-vsphere CSI - Container Storage Interface](https://github.com/kubernetes/cloud-provider-vsphere/blob/master/docs/book/container_storage_interface.md#which-versions-of-kubernetesvsphere-support-it) )
+  (see [cloud-provider-vsphere CSI - Container Storage Interface](https://kubernetes-csi.github.io/docs/))
 - vSpere CPI driver needs vSphere `6.7 U3` or later,
   and Kubernetes >= `v1.11`
-  (see [cloud-provider-vsphere CPI - Cloud Provider Interface](https://github.com/kubernetes/cloud-provider-vsphere/blob/master/docs/book/cloud_provider_interface.md#which-versions-of-kubernetesvsphere-support-it) )
+  (see [cloud-provider-vsphere CPI - Cloud Provider Interface](https://github.com/kubernetes/cloud-provider-vsphere/blob/master/docs/book/cloud_provider_interface.md#which-versions-of-kubernetesvsphere-support-it))
 
 ## Supported VM images
 
