@@ -18,7 +18,6 @@ import (
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/extensions/pkg/webhook/shoot"
 	appsv1 "k8s.io/api/apps/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
@@ -37,7 +36,9 @@ var logger = log.Log.WithName("vsphere-shoot-webhook")
 func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) (*extensionswebhook.Webhook, error) {
 	logger.Info("Adding webhook to manager")
 	return shoot.New(mgr, shoot.Args{
-		Types:   []client.Object{&appsv1.Deployment{}},
+		Types: []extensionswebhook.Type{
+			{Obj: &appsv1.Deployment{}},
+		},
 		Mutator: NewMutator(),
 	})
 }
