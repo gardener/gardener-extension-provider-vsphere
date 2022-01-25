@@ -103,7 +103,7 @@ func (e *ensurer) ensureChecksumAnnotations(ctx context.Context, template *corev
 }
 
 // EnsureKubeletServiceUnitOptions ensures that the kubelet.service unit options conform to the provider requirements.
-func (e *ensurer) EnsureKubeletServiceUnitOptions(ctx context.Context, gctx gcontext.GardenContext, kubeletVersion *semver.Version, new, old []*unit.UnitOption) ([]*unit.UnitOption, error) {
+func (e *ensurer) EnsureKubeletServiceUnitOptions(_ context.Context, _ gcontext.GardenContext, _ *semver.Version, new, _ []*unit.UnitOption) ([]*unit.UnitOption, error) {
 	if opt := extensionswebhook.UnitOptionWithSectionAndName(new, "Service", "ExecStart"); opt != nil {
 		command := extensionswebhook.DeserializeCommandLine(opt.Value)
 		command = ensureKubeletCommandLineArgs(command)
@@ -124,7 +124,7 @@ func ensureKubeletCommandLineArgs(command []string) []string {
 }
 
 // EnsureKubeletConfiguration ensures that the kubelet configuration conforms to the provider requirements.
-func (e *ensurer) EnsureKubeletConfiguration(ctx context.Context, gctx gcontext.GardenContext, kubeletVersion *semver.Version, new, old *kubeletconfigv1beta1.KubeletConfiguration) error {
+func (e *ensurer) EnsureKubeletConfiguration(_ context.Context, _ gcontext.GardenContext, _ *semver.Version, new, _ *kubeletconfigv1beta1.KubeletConfiguration) error {
 	// Make sure CSI-related feature gates are not enabled
 	// TODO Leaving these enabled shouldn't do any harm, perhaps remove this code when properly tested?
 	delete(new.FeatureGates, "VolumeSnapshotDataSource")
@@ -139,7 +139,7 @@ func (e *ensurer) ShouldProvisionKubeletCloudProviderConfig(context.Context, gco
 }
 
 // EnsureKubeletCloudProviderConfig ensures that the cloud provider config file conforms to the provider requirements.
-func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, gctx gcontext.GardenContext, kubeletVersion *semver.Version, data *string, namespace string) error {
+func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, _ gcontext.GardenContext, _ *semver.Version, data *string, namespace string) error {
 	// Get `cloud-provider-config` secret
 	var secret corev1.Secret
 	err := e.client.Get(ctx, kutil.Key(namespace, vsphere.CloudProviderConfig), &secret)
@@ -161,7 +161,7 @@ func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, gctx gco
 	return nil
 }
 
-// EnsureAdditionalFile ensures additional systemd files
+// EnsureAdditionalFiles ensures additional systemd files
 // "old" might be "nil" and must always be checked.
 func (e *ensurer) EnsureAdditionalFiles(ctx context.Context, gctx gcontext.GardenContext, new, old *[]extensionsv1alpha1.File) error {
 	cloudProfileConfig, err := getCloudProfileConfig(ctx, gctx)
