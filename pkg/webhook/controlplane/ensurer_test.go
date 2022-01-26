@@ -20,7 +20,6 @@ import (
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 
-	"github.com/Masterminds/semver"
 	"github.com/coreos/go-systemd/v22/unit"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	gcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
@@ -29,7 +28,6 @@ import (
 	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -243,49 +241,40 @@ var _ = Describe("Ensurer", func() {
 	})
 
 	Describe("#EnsureKubeletServiceUnitOptions", func() {
-		DescribeTable("should modify existing elements of kubelet.service unit options",
-			func(kubeletVersion *semver.Version, cloudProvider string) {
-				var (
-					oldUnitOptions = []*unit.UnitOption{
-						{
-							Section: "Service",
-							Name:    "ExecStart",
-							Value: `/opt/bin/hyperkube kubelet \
+		It("should modify existing elements of kubelet.service unit options", func() {
+			var (
+				oldUnitOptions = []*unit.UnitOption{
+					{
+						Section: "Service",
+						Name:    "ExecStart",
+						Value: `/opt/bin/hyperkube kubelet \
     --config=/var/lib/kubelet/config/kubelet`,
-						},
-					}
-					newUnitOptions = []*unit.UnitOption{
-						{
-							Section: "Service",
-							Name:    "ExecStart",
-							Value: `/opt/bin/hyperkube kubelet \
-    --config=/var/lib/kubelet/config/kubelet`,
-						},
-						{
-							Section: "Service",
-							Name:    "ExecStartPre",
-							Value:   `/bin/sh -c 'hostnamectl set-hostname $(cat /etc/hostname | cut -d '.' -f 1)'`,
-						},
-					}
-				)
-
-				if cloudProvider != "" {
-					newUnitOptions[0].Value += ` \
-    --cloud-provider=` + cloudProvider
+					},
 				}
+				newUnitOptions = []*unit.UnitOption{
+					{
+						Section: "Service",
+						Name:    "ExecStart",
+						Value: `/opt/bin/hyperkube kubelet \
+    --config=/var/lib/kubelet/config/kubelet \
+    --cloud-provider=external`,
+					},
+					{
+						Section: "Service",
+						Name:    "ExecStartPre",
+						Value:   `/bin/sh -c 'hostnamectl set-hostname $(cat /etc/hostname | cut -d '.' -f 1)'`,
+					},
+				}
+			)
 
-				// Create ensurer
-				ensurer := NewEnsurer(logger)
+			// Create ensurer
+			ensurer := NewEnsurer(logger)
 
-				// Call EnsureKubeletServiceUnitOptions method and check the result
-				opts, err := ensurer.EnsureKubeletServiceUnitOptions(context.TODO(), dummyContext, kubeletVersion, oldUnitOptions, nil)
-				Expect(err).To(Not(HaveOccurred()))
-				Expect(opts).To(Equal(newUnitOptions))
-			},
-
-			Entry("kubelet version < 1.23", semver.MustParse("1.22.0"), "external"),
-			Entry("kubelet version >= 1.23", semver.MustParse("1.23.0"), ""),
-		)
+			// Call EnsureKubeletServiceUnitOptions method and check the result
+			opts, err := ensurer.EnsureKubeletServiceUnitOptions(context.TODO(), dummyContext, nil, oldUnitOptions, nil)
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(opts).To(Equal(newUnitOptions))
+		})
 	})
 
 	Describe("#EnsureKubeletConfiguration", func() {
