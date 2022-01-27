@@ -54,6 +54,7 @@ spec:
             - "--timeout=300s"
             - "--csi-address=/csi/csi.sock"
             - "--leader-election"
+            - "--leader-election-namespace=kube-system"
             {{- if .Values.global.useTokenRequestor }}
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
             {{- else }}
@@ -85,6 +86,7 @@ spec:
             - "--kube-api-qps=100"
             - "--kube-api-burst=100"
             - "--leader-election"
+            - "--leader-election-namespace=kube-system"
             {{- if .Values.global.useTokenRequestor }}
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
             {{- else }}
@@ -169,6 +171,7 @@ spec:
           image: {{ index .Values.images "vsphere-csi-driver-syncer" }}
           args:
             - "--leader-election"
+            - "--leader-election-namespace=kube-system"
             {{- if .Values.global.useTokenRequestor }}
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
             {{- else }}
@@ -228,6 +231,7 @@ spec:
             - "--feature-gates=Topology=true"
             - "--strict-topology"
             - "--leader-election"
+            - "--leader-election-namespace=kube-system"
             {{- if .Values.global.useTokenRequestor }}
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
             {{- else }}
