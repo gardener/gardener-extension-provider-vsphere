@@ -235,6 +235,7 @@ var controlPlaneChart = &chart.Chart{
 			Objects: []*chart.Object{
 				// csi-driver-controller
 				{Type: &corev1.Secret{}, Name: vsphere.SecretCSIVsphereConfig},
+				{Type: &corev1.Service{}, Name: vsphere.VsphereCSIControllerName},
 				{Type: &appsv1.Deployment{}, Name: vsphere.VsphereCSIControllerName},
 				{Type: &corev1.ConfigMap{}, Name: vsphere.VsphereCSIControllerName + "-observability-config"},
 				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: vsphere.VsphereCSIControllerName + "-vpa"},
