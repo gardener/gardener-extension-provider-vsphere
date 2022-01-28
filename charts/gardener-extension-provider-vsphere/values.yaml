@@ -70,6 +70,7 @@ config:
       capacity: 25Gi
 
 gardener:
+  version: ""
   garden:
     clusterIdentity: ""
   seed:

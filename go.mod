@@ -6,8 +6,9 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/ahmetb/gen-crd-api-reference-docs v0.2.0
 	github.com/coreos/go-systemd/v22 v22.3.2
+	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/gardener/etcd-druid v0.7.0
-	github.com/gardener/gardener v1.39.0
+	github.com/gardener/gardener v1.39.1
 	github.com/gardener/machine-controller-manager v0.41.0
 	github.com/go-logr/logr v0.4.0
 	github.com/golang/mock v1.6.0
@@ -22,6 +23,7 @@ require (
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.3.1
 	github.com/vmware/vsphere-automation-sdk-go/runtime v0.3.1
 	github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.4.0
+	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	golang.org/x/tools v0.1.7
 	k8s.io/api v0.22.2
 	k8s.io/apiextensions-apiserver v0.22.2
@@ -41,6 +43,7 @@ require (
 )
 
 replace (
+	github.com/gardener/gardener => github.com/rfranzke/gardener v0.0.0-20220127071034-96d53906caad
 	github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.11.0 // keep this value in sync with k8s.io/client-go
 	k8s.io/api => k8s.io/api v0.22.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.22.2
