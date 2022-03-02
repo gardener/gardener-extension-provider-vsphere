@@ -53,6 +53,8 @@ const (
 	LivenessProbeImageName = "liveness-probe"
 	// CSISnapshotControllerImageName is the name of the csi-snapshot-controller image.
 	CSISnapshotControllerImageName = "csi-snapshot-controller"
+	// CSISnapshotValidationWebhookImageName is the name of the csi-snapshot-validation-webhook image.
+	CSISnapshotValidationWebhookImageName = "csi-snapshot-validation-webhook"
 
 	// Host is a constant for the key in a cloud provider secret holding the VSphere host name
 	Host = "vsphereHost"
@@ -115,6 +117,8 @@ const (
 	CSINodeName = "vsphere-csi-node"
 	// CSIDriverName is a constant for the name of the csi-driver component.
 	CSIDriverName = "csi-driver"
+	// CSISnapshotValidation is the constant for the name of the csi-snapshot-validation-webhook component.
+	CSISnapshotValidation = "csi-snapshot-validation"
 )
 
 var (
