@@ -16,7 +16,10 @@ webhooks:
     resources:
     - shoots
   failurePolicy: Fail
-  objectSelector: {}
+  # Please make sure you are running `gardener@v1.42` or later before enabling this object selector.
+  objectSelector:
+    matchLabels:
+      provider.extensions.gardener.cloud/vsphere: "true"
   namespaceSelector: {}
   sideEffects: None
   admissionReviewVersions:
