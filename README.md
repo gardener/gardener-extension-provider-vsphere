@@ -3,19 +3,24 @@
 [![CI Build status](https://concourse.ci.gardener.cloud/api/v1/teams/gardener/pipelines/gardener-extension-provider-vsphere-main/jobs/main-head-update-job/badge)](https://concourse.ci.gardener.cloud/teams/gardener/pipelines/gardener-extension-provider-vsphere-main/jobs/main-head-update-job)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gardener/gardener-extension-provider-vsphere)](https://goreportcard.com/report/github.com/gardener/gardener-extension-provider-vsphere)
 
-Project Gardener implements the automated management and operation of [Kubernetes](https://kubernetes.io/) clusters as a service.
-Its main principle is to leverage Kubernetes concepts for all of its tasks.
+## Overview 
+The Gardener Extension for vSphere is a [GEP-1](https://github.com/gardener/gardener/blob/master/docs/proposals/01-extensibility.md) provider implementation that allows Gardener to leverage vSphere clusters for machine provisioning. 
 
-Recently, most of the vendor specific logic has been developed [in-tree](https://github.com/gardener/gardener).
-However, the project has grown to a size where it is very hard to extend, maintain, and test.
-With [GEP-1](https://github.com/gardener/gardener/blob/master/docs/proposals/01-extensibility.md) we have proposed how the architecture can be changed in a way to support external controllers that contain their very own vendor specifics.
-This way, we can keep Gardener core clean and independent.
+vSphere is an undeniable class leader for commercially supported virtual machine orchestration. The Gardener extension for vSphere provider compliments this leadership by allowing Gardener to create Kubernetes nodes within vSphere.  
 
-This controller implements Gardener's extension contract for the VMware vSphere provider.
+Like other Gardener provider extensions, the vSphere provider pairs with a provider-specific Machine Controller Manager providing node services to Kubernetes clusters. This extension provides complimentary APIs to Gardener. A Gardener-hosted Kubernetes
+cluster does not know anything about it's environment (such as bare metal vs. public cloud or within a hyperscaler vs. standalone), only that the MCM abstraction can manage requests such as cluster autoscaling. 
 
 An example for a `ControllerRegistration` resource that can be used to register this controller to Gardener can be found [here](example/controller-registration.yaml).
 
-Please find more information regarding the extensibility concepts and a detailed proposal [here](https://github.com/gardener/gardener/blob/master/docs/proposals/01-extensibility.md).
+Please find more information regarding the extensibility concepts and the architecture details in the GEP-1 proposal. 
+
+## Use Cases
+The primary use case for this extension is organizations who wish to deploy a substantial Gardener landscape and use vSphere for data center fleet management. We intentionally sidestep prescribing any particular extension as this is
+an intimately local determination and the benefits of different solutions are more than adequately debated in industry literature.
+
+While we may inadvertently duplicate some documentation in the mainline Gardener documentation, it is only to reduce tedium as new evaluators and developers come up-to-speed with the concepts relevant to successful deployment.
+We refer directly to the mainline Gardener documentation for the most up-to-date information. 
 
 ## Supported Kubernetes versions
 
@@ -34,6 +39,8 @@ This extension controller supports the following Kubernetes versions:
 Please take a look [here](https://github.com/gardener/gardener/blob/master/docs/usage/supported_k8s_versions.md) to see which versions are supported by Gardener in general.
 
 ----
+## Deployment patterns
+As with any production software, deployment of Gardener and this extension should be considered in the context of both lifecycle and automation. Orgs should aspire to have apply 
 
 ## How to start using or developing this extension controller locally
 

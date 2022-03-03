@@ -23,3 +23,12 @@ FROM base AS gardener-extension-validator-vsphere
 
 COPY --from=builder /go/bin/gardener-extension-validator-vsphere /gardener-extension-validator-vsphere
 ENTRYPOINT ["/gardener-extension-validator-vsphere"]
+
+############# gcve-tm-run
+FROM eu.gcr.io/gardener-project/gardener/testmachinery/testmachinery-run AS gardener-extension-gcve-tm-run
+
+COPY --from=builder /go/bin/gcve-setup /gcve-setup
+
+RUN  \
+  apk update \
+  && apk add openvpn bash
