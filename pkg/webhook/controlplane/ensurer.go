@@ -119,8 +119,6 @@ func (e *ensurer) EnsureKubeletServiceUnitOptions(_ context.Context, _ gcontext.
 }
 
 func ensureKubeletCommandLineArgs(command []string) []string {
-	// TODO: This flag is deprecated and will be removed in future Kubernetes versions. We tried removing it with https://github.com/gardener/gardener-extension-provider-vsphere/pull/201,
-	// however, this led to issues with PVCs. Let's resolve them and remove this flag afterwards.
 	command = extensionswebhook.EnsureStringWithPrefix(command, "--cloud-provider=", "external")
 	return command
 }
