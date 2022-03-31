@@ -43,5 +43,6 @@ type Context struct {
 	KubernetesVersion       *semver.Version
 	SSHPublicKeys           []string
 	LokiIngress             string
-	PromtailRBACAuthToken   string
+	PromtailEnabled         bool
+	APIServerURL            string
 }

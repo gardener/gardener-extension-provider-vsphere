@@ -27,7 +27,6 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
-	"github.com/pkg/errors"
 
 	vsphereinstall "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
 	vspherecmd "github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd"
@@ -118,37 +117,37 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			verflag.PrintAndExitIfRequested()
 
 			if err := aggOption.Complete(); err != nil {
-				return errors.Wrap(err, "Error completing options")
+				return fmt.Errorf("error completing options: %w", err)
 			}
 
 			util.ApplyClientConnectionConfigurationToRESTConfig(configFileOpts.Completed().Config.ClientConnection, restOpts.Completed().Config)
 
 			if workerReconcileOpts.Completed().DeployCRDs {
 				if err := worker.ApplyMachineResourcesForConfig(ctx, restOpts.Completed().Config); err != nil {
-					return errors.Wrap(err, "Error ensuring the machine CRDs")
+					return fmt.Errorf("error ensuring the machine CRDs: %w", err)
 				}
 			}
 
 			mgr, err := manager.New(restOpts.Completed().Config, mgrOpts.Completed().Options())
 			if err != nil {
-				return errors.Wrap(err, "Could not instantiate manager")
+				return fmt.Errorf("could not instantiate manager: %w", err)
 			}
 
 			scheme := mgr.GetScheme()
 			if err := controller.AddToScheme(scheme); err != nil {
-				return errors.Wrap(err, "Could not update manager scheme")
+				return fmt.Errorf("could not update manager scheme: %w", err)
 			}
 			if err := vsphereinstall.AddToScheme(scheme); err != nil {
-				return errors.Wrap(err, "Could not update manager scheme")
+				return fmt.Errorf("could not update manager scheme: %w", err)
 			}
 			if err := druidv1alpha1.AddToScheme(scheme); err != nil {
-				return errors.Wrap(err, "Could not update manager scheme")
+				return fmt.Errorf("could not update manager scheme: %w", err)
 			}
 			if err := machinev1alpha1.AddToScheme(scheme); err != nil {
-				return errors.Wrap(err, "Could not update manager scheme")
+				return fmt.Errorf("could not update manager scheme: %w", err)
 			}
 			if err := autoscalingv1beta2.AddToScheme(scheme); err != nil {
-				return errors.Wrap(err, "Could not update manager scheme")
+				return fmt.Errorf("could not update manager scheme: %w", err)
 			}
 
 			// add common meta types to schema for controller-runtime to use v1.ListOptions
@@ -156,14 +155,14 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 			useTokenRequestor, err := controller.UseTokenRequestor(generalOpts.Completed().GardenerVersion)
 			if err != nil {
-				controllercmd.LogErrAndExit(err, "Could not determine whether token requestor should be used")
+				return fmt.Errorf("could not determine whether token requestor should be used: %w", err)
 			}
 			vspherecontrolplane.DefaultAddOptions.UseTokenRequestor = useTokenRequestor
 			vsphereworker.DefaultAddOptions.UseTokenRequestor = useTokenRequestor
 
 			useProjectedTokenMount, err := controller.UseServiceAccountTokenVolumeProjection(generalOpts.Completed().GardenerVersion)
 			if err != nil {
-				controllercmd.LogErrAndExit(err, "Could not determine whether service account token volume projection should be used")
+				return fmt.Errorf("could not determine whether service account token volume projection should be used: %w", err)
 			}
 			vspherecontrolplane.DefaultAddOptions.UseProjectedTokenMount = useProjectedTokenMount
 			vsphereworker.DefaultAddOptions.UseProjectedTokenMount = useProjectedTokenMount
@@ -182,16 +181,16 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 			_, shootWebhooks, err := webhookOptions.Completed().AddToManager(ctx, mgr)
 			if err != nil {
-				return errors.Wrap(err, "Could not add webhooks to manager")
+				return fmt.Errorf("could not add webhooks to manager: %w", err)
 			}
 			vspherecontrolplane.DefaultAddOptions.ShootWebhooks = shootWebhooks
 
 			if err := controllerSwitches.Completed().AddToManager(mgr); err != nil {
-				return errors.Wrap(err, "Could not add controllers to manager")
+				return fmt.Errorf("could not add controllers to manager: %w", err)
 			}
 
 			if err := mgr.Start(ctx); err != nil {
-				return errors.Wrap(err, "Error running manager")
+				return fmt.Errorf("error running manager: %w", err)
 			}
 
 			return nil

@@ -24,7 +24,6 @@ import (
 	"github.com/Masterminds/sprig"
 	"k8s.io/utils/pointer"
 
-	"github.com/gardener/gardener/charts"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/operation/botanist/component/extensions/operatingsystemconfig/original/components"
@@ -32,6 +31,7 @@ import (
 	"github.com/gardener/gardener/pkg/operation/botanist/component/extensions/operatingsystemconfig/original/components/docker"
 	oscutils "github.com/gardener/gardener/pkg/operation/botanist/component/extensions/operatingsystemconfig/utils"
 	"github.com/gardener/gardener/pkg/utils"
+	"github.com/gardener/gardener/pkg/utils/images"
 )
 
 var (
@@ -69,6 +69,9 @@ const (
 	PathKubeletDirectory = "/var/lib/kubelet"
 	// PathScriptCopyKubernetesBinary is the path for the script copying downloaded Kubernetes binaries.
 	PathScriptCopyKubernetesBinary = PathKubeletDirectory + "/copy-kubernetes-binary.sh"
+	// PathNodeName is the path for a file containing the name of the Node registered by kubelet for the respective
+	// machine.
+	PathNodeName = PathKubeletDirectory + "/nodename"
 
 	pathVolumePluginDirectory = "/var/lib/kubelet/volumeplugins"
 )
@@ -91,6 +94,7 @@ func (component) Config(ctx components.Context) ([]extensionsv1alpha1.Unit, []ex
 	if err := tplHealthMonitor.Execute(&healthMonitorScript, map[string]string{
 		"pathBinaries":              v1beta1constants.OperatingSystemConfigFilePathBinaries,
 		"pathKubeletKubeconfigReal": PathKubeconfigReal,
+		"pathNodeName":              PathNodeName,
 	}); err != nil {
 		return nil, nil, err
 	}
@@ -100,7 +104,7 @@ func (component) Config(ctx components.Context) ([]extensionsv1alpha1.Unit, []ex
 		return nil, nil, err
 	}
 
-	cliFlags := CLIFlags(ctx.KubernetesVersion, ctx.CRIName, ctx.Images[charts.ImageNamePauseContainer], ctx.KubeletCLIFlags)
+	cliFlags := CLIFlags(ctx.KubernetesVersion, ctx.CRIName, ctx.Images[images.ImageNamePauseContainer], ctx.KubeletCLIFlags)
 
 	return []extensionsv1alpha1.Unit{
 			{
