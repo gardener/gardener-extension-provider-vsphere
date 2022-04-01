@@ -41,6 +41,16 @@ images:
   repository: k8s.gcr.io/sig-storage/snapshot-controller
   tag: v4.2.1
   targetVersion: ">= 1.20"
+- name: csi-snapshot-validation-webhook
+  sourceRepository: github.com/kubernetes-csi/external-snapshotter
+  repository: k8s.gcr.io/sig-storage/snapshot-validation-webhook
+  tag: "v3.0.3"
+  targetVersion: "< 1.20"
+- name: csi-snapshot-validation-webhook
+  sourceRepository: github.com/kubernetes-csi/external-snapshotter
+  repository: k8s.gcr.io/sig-storage/snapshot-validation-webhook
+  tag: "v4.2.1"
+  targetVersion: ">= 1.20"
 - name: vsphere-cloud-controller-manager
   sourceRepository: github.com/kubernetes/cloud-provider-vsphere
   repository: gcr.io/cloud-provider-vsphere/cpi/release/manager

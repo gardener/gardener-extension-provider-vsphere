@@ -7,6 +7,7 @@ images:
   vsphere-csi-driver-syncer: image-repository:image-tag
   liveness-probe: image-repository:image-tag
   csi-snapshot-controller: image-repository:image-tag
+  csi-snapshot-validation-webhook: image-repository:image-tag
 
 podAnnotations: {}
 serverName: my.vcenter.server.ip.or.fqdn
@@ -83,6 +84,16 @@ csiSnapshotController:
     limits:
       cpu: 30m
       memory: 50Mi
+
+csiSnapshotValidationWebhook:
+  replica: 1
+  podAnnotations: {}
+  resources:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 30m
+    memory: 50Mi
 
 volumesnapshots:
   enabled: false # currently not supported by vsphere-csi-driver

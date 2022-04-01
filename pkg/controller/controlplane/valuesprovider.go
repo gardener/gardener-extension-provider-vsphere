@@ -47,8 +47,10 @@ import (
 	"github.com/gardener/gardener/pkg/utils/secrets"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
+	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -73,6 +75,15 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 						Name:       vsphere.CloudControllerManagerServerName,
 						CommonName: vsphere.CloudControllerManagerName,
 						DNSNames:   kutil.DNSNamesForService(vsphere.CloudControllerManagerName, clusterName),
+						CertType:   secrets.ServerCert,
+						SigningCA:  cas[v1beta1constants.SecretNameCACluster],
+					},
+				},
+				&secrets.ControlPlaneSecretConfig{
+					CertificateSecretConfig: &secrets.CertificateSecretConfig{
+						Name:       vsphere.CSISnapshotValidation,
+						CommonName: vsphere.UsernamePrefix + vsphere.CSISnapshotValidation,
+						DNSNames:   kutil.DNSNamesForService(vsphere.CSISnapshotValidation, clusterName),
 						CertType:   secrets.ServerCert,
 						SigningCA:  cas[v1beta1constants.SecretNameCACluster],
 					},
@@ -263,7 +274,9 @@ var controlPlaneChart = &chart.Chart{
 				vsphere.CSIResizerImageName,
 				vsphere.CSISnapshotterImageName,
 				vsphere.LivenessProbeImageName,
-				vsphere.CSISnapshotControllerImageName},
+				vsphere.CSISnapshotControllerImageName,
+				vsphere.CSISnapshotValidationWebhookImageName,
+			},
 			Objects: []*chart.Object{
 				// csi-driver-controller
 				{Type: &corev1.Secret{}, Name: vsphere.SecretCSIVsphereConfig},
@@ -274,6 +287,10 @@ var controlPlaneChart = &chart.Chart{
 				// csi-snapshot-controller
 				{Type: &appsv1.Deployment{}, Name: vsphere.CSISnapshotControllerName},
 				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: vsphere.CSISnapshotControllerName + "-vpa"},
+				// csi-snapshot-validation-webhook
+				{Type: &appsv1.Deployment{}, Name: vsphere.CSISnapshotValidation},
+				{Type: &corev1.Service{}, Name: vsphere.CSISnapshotValidation},
+				{Type: &networkingv1.NetworkPolicy{}, Name: "allow-kube-apiserver-to-csi-snapshot-validation"},
 			},
 		},
 	},
@@ -338,6 +355,8 @@ var controlPlaneShootChart = &chart.Chart{
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncerName},
 				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncerName},
 				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncerName},
+				// csi-snapshot-validation-webhook
+				{Type: &admissionregistrationv1.ValidatingWebhookConfiguration{}, Name: vsphere.CSISnapshotValidation},
 			},
 		},
 	},
@@ -464,7 +483,7 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 	}
 
 	// Get control plane shoot chart values
-	return vp.getControlPlaneShootChartValues(cp, cluster, credentials)
+	return vp.getControlPlaneShootChartValues(ctx, cp, cluster, credentials)
 }
 
 // GetControlPlaneShootCRDsChartValues returns the values for the control plane shoot CRDs chart applied by the generic actuator.
@@ -766,6 +785,12 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 					"checksum/secret-" + vsphere.CSISnapshotControllerName: checksums[vsphere.CSISnapshotControllerName],
 				},
 			},
+			"csiSnapshotValidationWebhook": map[string]interface{}{
+				"replicas": extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
+				"podAnnotations": map[string]interface{}{
+					"checksum/secret-" + vsphere.CSISnapshotValidation: checksums[vsphere.CSISnapshotValidation],
+				},
+			},
 			"volumesnapshots": map[string]interface{}{
 				"enabled": false, // not supported in vsphere-csi-driver v2.3.0
 			},
@@ -786,6 +811,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 
 // getControlPlaneShootChartValues collects and returns the control plane shoot chart values.
 func (vp *valuesProvider) getControlPlaneShootChartValues(
+	ctx context.Context,
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 	credentials *vsphere.Credentials,
@@ -811,6 +837,12 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 		return nil, err
 	}
 
+	// get the ca.crt for caBundle of the snapshot-validation webhook
+	secret := &corev1.Secret{}
+	if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, string(v1beta1constants.SecretNameCACluster)), secret); err != nil {
+		return nil, err
+	}
+
 	_, csiClusterID := vp.calcClusterIDs(cp)
 	values := map[string]interface{}{
 		"global": map[string]interface{}{
@@ -826,6 +858,10 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 			"datacenters":       strings.Join(helper.CollectDatacenters(region), ","),
 			"insecureFlag":      insecureFlag,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
+			"webhookConfig": map[string]interface{}{
+				"url":      "https://" + vsphere.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
+				"caBundle": string(secret.Data["ca.crt"]),
+			},
 		},
 	}
 

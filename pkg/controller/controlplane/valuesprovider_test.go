@@ -19,6 +19,7 @@ package controlplane
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	apisvspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
@@ -30,6 +31,7 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
+	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -272,6 +274,7 @@ insecure-flag = "true"
 			vsphere.VsphereCSISyncerName:             "7777777777",
 			vsphere.CSISnapshotterName:               "8888888888",
 			vsphere.CSISnapshotControllerName:        "9999999999",
+			vsphere.CSISnapshotValidation:            "452097220f89011daa2543876c3f3184f5064a12be454ae32e2ad205ec55823c",
 		}
 
 		configChartValues = map[string]interface{}{
@@ -363,6 +366,12 @@ insecure-flag = "true"
 						"checksum/secret-" + vsphere.CSISnapshotControllerName: "9999999999",
 					},
 				},
+				"csiSnapshotValidationWebhook": map[string]interface{}{
+					"replicas": 1,
+					"podAnnotations": map[string]interface{}{
+						"checksum/secret-" + vsphere.CSISnapshotValidation: checksums[vsphere.CSISnapshotValidation],
+					},
+				},
 				"volumesnapshots": map[string]interface{}{
 					"enabled": false,
 				},
@@ -387,6 +396,10 @@ insecure-flag = "true"
 				"kubernetesVersion": "1.17.0",
 				"labelRegion":       "k8s-region",
 				"labelZone":         "k8s-zone",
+				"webhookConfig": map[string]interface{}{
+					"url":      "https://" + vsphere.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
+					"caBundle": "",
+				},
 			},
 		}
 
@@ -410,6 +423,7 @@ insecure-flag = "true"
 
 			return vp
 		}
+		fakeErr = fmt.Errorf("fake err")
 	)
 
 	BeforeEach(func() {
@@ -447,8 +461,17 @@ insecure-flag = "true"
 	})
 
 	Describe("#GetControlPlaneShootChartValues", func() {
+		It("should return error when ca secret is not found", func() {
+			vp := prepareValueProvider(false)
+			c.EXPECT().Get(ctx, kutil.Key(cp.Namespace, string(v1beta1constants.SecretNameCACluster)), gomock.AssignableToTypeOf(&corev1.Secret{})).Return(fakeErr)
+
+			_, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, nil)
+			Expect(err).To(HaveOccurred())
+		})
+
 		It("should return correct control plane shoot chart values", func() {
 			vp := prepareValueProvider(false)
+			c.EXPECT().Get(ctx, kutil.Key(cp.Namespace, string(v1beta1constants.SecretNameCACluster)), gomock.AssignableToTypeOf(&corev1.Secret{}))
 
 			// Call GetControlPlaneChartValues method and check the result
 			values, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, checksums)
