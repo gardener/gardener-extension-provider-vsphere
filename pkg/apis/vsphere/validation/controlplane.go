@@ -21,7 +21,7 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/utils"
 
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-	corevalidation "github.com/gardener/gardener/pkg/apis/core/validation"
+	featuregatevalidation "github.com/gardener/gardener/pkg/utils/validation/features"
 	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
@@ -44,7 +44,7 @@ func ValidateControlPlaneConfig(controlPlaneConfig *apisvsphere.ControlPlaneConf
 	}
 
 	if controlPlaneConfig.CloudControllerManager != nil {
-		allErrs = append(allErrs, corevalidation.ValidateFeatureGates(controlPlaneConfig.CloudControllerManager.FeatureGates, version, fldPath.Child("cloudControllerManager", "featureGates"))...)
+		allErrs = append(allErrs, featuregatevalidation.ValidateFeatureGates(controlPlaneConfig.CloudControllerManager.FeatureGates, version, fldPath.Child("cloudControllerManager", "featureGates"))...)
 	}
 
 	return allErrs

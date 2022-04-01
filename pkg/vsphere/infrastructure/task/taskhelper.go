@@ -346,10 +346,8 @@ func CheckShootAuthorizationByTags(logger logr.Logger, objectType, name, shootNa
 			reString := fmt.Sprintf("^%s$", strings.ReplaceAll(part, "*", ".*"))
 			re, err := regexp.Compile(reString)
 			if err != nil {
-				if logger != nil {
-					logger.Info("invalid regex in checkShootAuthorizationByTags",
-						"objectType", objectType, "name", name, "part", part)
-				}
+				logger.Info("invalid regex in checkShootAuthorizationByTags",
+					"objectType", objectType, "name", name, "part", part)
 				continue
 			}
 			if re.MatchString(shootNamespace) {
