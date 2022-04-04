@@ -29,9 +29,11 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/util/index"
 	"github.com/gardener/gardener/pkg/apis/core/install"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
 	"github.com/spf13/cobra"
 	componentbaseconfig "k8s.io/component-base/config"
 	"k8s.io/component-base/version/verflag"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -45,6 +47,7 @@ func NewValidatorCommand(ctx context.Context) *cobra.Command {
 		restOpts = &controllercmd.RESTOptions{}
 		mgrOpts  = &controllercmd.ManagerOptions{
 			WebhookServerPort: 443,
+			HealthBindAddress: ":8081",
 		}
 
 		aggOption = controllercmd.NewOptionAggregator(
@@ -93,6 +96,18 @@ func NewValidatorCommand(ctx context.Context) *cobra.Command {
 			log.Info("Registering webhooks")
 			hookServer.Register("/webhooks/validate", &webhook.Admission{Handler: &validator.Shoot{Logger: log.WithName("shoot-validator")}})
 			hookServer.Register("/webhooks/validate/secrets", &webhook.Admission{Handler: &validator.Secret{Logger: log.WithName("secret-validator")}})
+
+			if err := mgr.AddReadyzCheck("informer-sync", gardenerhealthz.NewCacheSyncHealthz(mgr.GetCache())); err != nil {
+				return fmt.Errorf("could not add readycheck for informers: %w", err)
+			}
+
+			if err := mgr.AddHealthzCheck("ping", healthz.Ping); err != nil {
+				return fmt.Errorf("could not add healthcheck: %w", err)
+			}
+
+			if err := mgr.AddReadyzCheck("webhook-server", mgr.GetWebhookServer().StartedChecker()); err != nil {
+				return fmt.Errorf("could not add readycheck of webhook to manager: %w", err)
+			}
 
 			if err := mgr.Start(ctx); err != nil {
 				return errors.Wrap(err, "Error running manager")
