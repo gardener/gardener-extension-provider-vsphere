@@ -36,6 +36,7 @@ import (
 	vsphereworker "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/worker"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	vspherecontrolplaneexposure "github.com/gardener/gardener-extension-provider-vsphere/pkg/webhook/controlplaneexposure"
+	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
 
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 
@@ -44,6 +45,7 @@ import (
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"k8s.io/component-base/version/verflag"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
@@ -58,6 +60,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			LeaderElectionID:           controllercmd.LeaderElectionNameID(vsphere.Name),
 			LeaderElectionNamespace:    os.Getenv("LEADER_ELECTION_NAMESPACE"),
 			WebhookServerPort:          443,
+			HealthBindAddress:          ":8081",
 		}
 		configFileOpts = &vspherecmd.ConfigOptions{}
 
@@ -187,6 +190,18 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 			if err := controllerSwitches.Completed().AddToManager(mgr); err != nil {
 				return fmt.Errorf("could not add controllers to manager: %w", err)
+			}
+
+			if err := mgr.AddReadyzCheck("informer-sync", gardenerhealthz.NewCacheSyncHealthz(mgr.GetCache())); err != nil {
+				return fmt.Errorf("could not add readycheck for informers: %w", err)
+			}
+
+			if err := mgr.AddHealthzCheck("ping", healthz.Ping); err != nil {
+				return fmt.Errorf("could not add health check to manager: %w", err)
+			}
+
+			if err := mgr.AddReadyzCheck("webhook-server", mgr.GetWebhookServer().StartedChecker()); err != nil {
+				return fmt.Errorf("could not add ready check for webhook server to manager: %w", err)
 			}
 
 			if err := mgr.Start(ctx); err != nil {
