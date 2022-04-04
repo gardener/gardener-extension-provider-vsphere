@@ -71,8 +71,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 		SecretConfigsFunc: func(cas map[string]*secrets.Certificate, clusterName string) []secrets.ConfigInterface {
 			out := []secrets.ConfigInterface{
 				&secrets.ControlPlaneSecretConfig{
+					Name: vsphere.CloudControllerManagerServerName,
 					CertificateSecretConfig: &secrets.CertificateSecretConfig{
-						Name:       vsphere.CloudControllerManagerServerName,
 						CommonName: vsphere.CloudControllerManagerName,
 						DNSNames:   kutil.DNSNamesForService(vsphere.CloudControllerManagerName, clusterName),
 						CertType:   secrets.ServerCert,
@@ -80,8 +80,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 					},
 				},
 				&secrets.ControlPlaneSecretConfig{
+					Name: vsphere.CSISnapshotValidation,
 					CertificateSecretConfig: &secrets.CertificateSecretConfig{
-						Name:       vsphere.CSISnapshotValidation,
 						CommonName: vsphere.UsernamePrefix + vsphere.CSISnapshotValidation,
 						DNSNames:   kutil.DNSNamesForService(vsphere.CSISnapshotValidation, clusterName),
 						CertType:   secrets.ServerCert,
@@ -93,8 +93,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 			if !useTokenRequestor {
 				out = append(out,
 					&secrets.ControlPlaneSecretConfig{
+						Name: vsphere.CloudControllerManagerName,
 						CertificateSecretConfig: &secrets.CertificateSecretConfig{
-							Name:         vsphere.CloudControllerManagerName,
 							CommonName:   "system:serviceaccount:kube-system:cloud-controller-manager",
 							Organization: []string{user.SystemPrivilegedGroup},
 							CertType:     secrets.ClientCert,
@@ -108,8 +108,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 						},
 					},
 					&secrets.ControlPlaneSecretConfig{
+						Name: vsphere.CSIAttacherName,
 						CertificateSecretConfig: &secrets.CertificateSecretConfig{
-							Name:         vsphere.CSIAttacherName,
 							CommonName:   vsphere.UsernamePrefix + vsphere.CSIAttacherName,
 							Organization: []string{user.SystemPrivilegedGroup},
 							CertType:     secrets.ClientCert,
@@ -123,8 +123,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 						},
 					},
 					&secrets.ControlPlaneSecretConfig{
+						Name: vsphere.CSIProvisionerName,
 						CertificateSecretConfig: &secrets.CertificateSecretConfig{
-							Name:         vsphere.CSIProvisionerName,
 							CommonName:   vsphere.UsernamePrefix + vsphere.CSIProvisionerName,
 							Organization: []string{user.SystemPrivilegedGroup},
 							CertType:     secrets.ClientCert,
@@ -138,8 +138,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 						},
 					},
 					&secrets.ControlPlaneSecretConfig{
+						Name: vsphere.CSISnapshotterName,
 						CertificateSecretConfig: &secrets.CertificateSecretConfig{
-							Name:       vsphere.CSISnapshotterName,
 							CommonName: vsphere.UsernamePrefix + vsphere.CSISnapshotterName,
 							CertType:   secrets.ClientCert,
 							SigningCA:  cas[v1beta1constants.SecretNameCACluster],
@@ -152,8 +152,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 						},
 					},
 					&secrets.ControlPlaneSecretConfig{
+						Name: vsphere.VsphereCSIControllerName,
 						CertificateSecretConfig: &secrets.CertificateSecretConfig{
-							Name:         vsphere.VsphereCSIControllerName,
 							CommonName:   vsphere.UsernamePrefix + vsphere.VsphereCSIControllerName,
 							Organization: []string{user.SystemPrivilegedGroup},
 							CertType:     secrets.ClientCert,
@@ -167,8 +167,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 						},
 					},
 					&secrets.ControlPlaneSecretConfig{
+						Name: vsphere.VsphereCSISyncerName,
 						CertificateSecretConfig: &secrets.CertificateSecretConfig{
-							Name:         vsphere.VsphereCSISyncerName,
 							CommonName:   vsphere.UsernamePrefix + vsphere.VsphereCSISyncerName,
 							Organization: []string{user.SystemPrivilegedGroup},
 							CertType:     secrets.ClientCert,
@@ -182,8 +182,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 						},
 					},
 					&secrets.ControlPlaneSecretConfig{
+						Name: vsphere.CSIResizerName,
 						CertificateSecretConfig: &secrets.CertificateSecretConfig{
-							Name:         vsphere.CSIResizerName,
 							CommonName:   vsphere.UsernamePrefix + vsphere.CSIResizerName,
 							Organization: []string{user.SystemPrivilegedGroup},
 							CertType:     secrets.ClientCert,
@@ -197,8 +197,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 						},
 					},
 					&secrets.ControlPlaneSecretConfig{
+						Name: vsphere.CSISnapshotControllerName,
 						CertificateSecretConfig: &secrets.CertificateSecretConfig{
-							Name:       vsphere.CSISnapshotControllerName,
 							CommonName: vsphere.UsernamePrefix + vsphere.CSISnapshotControllerName,
 							CertType:   secrets.ClientCert,
 							SigningCA:  cas[v1beta1constants.SecretNameCACluster],
