@@ -57,3 +57,9 @@ replace (
 
 // needed for infra-cli and load balancer cleanup
 replace k8s.io/cloud-provider-vsphere => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20210910074917-6559ac3f3bcf
+
+// workaround for https://github.com/gardener/hvpa-controller/issues/92, remove once it's fixed
+replace (
+	github.com/gardener/hvpa-controller => github.com/gardener/hvpa-controller v0.4.0
+	github.com/gardener/hvpa-controller/api => github.com/gardener/hvpa-controller/api v0.4.0
+)
