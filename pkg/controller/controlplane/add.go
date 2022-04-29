@@ -19,6 +19,7 @@ package controlplane
 import (
 	"github.com/gardener/gardener-extension-provider-vsphere/charts"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
@@ -53,7 +54,7 @@ type AddOptions struct {
 func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 	return controlplane.Add(mgr, controlplane.AddArgs{
 		Actuator: genericactuator.NewActuator(vsphere.Name,
-			getSecretConfigsFuncs(), shootAccessSecretsFunc, nil, nil,
+			secretConfigsFunc, shootAccessSecretsFunc, nil, nil,
 			configChart, controlPlaneChart, controlPlaneShootChart, controlPlaneShootCRDsChart, storageClassChart, nil,
 			NewValuesProvider(logger, opts.GardenId), extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
 			charts.ImageVector(), "", opts.ShootWebhooks, mgr.GetWebhookServer().Port, logger),

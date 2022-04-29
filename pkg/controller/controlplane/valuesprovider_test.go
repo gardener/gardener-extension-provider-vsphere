@@ -19,7 +19,6 @@ package controlplane
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	apisvspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
@@ -31,7 +30,8 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
+	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
+	fakesecretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager/fake"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -39,6 +39,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 )
@@ -53,6 +54,9 @@ var _ = Describe("ValuesProvider", func() {
 		ctrl *gomock.Controller
 		c    *mockclient.MockClient
 		ctx  context.Context
+
+		fakeClient         client.Client
+		fakeSecretsManager secretsmanager.Interface
 
 		// Build scheme
 		scheme = runtime.NewScheme()
@@ -251,22 +255,6 @@ insecure-flag = "true"
 			},
 		}
 
-		// TODO remove ccmMonitoringConfigmap in next version
-		ccmMonitoringConfigmap = &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: namespace,
-				Name:      "cloud-controller-manager-monitoring-config",
-			},
-		}
-
-		// TODO remove legacyCloudProviderConfigMap in next version
-		legacyCloudProviderConfigMap = &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: namespace,
-				Name:      vsphere.CloudProviderConfig,
-			},
-		}
-
 		checksums = map[string]string{
 			v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
 			vsphere.CloudProviderConfig:              "08a7bc7fe8f59b055f173145e211760a83f02cf89635cef26ebb351378635606",
@@ -306,6 +294,9 @@ insecure-flag = "true"
 		}
 
 		controlPlaneChartValues = map[string]interface{}{
+			"global": map[string]interface{}{
+				"genericTokenKubeconfigSecretName": "generic-token-kubeconfig-92e9ae14",
+			},
 			"vsphere-cloud-controller-manager": map[string]interface{}{
 				"replicas":          1,
 				"kubernetesVersion": "1.17.0",
@@ -329,6 +320,9 @@ insecure-flag = "true"
 					"TLS_RSA_WITH_AES_256_CBC_SHA",
 					"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
 				},
+				"secrets": map[string]interface{}{
+					"server": "cloud-controller-manager-server",
+				},
 			},
 			"csi-vsphere": map[string]interface{}{
 				"replicas":          1,
@@ -350,6 +344,9 @@ insecure-flag = "true"
 				},
 				"csiSnapshotValidationWebhook": map[string]interface{}{
 					"replicas": 1,
+					"secrets": map[string]interface{}{
+						"server": "csi-snapshot-validation-server",
+					},
 				},
 				"volumesnapshots": map[string]interface{}{
 					"enabled": false,
@@ -398,12 +395,14 @@ insecure-flag = "true"
 
 			return vp
 		}
-		fakeErr = fmt.Errorf("fake err")
 	)
 
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 		ctx = context.TODO()
+
+		fakeClient = fakeclient.NewClientBuilder().Build()
+		fakeSecretsManager = fakesecretsmanager.New(fakeClient, namespace)
 	})
 
 	AfterEach(func() {
@@ -422,13 +421,10 @@ insecure-flag = "true"
 	})
 
 	Describe("#GetControlPlaneChartValues", func() {
-
 		It("should return correct control plane chart values", func() {
 			vp := prepareValueProvider(true)
-			c.EXPECT().Delete(ctx, ccmMonitoringConfigmap).DoAndReturn(clientDeleteSuccess())
-			c.EXPECT().Delete(ctx, legacyCloudProviderConfigMap).DoAndReturn(clientDeleteSuccess())
 
-			values, err := vp.GetControlPlaneChartValues(ctx, cp, cluster, checksums, false)
+			values, err := vp.GetControlPlaneChartValues(ctx, cp, cluster, fakeSecretsManager, checksums, false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(values).To(Equal(controlPlaneChartValues))
 		})
@@ -436,20 +432,11 @@ insecure-flag = "true"
 	})
 
 	Describe("#GetControlPlaneShootChartValues", func() {
-		It("should return error when ca secret is not found", func() {
-			vp := prepareValueProvider(false)
-			c.EXPECT().Get(ctx, kutil.Key(cp.Namespace, string(v1beta1constants.SecretNameCACluster)), gomock.AssignableToTypeOf(&corev1.Secret{})).Return(fakeErr)
-
-			_, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, nil)
-			Expect(err).To(HaveOccurred())
-		})
-
 		It("should return correct control plane shoot chart values", func() {
 			vp := prepareValueProvider(false)
-			c.EXPECT().Get(ctx, kutil.Key(cp.Namespace, string(v1beta1constants.SecretNameCACluster)), gomock.AssignableToTypeOf(&corev1.Secret{}))
 
 			// Call GetControlPlaneChartValues method and check the result
-			values, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, checksums)
+			values, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, fakeSecretsManager, checksums)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(values).To(Equal(controlPlaneShootChartValues))
 		})
@@ -506,10 +493,4 @@ func clientGet(result runtime.Object) interface{} {
 
 func sp(s string) *string {
 	return &s
-}
-
-func clientDeleteSuccess() interface{} {
-	return func(ctx context.Context, cm client.Object, opts ...client.DeleteOptions) error {
-		return nil
-	}
 }

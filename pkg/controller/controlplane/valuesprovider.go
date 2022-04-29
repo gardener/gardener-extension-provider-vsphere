@@ -38,6 +38,7 @@ import (
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
+	extensionssecretsmanager "github.com/gardener/gardener/extensions/pkg/util/secret/manager"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	gutils "github.com/gardener/gardener/pkg/utils"
@@ -45,6 +46,8 @@ import (
 	gutil "github.com/gardener/gardener/pkg/utils/gardener"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/secrets"
+	secretutils "github.com/gardener/gardener/pkg/utils/secrets"
+	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
@@ -58,36 +61,43 @@ import (
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
 )
 
-func getSecretConfigsFuncs() secrets.Interface {
-	return &secrets.Secrets{
-		CertificateSecretConfigs: map[string]*secrets.CertificateSecretConfig{
-			v1beta1constants.SecretNameCACluster: {
-				Name:       v1beta1constants.SecretNameCACluster,
-				CommonName: "kubernetes",
-				CertType:   secrets.CACert,
+const (
+	caNameControlPlane               = "ca-" + vsphere.Name + "-controlplane"
+	cloudControllerManagerServerName = vsphere.CloudControllerManagerServerName
+	csiSnapshotValidationServerName  = vsphere.CSISnapshotValidation + "-server"
+)
+
+func secretConfigsFunc(namespace string) []extensionssecretsmanager.SecretConfigWithOptions {
+	return []extensionssecretsmanager.SecretConfigWithOptions{
+		{
+			Config: &secretutils.CertificateSecretConfig{
+				Name:       caNameControlPlane,
+				CommonName: caNameControlPlane,
+				CertType:   secretutils.CACert,
 			},
+			Options: []secretsmanager.GenerateOption{secretsmanager.Persist()},
 		},
-		SecretConfigsFunc: func(cas map[string]*secrets.Certificate, clusterName string) []secrets.ConfigInterface {
-			return []secrets.ConfigInterface{
-				&secrets.ControlPlaneSecretConfig{
-					Name: vsphere.CloudControllerManagerServerName,
-					CertificateSecretConfig: &secrets.CertificateSecretConfig{
-						CommonName: vsphere.CloudControllerManagerName,
-						DNSNames:   kutil.DNSNamesForService(vsphere.CloudControllerManagerName, clusterName),
-						CertType:   secrets.ServerCert,
-						SigningCA:  cas[v1beta1constants.SecretNameCACluster],
-					},
-				},
-				&secrets.ControlPlaneSecretConfig{
-					Name: vsphere.CSISnapshotValidation,
-					CertificateSecretConfig: &secrets.CertificateSecretConfig{
-						CommonName: vsphere.UsernamePrefix + vsphere.CSISnapshotValidation,
-						DNSNames:   kutil.DNSNamesForService(vsphere.CSISnapshotValidation, clusterName),
-						CertType:   secrets.ServerCert,
-						SigningCA:  cas[v1beta1constants.SecretNameCACluster],
-					},
-				},
-			}
+		{
+			Config: &secretutils.CertificateSecretConfig{
+				Name:                        cloudControllerManagerServerName,
+				CommonName:                  vsphere.CloudControllerManagerName,
+				DNSNames:                    kutil.DNSNamesForService(vsphere.CloudControllerManagerName, namespace),
+				CertType:                    secrets.ServerCert,
+				SkipPublishingCACertificate: true,
+			},
+			Options: []secretsmanager.GenerateOption{secretsmanager.SignedByCA(caNameControlPlane)},
+		},
+		{
+			Config: &secretutils.CertificateSecretConfig{
+				Name:                        csiSnapshotValidationServerName,
+				CommonName:                  vsphere.UsernamePrefix + vsphere.CSISnapshotValidation,
+				DNSNames:                    kutil.DNSNamesForService(vsphere.CSISnapshotValidation, namespace),
+				CertType:                    secrets.ServerCert,
+				SkipPublishingCACertificate: true,
+			},
+			// use current CA for signing server cert to prevent mismatches when dropping the old CA from the webhook
+			// config in phase Completing
+			Options: []secretsmanager.GenerateOption{secretsmanager.SignedByCA(caNameControlPlane, secretsmanager.UseCurrentCA)},
 		},
 	}
 }
@@ -287,6 +297,7 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	ctx context.Context,
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
+	secretsReader secretsmanager.Reader,
 	checksums map[string]string,
 	scaledDown bool,
 ) (
@@ -314,18 +325,8 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 		checksums[vsphere.SecretCSIVsphereConfig] = gutils.ComputeChecksum(secretCSIVsphereConfig.Data)
 	}
 
-	// TODO: Remove this code in next version. Delete old config
-	if err := vp.deleteCCMMonitoringConfig(ctx, cp.Namespace); err != nil {
-		return nil, err
-	}
-
-	// TODO: Remove this code in a future version again.
-	if err := vp.deleteLegacyCloudProviderConfigMap(ctx, cp.Namespace); err != nil {
-		return nil, err
-	}
-
 	// Get control plane chart values
-	return vp.getControlPlaneChartValues(cpConfig, cp, cluster, credentials, checksums, scaledDown)
+	return vp.getControlPlaneChartValues(cpConfig, cp, cluster, secretsReader, credentials, checksums, scaledDown)
 }
 
 // GetControlPlaneShootChartValues returns the values for the control plane shoot chart applied by the generic actuator.
@@ -333,7 +334,8 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 	ctx context.Context,
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
-	checksums map[string]string,
+	secretsReader secretsmanager.Reader,
+	_ map[string]string,
 ) (map[string]interface{}, error) {
 	// Get credentials
 	credentials, err := vsphere.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
@@ -342,7 +344,7 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 	}
 
 	// Get control plane shoot chart values
-	return vp.getControlPlaneShootChartValues(ctx, cp, cluster, credentials)
+	return vp.getControlPlaneShootChartValues(ctx, cp, cluster, secretsReader, credentials)
 }
 
 // GetControlPlaneShootCRDsChartValues returns the values for the control plane shoot CRDs chart applied by the generic actuator.
@@ -568,6 +570,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	cpConfig *apisvsphere.ControlPlaneConfig,
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
+	secretsReader secretsmanager.Reader,
 	credentials *vsphere.Credentials,
 	checksums map[string]string,
 	scaledDown bool,
@@ -575,7 +578,6 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	map[string]interface{},
 	error,
 ) {
-
 	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
 	if err != nil {
 		return nil, err
@@ -595,8 +597,20 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	if err != nil {
 		return nil, err
 	}
+
+	ccmServerSecret, found := secretsReader.Get(cloudControllerManagerServerName)
+	if !found {
+		return nil, fmt.Errorf("secret %q not found", cloudControllerManagerServerName)
+	}
+
+	csiSnapshotValidationServerSecret, found := secretsReader.Get(csiSnapshotValidationServerName)
+	if !found {
+		return nil, fmt.Errorf("secret %q not found", csiSnapshotValidationServerName)
+	}
+
 	clusterID, csiClusterID := vp.calcClusterIDs(cp)
 	csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
+
 	values := map[string]interface{}{
 		"global": map[string]interface{}{
 			"genericTokenKubeconfigSecretName": extensionscontroller.GenericTokenKubeconfigSecretNameFromCluster(cluster),
@@ -614,6 +628,9 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 				v1beta1constants.LabelPodMaintenanceRestart: "true",
 			},
 			"tlsCipherSuites": getTLSCipherSuites(kubeVersion),
+			"secrets": map[string]interface{}{
+				"server": ccmServerSecret.Name,
+			},
 		},
 		"csi-vsphere": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
@@ -635,6 +652,9 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			},
 			"csiSnapshotValidationWebhook": map[string]interface{}{
 				"replicas": extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
+				"secrets": map[string]interface{}{
+					"server": csiSnapshotValidationServerSecret.Name,
+				},
 			},
 			"volumesnapshots": map[string]interface{}{
 				"enabled": false, // not supported in vsphere-csi-driver v2.3.0
@@ -659,6 +679,7 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 	ctx context.Context,
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
+	secretsReader secretsmanager.Reader,
 	credentials *vsphere.Credentials,
 ) (map[string]interface{}, error) {
 
@@ -682,10 +703,9 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 		return nil, err
 	}
 
-	// get the ca.crt for caBundle of the snapshot-validation webhook
-	secret := &corev1.Secret{}
-	if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, string(v1beta1constants.SecretNameCACluster)), secret); err != nil {
-		return nil, err
+	caSecret, found := secretsReader.Get(caNameControlPlane)
+	if !found {
+		return nil, fmt.Errorf("secret %q not found", caNameControlPlane)
 	}
 
 	_, csiClusterID := vp.calcClusterIDs(cp)
@@ -701,7 +721,7 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 			"webhookConfig": map[string]interface{}{
 				"url":      "https://" + vsphere.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
-				"caBundle": string(secret.Data["ca.crt"]),
+				"caBundle": string(caSecret.Data[secretutils.DataKeyCertificateBundle]),
 			},
 		},
 	}
