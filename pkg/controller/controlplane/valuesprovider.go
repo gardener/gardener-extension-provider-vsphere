@@ -598,14 +598,15 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	clusterID, csiClusterID := vp.calcClusterIDs(cp)
 	csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
 	values := map[string]interface{}{
+		"global": map[string]interface{}{
+			"genericTokenKubeconfigSecretName": extensionscontroller.GenericTokenKubeconfigSecretNameFromCluster(cluster),
+		},
 		"vsphere-cloud-controller-manager": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
 			"clusterName":       clusterID,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 			"podNetwork":        extensionscontroller.GetPodNetwork(cluster),
 			"podAnnotations": map[string]interface{}{
-				"checksum/secret-" + vsphere.CloudControllerManagerName:       checksums[vsphere.CloudControllerManagerName],
-				"checksum/secret-" + vsphere.CloudControllerManagerServerName: checksums[vsphere.CloudControllerManagerServerName],
 				"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
 				"checksum/secret-" + vsphere.CloudProviderConfig:              checksums[vsphere.CloudProviderConfig],
 			},
@@ -626,26 +627,14 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"insecureFlag":      fmt.Sprintf("%t", region.VsphereInsecureSSL),
 			"resizerEnabled":    csiResizerEnabled,
 			"podAnnotations": map[string]interface{}{
-				"checksum/secret-" + vsphere.CSIProvisionerName:               checksums[vsphere.CSIProvisionerName],
-				"checksum/secret-" + vsphere.CSIAttacherName:                  checksums[vsphere.CSIAttacherName],
-				"checksum/secret-" + vsphere.CSIResizerName:                   checksums[vsphere.CSIResizerName],
-				"checksum/secret-" + vsphere.CSISnapshotterName:               checksums[vsphere.CSISnapshotterName],
-				"checksum/secret-" + vsphere.VsphereCSIControllerName:         checksums[vsphere.VsphereCSIControllerName],
-				"checksum/secret-" + vsphere.VsphereCSISyncerName:             checksums[vsphere.VsphereCSISyncerName],
 				"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
 				"checksum/secret-" + vsphere.SecretCSIVsphereConfig:           checksums[vsphere.SecretCSIVsphereConfig],
 			},
 			"csiSnapshotController": map[string]interface{}{
 				"replicas": extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
-				"podAnnotations": map[string]interface{}{
-					"checksum/secret-" + vsphere.CSISnapshotControllerName: checksums[vsphere.CSISnapshotControllerName],
-				},
 			},
 			"csiSnapshotValidationWebhook": map[string]interface{}{
 				"replicas": extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
-				"podAnnotations": map[string]interface{}{
-					"checksum/secret-" + vsphere.CSISnapshotValidation: checksums[vsphere.CSISnapshotValidation],
-				},
 			},
 			"volumesnapshots": map[string]interface{}{
 				"enabled": false, // not supported in vsphere-csi-driver v2.3.0

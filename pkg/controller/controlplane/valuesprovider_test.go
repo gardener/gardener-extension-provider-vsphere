@@ -44,7 +44,8 @@ import (
 )
 
 const (
-	namespace = "shoot--foo--bar"
+	namespace                        = "shoot--foo--bar"
+	genericTokenKubeconfigSecretName = "generic-token-kubeconfig-92e9ae14"
 )
 
 var _ = Describe("ValuesProvider", func() {
@@ -173,6 +174,11 @@ var _ = Describe("ValuesProvider", func() {
 		}
 
 		cluster = &extensionscontroller.Cluster{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					"generic-token-kubeconfig.secret.gardener.cloud/name": genericTokenKubeconfigSecretName,
+				},
+			},
 			CloudProfile: cloudprofile,
 			Shoot: &gardencorev1beta1.Shoot{
 				ObjectMeta: metav1.ObjectMeta{
@@ -264,17 +270,7 @@ insecure-flag = "true"
 		checksums = map[string]string{
 			v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
 			vsphere.CloudProviderConfig:              "08a7bc7fe8f59b055f173145e211760a83f02cf89635cef26ebb351378635606",
-			vsphere.CloudControllerManagerName:       "3d791b164a808638da9a8df03924be2a41e34cd664e42231c00fe369e3588272",
-			vsphere.CloudControllerManagerServerName: "6dff2a2e6f14444b66d8e4a351c049f7e89ee24ba3eaab95dbec40ba6bdebb52",
-			vsphere.CSIAttacherName:                  "2da58ad61c401a2af779a909d22fb42eed93a1524cbfdab974ceedb413fcb914",
-			vsphere.CSIProvisionerName:               "f75b42d40ab501428c383dfb2336cb1fc892bbee1fc1d739675171e4acc4d911",
-			vsphere.CSIResizerName:                   "a77e663ba1af340fb3dd7f6f8a1be47c7aa9e658198695480641e6b934c0b9ed",
 			vsphere.SecretCSIVsphereConfig:           "a93175a6208bed98639833cf08f616d3329884d2558c1b61cde3656f2a57b5be",
-			vsphere.VsphereCSIControllerName:         "6666666666",
-			vsphere.VsphereCSISyncerName:             "7777777777",
-			vsphere.CSISnapshotterName:               "8888888888",
-			vsphere.CSISnapshotControllerName:        "9999999999",
-			vsphere.CSISnapshotValidation:            "452097220f89011daa2543876c3f3184f5064a12be454ae32e2ad205ec55823c",
 		}
 
 		configChartValues = map[string]interface{}{
@@ -316,8 +312,6 @@ insecure-flag = "true"
 				"clusterName":       "shoot--foo--bar-garden1234",
 				"podNetwork":        cidr,
 				"podAnnotations": map[string]interface{}{
-					"checksum/secret-" + vsphere.CloudControllerManagerName:       "3d791b164a808638da9a8df03924be2a41e34cd664e42231c00fe369e3588272",
-					"checksum/secret-" + vsphere.CloudControllerManagerServerName: "6dff2a2e6f14444b66d8e4a351c049f7e89ee24ba3eaab95dbec40ba6bdebb52",
 					"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
 					"checksum/secret-" + vsphere.CloudProviderConfig:              "67234961d8244bf8bd661e1d165036e691b6570a8981a09942df2314644a8b97",
 				},
@@ -348,26 +342,14 @@ insecure-flag = "true"
 				"insecureFlag":      "true",
 				"resizerEnabled":    true,
 				"podAnnotations": map[string]interface{}{
-					"checksum/secret-" + vsphere.CSIProvisionerName:               "f75b42d40ab501428c383dfb2336cb1fc892bbee1fc1d739675171e4acc4d911",
-					"checksum/secret-" + vsphere.CSIAttacherName:                  "2da58ad61c401a2af779a909d22fb42eed93a1524cbfdab974ceedb413fcb914",
-					"checksum/secret-" + vsphere.CSIResizerName:                   "a77e663ba1af340fb3dd7f6f8a1be47c7aa9e658198695480641e6b934c0b9ed",
-					"checksum/secret-" + vsphere.CSISnapshotterName:               "8888888888",
-					"checksum/secret-" + vsphere.VsphereCSIControllerName:         "6666666666",
-					"checksum/secret-" + vsphere.VsphereCSISyncerName:             "7777777777",
 					"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
 					"checksum/secret-" + vsphere.SecretCSIVsphereConfig:           "a93175a6208bed98639833cf08f616d3329884d2558c1b61cde3656f2a57b5be",
 				},
 				"csiSnapshotController": map[string]interface{}{
 					"replicas": 1,
-					"podAnnotations": map[string]interface{}{
-						"checksum/secret-" + vsphere.CSISnapshotControllerName: "9999999999",
-					},
 				},
 				"csiSnapshotValidationWebhook": map[string]interface{}{
 					"replicas": 1,
-					"podAnnotations": map[string]interface{}{
-						"checksum/secret-" + vsphere.CSISnapshotValidation: checksums[vsphere.CSISnapshotValidation],
-					},
 				},
 				"volumesnapshots": map[string]interface{}{
 					"enabled": false,
