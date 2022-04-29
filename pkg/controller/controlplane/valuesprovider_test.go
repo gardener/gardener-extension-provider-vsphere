@@ -310,9 +310,6 @@ insecure-flag = "true"
 		}
 
 		controlPlaneChartValues = map[string]interface{}{
-			"global": map[string]interface{}{
-				"useTokenRequestor": true,
-			},
 			"vsphere-cloud-controller-manager": map[string]interface{}{
 				"replicas":          1,
 				"kubernetesVersion": "1.17.0",
@@ -381,10 +378,6 @@ insecure-flag = "true"
 		}
 
 		controlPlaneShootChartValues = map[string]interface{}{
-			"global": map[string]interface{}{
-				"useTokenRequestor":      true,
-				"useProjectedTokenMount": true,
-			},
 			"csi-vsphere": map[string]interface{}{
 				"serverName":        "vsphere.host.internal",
 				"clusterID":         "shoot--foo--bar-garden1234",
@@ -415,7 +408,7 @@ insecure-flag = "true"
 			c.EXPECT().Get(ctx, cpSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(cpSecret))
 
 			// Create valuesProvider
-			vp := NewValuesProvider(logger, "garden1234", true, true)
+			vp := NewValuesProvider(logger, "garden1234")
 			err := vp.(inject.Scheme).InjectScheme(scheme)
 			Expect(err).NotTo(HaveOccurred())
 			err = vp.(inject.Client).InjectClient(c)
@@ -502,7 +495,7 @@ insecure-flag = "true"
 
 	Describe("#GetControlPlaneShootCRDsChartValues", func() {
 		It("should return correct control plane shoot CRDs chart values", func() {
-			vp := NewValuesProvider(logger, "garden1234", true, true)
+			vp := NewValuesProvider(logger, "garden1234")
 
 			values, err := vp.GetControlPlaneShootCRDsChartValues(ctx, cp, cluster)
 			Expect(err).NotTo(HaveOccurred())

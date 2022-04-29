@@ -55,11 +55,7 @@ spec:
             - "--csi-address=/csi/csi.sock"
             - "--leader-election"
             - "--leader-election-namespace=kube-system"
-            {{- if .Values.global.useTokenRequestor }}
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
-            {{- else }}
-            - "--kubeconfig=/var/lib/csi-attacher/kubeconfig"
-            {{- end }}
 {{- if .Values.resources.attacher }}
           resources:
 {{ toYaml .Values.resources.attacher | indent 12 }}
@@ -67,14 +63,9 @@ spec:
           volumeMounts:
             - mountPath: /csi
               name: socket-dir
-            {{- if .Values.global.useTokenRequestor }}
             - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
               name: kubeconfig-csi-attacher
               readOnly: true
-            {{- else }}
-            - name: csi-attacher
-              mountPath: /var/lib/csi-attacher
-            {{- end }}
 {{- if .Values.resizerEnabled }}
         - name: csi-resizer
           image: {{ index .Values.images "csi-resizer" }}
@@ -87,11 +78,7 @@ spec:
             - "--kube-api-burst=100"
             - "--leader-election"
             - "--leader-election-namespace=kube-system"
-            {{- if .Values.global.useTokenRequestor }}
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
-            {{- else }}
-            - --kubeconfig=/var/lib/csi-resizer/kubeconfig
-            {{- end }}
 {{- if .Values.resources.resizer }}
           resources:
 {{ toYaml .Values.resources.resizer | indent 12 }}
@@ -99,14 +86,9 @@ spec:
           volumeMounts:
             - mountPath: /csi
               name: socket-dir
-            {{- if .Values.global.useTokenRequestor }}
             - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
               name: kubeconfig-csi-resizer
               readOnly: true
-            {{- else }}
-            - name: csi-resizer
-              mountPath: /var/lib/csi-resizer
-            {{- end }}
 {{- end }}
         - name: vsphere-csi-controller
           image: {{ index .Values.images "vsphere-csi-driver-controller" }}
@@ -114,11 +96,7 @@ spec:
             - "--fss-name=internal-feature-states.csi.vsphere.vmware.com"
             - "--fss-namespace=$(CSI_NAMESPACE)"
             - "--use-gocsi=false"
-            {{- if .Values.global.useTokenRequestor }}
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
-            {{- else }}
-            - "--kubeconfig=/var/lib/vsphere-csi-controller/kubeconfig"
-            {{- end }}
           env:
             - name: CSI_ENDPOINT
               value: unix:///csi/csi.sock
@@ -144,14 +122,9 @@ spec:
               readOnly: true
             - mountPath: /csi
               name: socket-dir
-            {{- if .Values.global.useTokenRequestor }}
             - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
               name: kubeconfig-vsphere-csi-controller
               readOnly: true
-            {{- else }}
-            - name: vsphere-csi-controller
-              mountPath: /var/lib/vsphere-csi-controller
-            {{- end }}
           ports:
             - name: healthz
               containerPort: 9808
@@ -172,11 +145,7 @@ spec:
           args:
             - "--leader-election"
             - "--leader-election-namespace=kube-system"
-            {{- if .Values.global.useTokenRequestor }}
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
-            {{- else }}
-            - "--kubeconfig=/var/lib/csi-syncer/kubeconfig"
-            {{- end }}
             - "--fss-name=internal-feature-states.csi.vsphere.vmware.com"
             - "--fss-namespace=$(CSI_NAMESPACE)"
           env:
@@ -197,14 +166,9 @@ spec:
 {{ toYaml .Values.resources.syncer | indent 12 }}
 {{- end }}
           volumeMounts:
-            {{- if .Values.global.useTokenRequestor }}
             - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
               name: kubeconfig-csi-syncer
               readOnly: true
-            {{- else }}
-            - name: csi-syncer
-              mountPath: /var/lib/csi-syncer
-            {{- end }}
             - mountPath: /etc/cloud
               name: vsphere-config-volume
               readOnly: true
@@ -232,11 +196,7 @@ spec:
             - "--strict-topology"
             - "--leader-election"
             - "--leader-election-namespace=kube-system"
-            {{- if .Values.global.useTokenRequestor }}
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
-            {{- else }}
-            - "--kubeconfig=/var/lib/csi-provisioner/kubeconfig"
-            {{- end }}
             - "--default-fstype=ext4"
 {{- if .Values.resources.provisioner }}
           resources:
@@ -245,14 +205,9 @@ spec:
           volumeMounts:
             - mountPath: /csi
               name: socket-dir
-            {{- if .Values.global.useTokenRequestor }}
             - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
               name: kubeconfig-csi-provisioner
               readOnly: true
-            {{- else }}
-            - name: csi-provisioner
-              mountPath: /var/lib/csi-provisioner
-            {{- end }}
 {{- if .Values.volumesnapshots.enabled }}
         - name: csi-snapshotter
           image: {{ index .Values.images "csi-snapshotter" }}
@@ -260,11 +215,7 @@ spec:
             - "--v=4"
             - "--timeout=300s"
             - "--csi-address=/csi/csi.sock"
-            {{- if .Values.global.useTokenRequestor }}
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
-            {{- else }}
-            - "--kubeconfig=/var/lib/csi-snapshotter/kubeconfig"
-            {{- end }}
             - "--leader-election"
             - "--leader-election-namespace=kube-system"
             - "--snapshot-name-prefix={{ .Release.Namespace }}"
@@ -275,137 +226,109 @@ spec:
           volumeMounts:
             - name: socket-dir
               mountPath: /csi
-            {{- if .Values.global.useTokenRequestor }}
             - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
               name: kubeconfig-csi-snapshotter
               readOnly: true
-            {{- else }}
-            - name: csi-snapshotter
-              mountPath: /var/lib/csi-snapshotter
-            {{- end }}
 {{- end }}
       volumes:
-        {{- if .Values.global.useTokenRequestor }}
         - name: kubeconfig-vsphere-csi-controller
           projected:
             defaultMode: 420
             sources:
-              - secret:
-                  items:
-                    - key: kubeconfig
-                      path: kubeconfig
-                  name: generic-token-kubeconfig
-                  optional: false
-              - secret:
-                  items:
-                    - key: token
-                      path: token
-                  name: shoot-access-vsphere-csi-controller
-                  optional: false
+            - secret:
+                items:
+                - key: kubeconfig
+                  path: kubeconfig
+                name: generic-token-kubeconfig
+                optional: false
+            - secret:
+                items:
+                - key: token
+                  path: token
+                name: shoot-access-vsphere-csi-controller
+                optional: false
         - name: kubeconfig-csi-attacher
           projected:
             defaultMode: 420
             sources:
-              - secret:
-                  items:
-                    - key: kubeconfig
-                      path: kubeconfig
-                  name: generic-token-kubeconfig
-                  optional: false
-              - secret:
-                  items:
-                    - key: token
-                      path: token
-                  name: shoot-access-csi-attacher
-                  optional: false
+            - secret:
+                items:
+                - key: kubeconfig
+                  path: kubeconfig
+                name: generic-token-kubeconfig
+                optional: false
+            - secret:
+                items:
+                - key: token
+                  path: token
+                name: shoot-access-csi-attacher
+                optional: false
         - name: kubeconfig-csi-provisioner
           projected:
             defaultMode: 420
             sources:
-              - secret:
-                  items:
-                    - key: kubeconfig
-                      path: kubeconfig
-                  name: generic-token-kubeconfig
-                  optional: false
-              - secret:
-                  items:
-                    - key: token
-                      path: token
-                  name: shoot-access-csi-provisioner
-                  optional: false
+            - secret:
+                items:
+                - key: kubeconfig
+                  path: kubeconfig
+                name: generic-token-kubeconfig
+                optional: false
+            - secret:
+                items:
+                - key: token
+                  path: token
+                name: shoot-access-csi-provisioner
+                optional: false
         - name: kubeconfig-csi-syncer
           projected:
             defaultMode: 420
             sources:
-              - secret:
-                  items:
-                    - key: kubeconfig
-                      path: kubeconfig
-                  name: generic-token-kubeconfig
-                  optional: false
-              - secret:
-                  items:
-                    - key: token
-                      path: token
-                  name: shoot-access-csi-syncer
-                  optional: false
+            - secret:
+                items:
+                - key: kubeconfig
+                  path: kubeconfig
+                name: generic-token-kubeconfig
+                optional: false
+            - secret:
+                items:
+                - key: token
+                  path: token
+                name: shoot-access-csi-syncer
+                optional: false
         {{- if .Values.volumesnapshots.enabled }}
         - name: kubeconfig-csi-snapshotter
           projected:
             defaultMode: 420
             sources:
-              - secret:
-                  items:
-                    - key: kubeconfig
-                      path: kubeconfig
-                  name: generic-token-kubeconfig
-                  optional: false
-              - secret:
-                  items:
-                    - key: token
-                      path: token
-                  name: shoot-access-csi-snapshotter
-                  optional: false
+            - secret:
+                items:
+                - key: kubeconfig
+                  path: kubeconfig
+                name: generic-token-kubeconfig
+                optional: false
+            - secret:
+                items:
+                - key: token
+                  path: token
+                name: shoot-access-csi-snapshotter
+                optional: false
         {{- end }}
         - name: kubeconfig-csi-resizer
           projected:
             defaultMode: 420
             sources:
-              - secret:
-                  items:
-                    - key: kubeconfig
-                      path: kubeconfig
-                  name: generic-token-kubeconfig
-                  optional: false
-              - secret:
-                  items:
-                    - key: token
-                      path: token
-                  name: shoot-access-csi-resizer
-                  optional: false
-        {{- else }}
-        - name: vsphere-csi-controller
-          secret:
-            secretName: vsphere-csi-controller
-        - name: csi-syncer
-          secret:
-            secretName: csi-syncer
-        - name: csi-attacher
-          secret:
-            secretName: csi-attacher
-        - name: csi-provisioner
-          secret:
-            secretName: csi-provisioner
-        - name: csi-resizer
-          secret:
-            secretName: csi-resizer
-{{- if .Values.volumesnapshots.enabled }}
-        - name: csi-snapshotter
-          secret:
-            secretName: csi-snapshotter
-{{- end }}
-        {{- end }}
+            - secret:
+                items:
+                - key: kubeconfig
+                  path: kubeconfig
+                name: generic-token-kubeconfig
+                optional: false
+            - secret:
+                items:
+                - key: token
+                  path: token
+                name: shoot-access-csi-resizer
+                optional: false
         - name: vsphere-config-volume
           secret:
             secretName: csi-vsphere-config

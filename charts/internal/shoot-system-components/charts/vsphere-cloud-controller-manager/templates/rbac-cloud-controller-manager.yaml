@@ -4,10 +4,6 @@ kind: ServiceAccount
 metadata:
   name: cloud-controller-manager
   namespace: kube-system
-{{- if not .Values.global.useTokenRequestor }}
-  annotations:
-    resources.gardener.cloud/mode: Ignore
-{{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -107,7 +103,6 @@ subjects:
   - kind: ServiceAccount
     name: cloud-controller-manager
     namespace: kube-system
-{{- if .Values.global.useTokenRequestor }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -123,4 +118,3 @@ subjects:
 - kind: ServiceAccount
   name: cloud-controller-manager
   namespace: kube-system
-{{- end }}
