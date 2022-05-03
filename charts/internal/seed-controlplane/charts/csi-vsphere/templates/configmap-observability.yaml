@@ -6,14 +6,6 @@ metadata:
   labels:
     extensions.gardener.cloud/configuration: monitoring
 data:
-  dashboard_operators: |
-    vsphere-csi-controller-dashboard.json: |-
-{{- .Files.Get "vsphere-csi-controller-dashboard.json" | nindent 6 }}
-
-  dashboard_users: |
-    vsphere-csi-controller-dashboard.json: |-
-{{- .Files.Get "vsphere-csi-controller-dashboard.json" | nindent 6 }}
-
   observedComponents: |
     observedPods:
     - podPrefix: csi-driver-controller
