@@ -11,8 +11,6 @@ subjects:
 - kind: ServiceAccount
   name: csi-driver-node
   namespace: {{ .Release.Namespace }}
-{{- if .Values.global.useTokenRequestor }}
 - kind: ServiceAccount
   name: vsphere-csi-controller
   namespace: {{ .Release.Namespace }}
-{{- end }}

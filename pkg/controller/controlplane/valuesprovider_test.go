@@ -19,7 +19,6 @@ package controlplane
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	apisvspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
@@ -31,7 +30,8 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
+	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
+	fakesecretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager/fake"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -39,12 +39,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 )
 
 const (
-	namespace = "shoot--foo--bar"
+	namespace                        = "shoot--foo--bar"
+	genericTokenKubeconfigSecretName = "generic-token-kubeconfig-92e9ae14"
 )
 
 var _ = Describe("ValuesProvider", func() {
@@ -52,6 +54,9 @@ var _ = Describe("ValuesProvider", func() {
 		ctrl *gomock.Controller
 		c    *mockclient.MockClient
 		ctx  context.Context
+
+		fakeClient         client.Client
+		fakeSecretsManager secretsmanager.Interface
 
 		// Build scheme
 		scheme = runtime.NewScheme()
@@ -173,6 +178,11 @@ var _ = Describe("ValuesProvider", func() {
 		}
 
 		cluster = &extensionscontroller.Cluster{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					"generic-token-kubeconfig.secret.gardener.cloud/name": genericTokenKubeconfigSecretName,
+				},
+			},
 			CloudProfile: cloudprofile,
 			Shoot: &gardencorev1beta1.Shoot{
 				ObjectMeta: metav1.ObjectMeta{
@@ -245,36 +255,10 @@ insecure-flag = "true"
 			},
 		}
 
-		// TODO remove ccmMonitoringConfigmap in next version
-		ccmMonitoringConfigmap = &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: namespace,
-				Name:      "cloud-controller-manager-monitoring-config",
-			},
-		}
-
-		// TODO remove legacyCloudProviderConfigMap in next version
-		legacyCloudProviderConfigMap = &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: namespace,
-				Name:      vsphere.CloudProviderConfig,
-			},
-		}
-
 		checksums = map[string]string{
 			v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
 			vsphere.CloudProviderConfig:              "08a7bc7fe8f59b055f173145e211760a83f02cf89635cef26ebb351378635606",
-			vsphere.CloudControllerManagerName:       "3d791b164a808638da9a8df03924be2a41e34cd664e42231c00fe369e3588272",
-			vsphere.CloudControllerManagerServerName: "6dff2a2e6f14444b66d8e4a351c049f7e89ee24ba3eaab95dbec40ba6bdebb52",
-			vsphere.CSIAttacherName:                  "2da58ad61c401a2af779a909d22fb42eed93a1524cbfdab974ceedb413fcb914",
-			vsphere.CSIProvisionerName:               "f75b42d40ab501428c383dfb2336cb1fc892bbee1fc1d739675171e4acc4d911",
-			vsphere.CSIResizerName:                   "a77e663ba1af340fb3dd7f6f8a1be47c7aa9e658198695480641e6b934c0b9ed",
 			vsphere.SecretCSIVsphereConfig:           "a93175a6208bed98639833cf08f616d3329884d2558c1b61cde3656f2a57b5be",
-			vsphere.VsphereCSIControllerName:         "6666666666",
-			vsphere.VsphereCSISyncerName:             "7777777777",
-			vsphere.CSISnapshotterName:               "8888888888",
-			vsphere.CSISnapshotControllerName:        "9999999999",
-			vsphere.CSISnapshotValidation:            "452097220f89011daa2543876c3f3184f5064a12be454ae32e2ad205ec55823c",
 		}
 
 		configChartValues = map[string]interface{}{
@@ -311,7 +295,7 @@ insecure-flag = "true"
 
 		controlPlaneChartValues = map[string]interface{}{
 			"global": map[string]interface{}{
-				"useTokenRequestor": true,
+				"genericTokenKubeconfigSecretName": "generic-token-kubeconfig-92e9ae14",
 			},
 			"vsphere-cloud-controller-manager": map[string]interface{}{
 				"replicas":          1,
@@ -319,8 +303,6 @@ insecure-flag = "true"
 				"clusterName":       "shoot--foo--bar-garden1234",
 				"podNetwork":        cidr,
 				"podAnnotations": map[string]interface{}{
-					"checksum/secret-" + vsphere.CloudControllerManagerName:       "3d791b164a808638da9a8df03924be2a41e34cd664e42231c00fe369e3588272",
-					"checksum/secret-" + vsphere.CloudControllerManagerServerName: "6dff2a2e6f14444b66d8e4a351c049f7e89ee24ba3eaab95dbec40ba6bdebb52",
 					"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
 					"checksum/secret-" + vsphere.CloudProviderConfig:              "67234961d8244bf8bd661e1d165036e691b6570a8981a09942df2314644a8b97",
 				},
@@ -338,6 +320,9 @@ insecure-flag = "true"
 					"TLS_RSA_WITH_AES_256_CBC_SHA",
 					"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
 				},
+				"secrets": map[string]interface{}{
+					"server": "cloud-controller-manager-server",
+				},
 			},
 			"csi-vsphere": map[string]interface{}{
 				"replicas":          1,
@@ -351,25 +336,16 @@ insecure-flag = "true"
 				"insecureFlag":      "true",
 				"resizerEnabled":    true,
 				"podAnnotations": map[string]interface{}{
-					"checksum/secret-" + vsphere.CSIProvisionerName:               "f75b42d40ab501428c383dfb2336cb1fc892bbee1fc1d739675171e4acc4d911",
-					"checksum/secret-" + vsphere.CSIAttacherName:                  "2da58ad61c401a2af779a909d22fb42eed93a1524cbfdab974ceedb413fcb914",
-					"checksum/secret-" + vsphere.CSIResizerName:                   "a77e663ba1af340fb3dd7f6f8a1be47c7aa9e658198695480641e6b934c0b9ed",
-					"checksum/secret-" + vsphere.CSISnapshotterName:               "8888888888",
-					"checksum/secret-" + vsphere.VsphereCSIControllerName:         "6666666666",
-					"checksum/secret-" + vsphere.VsphereCSISyncerName:             "7777777777",
 					"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
 					"checksum/secret-" + vsphere.SecretCSIVsphereConfig:           "a93175a6208bed98639833cf08f616d3329884d2558c1b61cde3656f2a57b5be",
 				},
 				"csiSnapshotController": map[string]interface{}{
 					"replicas": 1,
-					"podAnnotations": map[string]interface{}{
-						"checksum/secret-" + vsphere.CSISnapshotControllerName: "9999999999",
-					},
 				},
 				"csiSnapshotValidationWebhook": map[string]interface{}{
 					"replicas": 1,
-					"podAnnotations": map[string]interface{}{
-						"checksum/secret-" + vsphere.CSISnapshotValidation: checksums[vsphere.CSISnapshotValidation],
+					"secrets": map[string]interface{}{
+						"server": "csi-snapshot-validation-server",
 					},
 				},
 				"volumesnapshots": map[string]interface{}{
@@ -381,10 +357,6 @@ insecure-flag = "true"
 		}
 
 		controlPlaneShootChartValues = map[string]interface{}{
-			"global": map[string]interface{}{
-				"useTokenRequestor":      true,
-				"useProjectedTokenMount": true,
-			},
 			"csi-vsphere": map[string]interface{}{
 				"serverName":        "vsphere.host.internal",
 				"clusterID":         "shoot--foo--bar-garden1234",
@@ -415,7 +387,7 @@ insecure-flag = "true"
 			c.EXPECT().Get(ctx, cpSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(cpSecret))
 
 			// Create valuesProvider
-			vp := NewValuesProvider(logger, "garden1234", true, true)
+			vp := NewValuesProvider(logger, "garden1234")
 			err := vp.(inject.Scheme).InjectScheme(scheme)
 			Expect(err).NotTo(HaveOccurred())
 			err = vp.(inject.Client).InjectClient(c)
@@ -423,12 +395,14 @@ insecure-flag = "true"
 
 			return vp
 		}
-		fakeErr = fmt.Errorf("fake err")
 	)
 
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 		ctx = context.TODO()
+
+		fakeClient = fakeclient.NewClientBuilder().Build()
+		fakeSecretsManager = fakesecretsmanager.New(fakeClient, namespace)
 	})
 
 	AfterEach(func() {
@@ -447,13 +421,10 @@ insecure-flag = "true"
 	})
 
 	Describe("#GetControlPlaneChartValues", func() {
-
 		It("should return correct control plane chart values", func() {
 			vp := prepareValueProvider(true)
-			c.EXPECT().Delete(ctx, ccmMonitoringConfigmap).DoAndReturn(clientDeleteSuccess())
-			c.EXPECT().Delete(ctx, legacyCloudProviderConfigMap).DoAndReturn(clientDeleteSuccess())
 
-			values, err := vp.GetControlPlaneChartValues(ctx, cp, cluster, checksums, false)
+			values, err := vp.GetControlPlaneChartValues(ctx, cp, cluster, fakeSecretsManager, checksums, false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(values).To(Equal(controlPlaneChartValues))
 		})
@@ -461,20 +432,11 @@ insecure-flag = "true"
 	})
 
 	Describe("#GetControlPlaneShootChartValues", func() {
-		It("should return error when ca secret is not found", func() {
-			vp := prepareValueProvider(false)
-			c.EXPECT().Get(ctx, kutil.Key(cp.Namespace, string(v1beta1constants.SecretNameCACluster)), gomock.AssignableToTypeOf(&corev1.Secret{})).Return(fakeErr)
-
-			_, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, nil)
-			Expect(err).To(HaveOccurred())
-		})
-
 		It("should return correct control plane shoot chart values", func() {
 			vp := prepareValueProvider(false)
-			c.EXPECT().Get(ctx, kutil.Key(cp.Namespace, string(v1beta1constants.SecretNameCACluster)), gomock.AssignableToTypeOf(&corev1.Secret{}))
 
 			// Call GetControlPlaneChartValues method and check the result
-			values, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, checksums)
+			values, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, fakeSecretsManager, checksums)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(values).To(Equal(controlPlaneShootChartValues))
 		})
@@ -502,7 +464,7 @@ insecure-flag = "true"
 
 	Describe("#GetControlPlaneShootCRDsChartValues", func() {
 		It("should return correct control plane shoot CRDs chart values", func() {
-			vp := NewValuesProvider(logger, "garden1234", true, true)
+			vp := NewValuesProvider(logger, "garden1234")
 
 			values, err := vp.GetControlPlaneShootCRDsChartValues(ctx, cp, cluster)
 			Expect(err).NotTo(HaveOccurred())
@@ -531,10 +493,4 @@ func clientGet(result runtime.Object) interface{} {
 
 func sp(s string) *string {
 	return &s
-}
-
-func clientDeleteSuccess() interface{} {
-	return func(ctx context.Context, cm client.Object, opts ...client.DeleteOptions) error {
-		return nil
-	}
 }

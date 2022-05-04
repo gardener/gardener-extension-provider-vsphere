@@ -9,8 +9,8 @@ podLabels: {}
 
 providerName: provider-foo
 
-useTokenRequestor: false
-useProjectedTokenMount: false
+# injected by generic worker actuator
+genericTokenKubeconfigSecretName: generic-token-kubeconfig
 
 namespace:
   uid: uuid-of-namespace
