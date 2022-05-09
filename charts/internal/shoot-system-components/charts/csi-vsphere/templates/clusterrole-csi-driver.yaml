@@ -25,8 +25,11 @@ rules:
   verbs: ["create", "get", "list", "update", "delete","patch"]
 - apiGroups: [ "cns.vmware.com" ]
   resources: [ "csinodetopologies"]
-  verbs: ["get", "update", "watch", "list"]
+  verbs: ["get", "update", "watch", "list", "patch"]
 - apiGroups: ["cns.vmware.com"]
   resources: ["cnsvolumeoperationrequests"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["csinodes"]
   verbs: ["get", "list", "watch"]
 

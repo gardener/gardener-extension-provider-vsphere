@@ -6,9 +6,11 @@ data:
   "trigger-csi-fullsync": "false"
   "async-query-volume": "true"
   "improved-csi-idempotency": "true"
-  "block-volume-snapshot": "false"
+  "block-volume-snapshot": "true"
   "use-csinode-id": "true"
   "improved-volume-topology": "true"
+  "pv-to-backingdiskobjectid-mapping": "false"
+  "cnsmgr-suspend-create-volume": "false"
 kind: ConfigMap
 metadata:
   name: internal-feature-states.csi.vsphere.vmware.com
