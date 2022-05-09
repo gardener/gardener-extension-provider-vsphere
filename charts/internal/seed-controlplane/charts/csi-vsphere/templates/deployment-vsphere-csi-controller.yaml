@@ -213,6 +213,8 @@ spec:
           image: {{ index .Values.images "csi-snapshotter" }}
           args:
             - "--v=4"
+            - "--kube-api-qps=100"
+            - "--kube-api-burst=100"
             - "--timeout=300s"
             - "--csi-address=/csi/csi.sock"
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig

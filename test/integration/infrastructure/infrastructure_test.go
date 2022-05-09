@@ -40,7 +40,7 @@ import (
 	"github.com/gardener/gardener/pkg/extensions"
 	gardenerutils "github.com/gardener/gardener/pkg/utils"
 	"github.com/gardener/gardener/test/framework"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sirupsen/logrus"
 
@@ -124,93 +124,108 @@ func getNSXTInfraSpec() (*infrastructure.NSXTInfraSpec, error) {
 	return spec, nil
 }
 
-var _ = Describe("Infrastructure tests", func() {
+var (
+	ctx    = context.Background()
+	logger *logrus.Entry
 
-	var (
-		ctx    = context.Background()
-		logger *logrus.Entry
+	testEnv   *envtest.Environment
+	mgrCancel context.CancelFunc
+	c         client.Client
 
-		testEnv   *envtest.Environment
-		mgrCancel context.CancelFunc
-		c         client.Client
+	decoder       runtime.Decoder
+	vsphereClient task.EnsurerContext
+	nsxtConfig    *infrastructure.NSXTConfig
+	nsxtInfraSpec *infrastructure.NSXTInfraSpec
 
-		decoder       runtime.Decoder
-		vsphereClient task.EnsurerContext
-		nsxtConfig    *infrastructure.NSXTConfig
-		nsxtInfraSpec *infrastructure.NSXTInfraSpec
+	internalChartsPath string
+)
 
-		internalChartsPath string
-	)
+var _ = BeforeSuite(func() {
+	flag.Parse()
+	validateFlags()
 
-	BeforeSuite(func() {
-		flag.Parse()
-		validateFlags()
+	internalChartsPath = vsphere.InternalChartsPath
+	repoRoot := filepath.Join("..", "..", "..")
+	vsphere.InternalChartsPath = filepath.Join(repoRoot, vsphere.InternalChartsPath)
 
-		internalChartsPath = vsphere.InternalChartsPath
-		repoRoot := filepath.Join("..", "..", "..")
-		vsphere.InternalChartsPath = filepath.Join(repoRoot, vsphere.InternalChartsPath)
+	// enable manager logs
+	logf.SetLogger(zap.New(zap.UseDevMode(true), zap.WriteTo(GinkgoWriter)))
 
-		// enable manager logs
-		logf.SetLogger(zap.New(zap.UseDevMode(true), zap.WriteTo(GinkgoWriter)))
+	log := logrus.New()
+	log.SetOutput(GinkgoWriter)
+	logger = logrus.NewEntry(log)
 
-		log := logrus.New()
-		log.SetOutput(GinkgoWriter)
-		logger = logrus.NewEntry(log)
-
-		logger.Infof("NSX-T host: %s", *nsxtHost)
-		logger.Infof("NSX-T username: %s", *nsxtUsername)
-		logger.Infof("NSX-T T0-Gateway: %s", *tier0GatewayName)
-		logger.Infof("NSX-T SNAT IP pool name: %s", *snatIPPoolName)
-		By("starting test environment")
-		testEnv = &envtest.Environment{
-			UseExistingCluster: pointer.BoolPtr(true),
-			CRDInstallOptions: envtest.CRDInstallOptions{
-				Paths: []string{
-					filepath.Join(repoRoot, "example", "20-crd-extensions.gardener.cloud_clusters.yaml"),
-					filepath.Join(repoRoot, "example", "20-crd-extensions.gardener.cloud_infrastructures.yaml"),
-				},
+	logger.Infof("NSX-T host: %s", *nsxtHost)
+	logger.Infof("NSX-T username: %s", *nsxtUsername)
+	logger.Infof("NSX-T T0-Gateway: %s", *tier0GatewayName)
+	logger.Infof("NSX-T SNAT IP pool name: %s", *snatIPPoolName)
+	By("starting test environment")
+	testEnv = &envtest.Environment{
+		UseExistingCluster: pointer.BoolPtr(true),
+		CRDInstallOptions: envtest.CRDInstallOptions{
+			Paths: []string{
+				filepath.Join(repoRoot, "example", "20-crd-extensions.gardener.cloud_clusters.yaml"),
+				filepath.Join(repoRoot, "example", "20-crd-extensions.gardener.cloud_infrastructures.yaml"),
 			},
-		}
+		},
+	}
 
-		cfg, err := testEnv.Start()
+	cfg, err := testEnv.Start()
+	Expect(err).NotTo(HaveOccurred())
+	Expect(cfg).NotTo(BeNil())
+
+	By("parse flags")
+	flag.Parse()
+	validateFlags()
+
+	nsxtConfig, err = getNSXTConfig()
+	Expect(err).NotTo(HaveOccurred())
+	nsxtInfraSpec, err = getNSXTInfraSpec()
+	Expect(err).NotTo(HaveOccurred())
+
+	By("setup manager")
+	mgr, err := manager.New(cfg, manager.Options{})
+	Expect(err).NotTo(HaveOccurred())
+
+	Expect(extensionsv1alpha1.AddToScheme(mgr.GetScheme())).To(Succeed())
+	Expect(vsphereinstall.AddToScheme(mgr.GetScheme())).To(Succeed())
+
+	opts := controllerinfra.AddOptions{
+		GardenId: nsxtInfraSpec.GardenID,
+	}
+	Expect(controllerinfra.AddToManagerWithOptions(mgr, opts)).To(Succeed())
+
+	var mgrContext context.Context
+	mgrContext, mgrCancel = context.WithCancel(ctx)
+
+	By("start manager")
+	go func() {
+		err := mgr.Start(mgrContext)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(cfg).NotTo(BeNil())
+	}()
 
-		By("parse flags")
-		flag.Parse()
-		validateFlags()
+	c = mgr.GetClient()
+	Expect(c).NotTo(BeNil())
 
-		nsxtConfig, err = getNSXTConfig()
-		Expect(err).NotTo(HaveOccurred())
-		nsxtInfraSpec, err = getNSXTInfraSpec()
-		Expect(err).NotTo(HaveOccurred())
+	decoder = serializer.NewCodecFactory(mgr.GetScheme(), serializer.EnableStrict).UniversalDecoder()
+})
 
-		By("setup manager")
-		mgr, err := manager.New(cfg, manager.Options{})
-		Expect(err).NotTo(HaveOccurred())
+var _ = AfterSuite(func() {
+	defer func() {
+		By("stopping manager")
+		mgrCancel()
+	}()
 
-		Expect(extensionsv1alpha1.AddToScheme(mgr.GetScheme())).To(Succeed())
-		Expect(vsphereinstall.AddToScheme(mgr.GetScheme())).To(Succeed())
+	By("running cleanup actions")
+	framework.RunCleanupActions()
 
-		opts := controllerinfra.AddOptions{
-			GardenId: nsxtInfraSpec.GardenID,
-		}
-		Expect(controllerinfra.AddToManagerWithOptions(mgr, opts)).To(Succeed())
+	By("stopping test environment")
+	Expect(testEnv.Stop()).To(Succeed())
 
-		var mgrContext context.Context
-		mgrContext, mgrCancel = context.WithCancel(ctx)
+	vsphere.InternalChartsPath = internalChartsPath
+})
 
-		By("start manager")
-		go func() {
-			err := mgr.Start(mgrContext)
-			Expect(err).NotTo(HaveOccurred())
-		}()
-
-		c = mgr.GetClient()
-		Expect(c).NotTo(BeNil())
-
-		decoder = serializer.NewCodecFactory(mgr.GetScheme(), serializer.EnableStrict).UniversalDecoder()
-	})
+var _ = Describe("Infrastructure tests", func() {
 
 	BeforeEach(func() {
 		// new namespace for each test
@@ -223,21 +238,6 @@ var _ = Describe("Infrastructure tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 		vsphereClient = infraEnsurer.(task.EnsurerContext)
 		Expect(vsphereClient).NotTo(BeNil())
-	})
-
-	AfterSuite(func() {
-		defer func() {
-			By("stopping manager")
-			mgrCancel()
-		}()
-
-		By("running cleanup actions")
-		framework.RunCleanupActions()
-
-		By("stopping test environment")
-		Expect(testEnv.Stop()).To(Succeed())
-
-		vsphere.InternalChartsPath = internalChartsPath
 	})
 
 	Context("with infrastructure creating own T1 gateway", func() {
