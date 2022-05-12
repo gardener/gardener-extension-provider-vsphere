@@ -67,21 +67,21 @@ images:
   #sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   #repository: gcr.io/cloud-provider-vsphere/csi/release/driver
   #tag: v2.4.1
-  sourceRepository: github.com/MartinWeindel/vsphere-csi-driver
+  sourceRepository: github.com/gardener/vsphere-csi-driver
   repository: eu.gcr.io/gardener-project/patches/vsphere-csi-driver/driver
   tag: v2.5.1-gardener1
 - name: vsphere-csi-driver-node
   #sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   #repository: gcr.io/cloud-provider-vsphere/csi/release/driver
   #tag: v2.4.1
-  sourceRepository: github.com/MartinWeindel/vsphere-csi-driver
+  sourceRepository: github.com/gardener/vsphere-csi-driver
   repository: eu.gcr.io/gardener-project/patches/vsphere-csi-driver/driver
   tag: v2.5.1-gardener1
 - name: vsphere-csi-driver-syncer
   #sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   #repository: gcr.io/cloud-provider-vsphere/csi/release/syncer
   #tag: v2.4.1
-  sourceRepository: github.com/MartinWeindel/vsphere-csi-driver
+  sourceRepository: github.com/gardener/vsphere-csi-driver
   repository: eu.gcr.io/gardener-project/patches/vsphere-csi-driver/syncer
   tag: v2.5.1-gardener1
 - name: liveness-probe
