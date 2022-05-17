@@ -15,6 +15,7 @@
 EXTENSION_PREFIX            := gardener-extension
 NAME                        := provider-vsphere
 VALIDATOR_NAME              := validator-vsphere
+GCVE_TM_RUN_NAME            := gcve-tm-run
 REGISTRY                    := eu.gcr.io/gardener-project/gardener
 IMAGE_PREFIX                := $(REGISTRY)/extensions
 REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
@@ -24,6 +25,9 @@ EFFECTIVE_VERSION           := $(VERSION)-$(shell git rev-parse HEAD)
 LD_FLAGS                    := "-w -X github.com/gardener/$(EXTENSION_PREFIX)-$(NAME)/pkg/version.Version=$(IMAGE_TAG)"
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := true
+
+VERSION             ?= $(shell cat ${REPO_ROOT}/VERSION)
+IMAGE_TAG           := ${VERSION}
 
 WEBHOOK_CONFIG_PORT	:= 8443
 WEBHOOK_CONFIG_MODE	:= service
@@ -39,13 +43,14 @@ ifneq ($(strip $(shell git status --porcelain 2>/dev/null)),)
 	EFFECTIVE_VERSION := $(EFFECTIVE_VERSION)-dirty
 endif
 
-NSXT_HOST              := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_host")
-NSXT_USERNAME          := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_username")
-NSXT_PASSWORD          := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_password")
-NSXT_TRANSPORT_ZONE    := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_transport_zone")
-NSXT_T0_GATEWAY        := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_t0_gateway")
-NSXT_EDGE_CLUSTER      := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_edge_cluster")
-NSXT_SNAP_IP_POOL      := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_snat_ip_pool")
+#NSXT_HOST              := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_host")
+#NSXT_USERNAME          := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_username")
+#NSXT_PASSWORD          := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_password")
+#NSXT_TRANSPORT_ZONE    := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_transport_zone")
+#NSXT_T0_GATEWAY        := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_t0_gateway")
+#NSXT_EDGE_CLUSTER      := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_edge_cluster")
+#NSXT_SNAP_IP_POOL      := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_snat_ip_pool")
+OVPN_CONFIG			   := "$(REPO_ROOT)/.kube-secrets/vsphere/vpn.zip"
 
 #########################################
 # Tools                                 #
@@ -100,8 +105,9 @@ docker-login:
 .PHONY: docker-images
 docker-images:
 	@echo "Building docker images with version and tag $(EFFECTIVE_VERSION)"
-	@docker build --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(IMAGE_PREFIX)/$(NAME):$(VERSION)           -t $(IMAGE_PREFIX)/$(NAME):latest           -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(NAME)           .
-	@docker build --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(IMAGE_PREFIX)/$(VALIDATOR_NAME):$(VERSION) -t $(IMAGE_PREFIX)/$(VALIDATOR_NAME):latest -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(VALIDATOR_NAME) .
+	@docker build --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(IMAGE_PREFIX)/$(NAME):$(VERSION)              -t $(IMAGE_PREFIX)/$(NAME):latest           -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(NAME)             .
+	@docker build --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(IMAGE_PREFIX)/$(VALIDATOR_NAME):$(VERSION)    -t $(IMAGE_PREFIX)/$(VALIDATOR_NAME):latest -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(VALIDATOR_NAME)   .
+	@docker build --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(IMAGE_PREFIX)/$(GCVE_TM_RUN_NAME):$(VERSION)  -t $(GCVE_TM_RUN_NAME):latest               -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(GCVE_TM_RUN_NAME) .
 
 #####################################################################
 # Rules for verification, formatting, linting, testing and cleaning #
@@ -181,6 +187,33 @@ integration-test-infra:
 		--nsxt-t0-gateway="${NSXT_T0_GATEWAY}" \
 		--nsxt-edge-cluster="${NSXT_EDGE_CLUSTER}" \
 		--nsxt-snat-ip-pool="${NSXT_SNAP_IP_POOL}"
+
+.PHONY: gcve-integration-test-infra
+gcve-integration-test-infra:
+	@go test -timeout=0 -mod=vendor ./test/integration/infrastructure \
+		--v -ginkgo.v -ginkgo.progress \
+		--kubeconfig=${KUBECONFIG} \
+		--nsxt-host="${NSXT_HOST}" \
+		--nsxt-username="${NSXT_USERNAME}" \
+		--nsxt-password="${NSXT_PASSWORD}" \
+		--nsxt-transport-zone="${NSXT_TRANSPORT_ZONE}" \
+		--nsxt-t0-gateway="${NSXT_T0_GATEWAY}" \
+		--nsxt-edge-cluster="${NSXT_EDGE_CLUSTER}" \
+		--nsxt-snat-ip-pool="${NSXT_SNAP_IP_POOL}" \
+		--openvpn-config="${OVPN_CONFIG}"
+
+.PHONY: initial-test-infra
+initial-test-infra:
+	@dlv test  --api-version=2 --headless -l 127.0.0.1:2345 ./test/initial/infrastructure --build-flags="-mod=vendor" -- \
+		--kubeconfig=${KUBECONFIG} \
+		--nsxt-host="${NSXT_HOST}" \
+		--nsxt-username="${NSXT_USERNAME}" \
+		--nsxt-password="${NSXT_PASSWORD}" \
+		--nsxt-transport-zone="${NSXT_TRANSPORT_ZONE}" \
+		--nsxt-t0-gateway="${NSXT_T0_GATEWAY}" \
+		--nsxt-edge-cluster="${NSXT_EDGE_CLUSTER}" \
+		--nsxt-snat-ip-pool="${NSXT_SNAP_IP_POOL}" \
+		--openvpn-config="${OVPN_CONFIG}"
 
 #################################################################
 # build infra-cli                                               #

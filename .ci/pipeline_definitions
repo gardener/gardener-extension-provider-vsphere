@@ -32,6 +32,13 @@ gardener-extension-provider-vsphere:
         options:
           public_build_logs: true
     release:
+      steps:
+        test-integration:
+          execute:
+          - test-integration.sh
+          trait_depends:
+          - publish
+          image: 'eu.gcr.io/gardener-project/gardener/testmachinery/testmachinery-run:stable'
       traits:
         version:
           preprocess: 'finalize'
