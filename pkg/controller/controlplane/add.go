@@ -17,6 +17,8 @@
 package controlplane
 
 import (
+	"sync/atomic"
+
 	"github.com/gardener/gardener-extension-provider-vsphere/charts"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 
@@ -24,7 +26,6 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/extensions/pkg/util"
-	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -45,8 +46,8 @@ type AddOptions struct {
 	IgnoreOperationAnnotation bool
 	// GardenId is the Gardener garden identity
 	GardenId string
-	// ShootWebhooks specifies the list of desired Shoot MutatingWebhooks.
-	ShootWebhooks []admissionregistrationv1.MutatingWebhook
+	// ShootWebhookConfig specifies the desired Shoot MutatingWebhooksConfiguration.
+	ShootWebhookConfig *atomic.Value
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
@@ -57,7 +58,7 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 			secretConfigsFunc, shootAccessSecretsFunc, nil, nil,
 			configChart, controlPlaneChart, controlPlaneShootChart, controlPlaneShootCRDsChart, storageClassChart, nil,
 			NewValuesProvider(logger, opts.GardenId), extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
-			charts.ImageVector(), "", opts.ShootWebhooks, mgr.GetWebhookServer().Port, logger),
+			charts.ImageVector(), "", opts.ShootWebhookConfig, mgr.GetWebhookServer().Port, logger),
 		ControllerOptions: opts.Controller,
 		Predicates:        controlplane.DefaultPredicates(opts.IgnoreOperationAnnotation),
 		Type:              vsphere.Type,
