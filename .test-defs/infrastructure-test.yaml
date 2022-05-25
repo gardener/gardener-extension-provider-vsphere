@@ -10,13 +10,13 @@ spec:
   args:
     - >-
       go test -timeout=0 -mod=vendor ./test/integration/infrastructure
-      --v -ginkgo.v -ginkgo.progress -ginkgo.noColor
+      --v -ginkgo.v -ginkgo.progress -ginkgo.no-color
       --kubeconfig=$TM_KUBECONFIG_PATH/testmachinery.config
-      --nsxt-host="${NSXT_HOST}" \
-      --nsxt-username="${NSXT_USERNAME}" \
-      --nsxt-password="${NSXT_PASSWORD}" \
-      --nsxt-transport-zone="${NSXT_TRANSPORT_ZONE}" \
-      --nsxt-t0-gateway="${NSXT_T0_GATEWAY}" \
-      --nsxt-edge-cluster="${NSXT_EDGE_CLUSTER}" \
+      --nsxt-host="${NSXT_HOST}"
+      --nsxt-username="${NSXT_USERNAME}"
+      --nsxt-password="${NSXT_PASSWORD}"
+      --nsxt-transport-zone="${NSXT_TRANSPORT_ZONE}"
+      --nsxt-t0-gateway="${NSXT_T0_GATEWAY}"
+      --nsxt-edge-cluster="${NSXT_EDGE_CLUSTER}"
       --nsxt-snat-ip-pool="${NSXT_SNAP_IP_POOL}"
   image: golang:1.17.5
