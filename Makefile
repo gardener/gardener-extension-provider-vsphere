@@ -43,14 +43,13 @@ ifneq ($(strip $(shell git status --porcelain 2>/dev/null)),)
 	EFFECTIVE_VERSION := $(EFFECTIVE_VERSION)-dirty
 endif
 
-#NSXT_HOST              := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_host")
-#NSXT_USERNAME          := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_username")
-#NSXT_PASSWORD          := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_password")
-#NSXT_TRANSPORT_ZONE    := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_transport_zone")
-#NSXT_T0_GATEWAY        := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_t0_gateway")
-#NSXT_EDGE_CLUSTER      := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_edge_cluster")
-#NSXT_SNAP_IP_POOL      := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_snat_ip_pool")
-OVPN_CONFIG			   := "$(REPO_ROOT)/.kube-secrets/vsphere/vpn.zip"
+NSXT_HOST              := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_host")
+NSXT_USERNAME          := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_username")
+NSXT_PASSWORD          := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_password")
+NSXT_TRANSPORT_ZONE    := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_transport_zone")
+NSXT_T0_GATEWAY        := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_t0_gateway")
+NSXT_EDGE_CLUSTER      := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_edge_cluster")
+NSXT_SNAT_IP_POOL      := $(shell cat "$(REPO_ROOT)/.kube-secrets/vsphere/nsxt_snat_ip_pool")
 
 #########################################
 # Tools                                 #
@@ -186,7 +185,7 @@ integration-test-infra:
 		--nsxt-transport-zone="${NSXT_TRANSPORT_ZONE}" \
 		--nsxt-t0-gateway="${NSXT_T0_GATEWAY}" \
 		--nsxt-edge-cluster="${NSXT_EDGE_CLUSTER}" \
-		--nsxt-snat-ip-pool="${NSXT_SNAP_IP_POOL}"
+		--nsxt-snat-ip-pool="${NSXT_SNAT_IP_POOL}"
 
 .PHONY: gcve-integration-test-infra
 gcve-integration-test-infra:
@@ -199,7 +198,7 @@ gcve-integration-test-infra:
 		--nsxt-transport-zone="${NSXT_TRANSPORT_ZONE}" \
 		--nsxt-t0-gateway="${NSXT_T0_GATEWAY}" \
 		--nsxt-edge-cluster="${NSXT_EDGE_CLUSTER}" \
-		--nsxt-snat-ip-pool="${NSXT_SNAP_IP_POOL}" \
+		--nsxt-snat-ip-pool="${NSXT_SNAT_IP_POOL}" \
 		--openvpn-config="${OVPN_CONFIG}"
 
 .PHONY: initial-test-infra
@@ -212,7 +211,7 @@ initial-test-infra:
 		--nsxt-transport-zone="${NSXT_TRANSPORT_ZONE}" \
 		--nsxt-t0-gateway="${NSXT_T0_GATEWAY}" \
 		--nsxt-edge-cluster="${NSXT_EDGE_CLUSTER}" \
-		--nsxt-snat-ip-pool="${NSXT_SNAP_IP_POOL}" \
+		--nsxt-snat-ip-pool="${NSXT_SNAT_IP_POOL}" \
 		--openvpn-config="${OVPN_CONFIG}"
 
 #################################################################
