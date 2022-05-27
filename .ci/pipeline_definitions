@@ -13,21 +13,11 @@ gardener-extension-provider-vsphere:
             image: 'eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere'
             dockerfile: 'Dockerfile'
             target: gardener-extension-provider-vsphere
-            resource_labels:
-              - name: 'cloud.gardener.cnudie/responsibles'
-                values:
-                 - type: 'githubUser'
-                   username: nbasil
           gardener-extension-validator-vsphere:
             registry: 'gcr-readwrite'
             image: 'eu.gcr.io/gardener-project/gardener/extensions/validator-vsphere'
             dockerfile: 'Dockerfile'
             target: gardener-extension-validator-vsphere
-            resource_labels:
-              - name: 'cloud.gardener.cnudie/responsibles'
-                values:
-                 - type: 'githubUser'
-                   username: nbasil
   jobs:
     head-update:
       traits:
