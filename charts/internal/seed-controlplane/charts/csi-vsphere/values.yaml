@@ -82,8 +82,7 @@ csiSnapshotController:
       cpu: 10m
       memory: 32Mi
     limits:
-      cpu: 30m
-      memory: 50Mi
+      memory: 2.2Gi
 
 csiSnapshotValidationWebhook:
   replica: 1

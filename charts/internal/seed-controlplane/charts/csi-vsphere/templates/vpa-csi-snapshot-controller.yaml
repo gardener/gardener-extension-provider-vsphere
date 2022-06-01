@@ -9,6 +9,7 @@ spec:
   resourcePolicy:
     containerPolicies:
     - containerName: csi-snapshot-controller
+      controlledValues: RequestsOnly
       minAllowed:
         memory: 25Mi
   targetRef:
