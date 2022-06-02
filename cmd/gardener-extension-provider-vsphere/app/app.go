@@ -33,6 +33,7 @@ import (
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
+	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
@@ -94,7 +95,13 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 		controllerSwitches = vspherecmd.ControllerSwitchOptions()
 		webhookSwitches    = vspherecmd.WebhookSwitchOptions()
-		webhookOptions     = webhookcmd.NewAddToManagerOptions(vsphere.Name, vsphere.Type, webhookServerOptions, webhookSwitches)
+		webhookOptions     = webhookcmd.NewAddToManagerOptions(
+			vsphere.Name,
+			genericactuator.ShootWebhooksResourceName,
+			genericactuator.ShootWebhookNamespaceSelector(vsphere.Type),
+			webhookServerOptions,
+			webhookSwitches,
+		)
 
 		aggOption = controllercmd.NewOptionAggregator(
 			generalOpts,
