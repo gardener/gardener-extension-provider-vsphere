@@ -18,9 +18,7 @@ spec:
       locations:
         - type: git
           repo: https://github.com/gardener/gardener-extension-provider-vsphere.git
-      {{- if .Values.revision }}
-          revision: {{ .Values.revision }}
-      {{- end }}
+          revision: {{ default "main" .Values.revision }}
     {{ end }}
 
   {{/* Config items are global to for both gcve-setup and gcve-teardown */}}
@@ -34,26 +32,51 @@ spec:
     - name: REGION
       type: env
       value: us-east4
+    - name: NSXT_HOST
+      type: env
+      valueFrom:
+        secretKeyRef:
+          name: vsphere-temp
+          key: nsxt_host
+    - name: NSXT_USERNAME
+      type: env
+      valueFrom:
+        secretKeyRef:
+          name: vsphere-temp
+          key: nsxt_username
+    - name: NSXT_PASSWORD
+      type: env
+      valueFrom:
+        secretKeyRef:
+          name: vsphere-temp
+          key: nsxt_password
+    - name: NSXT_TRANSPORT_ZONE
+      type: env
+      valueFrom:
+        secretKeyRef:
+          name: vsphere-temp
+          key: nsxt_transport_zone
+    - name: NSXT_T0_GATEWAY
+      type: env
+      valueFrom:
+        secretKeyRef:
+          name: vsphere-temp
+          key: nsxt_t0_gateway
+    - name: NSXT_EDGE_CLUSTER
+      type: env
+      valueFrom:
+        secretKeyRef:
+          name: vsphere-temp
+          key: nsxt_edge_cluster
+    - name: NSXT_SNAT_IP_POOL
+      type: env
+      valueFrom:
+        secretKeyRef:
+          name: vsphere-temp
+          key: nsxt_snat_ip_pool
 
   testflow:
-    - name: gcve-setup
-      definition:
-        name: gcve-setup
-        config:
-          - name: PHASE
-            type: env
-            value: dummy # should be setup for proper production use
     - name: infrastructure-test
-      dependsOn: [gcve-setup]
       definition:
         name: infrastructure-test
 
-  onExit:
-    - name: gcve-teardown
-      condition: always
-      definition:
-        name: gcve-setup
-        config:
-          - name: PHASE
-            type: env
-            value: shutdown
