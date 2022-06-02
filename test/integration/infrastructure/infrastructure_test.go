@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -73,9 +74,13 @@ var (
 	transportZoneName = flag.String("nsxt-transport-zone", "", "NSX-T transport zone name")
 	tier0GatewayName  = flag.String("nsxt-t0-gateway", "", "NSX-T T0 gateway name")
 	snatIPPoolName    = flag.String("nsxt-snat-ip-pool", "", "NSX-T SNAT IP pool name")
+	testrunID         = os.Getenv("TM_TESTRUN_ID")
 )
 
 func validateFlags() {
+	if len(testrunID) == 0 {
+		panic("environment variable TM_TESTRUN_ID must be set")
+	}
 	if len(*nsxtHost) == 0 {
 		panic("--nsxt-host flag is not specified")
 	}
@@ -114,9 +119,9 @@ func getNSXTInfraSpec() (*infrastructure.NSXTInfraSpec, error) {
 		TransportZoneName:        *transportZoneName,
 		Tier0GatewayName:         *tier0GatewayName,
 		SNATIPPoolName:           *snatIPPoolName,
-		GardenID:                 "1234-5678-integration-test",
+		GardenID:                 testrunID + "-integration-test",
 		GardenName:               "gardener-test",
-		ClusterName:              "dummy",
+		ClusterName:              testrunID + "-cluster",
 		WorkersNetwork:           "10.251.0.0/19",
 		DNSServers:               []string{"8.8.8.8"},
 		ExternalTier1GatewayPath: nil,
