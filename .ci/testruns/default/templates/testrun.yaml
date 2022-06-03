@@ -12,13 +12,13 @@ spec:
       locations:
         - type: local
           hostPath: /tmp/tm # hostpath to a directory containing TestDefinition
-    {{ else if .Values.revision }}
+    {{ else }}
     - default: true
-      name: provider-gcp
+      name: provider-vsphere
       locations:
         - type: git
-          repo: https://github.com/gardener/gardener-extension-provider-gcp.git
-          revision: {{ .Values.revision }}
+          repo: https://github.com/gardener/gardener-extension-provider-vsphere.git
+          revision: {{ .Values.revision | default .Values.env.TM_GIT_SHA | default .Values.env.TM_GIT_REF  }}
     {{ end }}
 
   {{/* Config items are global to for both gcve-setup and gcve-teardown */}}
