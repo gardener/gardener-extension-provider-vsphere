@@ -27,7 +27,7 @@ spec:
       type: env
       valueFrom:
         secretKeyRef:
-          name: shoot-operator-vsphere
+          name: shoot-operator-gcp
           key: serviceaccount.json
     - name: REGION
       type: env
