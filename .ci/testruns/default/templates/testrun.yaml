@@ -18,7 +18,7 @@ spec:
       locations:
         - type: git
           repo: https://github.com/gardener/gardener-extension-provider-vsphere.git
-          revision: {{ default "main" .Values.revision }}
+          revision: {{ default .Values.env.TM_GIT_REF .Values.revision }}
     {{ end }}
 
   {{/* Config items are global to for both gcve-setup and gcve-teardown */}}
@@ -36,43 +36,43 @@ spec:
       type: env
       valueFrom:
         secretKeyRef:
-          name: vsphere-temp
+          name: shoot-operator-vsphere-gcloud-fielglass-1
           key: nsxt_host
     - name: NSXT_USERNAME
       type: env
       valueFrom:
         secretKeyRef:
-          name: vsphere-temp
+          name: shoot-operator-vsphere-gcloud-fielglass-1
           key: nsxt_username
     - name: NSXT_PASSWORD
       type: env
       valueFrom:
         secretKeyRef:
-          name: vsphere-temp
+          name: shoot-operator-vsphere-gcloud-fielglass-1
           key: nsxt_password
     - name: NSXT_TRANSPORT_ZONE
       type: env
       valueFrom:
         secretKeyRef:
-          name: vsphere-temp
+          name: shoot-operator-vsphere-gcloud-fielglass-1
           key: nsxt_transport_zone
     - name: NSXT_T0_GATEWAY
       type: env
       valueFrom:
         secretKeyRef:
-          name: vsphere-temp
+          name: shoot-operator-vsphere-gcloud-fielglass-1
           key: nsxt_t0_gateway
     - name: NSXT_EDGE_CLUSTER
       type: env
       valueFrom:
         secretKeyRef:
-          name: vsphere-temp
+          name: shoot-operator-vsphere-gcloud-fielglass-1
           key: nsxt_edge_cluster
     - name: NSXT_SNAT_IP_POOL
       type: env
       valueFrom:
         secretKeyRef:
-          name: vsphere-temp
+          name: shoot-operator-vsphere-gcloud-fielglass-1
           key: nsxt_snat_ip_pool
 
   testflow:
