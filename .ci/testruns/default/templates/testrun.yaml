@@ -18,7 +18,7 @@ spec:
       locations:
         - type: git
           repo: https://github.com/gardener/gardener-extension-provider-vsphere.git
-          revision: {{ .Values.revision | default .Values.env.TM_GIT_SHA | default .Values.env.TM_GIT_REF  }}
+          revision: {{ .Values.revision | default main  }}
     {{ end }}
 
   {{/* Config items are global to for both gcve-setup and gcve-teardown */}}
