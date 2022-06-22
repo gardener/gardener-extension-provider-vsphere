@@ -9,7 +9,7 @@ ARG EFFECTIVE_VERSION
 RUN make install EFFECTIVE_VERSION=$EFFECTIVE_VERSION
 
 ############# base
-FROM alpine:3.15.4 AS base
+FROM gcr.io/distroless/static-debian11:nonroot AS base
 
 ############# gardener-extension-provider-vsphere
 FROM base AS gardener-extension-provider-vsphere
