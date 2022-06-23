@@ -13,6 +13,7 @@ FROM gcr.io/distroless/static-debian11:nonroot AS base
 
 ############# gardener-extension-provider-vsphere
 FROM base AS gardener-extension-provider-vsphere
+WORKDIR /
 
 COPY charts /charts
 COPY --from=builder /go/bin/gardener-extension-provider-vsphere /gardener-extension-provider-vsphere
@@ -20,6 +21,7 @@ ENTRYPOINT ["/gardener-extension-provider-vsphere"]
 
 ############# gardener-extension-validator-vsphere
 FROM base AS gardener-extension-validator-vsphere
+WORKDIR /
 
 COPY --from=builder /go/bin/gardener-extension-validator-vsphere /gardener-extension-validator-vsphere
 ENTRYPOINT ["/gardener-extension-validator-vsphere"]
