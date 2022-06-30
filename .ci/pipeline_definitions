@@ -20,13 +20,13 @@ gardener-extension-provider-vsphere:
             target: gardener-extension-validator-vsphere
   jobs:
     head-update:
-      steps:
-        test-integration:
-          execute:
-            - test-integration.sh
-          trait_depends:
-            - publish
-          image: 'eu.gcr.io/gardener-project/gardener/testmachinery/testmachinery-run:stable'
+#      steps:
+#        test-integration:
+#          execute:
+#            - test-integration.sh
+#          trait_depends:
+#            - publish
+#          image: 'eu.gcr.io/gardener-project/gardener/testmachinery/testmachinery-run:stable'
       traits:
         component_descriptor: ~
         draft_release: ~
@@ -39,13 +39,13 @@ gardener-extension-provider-vsphere:
         options:
           public_build_logs: true
     release:
-      steps:
-        test-integration:
-          execute:
-          - test-integration.sh
-          trait_depends:
-          - publish
-          image: 'eu.gcr.io/gardener-project/gardener/testmachinery/testmachinery-run:stable'
+#      steps:
+#        test-integration:
+#          execute:
+#          - test-integration.sh
+#          trait_depends:
+#          - publish
+#          image: 'eu.gcr.io/gardener-project/gardener/testmachinery/testmachinery-run:stable'
       traits:
         version:
           preprocess: 'finalize'
