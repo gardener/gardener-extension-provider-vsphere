@@ -421,6 +421,13 @@ insecure-flag = "true"
 	})
 
 	Describe("#GetControlPlaneChartValues", func() {
+		BeforeEach(func() {
+			By("creating secrets managed outside of this package for whose secretsmanager.Get() will be called")
+			Expect(fakeClient.Create(context.TODO(), &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "ca-provider-vsphere-controlplane", Namespace: namespace}})).To(Succeed())
+			Expect(fakeClient.Create(context.TODO(), &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "csi-snapshot-validation-server", Namespace: namespace}})).To(Succeed())
+			Expect(fakeClient.Create(context.TODO(), &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "cloud-controller-manager-server", Namespace: namespace}})).To(Succeed())
+		})
+
 		It("should return correct control plane chart values", func() {
 			vp := prepareValueProvider(true)
 
@@ -428,10 +435,16 @@ insecure-flag = "true"
 			Expect(err).NotTo(HaveOccurred())
 			Expect(values).To(Equal(controlPlaneChartValues))
 		})
-
 	})
 
 	Describe("#GetControlPlaneShootChartValues", func() {
+		BeforeEach(func() {
+			By("creating secrets managed outside of this package for whose secretsmanager.Get() will be called")
+			Expect(fakeClient.Create(context.TODO(), &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "ca-provider-vsphere-controlplane", Namespace: namespace}})).To(Succeed())
+			Expect(fakeClient.Create(context.TODO(), &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "csi-snapshot-validation-server", Namespace: namespace}})).To(Succeed())
+			Expect(fakeClient.Create(context.TODO(), &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "cloud-controller-manager-server", Namespace: namespace}})).To(Succeed())
+		})
+
 		It("should return correct control plane shoot chart values", func() {
 			vp := prepareValueProvider(false)
 

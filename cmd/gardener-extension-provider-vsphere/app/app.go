@@ -22,12 +22,6 @@ import (
 	"os"
 
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
-	"github.com/gardener/gardener/extensions/pkg/controller"
-	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
-	"github.com/gardener/gardener/extensions/pkg/controller/worker"
-	"github.com/gardener/gardener/extensions/pkg/util"
-	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
-
 	vsphereinstall "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
 	vspherecmd "github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd"
 	vspherecontrolplane "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/controlplane"
@@ -36,10 +30,15 @@ import (
 	vsphereworker "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/worker"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	vspherecontrolplaneexposure "github.com/gardener/gardener-extension-provider-vsphere/pkg/webhook/controlplaneexposure"
+
+	"github.com/gardener/gardener/extensions/pkg/controller"
+	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
+	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
+	"github.com/gardener/gardener/extensions/pkg/controller/worker"
+	"github.com/gardener/gardener/extensions/pkg/util"
+	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
-
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
@@ -96,7 +95,13 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 		controllerSwitches = vspherecmd.ControllerSwitchOptions()
 		webhookSwitches    = vspherecmd.WebhookSwitchOptions()
-		webhookOptions     = webhookcmd.NewAddToManagerOptions(vsphere.Name, webhookServerOptions, webhookSwitches)
+		webhookOptions     = webhookcmd.NewAddToManagerOptions(
+			vsphere.Name,
+			genericactuator.ShootWebhooksResourceName,
+			genericactuator.ShootWebhookNamespaceSelector(vsphere.Type),
+			webhookServerOptions,
+			webhookSwitches,
+		)
 
 		aggOption = controllercmd.NewOptionAggregator(
 			generalOpts,
@@ -168,11 +173,11 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			reconcileOpts.Completed().Apply(&vsphereworker.DefaultAddOptions.IgnoreOperationAnnotation)
 			workerCtrlOpts.Completed().Apply(&vsphereworker.DefaultAddOptions.Controller)
 
-			_, shootWebhooks, err := webhookOptions.Completed().AddToManager(ctx, mgr)
+			atomicShootWebhookConfig, err := webhookOptions.Completed().AddToManager(ctx, mgr)
 			if err != nil {
 				return fmt.Errorf("could not add webhooks to manager: %w", err)
 			}
-			vspherecontrolplane.DefaultAddOptions.ShootWebhooks = shootWebhooks
+			vspherecontrolplane.DefaultAddOptions.ShootWebhookConfig = atomicShootWebhookConfig
 
 			if err := controllerSwitches.Completed().AddToManager(mgr); err != nil {
 				return fmt.Errorf("could not add controllers to manager: %w", err)

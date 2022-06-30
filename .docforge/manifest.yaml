@@ -1,6 +1,13 @@
+{{- $vers := Split .versions "," -}}
+{{ $defaultBranch := (index $vers 0) }}
 structure:
 - name: _index.md
-  source: /README.md
+  source: https://github.com/gardener/gardener-extension-provider-vsphere/blob/{{$defaultBranch}}/README.md
 - name: docs
-  nodesSelector:
-    path: /docs
+  nodes:
+  - nodesSelector:
+      path: https://github.com/gardener/gardener-extension-provider-vsphere/tree/{{$defaultBranch}}/docs
+links:
+  downloads:
+    scope:
+      "gardener/gardener-extension-provider-vsphere/(blob|raw)/(.*)/docs": ~

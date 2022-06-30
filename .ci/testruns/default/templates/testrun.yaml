@@ -1,0 +1,82 @@
+apiVersion: testmachinery.sapcloud.io/v1beta1
+kind: Testrun
+metadata:
+  generateName: tm-extension-vsphere-
+  namespace: default
+spec:
+  ttlSecondsAfterFinished: 172800 # 2 days
+  locationSets:
+    {{- if .Values.localLocation }}
+    - default: true
+      name: local
+      locations:
+        - type: local
+          hostPath: /tmp/tm # hostpath to a directory containing TestDefinition
+    {{ else }}
+    - default: true
+      name: provider-vsphere
+      locations:
+        - type: git
+          repo: https://github.com/gardener/gardener-extension-provider-vsphere.git
+          revision: {{ .Values.revision | default "main"  }}
+    {{ end }}
+
+  {{/* Config items are global to for both gcve-setup and gcve-teardown */}}
+  config:
+    - name: SERVICEACCOUNT_JSON
+      type: env
+      valueFrom:
+        secretKeyRef:
+          name: shoot-operator-gcp
+          key: serviceaccount.json
+    - name: REGION
+      type: env
+      value: us-east4
+    - name: NSXT_HOST
+      type: env
+      valueFrom:
+        secretKeyRef:
+          name: shoot-operator-vsphere-gcloud-fielglass-1
+          key: nsxt_host
+    - name: NSXT_USERNAME
+      type: env
+      valueFrom:
+        secretKeyRef:
+          name: shoot-operator-vsphere-gcloud-fielglass-1
+          key: nsxt_username
+    - name: NSXT_PASSWORD
+      type: env
+      valueFrom:
+        secretKeyRef:
+          name: shoot-operator-vsphere-gcloud-fielglass-1
+          key: nsxt_password
+    - name: NSXT_TRANSPORT_ZONE
+      type: env
+      valueFrom:
+        secretKeyRef:
+          name: shoot-operator-vsphere-gcloud-fielglass-1
+          key: nsxt_transport_zone
+    - name: NSXT_T0_GATEWAY
+      type: env
+      valueFrom:
+        secretKeyRef:
+          name: shoot-operator-vsphere-gcloud-fielglass-1
+          key: nsxt_t0_gateway
+    - name: NSXT_EDGE_CLUSTER
+      type: env
+      valueFrom:
+        secretKeyRef:
+          name: shoot-operator-vsphere-gcloud-fielglass-1
+          key: nsxt_edge_cluster
+    - name: NSXT_SNAT_IP_POOL
+      type: env
+      valueFrom:
+        secretKeyRef:
+          name: shoot-operator-vsphere-gcloud-fielglass-1
+          key: nsxt_snat_ip_pool
+
+  testflow:
+    - name: infrastructure-test
+      definition:
+        name: infrastructure-test
+
