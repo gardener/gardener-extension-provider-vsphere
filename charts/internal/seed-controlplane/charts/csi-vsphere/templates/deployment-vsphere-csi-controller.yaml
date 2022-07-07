@@ -46,6 +46,7 @@ spec:
                       - vsphere-csi-controller
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
+      priorityClassName: gardener-system-300
       containers:
         - name: csi-attacher
           image: {{ index .Values.images "csi-attacher" }}

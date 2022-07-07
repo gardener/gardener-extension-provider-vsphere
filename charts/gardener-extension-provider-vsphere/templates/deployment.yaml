@@ -25,7 +25,7 @@ spec:
       labels:
 {{ include "labels" . | indent 8 }}
     spec:
-      priorityClassName: gardener-extension-provider-vsphere
+      priorityClassName: gardener-system-900
       serviceAccountName: {{ include "name" . }}
       containers:
       - name: {{ include "name" . }}
