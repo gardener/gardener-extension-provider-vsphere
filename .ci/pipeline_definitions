@@ -38,6 +38,13 @@ gardener-extension-provider-vsphere:
         component_descriptor: ~
         options:
           public_build_logs: true
+    create-upgrade-prs:
+      traits:
+        component_descriptor: ~
+        version: ~
+        cronjob:
+          interval: '5m'
+        update_component_deps: ~
     release:
 #      steps:
 #        test-integration:
