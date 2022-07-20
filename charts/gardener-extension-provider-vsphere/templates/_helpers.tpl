@@ -25,3 +25,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- define "deploymentversion" -}}
 apps/v1
 {{- end -}}
+
+{{- define "priorityclassversion" -}}
+scheduling.k8s.io/v1
+{{- end -}}
