@@ -8,7 +8,7 @@ metadata:
 spec:
   resourcePolicy:
     containerPolicies:
-    - containerName: csi-snapshot-controller
+    - containerName: vsphere-csi-snapshot-controller
       controlledValues: RequestsOnly
       minAllowed:
         memory: 25Mi
