@@ -19,8 +19,10 @@ metadata:
 type: Opaque
 data:
   vspherePassword: base64(vsphere-password)
+  vsphereUsername: base64(vSphere-UserName)
   vsphereInsecureSSL: base64("true"|"false")
   nsxtPassword: base64(NSX-T-password)
+  nsxtUserName: base64(NSX-T-UserName)
   nsxtInsecureSSL: base64("true"|"false")
 ```
 
