@@ -6,32 +6,34 @@ gardener-extension-provider-vsphere:
       version:
         preprocess: 'inject-commit-hash'
         inject_effective_version: true
-      publish:
-        dockerimages:
-          gardener-extension-provider-vsphere:
-            registry: 'gcr-readwrite'
-            image: 'eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere'
-            dockerfile: 'Dockerfile'
-            target: gardener-extension-provider-vsphere
-            resource_labels:
-              - name: 'cloud.gardener.cnudie/responsibles'
-                value:
-                - type: 'githubUser'
-                  username: 'briantopping'
-                - type: 'emailAddress'
-                  email: 'brian.topping@sap.com'
-          gardener-extension-validator-vsphere:
-            registry: 'gcr-readwrite'
-            image: 'eu.gcr.io/gardener-project/gardener/extensions/validator-vsphere'
-            dockerfile: 'Dockerfile'
-            target: gardener-extension-validator-vsphere
-            resource_labels:
-              - name: 'cloud.gardener.cnudie/responsibles'
-                value:
+    inherit:
+      publish_template: &publish_anchor
+        publish:
+          dockerimages:
+            gardener-extension-provider-vsphere:
+              registry: 'gcr-readwrite'
+              image: 'eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere'
+              dockerfile: 'Dockerfile'
+              target: gardener-extension-provider-vsphere
+              resource_labels:
+                - name: 'cloud.gardener.cnudie/responsibles'
+                  value:
                   - type: 'githubUser'
                     username: 'briantopping'
                   - type: 'emailAddress'
                     email: 'brian.topping@sap.com'
+            gardener-extension-validator-vsphere:
+              registry: 'gcr-readwrite'
+              image: 'eu.gcr.io/gardener-project/gardener/extensions/validator-vsphere'
+              dockerfile: 'Dockerfile'
+              target: gardener-extension-validator-vsphere
+              resource_labels:
+                - name: 'cloud.gardener.cnudie/responsibles'
+                  value:
+                    - type: 'githubUser'
+                      username: 'briantopping'
+                    - type: 'emailAddress'
+                      email: 'brian.topping@sap.com'
   jobs:
     head-update:
 #      steps:
@@ -46,18 +48,20 @@ gardener-extension-provider-vsphere:
         draft_release: ~
         options:
           public_build_logs: true
+        <<: *publish_anchor
     pull-request:
       traits:
         pull-request: ~
         component_descriptor: ~
         options:
           public_build_logs: true
+        <<: *publish_anchor
     create-upgrade-prs:
       traits:
         component_descriptor: ~
         version: ~
         cronjob:
-          interval: '4h'
+          interval: '5m'
         update_component_deps: ~
     release:
 #      steps:
@@ -68,6 +72,7 @@ gardener-extension-provider-vsphere:
 #          - publish
 #          image: 'eu.gcr.io/gardener-project/gardener/testmachinery/testmachinery-run:stable'
       traits:
+        <<: *publish_anchor
         version:
           preprocess: 'finalize'
         release:
@@ -81,23 +86,3 @@ gardener-extension-provider-vsphere:
               channel_name: 'C9CEBQPGE' #sap-tech-gardener
               slack_cfg_name: 'scp_workspace'
         component_descriptor: ~
-        publish:
-          dockerimages:
-            gardener-extension-provider-vsphere:
-              tag_as_latest: true
-              resource_labels:
-                - name: 'cloud.gardener.cnudie/responsibles'
-                  value:
-                    - type: 'githubUser'
-                      username: 'briantopping'
-                    - type: 'emailAddress'
-                      email: 'brian.topping@sap.com'
-            gardener-extension-validator-vsphere:
-              tag_as_latest: true
-              resource_labels:
-                - name: 'cloud.gardener.cnudie/responsibles'
-                  value:
-                    - type: 'githubUser'
-                      username: 'briantopping'
-                    - type: 'emailAddress'
-                      email: 'brian.topping@sap.com'
