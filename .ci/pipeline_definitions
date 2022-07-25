@@ -43,7 +43,7 @@ gardener-extension-provider-vsphere:
         component_descriptor: ~
         version: ~
         cronjob:
-          interval: '5m'
+          interval: '4h'
         update_component_deps: ~
     release:
 #      steps:
