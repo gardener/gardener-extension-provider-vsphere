@@ -13,11 +13,25 @@ gardener-extension-provider-vsphere:
             image: 'eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere'
             dockerfile: 'Dockerfile'
             target: gardener-extension-provider-vsphere
+            resource_labels:
+              - name: 'cloud.gardener.cnudie/responsibles'
+                value:
+                - type: 'githubUser'
+                  username: 'briantopping'
+                - type: 'emailAddress'
+                  email: 'brian.topping@sap.com'
           gardener-extension-validator-vsphere:
             registry: 'gcr-readwrite'
             image: 'eu.gcr.io/gardener-project/gardener/extensions/validator-vsphere'
             dockerfile: 'Dockerfile'
             target: gardener-extension-validator-vsphere
+            resource_labels:
+              - name: 'cloud.gardener.cnudie/responsibles'
+                value:
+                  - type: 'githubUser'
+                    username: 'briantopping'
+                  - type: 'emailAddress'
+                    email: 'brian.topping@sap.com'
   jobs:
     head-update:
 #      steps:
@@ -71,5 +85,19 @@ gardener-extension-provider-vsphere:
           dockerimages:
             gardener-extension-provider-vsphere:
               tag_as_latest: true
+              resource_labels:
+                - name: 'cloud.gardener.cnudie/responsibles'
+                  value:
+                    - type: 'githubUser'
+                      username: 'briantopping'
+                    - type: 'emailAddress'
+                      email: 'brian.topping@sap.com'
             gardener-extension-validator-vsphere:
               tag_as_latest: true
+              resource_labels:
+                - name: 'cloud.gardener.cnudie/responsibles'
+                  value:
+                    - type: 'githubUser'
+                      username: 'briantopping'
+                    - type: 'emailAddress'
+                      email: 'brian.topping@sap.com'
