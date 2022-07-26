@@ -147,7 +147,7 @@ spec:
       versions:
       - version: 2191.5.0
         path: gardener/templates/coreos-2191.5.0
-        guestId: coreos64Guest
+        guestId: other4xLinux64Guest
   kubernetes:
     versions:
     - version: 1.15.4
