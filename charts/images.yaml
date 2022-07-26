@@ -1,20 +1,20 @@
 images:
 - name: csi-attacher
-  sourceRepository: https://github.com/kubernetes-csi/external-attacher
+  sourceRepository: github.com/kubernetes-csi/external-attacher
   repository: k8s.gcr.io/sig-storage/csi-attacher
-  tag: v3.4.0
+  tag: v3.5.0
 - name: csi-resizer
   sourceRepository: github.com/kubernetes-csi/external-resizer
   repository: k8s.gcr.io/sig-storage/csi-resizer
-  tag: v1.4.0
+  tag: v1.5.0
 - name: csi-node-driver-registrar
-  sourceRepository: https://github.com/kubernetes-csi/node-driver-registrar
+  sourceRepository: github.com/kubernetes-csi/node-driver-registrar
   repository: k8s.gcr.io/sig-storage/csi-node-driver-registrar
-  tag: v2.4.0
+  tag: v2.5.1
 - name: csi-provisioner
-  sourceRepository: https://github.com/kubernetes-csi/external-provisioner
+  sourceRepository: github.com/kubernetes-csi/external-provisioner
   repository: k8s.gcr.io/sig-storage/csi-provisioner
-  tag: v3.1.0
+  tag: v3.2.1
   targetVersion: ">= 1.20"
 - name: csi-snapshotter
   sourceRepository: github.com/kubernetes-csi/external-snapshotter
