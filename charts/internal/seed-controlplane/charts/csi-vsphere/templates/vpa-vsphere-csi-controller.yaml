@@ -1,5 +1,5 @@
 ---
-apiVersion: autoscaling.k8s.io/v1beta2
+apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: vsphere-csi-controller-vpa
@@ -7,9 +7,48 @@ metadata:
 spec:
   resourcePolicy:
     containerPolicies:
-      - containerName: '*'
-        minAllowed:
-          memory: 20Mi
+    - containerName: vsphere-csi-controller
+      minAllowed:
+        memory: 20Mi
+      maxAllowed:
+        cpu: 800m
+        memory: 4G
+    - containerName: vsphere-csi-syncer
+      minAllowed:
+        memory: 20Mi
+      maxAllowed:
+        cpu: 500m
+        memory: 3G
+    - containerName: csi-provisioner
+      minAllowed:
+        memory: 20Mi
+      maxAllowed:
+        cpu: 700m
+        memory: 4G
+    - containerName: csi-attacher
+      minAllowed:
+        memory: 20Mi
+      maxAllowed:
+        cpu: 500m
+        memory: 3G
+    - containerName: csi-snapshotter
+      minAllowed:
+        memory: 20Mi
+      maxAllowed:
+        cpu: 500m
+        memory: 2G
+    - containerName: csi-resizer
+      minAllowed:
+        memory: 20Mi
+      maxAllowed:
+        cpu: 500m
+        memory: 2G
+    - containerName: csi-liveness-probe
+      minAllowed:
+        memory: 20Mi
+      maxAllowed:
+        cpu: 500m
+        memory: 2G
   targetRef:
     apiVersion: apps/v1
     kind: Deployment

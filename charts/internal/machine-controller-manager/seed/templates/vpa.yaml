@@ -1,5 +1,5 @@
 {{- if .Values.vpa.enabled }}
-apiVersion: autoscaling.k8s.io/v1beta2
+apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: machine-controller-manager-vpa
@@ -13,8 +13,18 @@ spec:
     updateMode: {{ .Values.vpa.updatePolicy.updateMode | quote }}
   resourcePolicy:
     containerPolicies:
-    - containerName: '*'
+    - containerName: machine-controller-manager-provider-vsphere
       minAllowed:
         cpu: 30m
         memory: 40M
+      maxAllowed:
+        cpu: 2
+        memory: 5G
+    - containerName: vsphere-machine-controller-manager
+      minAllowed:
+        cpu: 30m
+        memory: 40M
+      maxAllowed:
+        cpu: 2
+        memory: 5G
 {{- end }}
