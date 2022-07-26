@@ -25,6 +25,111 @@ Older versions like vSphere 6.7U3 with NSX-T 2.5 or 3.0 should still work, but a
 
 ## vSphere Preparation
 
+### User and Role Creation
+
+This extension needs credentials for both the vSphere/vCenter and the NSX-T endpoints.
+This section guides through the creation of appropriate roles and users.
+
+#### vCenter/vSphere
+
+The vCenter/vSphere user used for this provider should have been assigned to a role including these permissions
+(use vCenter/vSphere Client / Menu Administration / Access Control / Role to define a role and assign it to the user
+with `Global Permissions`)
+
+* Datastore
+    * Allocate space
+    * Browse datastore
+    * Low level file operations
+    * Remove file
+    * Update virtual machine files
+    * Update virtual machine metadata
+* Global
+    * Cancel task
+    * Manage custom attributes
+    * Set custom attribute
+* Network
+    * Assign network
+* Resource
+    * Assign virtual machine to resource pool
+* Tasks
+    * Create task
+    * Update task
+* vApp
+    * Add virtual machine
+    * Assign resource pool
+    * Assign vApp
+    * Clone
+    * Power off
+    * Power on
+    * View OVF environment
+    * vApp application configuration
+    * vApp instance configuration
+    * vApp managedBy configuration
+    * vApp resource configuration
+* Virtual machine
+    * Change Configuration
+        * Acquire disk lease
+        * Add existing disk
+        * Add new disk
+        * Add or remove device
+        * Advanced configuration
+        * Change CPU count
+        * Change Memory
+        * Change Settings
+        * Change Swapfile placement
+        * Change resource
+        * Configure Host USB device
+        * Configure Raw device
+        * Configure managedBy
+        * Display connection settings
+        * Extend virtual disk
+        * Modify device settings
+        * Query Fault Tolerance compatibility
+        * Query unowned files
+        * Reload from path
+        * Remove disk
+        * Rename
+        * Reset guest information
+        * Set annotation
+        * Toggle disk change tracking
+        * Toggle fork parent
+        * Upgrade virtual machine compatibility
+    * Edit Inventory
+        * Create from existing
+        * Create new
+        * Move
+        * Register
+        * Remove
+        * Unregister
+    * Guest operations
+        * Guest operation alias modification
+        * Guest operation alias query
+        * Guest operation modifications
+        * Guest operation program execution
+        * Guest operation queries
+    * Interaction
+        * Power off
+        * Power on
+        * Reset
+    * Provisioning
+        * Allow disk access
+        * Allow file access
+        * Allow read-only disk access
+        * Allow virtual machine files upload
+        * Clone template
+        * Clone virtual machine
+        * Customize guest
+        * Deploy template
+        * Mark as virtual machine
+        * Modify customization specification
+        * Promote disks
+        * Read customization specifications
+
+#### NSX-T
+
+The NSX-T API is accessed from the infrastructure controller of the vsphere-provider for setting up the network infrastructure resources and the cloud-controller-manager for managing load balancers. Currently, the NSX-T user must have the `Enterprise Admin` role.
+
+
 ### Create Folders
 
 Two folders need to be created:
