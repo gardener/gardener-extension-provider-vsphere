@@ -29,7 +29,7 @@ images:
 - name: csi-snapshotter
   sourceRepository: github.com/kubernetes-csi/external-snapshotter
   repository: k8s.gcr.io/sig-storage/csi-snapshotter
-  tag: v5.0.1
+  tag: v6.0.1
   targetVersion: ">= 1.20"
 - name: csi-snapshot-controller
   sourceRepository: github.com/kubernetes-csi/external-snapshotter
@@ -39,7 +39,7 @@ images:
 - name: csi-snapshot-controller
   sourceRepository: github.com/kubernetes-csi/external-snapshotter
   repository: k8s.gcr.io/sig-storage/snapshot-controller
-  tag: v5.0.1
+  tag: v6.0.1
   targetVersion: ">= 1.20"
 - name: csi-snapshot-validation-webhook
   sourceRepository: github.com/kubernetes-csi/external-snapshotter
@@ -54,7 +54,7 @@ images:
 - name: vsphere-cloud-controller-manager
   sourceRepository: github.com/kubernetes/cloud-provider-vsphere
   repository: gcr.io/cloud-provider-vsphere/cpi/release/manager
-  tag: v1.22.4
+  tag: v1.24.0
 - name: machine-controller-manager
   sourceRepository: github.com/gardener/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
