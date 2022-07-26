@@ -6,34 +6,34 @@ gardener-extension-provider-vsphere:
       version:
         preprocess: 'inject-commit-hash'
         inject_effective_version: true
-    inherit:
-      publish_template: &publish_anchor
-        publish:
-          dockerimages:
-            gardener-extension-provider-vsphere:
-              registry: 'gcr-readwrite'
-              image: 'eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere'
-              dockerfile: 'Dockerfile'
-              target: gardener-extension-provider-vsphere
-              resource_labels:
-                - name: 'cloud.gardener.cnudie/responsibles'
-                  value:
+  inherit:
+    publish_template: &publish_anchor
+      publish:
+        dockerimages:
+          gardener-extension-provider-vsphere:
+            registry: 'gcr-readwrite'
+            image: 'eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere'
+            dockerfile: 'Dockerfile'
+            target: gardener-extension-provider-vsphere
+            resource_labels:
+              - name: 'cloud.gardener.cnudie/responsibles'
+                value:
+                - type: 'githubUser'
+                  username: 'briantopping'
+                - type: 'emailAddress'
+                  email: 'brian.topping@sap.com'
+          gardener-extension-validator-vsphere:
+            registry: 'gcr-readwrite'
+            image: 'eu.gcr.io/gardener-project/gardener/extensions/validator-vsphere'
+            dockerfile: 'Dockerfile'
+            target: gardener-extension-validator-vsphere
+            resource_labels:
+              - name: 'cloud.gardener.cnudie/responsibles'
+                value:
                   - type: 'githubUser'
                     username: 'briantopping'
                   - type: 'emailAddress'
                     email: 'brian.topping@sap.com'
-            gardener-extension-validator-vsphere:
-              registry: 'gcr-readwrite'
-              image: 'eu.gcr.io/gardener-project/gardener/extensions/validator-vsphere'
-              dockerfile: 'Dockerfile'
-              target: gardener-extension-validator-vsphere
-              resource_labels:
-                - name: 'cloud.gardener.cnudie/responsibles'
-                  value:
-                    - type: 'githubUser'
-                      username: 'briantopping'
-                    - type: 'emailAddress'
-                      email: 'brian.topping@sap.com'
   jobs:
     head-update:
 #      steps:
