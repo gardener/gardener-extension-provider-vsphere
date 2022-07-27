@@ -145,7 +145,8 @@ In vSphere client:
 
 ### Upload VM Templates for Worker Nodes
 
-Upload gardenlinux OVA (or OVF/VMDK) templates.
+Upload [gardenlinux OVA](https://github.com/gardenlinux/gardenlinux/releases) or 
+[flatcar OVA](https://stablereleaseflatcar-linuxnet/amd64-usr/current/flatcar_production_vmware_ova.ova) templates.
 
 1. From the context menu of the folder `gardener/templates` choose *Deploy OVF Template...*
 2. Adjust name if needed

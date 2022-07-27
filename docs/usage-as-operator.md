@@ -78,11 +78,11 @@ dnsServers:
 - 10.10.10.11
 - 10.10.10.12
 machineImages:
-- name: coreos
+- name: flatcar
   versions:
-  - version: 2191.5.0
-    path: gardener/templates/coreos-2191.5.0
-    guestId: coreos64Guest
+  - version: 3139.2.3
+    path: gardener/templates/flatcar-3139.2.3
+    guestId: other4xLinux64Guest
 #dockerDaemonOptions:
 #  httpProxyConf: |
 #    [Service]
@@ -145,8 +145,8 @@ spec:
     machineImages:
     - name: coreos
       versions:
-      - version: 2191.5.0
-        path: gardener/templates/coreos-2191.5.0
+      - version: 3139.2.3
+        path: gardener/templates/flatcar-3139.2.3
         guestId: other4xLinux64Guest
   kubernetes:
     versions:
@@ -154,9 +154,9 @@ spec:
     - version: 1.16.0
     - version: 1.16.1
   machineImages:
-  - name: coreos
+  - name: flatcar
     versions:
-    - version: 2191.5.0
+    - version: 3139.2.3
   machineTypes:
   - name: std-02
     cpu: "2"
@@ -193,6 +193,6 @@ This extension targets Kubernetes >= `v1.15` and vSphere `6.7 U3` or later.
 
 ## Supported VM images
 
-Currently, only CoreOS and Flatcar (CoreOS fork) are supported.
+Currently, only Gardenlinux and Flatcar (CoreOS fork) are supported.
 Virtual Machine Hardware must be version 15 or higher, but images are upgraded
 automatically if their hardware has an older version.
