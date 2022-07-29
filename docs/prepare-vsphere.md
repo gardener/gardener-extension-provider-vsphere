@@ -158,7 +158,8 @@ Upload [gardenlinux OVA](https://github.com/gardenlinux/gardenlinux/releases) or
 
 ### Prepare for Kubernetes Zones and Regions
 
-If the vSphere infrastructure is setup for multiple availabilities zones and Kubernetes should be topology aware, there need to be defined two labels in the cloud profile (section `spec.providerConfig.failureDomainLabels`)
+This step has to be done regardless of whether you actually have more than a single region and zone or not!
+Two labels need to be defined in the cloud profile (section `spec.providerConfig.failureDomainLabels`):
 
 ```yaml
     failureDomainLabels:
@@ -166,16 +167,14 @@ If the vSphere infrastructure is setup for multiple availabilities zones and Kub
       zone: k8s-zone
 ```
 
-See also: [deploying_csi_with_zones](https://vsphere-csi-driver.sigs.k8s.io/driver-deployment/deploying_csi_with_zones.html)
-
 A Kubernetes zone can either be a vCenter or one of its datacenters
 
-Zones must be subresources of it. If the region is a complete vCenter, the zone must specify datacenter and either compute cluster or resource pool.
+Zones must be sub-resources of it. If the region is a complete vCenter, the zone must specify datacenter and either compute cluster or resource pool.
 Otherwise, i.e. tf the region is a datacenter, the zone must specify either compute cluster or resource pool.
 
 In the following steps it is assumed:
     - the region is specified by a datacenter
-    - the zone is specified by a compute clusters or one of its resource pools
+    - the zone is specified by a compute cluster or one of its resource pools
 
 #### Create Resource Pool(s)
 
@@ -186,23 +185,23 @@ Create a resource pool for every zone:
 
 #### Tag Regions and Zones
 
-Eeach zone must be tagged with the category defined by the label defined in the cloud profile (`spec.providerConfig.failureDomainLabels.region`).
+Each zone must be tagged with the category defined by the label defined in the cloud profile (`spec.providerConfig.failureDomainLabels.region`).
 Assuming that the region is a datacenter and the region label is `k8s-region`:
 
 1. From the *Menu* in the vSphere Client toolbar choose *Hosts and Clusters*
 2. Select the region's datacenter in the browser
-3. In the *Summary* tab there is a subwindow titled *Tags*. Click the *Assign...* link.
+3. In the *Summary* tab there is a sub-window titled *Tags*. Click the *Assign...* link.
 4. In the *Assign Tag* dialog select the *ADD TAG* link above of the table
 5. In the *Create Tag* dialog choose the *k8s-region* category. If it is not defined, click the *Create New Category* link to create the category.
 6. Enter the *Name* of the region.
 7. Back in the *Assign Tag* mark the checkbox of the region tag you just have created.
 8. Click the *ASSIGN* button
 
-Assuiming that the zone are specified by resource pools and the zone label is `k8s-zone`:
+Assuming that the zones are specified by resource pools and the zone label is `k8s-zone`:
 
 1. From the *Menu* in the vSphere Client toolbar choose *Hosts and Clusters*
-2. Select the zone's compute cluster in the browser
-3. In the *Summary* tab there is a subwindow titled *Tags*. Click the *Assign...* link.
+2. Select the zone's Compute Cluster in the browser
+3. In the *Summary* tab there is a sub-window titled *Tags*. Click the *Assign...* link.
 4. In the *Assign Tag* dialog select the *ADD TAG* link above of the table
 5. In the *Create Tag* dialog choose the *k8s-zone* category. If it is not defined, click the *Create New Category* link to create the category.
 6. Enter the *Name* of the zone.
@@ -219,7 +218,7 @@ For each zone tag the storage with the corresponding `k8s-zone` tag for the zone
 
 1. From the *Menu* in the vSphere Client toolbar choose *Storage*
 2. Select the zone's storage in the browser
-3. In the *Summary* tab there is a subwindow titled *Tags*. Click the *Assign...* link.
+3. In the *Summary* tab there is a sub-window titled *Tags*. Click the *Assign...* link.
 4. In the *Assign Tag* dialog select the *ADD TAG* link above of the table
 5. In the *Create Tag* dialog choose the *k8s-zone* category. If it is not defined, click the *Create New Category* link to create the category.
 6. Enter the *Name* of the zone.
@@ -229,10 +228,10 @@ For each zone tag the storage with the corresponding `k8s-zone` tag for the zone
 ##### Create or clone VM Storage Policy
 
 1. From the *Menu* in the vSphere Client toolbar choose *Policies and Profiles*
-2. In the *Policiies and Profiles* list select *VM Storage Policies*
-3. Create or clone an exisitng storage policy
+2. In the *Policies and Profiles* list select *VM Storage Policies*
+3. Create or clone an existing storage policy
 
-    a) set name, e.g. "&lt;region-name> Storage Policy" (will be needed for the cloud profile later)
+    a) set name, e.g. "<region-name> Storage Policy" (will be needed for the cloud profile later in `spec.providerConfig.defaultClassStoragePolicyName`)
 
     b) On the page *Policy structure* check only the checkbox *Enable tag based placement rules*
 
@@ -247,12 +246,13 @@ For each zone tag the storage with the corresponding `k8s-zone` tag for the zone
     e) Validate the compatible storages on the page *Storage compatibility*
 
     f) Press *FINISH* on the *Review and finish* page
+4. **IMPORTANT**: Repeat steps 1-3 and create a second StoragePolicy by the name of `garden-etcd-fast-main`. This will be used by Gardener to provision shoot's etcd PVCs.
 
-## NSX-T Prepartion
+## NSX-T Preparation
 
 A shared NSX-T is needed for all zones of a region.
 External IP address ranges are needed for SNAT and load balancers.
-Besides the edge cluster must sized large enough to deal with the load balancers of all shoots.
+Besides the edge cluster must be sized large enough to deal with the load balancers of all shoots.
 
 ### Create IP pools
 
@@ -279,9 +279,9 @@ Depending on the payload of a shoot cluster, there may be additional services of
 
 ### Check edge cluster sizing
 
-For load balancer related configurations limitations of NSX-T, please see the web pages [VMware Configuration Maximums](https://configmax.vmware.com/guest?vmwareproduct=NSX-T%20Data%20Center&release=NSX-T%20Data%20Center%203.1.0&categories=20-0). The link shows the limitations for NSX-T 3.1, if you have another version, please select the version from the left panel under *Select Version* and press the *VIEW LIMITS* button to update the view.
+For load balancer related configurations limitations of NSX-T, please see the web pages [VMWare Configuration Maximums](https://configmax.vmware.com/guest?vmwareproduct=NSX-T%20Data%20Center&release=NSX-T%20Data%20Center%203.1.0&categories=20-0). The link shows the limitations for NSX-T 3.1, if you have another version, please select the version from the left panel under *Select Version* and press the *VIEW LIMITS* button to update the view.
 
-By default settings, each shoot cluster has an own T1 gateway and an own LB service (instance) of "T-shirt" size `SMALL`.
+By default, settings, each shoot cluster has an own T1 gateway and an own LB service (instance) of "T-shirt" size `SMALL`.
 
 Examples for limitations on NSX-T 3.1 using *Large Edge Node* and *SMALL* load balancers instances:
 
