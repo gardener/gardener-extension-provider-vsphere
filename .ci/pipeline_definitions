@@ -63,6 +63,11 @@ gardener-extension-provider-vsphere:
         cronjob:
           interval: '5m'
         update_component_deps: ~
+    scan_artifacts:
+      traits:
+        component_descriptor: ~
+        image_scan:
+          email_recipients: ['brian.topping@sap.com']
     release:
 #      steps:
 #        test-integration:
