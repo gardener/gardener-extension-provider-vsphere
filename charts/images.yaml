@@ -46,15 +46,15 @@ images:
 - name: vsphere-csi-driver-controller
   sourceRepository: github.com/gardener/vsphere-csi-driver
   repository: eu.gcr.io/gardener-project/patches/vsphere-csi-driver/driver
-  tag: v2.6.0-gardener2
+  tag: v2.6.0-gardener3
 - name: vsphere-csi-driver-node
   sourceRepository: github.com/gardener/vsphere-csi-driver
   repository: eu.gcr.io/gardener-project/patches/vsphere-csi-driver/driver
-  tag: v2.6.0-gardener2
+  tag: v2.6.0-gardener3
 - name: vsphere-csi-driver-syncer
   sourceRepository: github.com/gardener/vsphere-csi-driver
   repository: eu.gcr.io/gardener-project/patches/vsphere-csi-driver/syncer
-  tag: v2.6.0-gardener2
+  tag: v2.6.0-gardener3
 - name: liveness-probe
   sourceRepository: github.com/kubernetes-csi/livenessprobe
   repository: k8s.gcr.io/sig-storage/livenessprobe
