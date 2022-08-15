@@ -245,47 +245,47 @@ var _ = Describe("Infrastructure tests", func() {
 		Expect(vsphereClient).NotTo(BeNil())
 	})
 
-	Context("with infrastructure creating own T1 gateway", func() {
-		AfterEach(func() {
-			framework.RunCleanupActions()
-		})
+	//Context("with infrastructure creating own T1 gateway", func() {
+	//	AfterEach(func() {
+	//		framework.RunCleanupActions()
+	//	})
+	//
+	//	It("should successfully create and delete", func() {
+	//		namespace := nsxtInfraSpec.ClusterName
+	//		providerConfig := newProviderConfig("", "")
+	//		cloudProfileConfig := newCloudProfileConfig(nsxtConfig, nsxtInfraSpec)
+	//
+	//		err := runTest(ctx, logger, c, namespace, providerConfig, decoder, nsxtConfig, vsphereClient, cloudProfileConfig, nsxtInfraSpec.WorkersNetwork)
+	//		Expect(err).NotTo(HaveOccurred())
+	//	})
+	//})
 
-		It("should successfully create and delete", func() {
-			namespace := nsxtInfraSpec.ClusterName
-			providerConfig := newProviderConfig("", "")
-			cloudProfileConfig := newCloudProfileConfig(nsxtConfig, nsxtInfraSpec)
-
-			err := runTest(ctx, logger, c, namespace, providerConfig, decoder, nsxtConfig, vsphereClient, cloudProfileConfig, nsxtInfraSpec.WorkersNetwork)
-			Expect(err).NotTo(HaveOccurred())
-		})
-	})
-
-	Context("with infrastructure that uses existing T1 gateway", func() {
-		AfterEach(func() {
-			framework.RunCleanupActions()
-		})
-
-		It("should successfully create and delete", func() {
-			namespace := nsxtInfraSpec.ClusterName
-
-			t1Ref, lbSvcRef, err := prepareNewT1GatewayAndLBService(logger, namespace, *nsxtInfraSpec, vsphereClient)
-			// ensure deleting resources even on errors
-			var cleanupHandle framework.CleanupActionHandle
-			cleanupHandle = framework.AddCleanupAction(func() {
-				err := teardownT1GatewayAndLBService(logger, t1Ref, lbSvcRef, vsphereClient)
-				Expect(err).NotTo(HaveOccurred())
-
-				framework.RemoveCleanupAction(cleanupHandle)
-			})
-			Expect(err).NotTo(HaveOccurred())
-
-			providerConfig := newProviderConfig(t1Ref.Path, lbSvcRef.Path)
-			cloudProfileConfig := newCloudProfileConfig(nsxtConfig, nsxtInfraSpec)
-
-			err = runTest(ctx, logger, c, namespace, providerConfig, decoder, nsxtConfig, vsphereClient, cloudProfileConfig, nsxtInfraSpec.WorkersNetwork)
-			Expect(err).NotTo(HaveOccurred())
-		})
-	})
+	//Context("with infrastructure that uses existing T1 gateway", func() {
+	//	AfterEach(func() {
+	//		framework.RunCleanupActions()
+	//	})
+	//
+	//	It("should successfully create and delete", func() {
+	//		namespace := nsxtInfraSpec.ClusterName
+	//
+	//		t1Ref, lbSvcRef, err := prepareNewT1GatewayAndLBService(logger, namespace, *nsxtInfraSpec, vsphereClient)
+	//		// ensure deleting resources even on errors
+	//		var cleanupHandle framework.CleanupActionHandle
+	//		cleanupHandle = framework.AddCleanupAction(func() {
+	//			err := teardownT1GatewayAndLBService(logger, t1Ref, lbSvcRef, vsphereClient)
+	//			Expect(err).NotTo(HaveOccurred())
+	//
+	//			framework.RemoveCleanupAction(cleanupHandle)
+	//		})
+	//		Expect(err).NotTo(HaveOccurred())
+	//
+	//		providerConfig := newProviderConfig(t1Ref.Path, lbSvcRef.Path)
+	//		cloudProfileConfig := newCloudProfileConfig(nsxtConfig, nsxtInfraSpec)
+	//
+	//		err = runTest(ctx, logger, c, namespace, providerConfig, decoder, nsxtConfig, vsphereClient, cloudProfileConfig, nsxtInfraSpec.WorkersNetwork)
+	//		Expect(err).NotTo(HaveOccurred())
+	//	})
+	//})
 })
 
 func runTest(
