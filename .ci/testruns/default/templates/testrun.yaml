@@ -76,7 +76,24 @@ spec:
           key: nsxt_snat_ip_pool
 
   testflow:
+    - name: gcve-setup
+      definition:
+        name: gcve-setup
+        config:
+          - name: PHASE
+            type: env
+            value: setup
     - name: infrastructure-test
+      dependsOn: [ gcve-setup ]
       definition:
         name: infrastructure-test
 
+  onExit:
+    - name: gcve-teardown
+      condition: always
+      definition:
+        name: gcve-setup
+        config:
+          - name: PHASE
+            type: env
+            value: shutdown
