@@ -20,11 +20,12 @@ import (
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/go-logr/logr"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd/infra-cli/loadbalancer"
 )
 
-func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
+func (a *actuator) delete(ctx context.Context, log logr.Logger, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	state, creationStarted, err := a.getInfrastructureState(infra)
 	if err != nil {
 		return err
@@ -34,7 +35,7 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 		return nil
 	}
 
-	prepared, err := a.prepareReconcile(ctx, infra, cluster)
+	prepared, err := a.prepareReconcile(ctx, log, infra, cluster)
 	if err != nil {
 		return err
 	}
@@ -50,11 +51,11 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 		err = loadbalancer.DestroyAll(prepared.nsxtConfig, lbstate)
 	}
 	if err != nil {
-		a.logger.Info(fmt.Sprintf("warning: cleanup of load balancers failed with: %s", err), "infra", infra.Name)
+		log.Info(fmt.Sprintf("warning: cleanup of load balancers failed with: %s", err), "infra", infra.Name)
 	}
 
 	err = prepared.ensurer.EnsureInfrastructureDeleted(&prepared.spec, state)
-	errUpdate := a.updateProviderStatus(ctx, infra, state, prepared, creationStarted)
+	errUpdate := a.updateProviderStatus(ctx, log, infra, state, prepared, creationStarted)
 	if err != nil {
 		return err
 	}

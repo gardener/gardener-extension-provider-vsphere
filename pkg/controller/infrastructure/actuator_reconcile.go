@@ -28,6 +28,7 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/helpers"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
+	"github.com/go-logr/logr"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -60,7 +61,7 @@ func (p *preparedReconcile) getDefaultLoadBalancerIPPoolName() (*string, error) 
 	return ipPoolName, nil
 }
 
-func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) (*preparedReconcile, error) {
+func (a *actuator) prepareReconcile(ctx context.Context, log logr.Logger, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) (*preparedReconcile, error) {
 	cloudProfileConfig, err := apishelper.GetCloudProfileConfig(cluster)
 	if err != nil {
 		return nil, err
@@ -118,7 +119,7 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 	}
 
 	shootCtx := &ensurer.ShootContext{ShootNamespace: cluster.ObjectMeta.Name, GardenID: a.gardenID}
-	infraEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(a.logger, nsxtConfig, shootCtx)
+	infraEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(log, nsxtConfig, shootCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -145,13 +146,13 @@ func (a *actuator) getInfrastructureState(infra *extensionsv1alpha1.Infrastructu
 	return infraStatus.NSXTInfraState, infraStatus.CreationStarted, nil
 }
 
-func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
+func (a *actuator) reconcile(ctx context.Context, log logr.Logger, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	state, creationStarted, err := a.getInfrastructureState(infra)
 	if err != nil {
 		return err
 	}
 
-	prepared, err := a.prepareReconcile(ctx, infra, cluster)
+	prepared, err := a.prepareReconcile(ctx, log, infra, cluster)
 	if creationStarted == nil || !*creationStarted {
 		// early status update to allow deletion on wrong credentials
 		if err == nil {
@@ -159,7 +160,7 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 		}
 		b := err == nil
 		creationStarted = &b
-		errUpdate := a.updateProviderStatus(ctx, infra, state, prepared, creationStarted)
+		errUpdate := a.updateProviderStatus(ctx, log, infra, state, prepared, creationStarted)
 		if err != nil {
 			return err
 		}
@@ -178,7 +179,7 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 		}
 	}
 	err = prepared.ensurer.EnsureInfrastructure(prepared.spec, state)
-	errUpdate := a.updateProviderStatus(ctx, infra, state, prepared, creationStarted)
+	errUpdate := a.updateProviderStatus(ctx, log, infra, state, prepared, creationStarted)
 	if err != nil {
 		return err
 	}
@@ -189,6 +190,7 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 
 func (a *actuator) updateProviderStatus(
 	ctx context.Context,
+	log logr.Logger,
 	infra *extensionsv1alpha1.Infrastructure,
 	newState *apisvsphere.NSXTInfraState,
 	prepared *preparedReconcile,
@@ -199,7 +201,7 @@ func (a *actuator) updateProviderStatus(
 		err = a.doUpdateProviderStatus(ctx, infra, status)
 	}
 	if err != nil {
-		a.logFailedSaveState(err, newState)
+		a.logFailedSaveState(log, err, newState)
 	}
 	return err
 }
@@ -282,7 +284,7 @@ func (a *actuator) doUpdateProviderStatus(
 	return a.Client().Status().Patch(ctx, infra, patch)
 }
 
-func (a *actuator) logFailedSaveState(err error, state *apisvsphere.NSXTInfraState) {
+func (a *actuator) logFailedSaveState(log logr.Logger, err error, state *apisvsphere.NSXTInfraState) {
 	bytes, err2 := json.Marshal(state)
 	stateString := ""
 	if err2 == nil {
@@ -290,5 +292,5 @@ func (a *actuator) logFailedSaveState(err error, state *apisvsphere.NSXTInfraSta
 	} else {
 		stateString = err2.Error()
 	}
-	a.logger.Error(err, "persisting infrastructure state failed", "state", stateString)
+	log.Error(err, "persisting infrastructure state failed", "state", stateString)
 }

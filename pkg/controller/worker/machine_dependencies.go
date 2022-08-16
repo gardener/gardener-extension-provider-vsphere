@@ -26,3 +26,19 @@ func (w *workerDelegate) DeployMachineDependencies(_ context.Context) error {
 func (w *workerDelegate) CleanupMachineDependencies(ctx context.Context) error {
 	return nil
 }
+
+func (w *workerDelegate) PreReconcileHook(context.Context) error {
+	return nil
+}
+
+func (w *workerDelegate) PostReconcileHook(context.Context) error {
+	return nil
+}
+
+func (w *workerDelegate) PreDeleteHook(context.Context) error {
+	return nil
+}
+
+func (w *workerDelegate) PostDeleteHook(context.Context) error {
+	return nil
+}
