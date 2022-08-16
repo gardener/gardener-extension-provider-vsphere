@@ -81,8 +81,8 @@ github.com/gardener/gardener/extensions/pkg/controller/common
 github.com/gardener/gardener/extensions/pkg/controller/controlplane
 github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator
 github.com/gardener/gardener/extensions/pkg/controller/healthcheck
-github.com/gardener/gardener/extensions/pkg/controller/healthcheck/config
-github.com/gardener/gardener/extensions/pkg/controller/healthcheck/config/v1alpha1
+github.com/gardener/gardener/extensions/pkg/apis/config
+github.com/gardener/gardener/extensions/pkg/apis/config/v1alpha1
 github.com/gardener/gardener/extensions/pkg/controller/healthcheck/general
 github.com/gardener/gardener/extensions/pkg/controller/healthcheck/worker
 github.com/gardener/gardener/extensions/pkg/controller/infrastructure

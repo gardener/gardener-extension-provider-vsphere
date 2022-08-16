@@ -19,9 +19,9 @@ import (
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 
+	healthcheckconfig "github.com/gardener/gardener/extensions/pkg/apis/config"
 	genericcontrolplaneactuator "github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck"
-	healthcheckconfig "github.com/gardener/gardener/extensions/pkg/controller/healthcheck/config"
 	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck/general"
 	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck/worker"
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
