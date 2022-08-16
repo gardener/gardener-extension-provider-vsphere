@@ -102,7 +102,7 @@ github.com/gardener/gardener/extensions/pkg/webhook/controlplane
 github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator
 github.com/gardener/gardener/extensions/pkg/webhook/controlplane/test
 github.com/gardener/gardener/extensions/pkg/webhook/shoot
-github.com/gardener/gardener/extensions/test/testmachinery/generator
+github.com/gardener/gardener/test/testmachinery/extensions/generator
 github.com/gardener/gardener/hack
 github.com/gardener/gardener/hack/.ci
 github.com/gardener/gardener/hack/api-reference/template
