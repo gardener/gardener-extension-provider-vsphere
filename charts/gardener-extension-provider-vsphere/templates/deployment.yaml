@@ -46,6 +46,9 @@ spec:
         - --disable-webhooks={{ .Values.disableWebhooks | join "," }}
         - --health-bind-address=:{{ .Values.healthPort }}
         - --gardener-version={{ .Values.gardener.version }}
+        {{- if .Values.metricsPort }}
+        - --metrics-bind-address=:{{ .Values.metricsPort }}
+        {{- end }}
         env:
         - name: LEADER_ELECTION_NAMESPACE
           valueFrom:
