@@ -873,6 +873,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*NodeLocalDNS)(nil), (*core.NodeLocalDNS)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_NodeLocalDNS_To_core_NodeLocalDNS(a.(*NodeLocalDNS), b.(*core.NodeLocalDNS), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*core.NodeLocalDNS)(nil), (*NodeLocalDNS)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_core_NodeLocalDNS_To_v1alpha1_NodeLocalDNS(a.(*core.NodeLocalDNS), b.(*NodeLocalDNS), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*OIDCConfig)(nil), (*core.OIDCConfig)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1alpha1_OIDCConfig_To_core_OIDCConfig(a.(*OIDCConfig), b.(*core.OIDCConfig), scope)
 	}); err != nil {
@@ -1691,6 +1701,7 @@ func Convert_core_Addons_To_v1alpha1_Addons(in *core.Addons, out *Addons, s conv
 func autoConvert_v1alpha1_AdmissionPlugin_To_core_AdmissionPlugin(in *AdmissionPlugin, out *core.AdmissionPlugin, s conversion.Scope) error {
 	out.Name = in.Name
 	out.Config = (*runtime.RawExtension)(unsafe.Pointer(in.Config))
+	out.Disabled = (*bool)(unsafe.Pointer(in.Disabled))
 	return nil
 }
 
@@ -1701,6 +1712,7 @@ func Convert_v1alpha1_AdmissionPlugin_To_core_AdmissionPlugin(in *AdmissionPlugi
 
 func autoConvert_core_AdmissionPlugin_To_v1alpha1_AdmissionPlugin(in *core.AdmissionPlugin, out *AdmissionPlugin, s conversion.Scope) error {
 	out.Name = in.Name
+	out.Disabled = (*bool)(unsafe.Pointer(in.Disabled))
 	out.Config = (*runtime.RawExtension)(unsafe.Pointer(in.Config))
 	return nil
 }
@@ -3080,7 +3092,17 @@ func autoConvert_v1alpha1_KubeAPIServerConfig_To_core_KubeAPIServerConfig(in *Ku
 	if err := Convert_v1alpha1_KubernetesConfig_To_core_KubernetesConfig(&in.KubernetesConfig, &out.KubernetesConfig, s); err != nil {
 		return err
 	}
-	out.AdmissionPlugins = *(*[]core.AdmissionPlugin)(unsafe.Pointer(&in.AdmissionPlugins))
+	if in.AdmissionPlugins != nil {
+		in, out := &in.AdmissionPlugins, &out.AdmissionPlugins
+		*out = make([]core.AdmissionPlugin, len(*in))
+		for i := range *in {
+			if err := Convert_v1alpha1_AdmissionPlugin_To_core_AdmissionPlugin(&(*in)[i], &(*out)[i], s); err != nil {
+				return err
+			}
+		}
+	} else {
+		out.AdmissionPlugins = nil
+	}
 	out.APIAudiences = *(*[]string)(unsafe.Pointer(&in.APIAudiences))
 	out.AuditConfig = (*core.AuditConfig)(unsafe.Pointer(in.AuditConfig))
 	out.EnableBasicAuthentication = (*bool)(unsafe.Pointer(in.EnableBasicAuthentication))
@@ -3103,7 +3125,17 @@ func autoConvert_core_KubeAPIServerConfig_To_v1alpha1_KubeAPIServerConfig(in *co
 	if err := Convert_core_KubernetesConfig_To_v1alpha1_KubernetesConfig(&in.KubernetesConfig, &out.KubernetesConfig, s); err != nil {
 		return err
 	}
-	out.AdmissionPlugins = *(*[]AdmissionPlugin)(unsafe.Pointer(&in.AdmissionPlugins))
+	if in.AdmissionPlugins != nil {
+		in, out := &in.AdmissionPlugins, &out.AdmissionPlugins
+		*out = make([]AdmissionPlugin, len(*in))
+		for i := range *in {
+			if err := Convert_core_AdmissionPlugin_To_v1alpha1_AdmissionPlugin(&(*in)[i], &(*out)[i], s); err != nil {
+				return err
+			}
+		}
+	} else {
+		out.AdmissionPlugins = nil
+	}
 	out.APIAudiences = *(*[]string)(unsafe.Pointer(&in.APIAudiences))
 	out.AuditConfig = (*AuditConfig)(unsafe.Pointer(in.AuditConfig))
 	out.EnableBasicAuthentication = (*bool)(unsafe.Pointer(in.EnableBasicAuthentication))
@@ -3209,6 +3241,7 @@ func autoConvert_v1alpha1_KubeSchedulerConfig_To_core_KubeSchedulerConfig(in *Ku
 		return err
 	}
 	out.KubeMaxPDVols = (*string)(unsafe.Pointer(in.KubeMaxPDVols))
+	out.Profile = (*core.SchedulingProfile)(unsafe.Pointer(in.Profile))
 	return nil
 }
 
@@ -3222,6 +3255,7 @@ func autoConvert_core_KubeSchedulerConfig_To_v1alpha1_KubeSchedulerConfig(in *co
 		return err
 	}
 	out.KubeMaxPDVols = (*string)(unsafe.Pointer(in.KubeMaxPDVols))
+	out.Profile = (*SchedulingProfile)(unsafe.Pointer(in.Profile))
 	return nil
 }
 
@@ -3401,7 +3435,15 @@ func Convert_core_KubeletConfigReserved_To_v1alpha1_KubeletConfigReserved(in *co
 func autoConvert_v1alpha1_Kubernetes_To_core_Kubernetes(in *Kubernetes, out *core.Kubernetes, s conversion.Scope) error {
 	out.AllowPrivilegedContainers = (*bool)(unsafe.Pointer(in.AllowPrivilegedContainers))
 	out.ClusterAutoscaler = (*core.ClusterAutoscaler)(unsafe.Pointer(in.ClusterAutoscaler))
-	out.KubeAPIServer = (*core.KubeAPIServerConfig)(unsafe.Pointer(in.KubeAPIServer))
+	if in.KubeAPIServer != nil {
+		in, out := &in.KubeAPIServer, &out.KubeAPIServer
+		*out = new(core.KubeAPIServerConfig)
+		if err := Convert_v1alpha1_KubeAPIServerConfig_To_core_KubeAPIServerConfig(*in, *out, s); err != nil {
+			return err
+		}
+	} else {
+		out.KubeAPIServer = nil
+	}
 	out.KubeControllerManager = (*core.KubeControllerManagerConfig)(unsafe.Pointer(in.KubeControllerManager))
 	out.KubeScheduler = (*core.KubeSchedulerConfig)(unsafe.Pointer(in.KubeScheduler))
 	out.KubeProxy = (*core.KubeProxyConfig)(unsafe.Pointer(in.KubeProxy))
@@ -3420,7 +3462,15 @@ func Convert_v1alpha1_Kubernetes_To_core_Kubernetes(in *Kubernetes, out *core.Ku
 func autoConvert_core_Kubernetes_To_v1alpha1_Kubernetes(in *core.Kubernetes, out *Kubernetes, s conversion.Scope) error {
 	out.AllowPrivilegedContainers = (*bool)(unsafe.Pointer(in.AllowPrivilegedContainers))
 	out.ClusterAutoscaler = (*ClusterAutoscaler)(unsafe.Pointer(in.ClusterAutoscaler))
-	out.KubeAPIServer = (*KubeAPIServerConfig)(unsafe.Pointer(in.KubeAPIServer))
+	if in.KubeAPIServer != nil {
+		in, out := &in.KubeAPIServer, &out.KubeAPIServer
+		*out = new(KubeAPIServerConfig)
+		if err := Convert_core_KubeAPIServerConfig_To_v1alpha1_KubeAPIServerConfig(*in, *out, s); err != nil {
+			return err
+		}
+	} else {
+		out.KubeAPIServer = nil
+	}
 	out.KubeControllerManager = (*KubeControllerManagerConfig)(unsafe.Pointer(in.KubeControllerManager))
 	out.KubeScheduler = (*KubeSchedulerConfig)(unsafe.Pointer(in.KubeScheduler))
 	out.KubeProxy = (*KubeProxyConfig)(unsafe.Pointer(in.KubeProxy))
@@ -3587,6 +3637,7 @@ func autoConvert_v1alpha1_Machine_To_core_Machine(in *Machine, out *core.Machine
 	} else {
 		out.Image = nil
 	}
+	out.Architecture = (*string)(unsafe.Pointer(in.Architecture))
 	return nil
 }
 
@@ -3606,6 +3657,7 @@ func autoConvert_core_Machine_To_v1alpha1_Machine(in *core.Machine, out *Machine
 	} else {
 		out.Image = nil
 	}
+	out.Architecture = (*string)(unsafe.Pointer(in.Architecture))
 	return nil
 }
 
@@ -3669,6 +3721,7 @@ func autoConvert_v1alpha1_MachineImageVersion_To_core_MachineImageVersion(in *Ma
 		return err
 	}
 	out.CRI = *(*[]core.CRI)(unsafe.Pointer(&in.CRI))
+	out.Architectures = *(*[]string)(unsafe.Pointer(&in.Architectures))
 	return nil
 }
 
@@ -3682,6 +3735,7 @@ func autoConvert_core_MachineImageVersion_To_v1alpha1_MachineImageVersion(in *co
 		return err
 	}
 	out.CRI = *(*[]CRI)(unsafe.Pointer(&in.CRI))
+	out.Architectures = *(*[]string)(unsafe.Pointer(&in.Architectures))
 	return nil
 }
 
@@ -3697,6 +3751,7 @@ func autoConvert_v1alpha1_MachineType_To_core_MachineType(in *MachineType, out *
 	out.Name = in.Name
 	out.Storage = (*core.MachineTypeStorage)(unsafe.Pointer(in.Storage))
 	out.Usable = (*bool)(unsafe.Pointer(in.Usable))
+	out.Architecture = (*string)(unsafe.Pointer(in.Architecture))
 	return nil
 }
 
@@ -3712,6 +3767,7 @@ func autoConvert_core_MachineType_To_v1alpha1_MachineType(in *core.MachineType, 
 	out.Name = in.Name
 	out.Storage = (*MachineTypeStorage)(unsafe.Pointer(in.Storage))
 	out.Usable = (*bool)(unsafe.Pointer(in.Usable))
+	out.Architecture = (*string)(unsafe.Pointer(in.Architecture))
 	return nil
 }
 
@@ -3912,6 +3968,30 @@ func autoConvert_core_NginxIngress_To_v1alpha1_NginxIngress(in *core.NginxIngres
 // Convert_core_NginxIngress_To_v1alpha1_NginxIngress is an autogenerated conversion function.
 func Convert_core_NginxIngress_To_v1alpha1_NginxIngress(in *core.NginxIngress, out *NginxIngress, s conversion.Scope) error {
 	return autoConvert_core_NginxIngress_To_v1alpha1_NginxIngress(in, out, s)
+}
+
+func autoConvert_v1alpha1_NodeLocalDNS_To_core_NodeLocalDNS(in *NodeLocalDNS, out *core.NodeLocalDNS, s conversion.Scope) error {
+	out.Enabled = in.Enabled
+	out.ForceTCPToClusterDNS = (*bool)(unsafe.Pointer(in.ForceTCPToClusterDNS))
+	out.ForceTCPToUpstreamDNS = (*bool)(unsafe.Pointer(in.ForceTCPToUpstreamDNS))
+	return nil
+}
+
+// Convert_v1alpha1_NodeLocalDNS_To_core_NodeLocalDNS is an autogenerated conversion function.
+func Convert_v1alpha1_NodeLocalDNS_To_core_NodeLocalDNS(in *NodeLocalDNS, out *core.NodeLocalDNS, s conversion.Scope) error {
+	return autoConvert_v1alpha1_NodeLocalDNS_To_core_NodeLocalDNS(in, out, s)
+}
+
+func autoConvert_core_NodeLocalDNS_To_v1alpha1_NodeLocalDNS(in *core.NodeLocalDNS, out *NodeLocalDNS, s conversion.Scope) error {
+	out.Enabled = in.Enabled
+	out.ForceTCPToClusterDNS = (*bool)(unsafe.Pointer(in.ForceTCPToClusterDNS))
+	out.ForceTCPToUpstreamDNS = (*bool)(unsafe.Pointer(in.ForceTCPToUpstreamDNS))
+	return nil
+}
+
+// Convert_core_NodeLocalDNS_To_v1alpha1_NodeLocalDNS is an autogenerated conversion function.
+func Convert_core_NodeLocalDNS_To_v1alpha1_NodeLocalDNS(in *core.NodeLocalDNS, out *NodeLocalDNS, s conversion.Scope) error {
+	return autoConvert_core_NodeLocalDNS_To_v1alpha1_NodeLocalDNS(in, out, s)
 }
 
 func autoConvert_v1alpha1_OIDCConfig_To_core_OIDCConfig(in *OIDCConfig, out *core.OIDCConfig, s conversion.Scope) error {
@@ -5605,6 +5685,7 @@ func autoConvert_core_ShootStatus_To_v1alpha1_ShootStatus(in *core.ShootStatus, 
 
 func autoConvert_v1alpha1_SystemComponents_To_core_SystemComponents(in *SystemComponents, out *core.SystemComponents, s conversion.Scope) error {
 	out.CoreDNS = (*core.CoreDNS)(unsafe.Pointer(in.CoreDNS))
+	out.NodeLocalDNS = (*core.NodeLocalDNS)(unsafe.Pointer(in.NodeLocalDNS))
 	return nil
 }
 
@@ -5615,6 +5696,7 @@ func Convert_v1alpha1_SystemComponents_To_core_SystemComponents(in *SystemCompon
 
 func autoConvert_core_SystemComponents_To_v1alpha1_SystemComponents(in *core.SystemComponents, out *SystemComponents, s conversion.Scope) error {
 	out.CoreDNS = (*CoreDNS)(unsafe.Pointer(in.CoreDNS))
+	out.NodeLocalDNS = (*NodeLocalDNS)(unsafe.Pointer(in.NodeLocalDNS))
 	return nil
 }
 

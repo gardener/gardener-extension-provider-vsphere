@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"time"
 
-	v1alpha1constants "github.com/gardener/gardener/pkg/apis/core/v1alpha1/constants"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -63,11 +62,6 @@ func SetDefaults_GardenletConfiguration(obj *GardenletConfiguration) {
 		obj.LogFormat = &v
 	}
 
-	if obj.KubernetesLogLevel == nil {
-		v := DefaultKubernetesLogLevel
-		obj.KubernetesLogLevel = &v
-	}
-
 	if obj.Server == nil {
 		obj.Server = &ServerConfiguration{}
 	}
@@ -88,11 +82,15 @@ func SetDefaults_GardenletConfiguration(obj *GardenletConfiguration) {
 		obj.SNI = &SNI{}
 	}
 
+	if obj.Monitoring == nil {
+		obj.Monitoring = &MonitoringConfig{}
+	}
+
 	if obj.ETCDConfig == nil {
 		obj.ETCDConfig = &ETCDConfig{}
 	}
 
-	var defaultSVCName = DefaultSNIIngresServiceName
+	var defaultSVCName = v1beta1constants.DefaultSNIIngressServiceName
 	for i, handler := range obj.ExposureClassHandlers {
 		if obj.ExposureClassHandlers[i].SNI == nil {
 			obj.ExposureClassHandlers[i].SNI = &SNI{Ingress: &SNIIngress{}}
@@ -109,8 +107,8 @@ func SetDefaults_GardenletConfiguration(obj *GardenletConfiguration) {
 		}
 		if len(obj.ExposureClassHandlers[i].SNI.Ingress.Labels) == 0 {
 			obj.ExposureClassHandlers[i].SNI.Ingress.Labels = map[string]string{
-				v1beta1constants.LabelApp:    DefaultIngressGatewayAppLabelValue,
-				v1alpha1constants.GardenRole: v1alpha1constants.GardenRoleExposureClassHandler,
+				v1beta1constants.LabelApp:   v1beta1constants.DefaultIngressGatewayAppLabelValue,
+				v1beta1constants.GardenRole: v1beta1constants.GardenRoleExposureClassHandler,
 			}
 		}
 	}
@@ -214,6 +212,21 @@ func SetDefaults_BackupEntryControllerConfiguration(obj *BackupEntryControllerCo
 	if obj.DeletionGracePeriodHours == nil || *obj.DeletionGracePeriodHours < 0 {
 		v := DefaultBackupEntryDeletionGracePeriodHours
 		obj.DeletionGracePeriodHours = &v
+	}
+}
+
+// SetDefaults_MonitoringConfig sets the defaults for the monitoring stack.
+func SetDefaults_MonitoringConfig(obj *MonitoringConfig) {
+	if obj.Shoot == nil {
+		obj.Shoot = &ShootMonitoringConfig{}
+	}
+}
+
+// SetDefaults_ShootMonitoringConfig sets the defaults for the shoot monitoring.
+func SetDefaults_ShootMonitoringConfig(obj *ShootMonitoringConfig) {
+	if obj.Enabled == nil {
+		v := true
+		obj.Enabled = &v
 	}
 }
 
@@ -457,8 +470,8 @@ func SetDefaults_SNI(obj *SNI) {
 // SetDefaults_SNIIngress sets defaults for SNI ingressgateway.
 func SetDefaults_SNIIngress(obj *SNIIngress) {
 	var (
-		defaultNS      = DefaultSNIIngresNamespace
-		defaultSVCName = DefaultSNIIngresServiceName
+		defaultNS      = v1beta1constants.DefaultSNIIngressNamespace
+		defaultSVCName = v1beta1constants.DefaultSNIIngressServiceName
 	)
 
 	if obj.Namespace == nil {
@@ -471,7 +484,7 @@ func SetDefaults_SNIIngress(obj *SNIIngress) {
 
 	if obj.Labels == nil {
 		obj.Labels = map[string]string{
-			v1beta1constants.LabelApp: DefaultIngressGatewayAppLabelValue,
+			v1beta1constants.LabelApp: v1beta1constants.DefaultIngressGatewayAppLabelValue,
 			"istio":                   "ingressgateway",
 		}
 	}
@@ -480,7 +493,7 @@ func SetDefaults_SNIIngress(obj *SNIIngress) {
 // SetDefaults_Logging sets defaults for the Logging stack.
 func SetDefaults_Logging(obj *Logging) {
 	if obj.Enabled == nil {
-		obj.Enabled = pointer.BoolPtr(false)
+		obj.Enabled = pointer.Bool(false)
 	}
 	if obj.Loki == nil {
 		obj.Loki = &Loki{}
@@ -493,6 +506,12 @@ func SetDefaults_Logging(obj *Logging) {
 	}
 	if obj.Loki.Garden.Storage == nil {
 		obj.Loki.Garden.Storage = &DefaultCentralLokiStorage
+	}
+	if obj.ShootEventLogging == nil {
+		obj.ShootEventLogging = &ShootEventLogging{}
+	}
+	if obj.ShootEventLogging.Enabled == nil {
+		obj.ShootEventLogging.Enabled = obj.Enabled
 	}
 }
 
