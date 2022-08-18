@@ -22,3 +22,5 @@ webhookConfig:
     -----BEGIN CERTIFICATE-----
     ...
     -----END CERTIFICATE-----
+
+pspDisabled: false

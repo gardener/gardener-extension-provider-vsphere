@@ -38,6 +38,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -372,6 +373,7 @@ insecure-flag = "true"
 					"url":      "https://" + vsphere.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
 					"caBundle": "",
 				},
+				"pspDisabled": false,
 			},
 		}
 
@@ -452,6 +454,83 @@ insecure-flag = "true"
 			values, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, fakeSecretsManager, checksums)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(values).To(Equal(controlPlaneShootChartValues))
+		})
+
+		Context("PodSecurityPolicy", func() {
+			It("should return correct shoot control plane chart when PodSecurityPolicy admission plugin is not disabled in the shoot", func() {
+				cluster.Shoot.Spec.Kubernetes.KubeAPIServer = &gardencorev1beta1.KubeAPIServerConfig{
+					AdmissionPlugins: []gardencorev1beta1.AdmissionPlugin{
+						{
+							Name: "PodSecurityPolicy",
+						},
+					},
+				}
+
+				controlPlaneShootChartValues = map[string]interface{}{
+					"csi-vsphere": map[string]interface{}{
+						"serverName":        "vsphere.host.internal",
+						"clusterID":         "shoot--foo--bar-garden1234",
+						"username":          "admin",
+						"password":          "super-secret",
+						"serverPort":        443,
+						"datacenters":       "scc01-DC",
+						"insecureFlag":      "true",
+						"kubernetesVersion": "1.17.0",
+						"labelRegion":       "k8s-region",
+						"labelZone":         "k8s-zone",
+						"webhookConfig": map[string]interface{}{
+							"url":      "https://" + vsphere.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
+							"caBundle": "",
+						},
+						"pspDisabled": false,
+					},
+				}
+
+				vp := prepareValueProvider(false)
+
+				// Call GetControlPlaneChartValues method and check the result
+				values, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, fakeSecretsManager, checksums)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(values).To(Equal(controlPlaneShootChartValues))
+
+			})
+			It("should return correct shoot control plane chart when PodSecurityPolicy admission plugin is disabled in the shoot", func() {
+				cluster.Shoot.Spec.Kubernetes.KubeAPIServer = &gardencorev1beta1.KubeAPIServerConfig{
+					AdmissionPlugins: []gardencorev1beta1.AdmissionPlugin{
+						{
+							Name:     "PodSecurityPolicy",
+							Disabled: pointer.Bool(true),
+						},
+					},
+				}
+
+				controlPlaneShootChartValues = map[string]interface{}{
+					"csi-vsphere": map[string]interface{}{
+						"serverName":        "vsphere.host.internal",
+						"clusterID":         "shoot--foo--bar-garden1234",
+						"username":          "admin",
+						"password":          "super-secret",
+						"serverPort":        443,
+						"datacenters":       "scc01-DC",
+						"insecureFlag":      "true",
+						"kubernetesVersion": "1.17.0",
+						"labelRegion":       "k8s-region",
+						"labelZone":         "k8s-zone",
+						"webhookConfig": map[string]interface{}{
+							"url":      "https://" + vsphere.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
+							"caBundle": "",
+						},
+						"pspDisabled": true,
+					},
+				}
+
+				vp := prepareValueProvider(false)
+
+				// Call GetControlPlaneChartValues method and check the result
+				values, err := vp.GetControlPlaneShootChartValues(ctx, cp, cluster, fakeSecretsManager, checksums)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(values).To(Equal(controlPlaneShootChartValues))
+			})
 		})
 	})
 
