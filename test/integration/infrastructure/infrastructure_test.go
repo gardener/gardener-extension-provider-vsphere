@@ -35,15 +35,16 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
+	"github.com/go-logr/logr"
 
 	gardenerv1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/extensions"
+	"github.com/gardener/gardener/pkg/logger"
 	gardenerutils "github.com/gardener/gardener/pkg/utils"
 	"github.com/gardener/gardener/test/framework"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sirupsen/logrus"
 
 	vapi_errors "github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	vapiclient "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
@@ -130,8 +131,8 @@ func getNSXTInfraSpec() (*infrastructure.NSXTInfraSpec, error) {
 }
 
 var (
-	ctx    = context.Background()
-	logger *logrus.Entry
+	ctx = context.Background()
+	log logr.Logger
 
 	testEnv   *envtest.Environment
 	mgrCancel context.CancelFunc
@@ -154,16 +155,13 @@ var _ = BeforeSuite(func() {
 	vsphere.InternalChartsPath = filepath.Join(repoRoot, vsphere.InternalChartsPath)
 
 	// enable manager logs
-	logf.SetLogger(zap.New(zap.UseDevMode(true), zap.WriteTo(GinkgoWriter)))
+	logf.SetLogger(logger.MustNewZapLogger(logger.DebugLevel, logger.FormatJSON, zap.WriteTo(GinkgoWriter)))
+	log = logf.Log.WithName("infrastructure-test")
 
-	log := logrus.New()
-	log.SetOutput(GinkgoWriter)
-	logger = logrus.NewEntry(log)
-
-	logger.Infof("NSX-T host: %s", *nsxtHost)
-	logger.Infof("NSX-T username: %s", *nsxtUsername)
-	logger.Infof("NSX-T T0-Gateway: %s", *tier0GatewayName)
-	logger.Infof("NSX-T SNAT IP pool name: %s", *snatIPPoolName)
+	log.Info("NSX-T host", "host", *nsxtHost)
+	log.Info("NSX-T username", "username", *nsxtUsername)
+	log.Info("NSX-T T0-Gateway", "gatewayName", *tier0GatewayName)
+	log.Info("NSX-T SNAT IP pool name", "ipPoolName", *snatIPPoolName)
 	By("starting test environment")
 	testEnv = &envtest.Environment{
 		UseExistingCluster: pointer.BoolPtr(true),
@@ -255,7 +253,7 @@ var _ = Describe("Infrastructure tests", func() {
 			providerConfig := newProviderConfig("", "")
 			cloudProfileConfig := newCloudProfileConfig(nsxtConfig, nsxtInfraSpec)
 
-			err := runTest(ctx, logger, c, namespace, providerConfig, decoder, nsxtConfig, vsphereClient, cloudProfileConfig, nsxtInfraSpec.WorkersNetwork)
+			err := runTest(ctx, log, c, namespace, providerConfig, decoder, nsxtConfig, vsphereClient, cloudProfileConfig, nsxtInfraSpec.WorkersNetwork)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
@@ -268,11 +266,11 @@ var _ = Describe("Infrastructure tests", func() {
 		It("should successfully create and delete", func() {
 			namespace := nsxtInfraSpec.ClusterName
 
-			t1Ref, lbSvcRef, err := prepareNewT1GatewayAndLBService(logger, namespace, *nsxtInfraSpec, vsphereClient)
+			t1Ref, lbSvcRef, err := prepareNewT1GatewayAndLBService(log, namespace, *nsxtInfraSpec, vsphereClient)
 			// ensure deleting resources even on errors
 			var cleanupHandle framework.CleanupActionHandle
 			cleanupHandle = framework.AddCleanupAction(func() {
-				err := teardownT1GatewayAndLBService(logger, t1Ref, lbSvcRef, vsphereClient)
+				err := teardownT1GatewayAndLBService(log, t1Ref, lbSvcRef, vsphereClient)
 				Expect(err).NotTo(HaveOccurred())
 
 				framework.RemoveCleanupAction(cleanupHandle)
@@ -282,7 +280,7 @@ var _ = Describe("Infrastructure tests", func() {
 			providerConfig := newProviderConfig(t1Ref.Path, lbSvcRef.Path)
 			cloudProfileConfig := newCloudProfileConfig(nsxtConfig, nsxtInfraSpec)
 
-			err = runTest(ctx, logger, c, namespace, providerConfig, decoder, nsxtConfig, vsphereClient, cloudProfileConfig, nsxtInfraSpec.WorkersNetwork)
+			err = runTest(ctx, log, c, namespace, providerConfig, decoder, nsxtConfig, vsphereClient, cloudProfileConfig, nsxtInfraSpec.WorkersNetwork)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
@@ -290,7 +288,7 @@ var _ = Describe("Infrastructure tests", func() {
 
 func runTest(
 	ctx context.Context,
-	logger *logrus.Entry,
+	log logr.Logger,
 	c client.Client,
 	namespaceName string,
 	providerConfig *vspherev1alpha1.InfrastructureConfig,
@@ -316,7 +314,7 @@ func runTest(
 		err := extensions.WaitUntilExtensionObjectDeleted(
 			ctx,
 			c,
-			logger,
+			log,
 			infra.DeepCopy(),
 			"Infrastructure",
 			10*time.Second,
@@ -459,7 +457,7 @@ func runTest(
 	if err := extensions.WaitUntilExtensionObjectReady(
 		ctx,
 		c,
-		logger,
+		log,
 		infra.DeepCopy(),
 		"Infrastucture",
 		10*time.Second,
@@ -600,9 +598,9 @@ func generateNamespaceName() (string, error) {
 	return "vsphere--infra-it--" + suffix, nil
 }
 
-func prepareNewT1GatewayAndLBService(logger *logrus.Entry, technicalShootName string, spec infrastructure.NSXTInfraSpec,
+func prepareNewT1GatewayAndLBService(log logr.Logger, technicalShootName string, spec infrastructure.NSXTInfraSpec,
 	ensurerCtx task.EnsurerContext) (t1Ref *apisvsphere.Reference, lbRef *apisvsphere.Reference, err error) {
-	logger.Infof("Creating Tier1 gateway and LB service...")
+	log.Info("Creating Tier1 gateway and LB service...")
 
 	state := apisvsphere.NSXTInfraState{}
 
@@ -611,14 +609,14 @@ func prepareNewT1GatewayAndLBService(logger *logrus.Entry, technicalShootName st
 	if err != nil {
 		return
 	}
-	logger.Infof("T0 Gateway lookup: %s", action)
+	log.Info("T0 Gateway lookup", "action", action)
 
 	taskEC := task.NewLookupEdgeClusterTask()
 	action, err = taskEC.Ensure(ensurerCtx, spec, &state)
 	if err != nil {
 		return
 	}
-	logger.Infof("Edge Cluster lookup: %s", action)
+	log.Info("Edge Cluster lookup", "action", action)
 
 	taskT1 := task.NewTier1GatewayTask()
 	action, err = taskT1.Ensure(ensurerCtx, spec, &state)
@@ -626,7 +624,7 @@ func prepareNewT1GatewayAndLBService(logger *logrus.Entry, technicalShootName st
 		return
 	}
 	t1Ref = state.Tier1GatewayRef
-	logger.Infof("T1 Gateway '%s': %s", state.Tier1GatewayRef.Path, action)
+	log.Info("T1 Gateway", "path", state.Tier1GatewayRef.Path, "action", action)
 
 	// update tags for permissions
 	client := infra.NewDefaultTier1sClient(ensurerCtx.Connector())
@@ -649,14 +647,14 @@ func prepareNewT1GatewayAndLBService(logger *logrus.Entry, technicalShootName st
 	if err != nil {
 		return
 	}
-	logger.Infof("T1 Gateway '%s': tags updated", state.Tier1GatewayRef.Path)
+	log.Info("Updated T1 Gateway tags", "path", state.Tier1GatewayRef.Path)
 
 	taskT1Locale := task.NewTier1GatewayLocaleServiceTask()
 	action, err = taskT1Locale.Ensure(ensurerCtx, spec, &state)
 	if err != nil {
 		return
 	}
-	logger.Infof("T1 Gateway Locale Service: %s", action)
+	log.Info("T1 Gateway Locale Service", "action", action)
 
 	lbClient := infra.NewDefaultLbServicesClient(ensurerCtx.Connector())
 	lbID := "infrastructure-test-" + uuid.New().String()
@@ -672,7 +670,7 @@ func prepareNewT1GatewayAndLBService(logger *logrus.Entry, technicalShootName st
 	if err != nil {
 		return
 	}
-	logger.Infof("LB service '%s': created", *service.Path)
+	log.Info("LB service created", "path", *service.Path)
 	lbRef = &apisvsphere.Reference{
 		ID:   *service.Id,
 		Path: *service.Path,
@@ -681,8 +679,8 @@ func prepareNewT1GatewayAndLBService(logger *logrus.Entry, technicalShootName st
 	return
 }
 
-func teardownT1GatewayAndLBService(logger *logrus.Entry, t1Ref, lbRef *apisvsphere.Reference, ensurerCtx task.EnsurerContext) error {
-	logger.Infof("Deleting Tier1 gateway and LB service...")
+func teardownT1GatewayAndLBService(log logr.Logger, t1Ref, lbRef *apisvsphere.Reference, ensurerCtx task.EnsurerContext) error {
+	log.Info("Deleting Tier1 gateway and LB service...")
 
 	errmsg := ""
 	if lbRef != nil {
@@ -691,7 +689,7 @@ func teardownT1GatewayAndLBService(logger *logrus.Entry, t1Ref, lbRef *apisvsphe
 		if err != nil {
 			errmsg += fmt.Sprintf("deleting LB service failed with %s, ", err)
 		}
-		logger.Infof("LB service '%s': deleted", lbRef.Path)
+		log.Info("Deleted LB service", "path", lbRef.Path)
 	}
 
 	if t1Ref != nil {
@@ -706,7 +704,7 @@ func teardownT1GatewayAndLBService(logger *logrus.Entry, t1Ref, lbRef *apisvsphe
 			errmsg += fmt.Sprintf("deleting T1 gateway locale service failed with %s, ", err)
 		}
 		if deleted {
-			logger.Infof("T1 Gateway Locale Service deleted")
+			log.Info("T1 Gateway Locale Service deleted")
 		}
 
 		taskT1 := task.NewTier1GatewayTask()
@@ -715,7 +713,7 @@ func teardownT1GatewayAndLBService(logger *logrus.Entry, t1Ref, lbRef *apisvsphe
 			errmsg += fmt.Sprintf("deleting T1 gateway failed with %s, ", err)
 		}
 		if deleted {
-			logger.Infof("T1 Gateway '%s': deleted", t1Ref.Path)
+			log.Info("Deleted T1 Gateway", "path", t1Ref.Path)
 		}
 	}
 

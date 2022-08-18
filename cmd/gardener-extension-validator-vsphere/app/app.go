@@ -46,8 +46,9 @@ func NewValidatorCommand(ctx context.Context) *cobra.Command {
 	var (
 		restOpts = &controllercmd.RESTOptions{}
 		mgrOpts  = &controllercmd.ManagerOptions{
-			WebhookServerPort: 443,
-			HealthBindAddress: ":8081",
+			MetricsBindAddress: ":8080",
+			WebhookServerPort:  443,
+			HealthBindAddress:  ":8081",
 		}
 
 		aggOption = controllercmd.NewOptionAggregator(

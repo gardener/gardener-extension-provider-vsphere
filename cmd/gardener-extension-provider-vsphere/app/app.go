@@ -59,6 +59,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			LeaderElectionID:           controllercmd.LeaderElectionNameID(vsphere.Name),
 			LeaderElectionNamespace:    os.Getenv("LEADER_ELECTION_NAMESPACE"),
 			WebhookServerPort:          443,
+			MetricsBindAddress:         ":8080",
 			HealthBindAddress:          ":8081",
 		}
 		configFileOpts = &vspherecmd.ConfigOptions{}

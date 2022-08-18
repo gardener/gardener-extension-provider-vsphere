@@ -18,7 +18,6 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
@@ -30,22 +29,20 @@ import (
 type actuator struct {
 	common.ChartRendererContext
 
-	logger   logr.Logger
 	gardenID string
 }
 
 // NewActuator creates a new Actuator that updates the status of the handled Infrastructure resources.
 func NewActuator(gardenID string) infrastructure.Actuator {
 	return &actuator{
-		logger:   log.Log.WithName("infrastructure-actuator"),
 		gardenID: gardenID,
 	}
 }
 
-func (a *actuator) Reconcile(ctx context.Context, config *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
-	return a.reconcile(ctx, config, cluster)
+func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, config *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
+	return a.reconcile(ctx, log, config, cluster)
 }
 
-func (a *actuator) Delete(ctx context.Context, config *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
-	return a.delete(ctx, config, cluster)
+func (a *actuator) Delete(ctx context.Context, log logr.Logger, config *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
+	return a.delete(ctx, log, config, cluster)
 }
