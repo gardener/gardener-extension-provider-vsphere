@@ -29,7 +29,7 @@ spec:
         secretKeyRef:
           name: shoot-operator-gcp
           key: serviceaccount.json
-    - name: REGION
+    - name: LOCATION
       type: env
       value: us-east4
     - name: NSXT_HOST
@@ -76,7 +76,24 @@ spec:
           key: nsxt_snat_ip_pool
 
   testflow:
-    - name: infrastructure-test
+    - name: gcve-setup
       definition:
-        name: infrastructure-test
+        name: gcve-setup
+        config:
+          - name: PHASE
+            type: env
+            value: setup
+{{/*    - name: infrastructure-test*/}}
+{{/*      dependsOn: [ gcve-setup ]*/}}
+{{/*      definition:*/}}
+{{/*        name: infrastructure-test*/}}
 
+  onExit:
+    - name: gcve-teardown
+      condition: always
+      definition:
+        name: gcve-setup
+        config:
+          - name: PHASE
+            type: env
+            value: shutdown

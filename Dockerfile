@@ -33,4 +33,4 @@ COPY --from=builder /go/bin/gcve-setup /gcve-setup
 
 RUN  \
   apk update \
-  && apk add openvpn bash
+  && apk add terraform

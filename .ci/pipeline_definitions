@@ -34,6 +34,18 @@ gardener-extension-provider-vsphere:
                     username: 'briantopping'
                   - type: 'emailAddress'
                     email: 'brian.topping@sap.com'
+          gardener-extension-gcve-tm-run:
+            registry: 'gcr-readwrite'
+            image: 'eu.gcr.io/gardener-project/gardener/extensions/vsphere-gcve-tm-run'
+            dockerfile: 'Dockerfile'
+            target: gardener-extension-gcve-tm-run
+            resource_labels:
+              - name: 'cloud.gardener.cnudie/responsibles'
+                value:
+                  - type: 'githubUser'
+                    username: 'briantopping'
+                  - type: 'emailAddress'
+                    email: 'brian.topping@sap.com'
   jobs:
     head-update:
 #      steps:

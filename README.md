@@ -26,16 +26,13 @@ We refer directly to the mainline Gardener documentation for the most up-to-date
 
 This extension controller supports the following Kubernetes versions:
 
-| Version         | Support     | Conformance test results |
-| --------------- | ----------- | ------------------------ |
-| Kubernetes 1.24 | untested    | not yet available        |
-| Kubernetes 1.23 | untested    | not yet available        |
-| Kubernetes 1.22 | untested    | not yet available        |
-| Kubernetes 1.21 | untested    | not yet available        |
-| ~~Kubernetes 1.20~~ | ~~untested~~    | ~~not yet available~~        |
-| ~~Kubernetes 1.19~~ | ~~untested~~    | ~~not yet available~~        |
-| ~~Kubernetes 1.18~~ | ~~untested~~    | ~~not yet available~~        |
-| ~~Kubernetes 1.17~~ | ~~1.17.0+~~     | ~~not yet available~~        |
+| Version         | Support  | Conformance test results |
+|-----------------|----------| -------------------- |
+| Kubernetes 1.24 | untested | not yet available    |
+| Kubernetes 1.23 | untested | not yet available    |
+| Kubernetes 1.22 | untested | not yet available    |
+| Kubernetes 1.21 | untested | not yet available    |
+| Kubernetes 1.20 | untested | not yet available    |
 
 Older versions of the extension [(`v0.16.0` and earlier)](https://github.com/gardener/gardener-extension-provider-vsphere/releases/tag/v0.16.0) are supported prior to current releases.
 
