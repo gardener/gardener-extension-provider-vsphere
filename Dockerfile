@@ -27,10 +27,12 @@ COPY --from=builder /go/bin/gardener-extension-validator-vsphere /gardener-exten
 ENTRYPOINT ["/gardener-extension-validator-vsphere"]
 
 ############# gcve-tm-run
-FROM eu.gcr.io/gardener-project/gardener/testmachinery/testmachinery-run AS gardener-extension-gcve-tm-run
+FROM debian:11 AS gardener-extension-gcve-tm-run
 
 COPY --from=builder /go/bin/gcve-setup /gcve-setup
 
-RUN  \
-  apk update \
-  && apk add terraform
+RUN apt-get update && apt-get install bash wget curl unzip software-properties-common gnupg2 -y
+RUN curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
+RUN apt-add-repository "deb [arch=$(dpkg --print-architecture)] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+RUN apt-get install terraform -y
+RUN curl -sSL https://sdk.cloud.google.com | bash
