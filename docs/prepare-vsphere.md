@@ -2,6 +2,9 @@
 
 - [vSphere / NSX-T Preparation for Gardener Extension "vSphere Provider"](#vsphere--nsx-t-preparation-for-gardener-extension-vsphere-provider)
   - [vSphere Preparation](#vsphere-preparation)
+    - [User and Role Creation](#user-and-role-creation)
+      - [vCenter/vSphere](#vcentervsphere)
+      - [NSX-T](#nsx-t)
     - [Create Folders](#create-folders)
     - [Upload VM Templates for Worker Nodes](#upload-vm-templates-for-worker-nodes)
     - [Prepare for Kubernetes Zones and Regions](#prepare-for-kubernetes-zones-and-regions)
@@ -10,7 +13,7 @@
       - [Storage policies](#storage-policies)
         - [Tag Zone Storages](#tag-zone-storages)
         - [Create or clone VM Storage Policy](#create-or-clone-vm-storage-policy)
-  - [NSX-T Prepartion](#nsx-t-prepartion)
+  - [NSX-T Preparation](#nsx-t-preparation)
     - [Create IP pools](#create-ip-pools)
       - [Sizing the IP pools](#sizing-the-ip-pools)
     - [Check edge cluster sizing](#check-edge-cluster-sizing)
@@ -146,7 +149,7 @@ In vSphere client:
 ### Upload VM Templates for Worker Nodes
 
 Upload [gardenlinux OVA](https://github.com/gardenlinux/gardenlinux/releases) or 
-[flatcar OVA](https://stablereleaseflatcar-linuxnet/amd64-usr/current/flatcar_production_vmware_ova.ova) templates.
+[flatcar OVA](https://flatcar-linux.org/releases#stable-release) templates.
 
 1. From the context menu of the folder `gardener/templates` choose *Deploy OVF Template...*
 2. Adjust name if needed
