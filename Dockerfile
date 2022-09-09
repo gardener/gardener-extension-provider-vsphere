@@ -29,10 +29,10 @@ ENTRYPOINT ["/gardener-extension-validator-vsphere"]
 ############# gcve-tm-run
 FROM debian:11 AS gardener-extension-gcve-tm-run
 
-COPY --from=builder /go/bin/gcve-setup /gcve-setup
+RUN apt-get update && apt-get install bash wget curl unzip software-properties-common gnupg2 -y; \
+    curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -; \
+    apt-add-repository "deb [arch=$(dpkg --print-architecture)] https://apt.releases.hashicorp.com $(lsb_release -cs) main"; \
+    apt-get update; apt-get install terraform -y; \
+    curl -sSL https://sdk.cloud.google.com | bash
 
-RUN apt-get update && apt-get install bash wget curl unzip software-properties-common gnupg2 -y
-RUN curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
-RUN apt-add-repository "deb [arch=$(dpkg --print-architecture)] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-RUN apt-get update && apt-get install terraform -y
-RUN curl -sSL https://sdk.cloud.google.com | bash
+COPY --from=builder /go/bin/gcve-setup /gcve-setup
