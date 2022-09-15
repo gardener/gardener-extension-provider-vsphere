@@ -542,7 +542,7 @@ func encode(obj runtime.Object) []byte {
 func expectGetSecretCallToWork(c *mockclient.MockClient, username, password string, nsxtUsername, nsxtPassword string) {
 	c.EXPECT().
 		Get(context.TODO(), gomock.Any(), gomock.AssignableToTypeOf(&corev1.Secret{})).
-		DoAndReturn(func(_ context.Context, _ client.ObjectKey, secret *corev1.Secret) error {
+		DoAndReturn(func(_ context.Context, _ client.ObjectKey, secret *corev1.Secret, _ ...client.GetOption) error {
 			secret.Data = map[string][]byte{
 				vsphere.Username:     []byte(username),
 				vsphere.Password:     []byte(password),
