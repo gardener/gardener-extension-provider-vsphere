@@ -23,3 +23,20 @@ TODO
 # GitGuardian
 .cache_ggshield
 .gitguardian.yaml
+
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+.ci/terraform/*.tfstate
+.ci/terraform/*.tfstate.*
+
+# Crash log files
+.ci/terraform/crash.log
+
+# Ignore override files as they are usually used to override resources locally and so
+# are not checked in
+.ci/terraform/override.tf
+.ci/terraform/override.tf.json
+.ci/terraform/*_override.tf
+.ci/terraform/*_override.tf.json

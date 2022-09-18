@@ -39,6 +39,7 @@ gardener-extension-provider-vsphere:
             image: 'eu.gcr.io/gardener-project/gardener/extensions/vsphere-gcve-tm-run'
             dockerfile: 'Dockerfile'
             target: gardener-extension-gcve-tm-run
+            tag_as_latest: true
             resource_labels:
               - name: 'cloud.gardener.cnudie/responsibles'
                 value:
@@ -48,13 +49,6 @@ gardener-extension-provider-vsphere:
                     email: 'brian.topping@sap.com'
   jobs:
     head-update:
-#      steps:
-#        test-integration:
-#          execute:
-#            - test-integration.sh
-#          trait_depends:
-#            - publish
-#          image: 'eu.gcr.io/gardener-project/gardener/testmachinery/testmachinery-run:stable'
       traits:
         component_descriptor: ~
         draft_release: ~
@@ -80,11 +74,19 @@ gardener-extension-provider-vsphere:
         component_descriptor: ~
         image_scan:
           email_recipients: ['brian.topping@sap.com']
+    test:
+      repos:
+        - name: 'tm_repo'
+          path: 'gardener/test-infra'
+          branch: 'master'
+      steps:
+        test-integration:
+          trait_depends:
+          - publish
+          image: 'eu.gcr.io/gardener-project/gardener/extensions/vsphere-gcve-tm-run:latest'
     release:
 #      steps:
 #        test-integration:
-#          execute:
-#          - test-integration.sh
 #          trait_depends:
 #          - publish
 #          image: 'eu.gcr.io/gardener-project/gardener/testmachinery/testmachinery-run:stable'

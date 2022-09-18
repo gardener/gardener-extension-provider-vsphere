@@ -6,32 +6,32 @@ metadata:
 spec:
   ttlSecondsAfterFinished: 172800 # 2 days
   locationSets:
-    {{- if .Values.localLocation }}
-    - default: true
-      name: local
-      locations:
-        - type: local
-          hostPath: /tmp/tm # hostpath to a directory containing TestDefinition
-    {{ else }}
+{{/*    {{- if .Values.localLocation }}*/}}
+{{/*    - default: true*/}}
+{{/*      name: local*/}}
+{{/*      locations:*/}}
+{{/*        - type: local*/}}
+{{/*          hostPath: /tmp/tm # hostpath to a directory containing TestDefinition*/}}
+{{/*    {{ else }}*/}}
     - default: true
       name: provider-vsphere
       locations:
         - type: git
           repo: https://github.com/gardener/gardener-extension-provider-vsphere.git
           revision: {{ .Values.revision | default "main"  }}
-    {{ end }}
+{{/*    {{ end }}*/}}
 
   {{/* Config items are global to for both gcve-setup and gcve-teardown */}}
   config:
-    - name: SERVICEACCOUNT_JSON
-      type: env
-      valueFrom:
-        secretKeyRef:
-          name: shoot-operator-gcp
-          key: serviceaccount.json
-    - name: LOCATION
-      type: env
-      value: us-east4
+{{/*    - name: SERVICEACCOUNT_JSON*/}}
+{{/*      type: env*/}}
+{{/*      valueFrom:*/}}
+{{/*        secretKeyRef:*/}}
+{{/*          name: shoot-operator-gcp*/}}
+{{/*          key: serviceaccount.json*/}}
+{{/*    - name: LOCATION*/}}
+{{/*      type: env*/}}
+{{/*      value: us-east4*/}}
     - name: NSXT_HOST
       type: env
       valueFrom:
@@ -76,24 +76,24 @@ spec:
           key: nsxt_snat_ip_pool
 
   testflow:
-    - name: gcve-setup
-      definition:
-        name: gcve-setup
-        config:
-          - name: PHASE
-            type: env
-            value: setup
-{{/*    - name: infrastructure-test*/}}
-{{/*      dependsOn: [ gcve-setup ]*/}}
+{{/*    - name: gcve-setup*/}}
 {{/*      definition:*/}}
-{{/*        name: infrastructure-test*/}}
+{{/*        name: gcve-setup*/}}
+{{/*        config:*/}}
+{{/*          - name: PHASE*/}}
+{{/*            type: env*/}}
+{{/*            value: setup*/}}
+    - name: infrastructure-test
+{{/*      dependsOn: [ gcve-setup ]*/}}
+      definition:
+        name: infrastructure-test
 
   onExit:
-    - name: gcve-teardown
-      condition: always
-      definition:
-        name: gcve-setup
-        config:
-          - name: PHASE
-            type: env
-            value: shutdown
+{{/*    - name: gcve-teardown*/}}
+{{/*      condition: always*/}}
+{{/*      definition:*/}}
+{{/*        name: gcve-setup*/}}
+{{/*        config:*/}}
+{{/*          - name: PHASE*/}}
+{{/*            type: env*/}}
+{{/*            value: shutdown*/}}
