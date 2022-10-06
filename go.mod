@@ -1,6 +1,6 @@
 module github.com/gardener/gardener-extension-provider-vsphere
 
-go 1.18
+go 1.19
 
 require (
 	github.com/Masterminds/semver v1.5.0
@@ -23,6 +23,7 @@ require (
 	github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.4.0
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	golang.org/x/tools v0.1.12
+	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.25.0
 	k8s.io/apiextensions-apiserver v0.25.0
 	k8s.io/apimachinery v0.25.0
@@ -128,7 +129,6 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	istio.io/api v0.0.0-20220512181135-e8ec1e1d89de // indirect
 	istio.io/client-go v1.14.0 // indirect
 	k8s.io/apiserver v0.25.0 // indirect

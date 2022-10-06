@@ -1,0 +1,47 @@
+# Default values for testruns.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+privateCloud:
+  name:  ""
+  createtime:  ""
+  updatetime:  ""
+  deletetime:  ""
+  expiretime:  ""
+  state:  ""
+  networkconfig:
+    network:  ""
+    servicenetwork:  ""
+    managementcidr:  ""
+    vmwareenginenetwork:  ""
+  managementcluster:
+    clusterid:  ""
+    nodetypeid:  ""
+    nodecount:  ""
+    nodecustomcorecount:  ""
+  description:  ""
+  hcx:
+    internalip:  ""
+    externalip:  ""
+    version:  ""
+    state:  ""
+    fqdn:  ""
+  nsx:
+    internalip:  ""
+    externalip:  ""
+    version:  ""
+    state:  ""
+    fqdn:  ""
+  vcenter:
+    internalip:  ""
+    externalip:  ""
+    version:  ""
+    state:  ""
+    fqdn:  ""
+  uid:  ""
+nsxCredentials:
+  username:  ""
+  password:  ""
+vcenterCredentials:
+  username:  ""
+  password:  ""
