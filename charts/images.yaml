@@ -34,7 +34,7 @@ images:
 - name: vsphere-cloud-controller-manager
   sourceRepository: github.com/kubernetes/cloud-provider-vsphere
   repository: gcr.io/cloud-provider-vsphere/cpi/release/manager
-  tag: v1.22.6
+  tag: v1.24.2
 - name: machine-controller-manager
   sourceRepository: github.com/gardener/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
