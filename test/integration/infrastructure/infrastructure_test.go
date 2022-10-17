@@ -38,6 +38,7 @@ import (
 	"github.com/go-logr/logr"
 
 	gardenerv1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/extensions"
 	"github.com/gardener/gardener/pkg/logger"
@@ -55,6 +56,7 @@ import (
 
 	"github.com/google/uuid"
 	corev1 "k8s.io/api/core/v1"
+	schedulingv1 "k8s.io/api/scheduling/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -209,6 +211,16 @@ var _ = BeforeSuite(func() {
 
 	c = mgr.GetClient()
 	Expect(c).NotTo(BeNil())
+
+	priorityClass := &schedulingv1.PriorityClass{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: v1beta1constants.PriorityClassNameShootControlPlane300,
+		},
+		Description:   "PriorityClass for Shoot control plane components",
+		GlobalDefault: false,
+		Value:         999998300,
+	}
+	Expect(client.IgnoreAlreadyExists(c.Create(ctx, priorityClass))).To(BeNil())
 
 	decoder = serializer.NewCodecFactory(mgr.GetScheme(), serializer.EnableStrict).UniversalDecoder()
 })
