@@ -1,5 +1,5 @@
 ############# builder
-FROM golang:1.19.1 AS builder
+FROM golang:1.19.2 AS builder
 
 WORKDIR /go/src/github.com/gardener/gardener-extension-provider-vsphere
 COPY . .
@@ -27,29 +27,19 @@ COPY --from=builder /go/bin/gardener-extension-validator-vsphere /gardener-exten
 ENTRYPOINT ["/gardener-extension-validator-vsphere"]
 
 ############# gcve-tm-run
-FROM eu.gcr.io/gardener-project/cc/job-image:1.1545.0 AS cli-job-image
 FROM eu.gcr.io/gardener-project/gardener/testmachinery/testmachinery-run:stable AS tm-image
-FROM debian:11 AS gardener-extension-gcve-tm-run
+FROM eu.gcr.io/gardener-project/cc/job-image:latest AS gardener-extension-gcve-tm-run
 
-RUN apt-get update ; DEBIAN_FRONTEND=noninteractive apt-get install -yq bash wget curl gnupg2 python3 python3-pip lsb-release software-properties-common; \
-    curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -; \
-    apt-add-repository "deb [arch=$(dpkg --print-architecture)] https://apt.releases.hashicorp.com $(lsb_release -cs) main"; \
-    apt-get update ; DEBIAN_FRONTEND=noninteractive apt-get install -yq kubernetes-client git openssh-client unzip software-properties-common terraform; \
+RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl; \
+    chmod +x ./kubectl && mv ./kubectl /usr/local/bin; \
+    export release=`curl -s https://api.github.com/repos/hashicorp/terraform/releases/latest |  grep tag_name | cut -d: -f2 | tr -d \"\,\v | awk '{$1=$1};1'`; \
+    curl -LO https://releases.hashicorp.com/terraform/${release}/terraform_${release}_linux_amd64.zip; \
+    unzip terraform_${release}_linux_amd64.zip ; \
+    mv terraform /usr/local/bin/terraform; \
     curl -sSL https://sdk.cloud.google.com | bash
 
-COPY --from=builder /go/bin/gcve-setup /gcve-setup
+ENV PATH $PATH:/root/google-cloud-sdk/bin
 
-COPY --from=cli-job-image /cc/utils /cc/utils
-COPY --from=cli-job-image /bin/component-cli /bin/component-cli
-COPY --from=cli-job-image /metadata/VERSION /metadata/VERSION
-RUN pip3 install --upgrade --no-cache-dir \
-  pip \
-  wheel \
-&& pip3 install --upgrade --no-cache-dir \
-  --find-links /cc/utils/dist \
-  gardener-cicd-libs==$(cat /metadata/VERSION) \
-  gardener-cicd-cli==$(cat /metadata/VERSION) \
-  gardener-cicd-dso==$(cat /metadata/VERSION) \
-  pycryptodome
+COPY --from=builder /go/bin/gcve-setup /gcve-setup
 
 COPY --from=tm-image /testrunner /testrunner
