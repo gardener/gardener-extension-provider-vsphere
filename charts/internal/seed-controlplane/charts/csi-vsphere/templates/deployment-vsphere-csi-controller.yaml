@@ -196,7 +196,6 @@ spec:
             - "--leader-election"
             - "--leader-election-namespace=kube-system"
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
-            - "--default-fstype=ext4"
 {{- if .Values.resources.provisioner }}
           resources:
 {{ toYaml .Values.resources.provisioner | indent 12 }}
