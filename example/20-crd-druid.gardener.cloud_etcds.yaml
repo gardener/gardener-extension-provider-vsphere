@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.9.2
+    controller-gen.kubebuilder.io/version: v0.10.0
   creationTimestamp: null
   name: etcds.druid.gardener.cloud
 spec:
@@ -1774,6 +1774,10 @@ spec:
                   for this resource.
                 format: int64
                 type: integer
+              peerUrlTLSEnabled:
+                description: PeerUrlTLSEnabled captures the state of peer url TLS
+                  being enabled for the etcd member(s)
+                type: boolean
               ready:
                 description: Ready is `true` if all etcd replicas are ready.
                 type: boolean
