@@ -40,3 +40,4 @@ TODO
 .ci/terraform/override.tf.json
 .ci/terraform/*_override.tf
 .ci/terraform/*_override.tf.json
+.ci/terraform/.terraform.lock.hcl

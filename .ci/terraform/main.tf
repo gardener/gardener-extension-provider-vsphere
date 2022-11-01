@@ -3,46 +3,18 @@ terraform {
     bucket = "sap-fgl-gcve-pub-preview-terraform"
     prefix = "peering/state"
   }
-  #  required_providers {
-  #    nsxt = {
-  #      source = "vmware/nsxt"
-  #    }
-  #  }
+  required_providers {
+    nsxt = {
+      source = "vmware/nsxt"
+    }
+  }
 }
 
 provider "google" {
   project = var.project_id
   region  = var.region
+  zone    = var.zone
 }
-
-#locals {
-#  privatecloud_cred_obj = yamldecode(file(var.privatecloud_cred))
-#}
-#
-#provider "nsxt" {
-#  host                 = local.privatecloud_cred_obj["privateCloud"]["nsx"]["internalip"]
-#  username             = local.privatecloud_cred_obj["nsxCredentials"]["username"]
-#  password             = local.privatecloud_cred_obj["nsxCredentials"]["password"]
-#  allow_unverified_ssl = true
-#  max_retries          = 2
-#}
-#
-#resource "nsxt_policy_ip_block" "block1" {
-#  display_name = "ip-block1"
-#  cidr         = cidrsubnet(local.privatecloud_cred_obj["privateCloud"]["networkconfig"]["managementcidr"], 5, 2)
-#}
-#
-#resource "nsxt_policy_ip_pool" "pool1" {
-#  display_name = "snat-ippool" # this is used by .ci/terraform/charts/testmachinery-secrets/templates/secrets.yaml
-#}
-#
-#resource "nsxt_policy_ip_pool_block_subnet" "block_subnet1" {
-#  display_name        = "block-subnet1"
-#  pool_path           = nsxt_policy_ip_pool.pool1.path
-#  block_path          = nsxt_policy_ip_block.block1.path
-#  size                = 8
-#  auto_assign_gateway = false
-#}
 
 # VPC
 data "google_compute_network" "vpc" {
@@ -55,11 +27,6 @@ data "google_compute_subnetwork" "subnet" {
 }
 
 data "google_client_config" "current" {}
-
-# TODO should be a unique account with proper permissions
-#data "google_service_account" "service_account" {
-#  account_id = var.sa_email
-#}
 
 # GKE cluster
 resource "google_container_cluster" "cluster" {
@@ -78,7 +45,7 @@ resource "google_container_cluster" "cluster" {
   subnetwork = data.google_compute_subnetwork.subnet.name
 
   node_locations = [
-    "us-west2-a",
+    var.zone,
   ]
 }
 
@@ -110,6 +77,10 @@ resource "google_container_node_pool" "primary_nodes" {
   }
 }
 
+data "google_compute_instance_group" "node_ig" {
+  name = regex("(?:.*/)+(.*)", google_container_node_pool.primary_nodes.instance_group_urls.0).0
+}
+
 module "gke_auth" {
   source = "terraform-google-modules/kubernetes-engine/google//modules/auth"
 
@@ -139,7 +110,6 @@ resource "google_storage_bucket_iam_binding" "binding" {
 }
 
 provider "kubernetes" {
-  #  config_path =     local_file.kubeconfig.filename
   host                   = "https://${google_container_cluster.cluster.endpoint}"
   cluster_ca_certificate = base64decode(google_container_cluster.cluster.master_auth.0.cluster_ca_certificate)
   token                  = data.google_client_config.current.access_token
@@ -151,7 +121,6 @@ resource "google_storage_hmac_key" "key" {
 
 provider "helm" {
   kubernetes {
-    #    config_path = local_file.kubeconfig.filename
     host                   = "https://${google_container_cluster.cluster.endpoint}"
     cluster_ca_certificate = base64decode(google_container_cluster.cluster.master_auth.0.cluster_ca_certificate)
     token                  = data.google_client_config.current.access_token
@@ -212,4 +181,47 @@ resource "helm_release" "tm" {
     name  = "global.s3Configuration.server.endpoint"
     value = "storage.googleapis.com"
   }
+}
+
+locals {
+  privatecloud_cred_obj = yamldecode(file(var.privatecloud_cred))
+}
+
+data "google_client_openid_userinfo" "me" {
+}
+
+resource "local_file" "shell" {
+  content = templatefile("shell.tftpl", {
+    zone     = var.zone
+    project  = var.project_id
+    username = "sa_${data.google_client_openid_userinfo.me.id}"
+    bastion  = tolist(regex("(?:.*/)+(.*)", tolist(data.google_compute_instance_group.node_ig.instances).0)).0
+    target   = local.privatecloud_cred_obj["privateCloud"]["nsx"]["internalip"]
+  })
+  filename = "/tmp/shell.sh"
+}
+
+provider "nsxt" {
+  host                 = "127.0.0.1:8443"
+  username             = local.privatecloud_cred_obj["nsxCredentials"]["username"]
+  password             = local.privatecloud_cred_obj["nsxCredentials"]["password"]
+  allow_unverified_ssl = true
+  max_retries          = 2
+}
+
+resource "nsxt_policy_ip_block" "block1" {
+  display_name = "ip-block1"
+  cidr         = cidrsubnet(local.privatecloud_cred_obj["privateCloud"]["networkconfig"]["managementcidr"], 5, 2)
+}
+
+resource "nsxt_policy_ip_pool" "pool1" {
+  display_name = "snat-ippool" # this is used by .ci/terraform/charts/testmachinery-secrets/templates/secrets.yaml
+}
+
+resource "nsxt_policy_ip_pool_block_subnet" "block_subnet1" {
+  display_name        = "block-subnet1"
+  pool_path           = nsxt_policy_ip_pool.pool1.path
+  block_path          = nsxt_policy_ip_block.block1.path
+  size                = 8
+  auto_assign_gateway = false
 }
