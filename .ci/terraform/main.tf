@@ -69,7 +69,7 @@ resource "google_container_node_pool" "primary_nodes" {
 
     # preemptible  = true
     machine_type = "n1-standard-4"
-    image_type   = "cos"
+#    image_type   = "cos"
     tags         = ["gke-node", "${var.project_id}-gke"]
     metadata     = {
       disable-legacy-endpoints = "true"
@@ -190,11 +190,15 @@ locals {
 data "google_client_openid_userinfo" "me" {
 }
 
+data "google_service_account" "me" {
+  account_id = data.google_client_openid_userinfo.me.id
+}
+
 resource "local_file" "shell" {
   content = templatefile("shell.tftpl", {
     zone     = var.zone
     project  = var.project_id
-    username = "sa_${data.google_client_openid_userinfo.me.id}"
+    username = "sa_${data.google_service_account.me.unique_id}"
     bastion  = tolist(regex("(?:.*/)+(.*)", tolist(data.google_compute_instance_group.node_ig.instances).0)).0
     target   = local.privatecloud_cred_obj["privateCloud"]["nsx"]["internalip"]
   })

@@ -36,3 +36,13 @@ controller:
 
 reserve-excess-capacity:
   enabled: false
+
+argo:
+  argo:
+    executor:
+      containerRuntimeExecutor: emissary
+      containerRuntimeExecutors:
+      - name: emissary
+        selector:
+          matchLabels:
+            workflows.argoproj.io/container-runtime-executor: emissary
