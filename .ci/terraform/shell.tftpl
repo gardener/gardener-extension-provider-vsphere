@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+gcloud compute ssh --zone "${zone}" --project "${project}" --ssh-key-file ~/.ssh/id_ed25519 "${username}@${bastion}" -- -o ExitOnForwardFailure=yes -f -N -L8443:${target}:443
