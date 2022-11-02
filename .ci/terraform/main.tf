@@ -67,9 +67,7 @@ resource "google_container_node_pool" "primary_nodes" {
       env = var.project_id
     }
 
-    # preemptible  = true
     machine_type = "n1-standard-4"
-#    image_type   = "cos"
     tags         = ["gke-node", "${var.project_id}-gke"]
     metadata     = {
       disable-legacy-endpoints = "true"

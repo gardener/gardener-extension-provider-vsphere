@@ -56,6 +56,15 @@ gardener-extension-provider-vsphere:
           public_build_logs: true
         <<: *publish_anchor
     pull-request:
+      repos:
+        - name: 'tm_repo'
+          path: 'gardener/test-infra'
+          branch: 'master'
+      steps:
+        test-integration:
+          trait_depends:
+            - publish
+          image: 'eu.gcr.io/sap-se-gcr-k8s-private/vsphere-private/vsphere-gcve-tm-run:latest'
       traits:
         pull-request: ~
         component_descriptor: ~
@@ -74,22 +83,7 @@ gardener-extension-provider-vsphere:
         component_descriptor: ~
         image_scan:
           email_recipients: ['brian.topping@sap.com']
-    test:
-      repos:
-        - name: 'tm_repo'
-          path: 'gardener/test-infra'
-          branch: 'master'
-      steps:
-        test-integration:
-          trait_depends:
-          - publish
-          image: 'eu.gcr.io/sap-se-gcr-k8s-private/vsphere-private/vsphere-gcve-tm-run:latest'
     release:
-#      steps:
-#        test-integration:
-#          trait_depends:
-#          - publish
-#          image: 'eu.gcr.io/gardener-project/gardener/testmachinery/testmachinery-run:stable'
       traits:
         <<: *publish_anchor
         version:
