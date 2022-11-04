@@ -34,19 +34,6 @@ gardener-extension-provider-vsphere:
                     username: 'briantopping'
                   - type: 'emailAddress'
                     email: 'brian.topping@sap.com'
-          gardener-extension-gcve-tm-run:
-            registry: 'gcr-readwrite'
-            image: 'eu.gcr.io/sap-se-gcr-k8s-private/vsphere-private/vsphere-gcve-tm-run'
-            dockerfile: 'Dockerfile'
-            target: gardener-extension-gcve-tm-run
-            tag_as_latest: true
-            resource_labels:
-              - name: 'cloud.gardener.cnudie/responsibles'
-                value:
-                  - type: 'githubUser'
-                    username: 'briantopping'
-                  - type: 'emailAddress'
-                    email: 'brian.topping@sap.com'
   jobs:
     head-update:
       traits:
@@ -62,6 +49,7 @@ gardener-extension-provider-vsphere:
           branch: 'master'
       steps:
         test-integration:
+          timeout: "4h"
           trait_depends:
             - publish
           image: 'eu.gcr.io/sap-se-gcr-k8s-private/vsphere-private/vsphere-gcve-tm-run:latest'
@@ -102,3 +90,34 @@ gardener-extension-provider-vsphere:
               channel_name: 'C02DYTGSUNQ' #sap-tech-gardener-on-vmware
               slack_cfg_name: 'scp_workspace'
         component_descriptor: ~
+
+gardener-extension-provider-vsphere-test:
+  template: 'default'
+  base_definition:
+    repo: ~
+    traits:
+      version:
+        preprocess: 'inject-commit-hash'
+        inject_effective_version: true
+  jobs:
+    gcve-test-container:
+      traits:
+        component_descriptor: ~
+        draft_release: ~
+        options:
+          public_build_logs: true
+        publish:
+          dockerimages:
+            gardener-extension-gcve-tm-run:
+              registry: 'gcr-readwrite'
+              image: 'eu.gcr.io/sap-se-gcr-k8s-private/vsphere-private/vsphere-gcve-tm-run'
+              dockerfile: 'Dockerfile'
+              target: gardener-extension-gcve-tm-run
+              tag_as_latest: true
+              resource_labels:
+                - name: 'cloud.gardener.cnudie/responsibles'
+                  value:
+                    - type: 'githubUser'
+                      username: 'briantopping'
+                    - type: 'emailAddress'
+                      email: 'brian.topping@sap.com'
