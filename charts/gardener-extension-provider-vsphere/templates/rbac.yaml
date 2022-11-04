@@ -43,16 +43,18 @@ rules:
   - leases
   verbs:
   - create
+  - list 
+  - watch 
 - apiGroups:
   - coordination.k8s.io
   resources:
   - leases
   resourceNames:
   - provider-vsphere-leader-election
+  - gardener-extension-heartbeat 
   verbs:
   - update
   - get
-  - watch
 - apiGroups:
   - ""
   - apps
