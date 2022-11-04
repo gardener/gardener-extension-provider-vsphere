@@ -1,6 +1,6 @@
 # Using the vSphere provider extension with Gardener as end-user
 
-The [`core.gardener.cloud/v1alpha1.Shoot` resource](https://github.com/gardener/gardener/blob/master/example/90-shoot.yaml) declares a few fields that are meant to contain provider-specific configuration.
+The [`core.gardener.cloud/v1beta1.Shoot` resource](https://github.com/gardener/gardener/blob/master/example/90-shoot.yaml) declares a few fields that are meant to contain provider-specific configuration.
 
 In this document we are describing how this configuration looks like for VMware vSphere and provide an example `Shoot` manifest with minimal configuration that you can use to create an vSphere cluster (modulo the landscape-specific information like cloud profile names, secret binding names, etc.).
 
@@ -129,7 +129,7 @@ If you don't want to configure anything for the `cloudControllerManager` simply 
 Please find below an example `Shoot` manifest for one availability zone:
 
 ```yaml
-apiVersion: core.gardener.cloud/v1alpha1
+apiVersion: core.gardener.cloud/v1beta1
 kind: Shoot
 metadata:
   name: johndoe-vsphere
@@ -164,15 +164,15 @@ spec:
     nodes: 10.250.0.0/16
     type: calico
   kubernetes:
-    version: 1.16.1
+    version: 1.24.3
   maintenance:
     autoUpdate:
       kubernetesVersion: true
       machineImageVersion: true
   addons:
-    kubernetes-dashboard:
+    kubernetesDashboard:
       enabled: true
-    nginx-ingress:
+    nginxIngress:
       enabled: true
 ```
 
