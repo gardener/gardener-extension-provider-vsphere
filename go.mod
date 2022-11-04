@@ -7,7 +7,7 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.2.0
 	github.com/coreos/go-systemd/v22 v22.4.0
 	github.com/gardener/etcd-druid v0.13.3
-	github.com/gardener/gardener v1.58.0
+	github.com/gardener/gardener v1.59.0
 	github.com/gardener/machine-controller-manager v0.47.0
 	github.com/go-logr/logr v1.2.3
 	github.com/golang/mock v1.6.0
