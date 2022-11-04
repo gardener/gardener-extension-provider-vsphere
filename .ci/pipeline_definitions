@@ -49,6 +49,7 @@ gardener-extension-provider-vsphere:
           branch: 'master'
       steps:
         test-integration:
+          timeout: "4h"
           trait_depends:
             - publish
           image: 'eu.gcr.io/sap-se-gcr-k8s-private/vsphere-private/vsphere-gcve-tm-run:latest'
