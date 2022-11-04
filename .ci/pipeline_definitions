@@ -58,6 +58,9 @@ gardener-extension-provider-vsphere:
         component_descriptor: ~
         options:
           public_build_logs: true
+#       suppress_parallel_execution until we can sort constraints reusing vsphere clusters
+        scheduling:
+          suppress_parallel_execution: true
         <<: *publish_anchor
     create-upgrade-prs:
       traits:
