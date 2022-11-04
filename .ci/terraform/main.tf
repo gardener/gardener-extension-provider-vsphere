@@ -214,10 +214,12 @@ provider "nsxt" {
 resource "nsxt_policy_ip_block" "block1" {
   display_name = "ip-block1"
   cidr         = cidrsubnet(local.privatecloud_cred_obj["privateCloud"]["networkconfig"]["managementcidr"], 5, 2)
+  depends_on   = [google_container_node_pool.primary_nodes]
 }
 
 resource "nsxt_policy_ip_pool" "pool1" {
   display_name = "snat-ippool" # this is used by .ci/terraform/charts/testmachinery-secrets/templates/secrets.yaml
+  depends_on   = [google_container_node_pool.primary_nodes]
 }
 
 resource "nsxt_policy_ip_pool_block_subnet" "block_subnet1" {
@@ -226,4 +228,5 @@ resource "nsxt_policy_ip_pool_block_subnet" "block_subnet1" {
   block_path          = nsxt_policy_ip_block.block1.path
   size                = 8
   auto_assign_gateway = false
+  depends_on          = [google_container_node_pool.primary_nodes]
 }
