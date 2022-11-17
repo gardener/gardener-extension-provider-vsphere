@@ -8,6 +8,7 @@ labels:
   gardener.cloud/role: controlplane
   app: kubernetes
   role: csi-plugin-controller
+  high-availability-config.resources.gardener.cloud/type: server
 spec:
   serviceName: vsphere-csi-controller
   revisionHistoryLimit: 1
