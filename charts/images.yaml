@@ -3,38 +3,110 @@ images:
   sourceRepository: github.com/kubernetes-csi/external-attacher
   repository: registry.k8s.io/sig-storage/csi-attacher
   tag: v4.0.0
+  labels:
+    - name: 'gardener.cloud/cve-categorisation'
+      value:
+        network_exposure: 'private'
+        authentication_enforced: false
+        user_interaction: 'gardener-operator'
+        confidentiality_requirement: 'low'
+        integrity_requirement: 'high'
+        availability_requirement: 'low'
 - name: csi-resizer
   sourceRepository: github.com/kubernetes-csi/external-resizer
   repository: registry.k8s.io/sig-storage/csi-resizer
   tag: v1.6.0
+  labels:
+    - name: 'gardener.cloud/cve-categorisation'
+      value:
+        network_exposure: 'private'
+        authentication_enforced: false
+        user_interaction: 'gardener-operator'
+        confidentiality_requirement: 'low'
+        integrity_requirement: 'high'
+        availability_requirement: 'low'
 - name: csi-node-driver-registrar
   sourceRepository: github.com/kubernetes-csi/node-driver-registrar
   repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
   tag: v2.6.0
+  labels:
+    - name: 'gardener.cloud/cve-categorisation'
+      value:
+        network_exposure: 'private'
+        authentication_enforced: false
+        user_interaction: 'end-user'
+        confidentiality_requirement: 'low'
+        integrity_requirement: 'high'
+        availability_requirement: 'low'
 - name: csi-provisioner
   sourceRepository: github.com/kubernetes-csi/external-provisioner
   repository: registry.k8s.io/sig-storage/csi-provisioner
   tag: v3.3.0
   targetVersion: ">= 1.20"
+  labels:
+    - name: 'gardener.cloud/cve-categorisation'
+      value:
+        network_exposure: 'private'
+        authentication_enforced: false
+        user_interaction: 'gardener-operator'
+        confidentiality_requirement: 'low'
+        integrity_requirement: 'high'
+        availability_requirement: 'low'
 - name: csi-snapshotter
   sourceRepository: github.com/kubernetes-csi/external-snapshotter
   repository: registry.k8s.io/sig-storage/csi-snapshotter
   tag: v6.1.0
   targetVersion: ">= 1.20"
+  labels:
+    - name: 'gardener.cloud/cve-categorisation'
+      value:
+        network_exposure: 'private'
+        authentication_enforced: false
+        user_interaction: 'gardener-operator'
+        confidentiality_requirement: 'low'
+        integrity_requirement: 'high'
+        availability_requirement: 'low'
 - name: csi-snapshot-controller
   sourceRepository: github.com/kubernetes-csi/external-snapshotter
   repository: registry.k8s.io/sig-storage/snapshot-controller
   tag: v6.1.0
   targetVersion: ">= 1.20"
+  labels:
+    - name: 'gardener.cloud/cve-categorisation'
+      value:
+        network_exposure: 'private'
+        authentication_enforced: false
+        user_interaction: 'gardener-operator'
+        confidentiality_requirement: 'low'
+        integrity_requirement: 'high'
+        availability_requirement: 'low'
 - name: csi-snapshot-validation-webhook
   sourceRepository: github.com/kubernetes-csi/external-snapshotter
   repository: registry.k8s.io/sig-storage/snapshot-validation-webhook
   tag: v6.1.0
   targetVersion: ">= 1.20"
+  labels:
+    - name: 'gardener.cloud/cve-categorisation'
+      value:
+        network_exposure: 'private'
+        authentication_enforced: false
+        user_interaction: 'gardener-operator'
+        confidentiality_requirement: 'low'
+        integrity_requirement: 'high'
+        availability_requirement: 'low'
 - name: vsphere-cloud-controller-manager
   sourceRepository: github.com/kubernetes/cloud-provider-vsphere
   repository: gcr.io/cloud-provider-vsphere/cpi/release/manager
   tag: v1.25.0
+  labels:
+    - name: 'gardener.cloud/cve-categorisation'
+      value:
+        network_exposure: 'protected'
+        authentication_enforced: false
+        user_interaction: 'gardener-operator'
+        confidentiality_requirement: 'high'
+        integrity_requirement: 'high'
+        availability_requirement: 'low'
 - name: machine-controller-manager
   sourceRepository: github.com/gardener/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
@@ -47,15 +119,51 @@ images:
   sourceRepository: github.com/gardener/vsphere-csi-driver
   repository: eu.gcr.io/gardener-project/patches/vsphere-csi-driver/driver
   tag: v2.7.0-gardener1
+  labels:
+    - name: 'gardener.cloud/cve-categorisation'
+      value:
+        network_exposure: 'protected'
+        authentication_enforced: false
+        user_interaction: 'gardener-operator'
+        confidentiality_requirement: 'high'
+        integrity_requirement: 'high'
+        availability_requirement: 'low'
 - name: vsphere-csi-driver-node
   sourceRepository: github.com/gardener/vsphere-csi-driver
   repository: eu.gcr.io/gardener-project/patches/vsphere-csi-driver/driver
   tag: v2.7.0-gardener1
+  labels:
+    - name: 'gardener.cloud/cve-categorisation'
+      value:
+        network_exposure: 'protected'
+        authentication_enforced: false
+        user_interaction: 'end-user'
+        confidentiality_requirement: 'high'
+        integrity_requirement: 'high'
+        availability_requirement: 'low'
 - name: vsphere-csi-driver-syncer
   sourceRepository: github.com/gardener/vsphere-csi-driver
   repository: eu.gcr.io/gardener-project/patches/vsphere-csi-driver/syncer
   tag: v2.7.0-gardener1
+  labels:
+    - name: 'gardener.cloud/cve-categorisation'
+      value:
+        network_exposure: 'protected'
+        authentication_enforced: false
+        user_interaction: 'gardener-operator'
+        confidentiality_requirement: 'high'
+        integrity_requirement: 'high'
+        availability_requirement: 'low'
 - name: liveness-probe
   sourceRepository: github.com/kubernetes-csi/livenessprobe
   repository: registry.k8s.io/sig-storage/livenessprobe
   tag: v2.8.0
+  labels:
+    - name: 'gardener.cloud/cve-categorisation'
+      value:
+        network_exposure: 'private'
+        authentication_enforced: false
+        user_interaction: 'end-user'
+        confidentiality_requirement: 'low'
+        integrity_requirement: 'high'
+        availability_requirement: 'low'
