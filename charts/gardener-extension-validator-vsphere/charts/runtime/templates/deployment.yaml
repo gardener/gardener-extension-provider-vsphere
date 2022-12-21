@@ -39,8 +39,7 @@ spec:
       - name: {{ include "name" . }}
         image: {{ include "image" .Values.global.image }}
         imagePullPolicy: {{ .Values.global.image.pullPolicy }}
-        command:
-        - /gardener-extension-validator-vsphere
+        args:
         - --webhook-config-server-port={{ .Values.global.webhookConfig.serverPort }}
         - --webhook-config-cert-dir=/etc/gardener-extension-validator-vsphere/srv
         {{- if .Values.global.kubeconfig }}

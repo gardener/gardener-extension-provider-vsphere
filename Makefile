@@ -25,14 +25,21 @@ EFFECTIVE_VERSION           := $(VERSION)-$(shell git rev-parse HEAD)
 LD_FLAGS                    := "-w -X github.com/gardener/$(EXTENSION_PREFIX)-$(NAME)/pkg/version.Version=$(IMAGE_TAG)"
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := true
+KIND_ENV                    := "skaffold"
 
-VERSION             ?= $(shell cat ${REPO_ROOT}/VERSION)
-IMAGE_TAG           := ${VERSION}
+GARDENER_LOCAL_KUBECONFIG   = $(GGARCHIVE)/example/gardener-local/kind/local/kubeconfig
+GGTARBALL                   = /tmp/ggtarball.tgz
+GGTARBALLURL                = $(shell curl -s https://api.github.com/repos/gardener/gardener/releases/latest | jq '.tarball_url')
+export GGARCHIVE            = /tmp/ggarchive
 
-WEBHOOK_CONFIG_PORT	:= 8443
-WEBHOOK_CONFIG_MODE	:= service
-WEBHOOK_CONFIG_URL	:= host.docker.internal:$(WEBHOOK_CONFIG_PORT)
-EXTENSION_NAMESPACE	:=
+SHELL=/usr/bin/env bash -o pipefail
+
+VERSION                     ?= $(shell cat ${REPO_ROOT}/VERSION)
+IMAGE_TAG                   := ${VERSION}
+WEBHOOK_CONFIG_PORT	        := 8443
+WEBHOOK_CONFIG_MODE	        := service
+WEBHOOK_CONFIG_URL	        := host.docker.internal:$(WEBHOOK_CONFIG_PORT)
+EXTENSION_NAMESPACE	        :=
 
 WEBHOOK_PARAM := --webhook-config-url=$(WEBHOOK_CONFIG_URL)
 ifeq ($(WEBHOOK_CONFIG_MODE), service)
@@ -67,7 +74,7 @@ start:
 	@LEADER_ELECTION_NAMESPACE=garden GO111MODULE=on go run \
 		-mod=vendor \
 		-ldflags $(LD_FLAGS) \
-		./cmd/$(EXTENSION_PREFIX)-$(NAME) \
+		./cmd/$(NAME) \
 		--config-file=./example/00-componentconfig.yaml \
 		--ignore-operation-annotation=$(IGNORE_OPERATION_ANNOTATION) \
 		--leader-election=$(LEADER_ELECTION) \
@@ -82,7 +89,7 @@ start-validator:
 	@LEADER_ELECTION_NAMESPACE=garden GO111MODULE=on go run \
 		-mod=vendor \
 		-ldflags $(LD_FLAGS) \
-		./cmd/$(EXTENSION_PREFIX)-$(VALIDATOR_NAME) \
+		./cmd/$(VALIDATOR_NAME) \
 		--leader-election=$(LEADER_ELECTION) \
 		--webhook-config-server-host=0.0.0.0 \
 		--webhook-config-server-port=9443 \
@@ -164,6 +171,33 @@ verify: check format test
 
 .PHONY: verify-extended
 verify-extended: check-generate check format test-cov test-clean
+
+#####################################################################
+# Rules for local environment                                       #
+#####################################################################
+kind-up kind-down: export KUBECONFIG = $(GARDENER_LOCAL_KUBECONFIG)
+
+# FIXME: This code is eventually necessary, but until https://github.com/gardener/gardener/pull/7247 is released, the deployment will fail.
+#$(GGTARBALL):
+#	echo $(GGTARBALLURL) | xargs curl -Lo /tmp/ggtarball.tgz
+#$(GGARCHIVE): $(GGTARBALL)
+#	mkdir $(GGARCHIVE) || true
+#	tar xfz /tmp/ggtarball.tgz -C $(GGARCHIVE) --strip-components=1 # --wildcards */hack/* */example/* */VERSION
+
+kind-up: $(GGARCHIVE) $(KIND) $(KUBECTL) $(HELM)
+	@$(GGARCHIVE)/hack/kind-up.sh --chart $(GGARCHIVE)/example/gardener-local/kind/cluster --cluster-name gardener-local --environment $(KIND_ENV) --path-kubeconfig $(GGARCHIVE)/example/provider-local/seed-kind/base/kubeconfig --path-cluster-values $(GGARCHIVE)/example/gardener-local/kind/local/values.yaml
+kind-down: $(GGARCHIVE) $(KIND)
+	@$(GGARCHIVE)/hack/kind-down.sh --cluster-name gardener-local --path-kubeconfig $(GGARCHIVE)/example/provider-local/seed-kind/base/kubeconfig
+
+# speed-up skaffold deployments by building all images concurrently
+export SKAFFOLD_BUILD_CONCURRENCY = 0
+# use static label for skaffold to prevent rolling all gardener components on every `skaffold` invocation
+gardener-up: export SKAFFOLD_LABEL = skaffold.dev/run-id=gardener-local
+# set ldflags for skaffold
+gardener-up:  export LD_FLAGS = $(shell $(GGARCHIVE)/hack/get-build-ld-flags.sh)
+
+gardener-up: $(GGARCHIVE) $(SKAFFOLD) $(HELM) $(KUBECTL)
+	SKAFFOLD_DEFAULT_REPO=localhost:5001 SKAFFOLD_PUSH=true $(SKAFFOLD) run --kube-context=kind-gardener-local
 
 
 .PHONY: integration-test-infra

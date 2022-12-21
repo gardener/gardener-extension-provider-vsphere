@@ -200,10 +200,6 @@ const (
 	// GardenerOperationRenewKubeconfig is a constant for the value of the operation annotation to renew the gardenlet's kubeconfig secret.
 	GardenerOperationRenewKubeconfig = "renew-kubeconfig"
 
-	// DeprecatedGardenRole is the key for an annotation on a Kubernetes object indicating what it is used for.
-	//
-	// Deprecated: Use `GardenRole` instead.
-	DeprecatedGardenRole = "garden.sapcloud.io/role"
 	// GardenRole is a constant for a label that describes a role.
 	GardenRole = "gardener.cloud/role"
 	// GardenRoleExtension is a constant for a label that describes the 'extensions' role.
@@ -295,6 +291,7 @@ const (
 	// high availability setup for the control plane should be enabled.
 	// Note that this annotation is alpha and can be removed anytime without further notice. Only use it if you know
 	// what you do.
+	// Deprecated: This annotation is deprecated and not respected anymore. Please use `shoot.spec.controlPlane.highAvailability` instead.
 	ShootAlphaControlPlaneHighAvailability = "alpha.control-plane.shoot.gardener.cloud/high-availability"
 	// ShootAlphaControlPlaneHighAvailabilitySingleZone is a specific value that can be set for the shoot control
 	// plane high availability annotation, that allows gardener to spread the shoot control plane across
@@ -302,10 +299,12 @@ const (
 	// This enables shoot clusters having a control plane with a higher failure tolerance as well as zero downtime maintenance,
 	// especially for infrastructure providers that provide less than three zones in a region and thus a multi-zone setup
 	// is not possible there.
+	// Deprecated: This annotation value is deprecated and not respected anymore. Please use `shoot.spec.controlPlane.highAvailability.failureTolerance.type=node` instead.
 	ShootAlphaControlPlaneHighAvailabilitySingleZone = "single-zone"
 	// ShootAlphaControlPlaneHighAvailabilityMultiZone is a specific value that can be set for the shoot control
 	// plane high availability annotation, that allows gardener to spread the shoot control plane across
 	// multiple availability zones if it is possible.
+	// Deprecated: This annotation value is deprecated and not respected anymore. Please use `shoot.spec.controlPlane.highAvailability.failureTolerance.type=zone` instead.
 	ShootAlphaControlPlaneHighAvailabilityMultiZone = "multi-zone"
 	// ShootExpirationTimestamp is an annotation on a Shoot resource whose value represents the time when the Shoot lifetime
 	// is expired. The lifetime can be extended, but at most by the minimal value of the 'clusterLifetimeDays' property
@@ -709,6 +708,25 @@ var (
 
 // constants for well-known PriorityClass names
 const (
+	// PriorityClassNameGardenSystemCritical is the name of a PriorityClass for Garden system components.
+	// Please consider the documentation in https://github.com/gardener/gardener/blob/master/docs/development/priority-classes.md
+	PriorityClassNameGardenSystemCritical = "gardener-garden-system-critical"
+	// PriorityClassNameGardenSystem500 is the name of a PriorityClass for Garden system components.
+	// Please consider the documentation in https://github.com/gardener/gardener/blob/master/docs/development/priority-classes.md
+	PriorityClassNameGardenSystem500 = "gardener-garden-system-500"
+	// PriorityClassNameGardenSystem400 is the name of a PriorityClass for Garden system components.
+	// Please consider the documentation in https://github.com/gardener/gardener/blob/master/docs/development/priority-classes.md
+	PriorityClassNameGardenSystem400 = "gardener-garden-system-400"
+	// PriorityClassNameGardenSystem300 is the name of a PriorityClass for Garden system components.
+	// Please consider the documentation in https://github.com/gardener/gardener/blob/master/docs/development/priority-classes.md
+	PriorityClassNameGardenSystem300 = "gardener-garden-system-300"
+	// PriorityClassNameGardenSystem200 is the name of a PriorityClass for Garden system components.
+	// Please consider the documentation in https://github.com/gardener/gardener/blob/master/docs/development/priority-classes.md
+	PriorityClassNameGardenSystem200 = "gardener-garden-system-200"
+	// PriorityClassNameGardenSystem100 is the name of a PriorityClass for Garden system components.
+	// Please consider the documentation in https://github.com/gardener/gardener/blob/master/docs/development/priority-classes.md
+	PriorityClassNameGardenSystem100 = "gardener-garden-system-100"
+
 	// PriorityClassNameShootSystem900 is the name of a PriorityClass for Shoot system components.
 	// Please consider the documentation in https://github.com/gardener/gardener/blob/master/docs/development/priority-classes.md
 	PriorityClassNameShootSystem900 = "gardener-shoot-system-900"

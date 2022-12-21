@@ -349,6 +349,7 @@ type KubernetesDashboard struct {
 
 const (
 	// KubernetesDashboardAuthModeBasic uses basic authentication mode for auth.
+	// Deprecated: basic authentication has been removed in Kubernetes v1.19+.
 	KubernetesDashboardAuthModeBasic = "basic"
 	// KubernetesDashboardAuthModeToken uses token-based mode for auth.
 	KubernetesDashboardAuthModeToken = "token"
@@ -665,6 +666,8 @@ type KubeAPIServerConfig struct {
 	AuditConfig *AuditConfig `json:"auditConfig,omitempty" protobuf:"bytes,4,opt,name=auditConfig"`
 	// EnableBasicAuthentication defines whether basic authentication should be enabled for this cluster or not.
 	// +optional
+	// Defaults to false.
+	// Deprecated: basic authentication has been removed in Kubernetes v1.19+. This field will be removed in a future version.
 	EnableBasicAuthentication *bool `json:"enableBasicAuthentication,omitempty" protobuf:"varint,5,opt,name=enableBasicAuthentication"`
 	// OIDCConfig contains configuration settings for the OIDC provider.
 	// +optional
@@ -1510,6 +1513,10 @@ type NodeLocalDNS struct {
 	// Default, if unspecified, is to enforce TCP.
 	// +optional
 	ForceTCPToUpstreamDNS *bool `json:"forceTCPToUpstreamDNS,omitempty" protobuf:"varint,3,opt,name=forceTCPToUpstreamDNS"`
+	// DisableForwardToUpstreamDNS indicates whether requests from node local DNS to upstream DNS should be disabled.
+	// Default, if unspecified, is to forward requests for external domains to upstream DNS
+	// +optional
+	DisableForwardToUpstreamDNS *bool `json:"disableForwardToUpstreamDNS,omitempty" protobuf:"varint,4,opt,name=disableForwardToUpstreamDNS"`
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

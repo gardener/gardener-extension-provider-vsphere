@@ -1,5 +1,5 @@
 ############# builder
-FROM golang:1.19.3 AS builder
+FROM golang:1.19.4 AS builder
 
 WORKDIR /go/src/github.com/gardener/gardener-extension-provider-vsphere
 COPY . .
@@ -16,15 +16,15 @@ FROM base AS gardener-extension-provider-vsphere
 WORKDIR /
 
 COPY charts /charts
-COPY --from=builder /go/bin/gardener-extension-provider-vsphere /gardener-extension-provider-vsphere
-ENTRYPOINT ["/gardener-extension-provider-vsphere"]
+COPY --from=builder /go/bin/provider-vsphere /provider-vsphere
+ENTRYPOINT ["/provider-vsphere"]
 
 ############# gardener-extension-validator-vsphere
 FROM base AS gardener-extension-validator-vsphere
 WORKDIR /
 
-COPY --from=builder /go/bin/gardener-extension-validator-vsphere /gardener-extension-validator-vsphere
-ENTRYPOINT ["/gardener-extension-validator-vsphere"]
+COPY --from=builder /go/bin/validator-vsphere /validator-vsphere
+ENTRYPOINT ["/validator-vsphere"]
 
 ############# gcve-tm-run
 FROM eu.gcr.io/gardener-project/gardener/testmachinery/testmachinery-run:stable AS tm-image
