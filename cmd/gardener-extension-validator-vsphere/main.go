@@ -17,16 +17,16 @@ package main
 import (
 	"os"
 
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/utils"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/cmd/gardener-extension-validator-vsphere/app"
 
-	"github.com/gardener/gardener/pkg/logger"
 	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 func main() {
-	runtimelog.SetLogger(logger.ZapLogger(false))
+	runtimelog.SetLogger(utils.ZapLogger(false))
 	cmd := app.NewValidatorCommand(signals.SetupSignalHandler())
 
 	if err := cmd.Execute(); err != nil {

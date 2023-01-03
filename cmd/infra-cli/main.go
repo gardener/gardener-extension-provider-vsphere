@@ -29,8 +29,6 @@ import (
 
 	vspherelog "github.com/vmware/vsphere-automation-sdk-go/runtime/log"
 
-	log "github.com/gardener/gardener/pkg/logger"
-
 	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	infra_cli "github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd/infra-cli"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd/infra-cli/loadbalancer"
@@ -346,7 +344,7 @@ func deleteIPPool(cmd *cobra.Command, args []string) {
 }
 
 func main() {
-	logger = log.ZapLogger(false)
+	logger = utils.ZapLogger(false)
 	vspherelog.SetLogger(utils.NewKlogBridge())
 
 	err := rootCmd.Execute()
