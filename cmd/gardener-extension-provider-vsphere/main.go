@@ -19,16 +19,16 @@ package main
 import (
 	"os"
 
+	"github.com/gardener/gardener/pkg/logger"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/cmd/gardener-extension-provider-vsphere/app"
 
-	"github.com/gardener/gardener/pkg/logger"
 	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 func main() {
-	runtimelog.SetLogger(logger.ZapLogger(false))
+	runtimelog.SetLogger(logger.MustNewZapLogger(logger.InfoLevel, logger.FormatJSON))
 	cmd := app.NewControllerManagerCommand(signals.SetupSignalHandler())
 
 	if err := cmd.Execute(); err != nil {

@@ -22,14 +22,14 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/gardener/gardener/pkg/logger"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/yaml"
 
 	vspherelog "github.com/vmware/vsphere-automation-sdk-go/runtime/log"
-
-	log "github.com/gardener/gardener/pkg/logger"
 
 	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	infra_cli "github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd/infra-cli"
@@ -58,7 +58,7 @@ var (
 
 	config *infrastructure.NSXTConfig
 
-	logger logr.Logger
+	contextLogger logr.Logger
 
 	rootCmd = &cobra.Command{
 		Use:   "vsphere-infra-cli",
@@ -210,11 +210,11 @@ func destroyInfra(cmd *cobra.Command, args []string) {
 		s := string(spec)
 		specString = &s
 	}
-	resultingState, err := infra_cli.DestroyInfrastructure(logger, config, stateString, specString)
+	resultingState, err := infra_cli.DestroyInfrastructure(contextLogger, config, stateString, specString)
 	if resultingState != nil {
 		err2 := saveFile(stateFile, *resultingState)
 		if err2 != nil {
-			logger.Error(err2, "saving state failed, please save it yourself from the console output!")
+			contextLogger.Error(err2, "saving state failed, please save it yourself from the console output!")
 		}
 	}
 	if err != nil {
@@ -242,11 +242,11 @@ func createInfra(cmd *cobra.Command, args []string) {
 	default:
 		panic(fmt.Errorf("invalid stateVersion (allowed: %v)", api.SupportedEnsurerVersions))
 	}
-	resultingState, err := infra_cli.CreateInfrastructure(logger, config, string(spec), fixedVersion)
+	resultingState, err := infra_cli.CreateInfrastructure(contextLogger, config, string(spec), fixedVersion)
 	if resultingState != nil {
 		err2 := saveFile(outputStateFile, *resultingState)
 		if err2 != nil {
-			logger.Error(err2, "saving state failed, please save it yourself from the console output!")
+			contextLogger.Error(err2, "saving state failed, please save it yourself from the console output!")
 		}
 	}
 	if err != nil {
@@ -266,7 +266,7 @@ func createConfigFile(cmd *cobra.Command, args []string) {
 	if err != nil {
 		panic(err)
 	}
-	logger.Info("written config file to " + outputConfigFile)
+	contextLogger.Info("written config file to " + outputConfigFile)
 }
 
 func nsxtVersion(cmd *cobra.Command, args []string) {
@@ -329,7 +329,7 @@ func createIPPool(cmd *cobra.Command, args []string) {
 	if ipPoolCidr == "" {
 		panic("missing ranges for creating IP pool")
 	}
-	err := infra_cli.CreateIPPool(logger, config, ipPoolName, ipPoolRanges, ipPoolCidr, advancedAPI)
+	err := infra_cli.CreateIPPool(contextLogger, config, ipPoolName, ipPoolRanges, ipPoolCidr, advancedAPI)
 	if err != nil {
 		panic(errors.Wrapf(err, "CreateIPPool failed"))
 	}
@@ -339,14 +339,15 @@ func deleteIPPool(cmd *cobra.Command, args []string) {
 	if ipPoolName == "" {
 		panic("missing ipPoolName for deleting IP pool")
 	}
-	err := infra_cli.DeleteIPPool(logger, config, ipPoolName, advancedAPI)
+	err := infra_cli.DeleteIPPool(contextLogger, config, ipPoolName, advancedAPI)
 	if err != nil {
 		panic(errors.Wrapf(err, "DeleteIPPool failed"))
 	}
 }
 
 func main() {
-	logger = log.ZapLogger(false)
+	contextLogger = logger.MustNewZapLogger(logger.InfoLevel, logger.FormatJSON)
+	runtimelog.SetLogger(contextLogger)
 	vspherelog.SetLogger(utils.NewKlogBridge())
 
 	err := rootCmd.Execute()
