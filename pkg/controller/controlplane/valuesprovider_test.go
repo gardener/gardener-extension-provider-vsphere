@@ -196,7 +196,7 @@ var _ = Describe("ValuesProvider", func() {
 						Pods: &cidr,
 					},
 					Kubernetes: gardencorev1beta1.Kubernetes{
-						Version: "1.17.0",
+						Version: "1.20.0",
 					},
 					Provider: gardencorev1beta1.Provider{
 						ControlPlaneConfig: &runtime.RawExtension{
@@ -299,10 +299,9 @@ insecure-flag = "true"
 				"genericTokenKubeconfigSecretName": "generic-token-kubeconfig-92e9ae14",
 			},
 			"vsphere-cloud-controller-manager": map[string]interface{}{
-				"replicas":          1,
-				"kubernetesVersion": "1.17.0",
-				"clusterName":       "shoot--foo--bar-garden1234",
-				"podNetwork":        cidr,
+				"replicas":    1,
+				"clusterName": "shoot--foo--bar-garden1234",
+				"podNetwork":  cidr,
 				"podAnnotations": map[string]interface{}{
 					"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
 					"checksum/secret-" + vsphere.CloudProviderConfig:              "67234961d8244bf8bd661e1d165036e691b6570a8981a09942df2314644a8b97",
@@ -326,16 +325,15 @@ insecure-flag = "true"
 				},
 			},
 			"csi-vsphere": map[string]interface{}{
-				"replicas":          1,
-				"kubernetesVersion": "1.17.0",
-				"serverName":        "vsphere.host.internal",
-				"clusterID":         "shoot--foo--bar-garden1234",
-				"username":          "admin",
-				"password":          "super-secret",
-				"serverPort":        443,
-				"datacenters":       "scc01-DC",
-				"insecureFlag":      "true",
-				"resizerEnabled":    true,
+				"replicas":       1,
+				"serverName":     "vsphere.host.internal",
+				"clusterID":      "shoot--foo--bar-garden1234",
+				"username":       "admin",
+				"password":       "super-secret",
+				"serverPort":     443,
+				"datacenters":    "scc01-DC",
+				"insecureFlag":   "true",
+				"resizerEnabled": true,
 				"podAnnotations": map[string]interface{}{
 					"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: "8bafb35ff1ac60275d62e1cbd495aceb511fb354f74a20f7d06ecb48b3a68432",
 					"checksum/secret-" + vsphere.SecretCSIVsphereConfig:           "a93175a6208bed98639833cf08f616d3329884d2558c1b61cde3656f2a57b5be",
@@ -359,16 +357,15 @@ insecure-flag = "true"
 
 		controlPlaneShootChartValues = map[string]interface{}{
 			"csi-vsphere": map[string]interface{}{
-				"serverName":        "vsphere.host.internal",
-				"clusterID":         "shoot--foo--bar-garden1234",
-				"username":          "admin",
-				"password":          "super-secret",
-				"serverPort":        443,
-				"datacenters":       "scc01-DC",
-				"insecureFlag":      "true",
-				"kubernetesVersion": "1.17.0",
-				"labelRegion":       "k8s-region",
-				"labelZone":         "k8s-zone",
+				"serverName":   "vsphere.host.internal",
+				"clusterID":    "shoot--foo--bar-garden1234",
+				"username":     "admin",
+				"password":     "super-secret",
+				"serverPort":   443,
+				"datacenters":  "scc01-DC",
+				"insecureFlag": "true",
+				"labelRegion":  "k8s-region",
+				"labelZone":    "k8s-zone",
 				"webhookConfig": map[string]interface{}{
 					"url":      "https://" + vsphere.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
 					"caBundle": "",
@@ -468,16 +465,15 @@ insecure-flag = "true"
 
 				controlPlaneShootChartValues = map[string]interface{}{
 					"csi-vsphere": map[string]interface{}{
-						"serverName":        "vsphere.host.internal",
-						"clusterID":         "shoot--foo--bar-garden1234",
-						"username":          "admin",
-						"password":          "super-secret",
-						"serverPort":        443,
-						"datacenters":       "scc01-DC",
-						"insecureFlag":      "true",
-						"kubernetesVersion": "1.17.0",
-						"labelRegion":       "k8s-region",
-						"labelZone":         "k8s-zone",
+						"serverName":   "vsphere.host.internal",
+						"clusterID":    "shoot--foo--bar-garden1234",
+						"username":     "admin",
+						"password":     "super-secret",
+						"serverPort":   443,
+						"datacenters":  "scc01-DC",
+						"insecureFlag": "true",
+						"labelRegion":  "k8s-region",
+						"labelZone":    "k8s-zone",
 						"webhookConfig": map[string]interface{}{
 							"url":      "https://" + vsphere.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
 							"caBundle": "",
@@ -506,16 +502,15 @@ insecure-flag = "true"
 
 				controlPlaneShootChartValues = map[string]interface{}{
 					"csi-vsphere": map[string]interface{}{
-						"serverName":        "vsphere.host.internal",
-						"clusterID":         "shoot--foo--bar-garden1234",
-						"username":          "admin",
-						"password":          "super-secret",
-						"serverPort":        443,
-						"datacenters":       "scc01-DC",
-						"insecureFlag":      "true",
-						"kubernetesVersion": "1.17.0",
-						"labelRegion":       "k8s-region",
-						"labelZone":         "k8s-zone",
+						"serverName":   "vsphere.host.internal",
+						"clusterID":    "shoot--foo--bar-garden1234",
+						"username":     "admin",
+						"password":     "super-secret",
+						"serverPort":   443,
+						"datacenters":  "scc01-DC",
+						"insecureFlag": "true",
+						"labelRegion":  "k8s-region",
+						"labelZone":    "k8s-zone",
 						"webhookConfig": map[string]interface{}{
 							"url":      "https://" + vsphere.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
 							"caBundle": "",
@@ -561,8 +556,7 @@ insecure-flag = "true"
 			values, err := vp.GetControlPlaneShootCRDsChartValues(ctx, cp, cluster)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(values).To(Equal(map[string]interface{}{
-				"volumesnapshots":   map[string]interface{}{"enabled": false},
-				"kubernetesVersion": "1.17.0",
+				"volumesnapshots": map[string]interface{}{"enabled": false},
 			}))
 		})
 	})

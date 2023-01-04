@@ -356,7 +356,6 @@ func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
-		"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 		"volumesnapshots": map[string]interface{}{
 			"enabled": false, // not supported in vsphere-csi-driver v2.3.0
 		},
@@ -617,10 +616,9 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"genericTokenKubeconfigSecretName": extensionscontroller.GenericTokenKubeconfigSecretNameFromCluster(cluster),
 		},
 		"vsphere-cloud-controller-manager": map[string]interface{}{
-			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
-			"clusterName":       clusterID,
-			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
-			"podNetwork":        extensionscontroller.GetPodNetwork(cluster),
+			"replicas":    extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
+			"clusterName": clusterID,
+			"podNetwork":  extensionscontroller.GetPodNetwork(cluster),
 			"podAnnotations": map[string]interface{}{
 				"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
 				"checksum/secret-" + vsphere.CloudProviderConfig:              checksums[vsphere.CloudProviderConfig],
@@ -634,16 +632,15 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			},
 		},
 		"csi-vsphere": map[string]interface{}{
-			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
-			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
-			"serverName":        serverName,
-			"clusterID":         csiClusterID,
-			"username":          credentials.VsphereCSI().Username,
-			"password":          credentials.VsphereCSI().Password,
-			"serverPort":        port,
-			"datacenters":       strings.Join(helper.CollectDatacenters(region), ","),
-			"insecureFlag":      fmt.Sprintf("%t", region.VsphereInsecureSSL),
-			"resizerEnabled":    csiResizerEnabled,
+			"replicas":       extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
+			"serverName":     serverName,
+			"clusterID":      csiClusterID,
+			"username":       credentials.VsphereCSI().Username,
+			"password":       credentials.VsphereCSI().Password,
+			"serverPort":     port,
+			"datacenters":    strings.Join(helper.CollectDatacenters(region), ","),
+			"insecureFlag":   fmt.Sprintf("%t", region.VsphereInsecureSSL),
+			"resizerEnabled": csiResizerEnabled,
 			"podAnnotations": map[string]interface{}{
 				"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
 				"checksum/secret-" + vsphere.SecretCSIVsphereConfig:           checksums[vsphere.SecretCSIVsphereConfig],
@@ -712,14 +709,13 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 	_, csiClusterID := vp.calcClusterIDs(cp)
 	values := map[string]interface{}{
 		"csi-vsphere": map[string]interface{}{
-			"serverName":        serverName,
-			"clusterID":         csiClusterID,
-			"username":          credentials.VsphereCSI().Username,
-			"password":          credentials.VsphereCSI().Password,
-			"serverPort":        port,
-			"datacenters":       strings.Join(helper.CollectDatacenters(region), ","),
-			"insecureFlag":      insecureFlag,
-			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
+			"serverName":   serverName,
+			"clusterID":    csiClusterID,
+			"username":     credentials.VsphereCSI().Username,
+			"password":     credentials.VsphereCSI().Password,
+			"serverPort":   port,
+			"datacenters":  strings.Join(helper.CollectDatacenters(region), ","),
+			"insecureFlag": insecureFlag,
 			"webhookConfig": map[string]interface{}{
 				"url":      "https://" + vsphere.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
 				"caBundle": string(caSecret.Data[secretutils.DataKeyCertificateBundle]),

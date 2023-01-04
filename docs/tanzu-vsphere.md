@@ -21,7 +21,7 @@ The `storageClass` Parameter should be defined to avoid problems during deployme
     namespace: ns1                               #supervisor namespace
     spec:
     distribution:
-        version: v1.17				 #resolved kubernetes version
+        version: v1.24				 #resolved kubernetes version
     topology:
         controlPlane:
         count: 1                                 #number of control plane nodes
