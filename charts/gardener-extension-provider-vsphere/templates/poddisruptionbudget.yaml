@@ -15,3 +15,4 @@ spec:
   selector:
     matchLabels:
 {{ include "labels" . | indent 6 }}
+{{- end }}
