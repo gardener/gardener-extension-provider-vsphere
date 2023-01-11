@@ -36,8 +36,8 @@ RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s
     curl -LO https://releases.hashicorp.com/terraform/${release}/terraform_${release}_linux_amd64.zip; \
     unzip terraform_${release}_linux_amd64.zip ; \
     mv terraform /usr/local/bin/terraform; \
-    curl -sSL https://sdk.cloud.google.com | bash \
-    apt-get update && apt-get install yq
+    curl -sSL https://sdk.cloud.google.com | bash ; \
+    wget -qO /usr/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && chmod a+x /usr/bin/yq
 
 ENV PATH $PATH:/root/google-cloud-sdk/bin
 

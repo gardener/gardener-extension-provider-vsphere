@@ -33,7 +33,6 @@ terraform init -input=false || exit
 terraform workspace new $workspace || true
 terraform workspace select $workspace
 
-terraform destroy -input=false -auto-approve
 # run terraform to create the bash script, run it, then re-run terraform with everything applied
 terraform apply -input=false -auto-approve -target=local_file.shell
 source /tmp/shell.sh
