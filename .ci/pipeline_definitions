@@ -39,6 +39,7 @@ gardener-extension-provider-vsphere:
           trait_depends:
             - publish
           image: 'eu.gcr.io/sap-se-gcr-k8s-private/vsphere-private/vsphere-gcve-tm-run:latest'
+          on_abort: test-abort
       traits:
         pull-request: ~
         component_descriptor: ~

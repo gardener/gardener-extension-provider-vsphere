@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+set -x
+
+cd "$(dirname $0)/.."
+export
+
+#ssh-keygen -q -t ed25519 -f "${HOME}/.ssh/id_ed25519" -N ""
+#
+#/cc/utils/cli.py config attribute --cfg-type container_registry --cfg-name vsphere-playground --key password >/tmp/creds
+#export GOOGLE_APPLICATION_CREDENTIALS=/tmp/creds
+#
+#/root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS --quiet || exit
+#/root/google-cloud-sdk/bin/gcloud compute os-login ssh-keys add --ttl 4h --key-file="${HOME}/.ssh/id_ed25519.pub" --quiet
+#
+##export workspace="test1"
+##export workspace="tmp-$(cat /dev/urandom | tr -dc 'a-z' | fold -w 6 | head -1)"
+#export TF_VAR_project_id="sap-fgl-gcve-pub-preview"
+#export TF_VAR_region="us-west2"
+#export TF_VAR_zone="us-west2-a"
+#export TF_VAR_sa_email="vsphere-tm-sa@sap-fgl-gcve-pub-preview.iam.gserviceaccount.com"
+#export TF_VAR_privatecloud_cred="/tmp/privatecloud-cred.yaml"
+#export TF_VAR_tm_repo_path="${CC_ROOT_DIR}/${TM_REPO_PATH}"
+#export zone="us-west2-a"
+#
+#/gcve-setup --phase=setup --allow-scavenging=true --location=$zone --cidr=10.120.0.0/20 --service-account=$GOOGLE_APPLICATION_CREDENTIALS --cred-file=$TF_VAR_privatecloud_cred
+#export workspace=$(yq '.privateCloud.name' < $TF_VAR_privatecloud_cred | sed 's:.*/::')
+#
+#cd ${CC_ROOT_DIR}/${SOURCE_PATH}/.ci/terraform
+#terraform init -input=false || exit
+#terraform workspace new $workspace || true
+#terraform workspace select $workspace
+#
+#terraform destroy -input=false -auto-approve
+## run terraform to create the bash script, run it, then re-run terraform with everything applied
+#terraform apply -input=false -auto-approve -target=local_file.shell
+#source /tmp/shell.sh
+#terraform apply -input=false -auto-approve
+#
+#cd ${CC_ROOT_DIR}/${SOURCE_PATH}
+#/testrunner run \
+#    --tm-kubeconfig-path=/tmp/kubeconfig \
+#    --testrun-prefix tm-extension-vsphere- \
+#    --no-execution-group \
+#    --timeout=1800 \
+#    --testruns-chart-path=.ci/testruns/default \
+#    --set revision="$(git rev-parse HEAD)"
+#
+#kubectl --kubeconfig=/tmp/kubeconfig delete testrun --all
+#
+#cd ${CC_ROOT_DIR}/${SOURCE_PATH}/.ci/terraform
+#terraform destroy -input=false -auto-approve
+#terraform workspace select default
+#terraform workspace delete $workspace
+#
+#/gcve-setup --phase=shutdown --cloud-id=$workspace --location=$zone --service-account=$GOOGLE_APPLICATION_CREDENTIALS --cred-file=$TF_VAR_privatecloud_cred
