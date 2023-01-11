@@ -7,6 +7,7 @@ metadata:
     gardener.cloud/role: controlplane
     app: kubernetes
     role: cloud-controller-manager
+    high-availability-config.resources.gardener.cloud/type: controller
 spec:
   revisionHistoryLimit: 1
   replicas: {{ .Values.replicas }}

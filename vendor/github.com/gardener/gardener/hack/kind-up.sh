@@ -9,6 +9,7 @@ PATH_CLUSTER_VALUES=""
 PATH_KUBECONFIG=""
 ENVIRONMENT="skaffold"
 DEPLOY_REGISTRY=true
+CHART=$(dirname "$0")/../example/gardener-local/kind/cluster
 
 parse_flags() {
   while test $# -gt 0; do

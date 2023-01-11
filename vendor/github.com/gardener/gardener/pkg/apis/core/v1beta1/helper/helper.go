@@ -531,6 +531,11 @@ func ShootSchedulingProfile(shoot *gardencorev1beta1.Shoot) *gardencorev1beta1.S
 	return nil
 }
 
+// ShootConfinesSpecUpdateRollout returns a bool.
+func ShootConfinesSpecUpdateRollout(maintenance *gardencorev1beta1.Maintenance) bool {
+	return maintenance != nil && maintenance.ConfineSpecUpdateRollout != nil && *maintenance.ConfineSpecUpdateRollout
+}
+
 // SeedSettingVerticalPodAutoscalerEnabled returns true if the 'verticalPodAutoscaler' setting is enabled.
 func SeedSettingVerticalPodAutoscalerEnabled(settings *gardencorev1beta1.SeedSettings) bool {
 	return settings == nil || settings.VerticalPodAutoscaler == nil || settings.VerticalPodAutoscaler.Enabled
@@ -1194,7 +1199,7 @@ func GetNodeLocalDNS(systemComponents *gardencorev1beta1.SystemComponents) *gard
 }
 
 // GetShootCARotationPhase returns the specified shoot CA rotation phase or an empty string
-func GetShootCARotationPhase(credentials *gardencorev1beta1.ShootCredentials) gardencorev1beta1.ShootCredentialsRotationPhase {
+func GetShootCARotationPhase(credentials *gardencorev1beta1.ShootCredentials) gardencorev1beta1.CredentialsRotationPhase {
 	if credentials != nil && credentials.Rotation != nil && credentials.Rotation.CertificateAuthorities != nil {
 		return credentials.Rotation.CertificateAuthorities.Phase
 	}
@@ -1203,7 +1208,11 @@ func GetShootCARotationPhase(credentials *gardencorev1beta1.ShootCredentials) ga
 
 // MutateShootCARotation mutates the .status.credentials.rotation.certificateAuthorities field based on the provided
 // mutation function. If the field is nil then it is initialized.
-func MutateShootCARotation(shoot *gardencorev1beta1.Shoot, f func(*gardencorev1beta1.ShootCARotation)) {
+func MutateShootCARotation(shoot *gardencorev1beta1.Shoot, f func(*gardencorev1beta1.CARotation)) {
+	if f == nil {
+		return
+	}
+
 	if shoot.Status.Credentials == nil {
 		shoot.Status.Credentials = &gardencorev1beta1.ShootCredentials{}
 	}
@@ -1211,7 +1220,7 @@ func MutateShootCARotation(shoot *gardencorev1beta1.Shoot, f func(*gardencorev1b
 		shoot.Status.Credentials.Rotation = &gardencorev1beta1.ShootCredentialsRotation{}
 	}
 	if shoot.Status.Credentials.Rotation.CertificateAuthorities == nil {
-		shoot.Status.Credentials.Rotation.CertificateAuthorities = &gardencorev1beta1.ShootCARotation{}
+		shoot.Status.Credentials.Rotation.CertificateAuthorities = &gardencorev1beta1.CARotation{}
 	}
 
 	f(shoot.Status.Credentials.Rotation.CertificateAuthorities)
@@ -1220,6 +1229,10 @@ func MutateShootCARotation(shoot *gardencorev1beta1.Shoot, f func(*gardencorev1b
 // MutateShootKubeconfigRotation mutates the .status.credentials.rotation.kubeconfig field based on the provided
 // mutation function. If the field is nil then it is initialized.
 func MutateShootKubeconfigRotation(shoot *gardencorev1beta1.Shoot, f func(*gardencorev1beta1.ShootKubeconfigRotation)) {
+	if f == nil {
+		return
+	}
+
 	if shoot.Status.Credentials == nil {
 		shoot.Status.Credentials = &gardencorev1beta1.ShootCredentials{}
 	}
@@ -1251,6 +1264,10 @@ func IsShootKubeconfigRotationInitiationTimeAfterLastCompletionTime(credentials 
 // MutateShootSSHKeypairRotation mutates the .status.credentials.rotation.sshKeypair field based on the provided
 // mutation function. If the field is nil then it is initialized.
 func MutateShootSSHKeypairRotation(shoot *gardencorev1beta1.Shoot, f func(*gardencorev1beta1.ShootSSHKeypairRotation)) {
+	if f == nil {
+		return
+	}
+
 	if shoot.Status.Credentials == nil {
 		shoot.Status.Credentials = &gardencorev1beta1.ShootCredentials{}
 	}
@@ -1282,6 +1299,10 @@ func IsShootSSHKeypairRotationInitiationTimeAfterLastCompletionTime(credentials 
 // MutateObservabilityRotation mutates the .status.credentials.rotation.observability field based on the provided
 // mutation function. If the field is nil then it is initialized.
 func MutateObservabilityRotation(shoot *gardencorev1beta1.Shoot, f func(*gardencorev1beta1.ShootObservabilityRotation)) {
+	if f == nil {
+		return
+	}
+
 	if shoot.Status.Credentials == nil {
 		shoot.Status.Credentials = &gardencorev1beta1.ShootCredentials{}
 	}
@@ -1312,7 +1333,7 @@ func IsShootObservabilityRotationInitiationTimeAfterLastCompletionTime(credentia
 
 // GetShootServiceAccountKeyRotationPhase returns the specified shoot service account key rotation phase or an empty
 // string.
-func GetShootServiceAccountKeyRotationPhase(credentials *gardencorev1beta1.ShootCredentials) gardencorev1beta1.ShootCredentialsRotationPhase {
+func GetShootServiceAccountKeyRotationPhase(credentials *gardencorev1beta1.ShootCredentials) gardencorev1beta1.CredentialsRotationPhase {
 	if credentials != nil && credentials.Rotation != nil && credentials.Rotation.ServiceAccountKey != nil {
 		return credentials.Rotation.ServiceAccountKey.Phase
 	}
@@ -1322,6 +1343,10 @@ func GetShootServiceAccountKeyRotationPhase(credentials *gardencorev1beta1.Shoot
 // MutateShootServiceAccountKeyRotation mutates the .status.credentials.rotation.serviceAccountKey field based on the
 // provided mutation function. If the field is nil then it is initialized.
 func MutateShootServiceAccountKeyRotation(shoot *gardencorev1beta1.Shoot, f func(*gardencorev1beta1.ShootServiceAccountKeyRotation)) {
+	if f == nil {
+		return
+	}
+
 	if shoot.Status.Credentials == nil {
 		shoot.Status.Credentials = &gardencorev1beta1.ShootCredentials{}
 	}
@@ -1337,7 +1362,7 @@ func MutateShootServiceAccountKeyRotation(shoot *gardencorev1beta1.Shoot, f func
 
 // GetShootETCDEncryptionKeyRotationPhase returns the specified shoot ETCD encryption key rotation phase or an empty
 // string.
-func GetShootETCDEncryptionKeyRotationPhase(credentials *gardencorev1beta1.ShootCredentials) gardencorev1beta1.ShootCredentialsRotationPhase {
+func GetShootETCDEncryptionKeyRotationPhase(credentials *gardencorev1beta1.ShootCredentials) gardencorev1beta1.CredentialsRotationPhase {
 	if credentials != nil && credentials.Rotation != nil && credentials.Rotation.ETCDEncryptionKey != nil {
 		return credentials.Rotation.ETCDEncryptionKey.Phase
 	}
@@ -1347,6 +1372,10 @@ func GetShootETCDEncryptionKeyRotationPhase(credentials *gardencorev1beta1.Shoot
 // MutateShootETCDEncryptionKeyRotation mutates the .status.credentials.rotation.etcdEncryptionKey field based on the
 // provided mutation function. If the field is nil then it is initialized.
 func MutateShootETCDEncryptionKeyRotation(shoot *gardencorev1beta1.Shoot, f func(*gardencorev1beta1.ShootETCDEncryptionKeyRotation)) {
+	if f == nil {
+		return
+	}
+
 	if shoot.Status.Credentials == nil {
 		shoot.Status.Credentials = &gardencorev1beta1.ShootCredentials{}
 	}

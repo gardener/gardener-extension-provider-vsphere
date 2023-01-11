@@ -17,7 +17,7 @@ package main
 import (
 	"os"
 
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/utils"
+	"github.com/gardener/gardener/pkg/logger"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/cmd/validator-vsphere/app"
@@ -26,7 +26,7 @@ import (
 )
 
 func main() {
-	runtimelog.SetLogger(utils.ZapLogger(false))
+	runtimelog.SetLogger(logger.MustNewZapLogger(logger.InfoLevel, logger.FormatJSON))
 	cmd := app.NewValidatorCommand(signals.SetupSignalHandler())
 
 	if err := cmd.Execute(); err != nil {

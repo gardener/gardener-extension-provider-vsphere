@@ -150,9 +150,9 @@ spec:
         guestId: other4xLinux64Guest
   kubernetes:
     versions:
-    - version: 1.15.4
-    - version: 1.16.0
-    - version: 1.16.1
+    - version: 1.23.4
+    - version: 1.24.0
+    - version: 1.24.1
   machineImages:
   - name: flatcar
     versions:
@@ -182,11 +182,11 @@ spec:
 
 ## Which versions of Kubernetes/vSphere are supported
 
-This extension targets Kubernetes >= `v1.15` and vSphere `6.7 U3` or later.
+This extension targets Kubernetes >= `v1.20` and vSphere `6.7 U3` or later.
 
 - vSphere CSI driver needs vSphere `6.7 U3` or later,
-  and Kubernetes >= `v1.14`
-  (see [feature metrics](https://docs.vmware.com/en/VMware-vSphere-Container-Storage-Plug-in/2.0/vmware-vsphere-csp-getting-started/GUID-E59B13F5-6F49-4619-9877-DF710C365A1E.html) for more details)
+  and Kubernetes >= `v1.16`
+  (see [VMware vSphere Container Storage Plug-in](https://docs.vmware.com/en/VMware-vSphere-Container-Storage-Plug-in/index.html) for more details)
 - vSpere CPI driver needs vSphere `6.7 U3` or later,
   and Kubernetes >= `v1.11`
   (see [cloud-provider-vsphere CPI - Cloud Provider Interface](https://github.com/kubernetes/cloud-provider-vsphere/blob/master/docs/book/cloud_provider_interface.md#which-versions-of-kubernetesvsphere-support-it))
