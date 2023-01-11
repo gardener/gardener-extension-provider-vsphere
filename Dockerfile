@@ -32,7 +32,7 @@ FROM eu.gcr.io/gardener-project/cc/job-image:latest AS gardener-extension-gcve-t
 
 RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl; \
     chmod +x ./kubectl && mv ./kubectl /usr/local/bin; \
-    export release=`curl -s https://api.github.com/repos/hashicorp/terraform/releases/latest |  grep tag_name | cut -d: -f2 | tr -d \"\,\v | awk '{$1=$1};1'`; \
+    export release=$(curl -s https://api.github.com/repos/hashicorp/terraform/releases/latest |  grep tag_name | cut -d: -f2 | tr -d \"\,\v | awk '{$1=$1};1'); \
     curl -LO https://releases.hashicorp.com/terraform/${release}/terraform_${release}_linux_amd64.zip; \
     unzip terraform_${release}_linux_amd64.zip ; \
     mv terraform /usr/local/bin/terraform; \
