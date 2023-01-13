@@ -20,7 +20,7 @@ import (
 	"github.com/gardener/gardener/pkg/logger"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
-	"github.com/gardener/gardener-extension-provider-vsphere/cmd/gardener-extension-validator-vsphere/app"
+	"github.com/gardener/gardener-extension-provider-vsphere/cmd/validator-vsphere/app"
 
 	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
 )

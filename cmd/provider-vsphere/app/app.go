@@ -29,6 +29,7 @@ import (
 	vsphereinfrastructure "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/infrastructure"
 	vsphereworker "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/worker"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	providervsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	vspherecontrolplaneexposure "github.com/gardener/gardener-extension-provider-vsphere/pkg/webhook/controlplaneexposure"
 
 	"github.com/gardener/gardener/extensions/pkg/controller"
@@ -130,7 +131,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use: fmt.Sprintf("%s-controller-manager", vsphere.Name),
+		Use: fmt.Sprintf("validator-%s", providervsphere.Type),
 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			verflag.PrintAndExitIfRequested()

@@ -1,0 +1,110 @@
+apiVersion: skaffold/v2beta29
+kind: Config
+metadata:
+  name: provider-vsphere
+requires:
+ - path: "/tmp/ggarchive/skaffold.yaml"
+build:
+  artifacts:
+  - image: eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere
+    ko:
+      main: ./cmd/provider-vsphere
+      dependencies:
+        paths:
+          - cmd/provider-vsphere/app
+          - cmd/infra-cli
+          - pkg/webhook
+          - pkg/webhook/controlplaneexposure
+          - pkg/webhook/controlplane
+          - pkg/webhook/shoot
+          - pkg/cmd
+          - pkg/cmd/infra-cli
+          - pkg/cmd/infra-cli/loadbalancer
+          - pkg/apis
+          - pkg/apis/vsphere
+          - pkg/apis/vsphere/install
+          - pkg/apis/vsphere/v1alpha1
+          - pkg/apis/vsphere/helper
+          - pkg/apis/vsphere/validation
+          - pkg/apis/config
+          - pkg/apis/config/install
+          - pkg/apis/config/loader
+          - pkg/apis/config/v1alpha1
+          - pkg/validator
+          - pkg/vsphere
+          - pkg/vsphere/infrastructure
+          - pkg/vsphere/infrastructure/ensurer
+          - pkg/vsphere/infrastructure/task
+          - pkg/vsphere/helpers
+          - pkg/utils
+          - pkg/controller
+          - pkg/controller/healthcheck
+          - pkg/controller/controlplane
+          - pkg/controller/worker
+          - pkg/controller/infrastructure
+          - vendor
+  - image: eu.gcr.io/gardener-project/gardener/extensions/validator-vsphere
+    ko:
+      main: ./cmd/validator-vsphere
+      dependencies:
+        paths:
+          - cmd/validator-vsphere/app
+          - cmd/infra-cli
+          - pkg/webhook
+          - pkg/webhook/controlplaneexposure
+          - pkg/webhook/controlplane
+          - pkg/webhook/shoot
+          - pkg/cmd
+          - pkg/cmd/infra-cli
+          - pkg/cmd/infra-cli/loadbalancer
+          - pkg/apis
+          - pkg/apis/vsphere
+          - pkg/apis/vsphere/install
+          - pkg/apis/vsphere/v1alpha1
+          - pkg/apis/vsphere/helper
+          - pkg/apis/vsphere/validation
+          - pkg/apis/config
+          - pkg/apis/config/install
+          - pkg/apis/config/loader
+          - pkg/apis/config/v1alpha1
+          - pkg/validator
+          - pkg/vsphere
+          - pkg/vsphere/infrastructure
+          - pkg/vsphere/infrastructure/ensurer
+          - pkg/vsphere/infrastructure/task
+          - pkg/vsphere/helpers
+          - pkg/utils
+          - pkg/controller
+          - pkg/controller/healthcheck
+          - pkg/controller/controlplane
+          - pkg/controller/worker
+          - pkg/controller/infrastructure
+          - vendor
+deploy:
+  helm:
+    releases:
+    - name: provider-vsphere
+      chartPath: charts/gardener-extension-provider-vsphere
+      namespace: garden
+      createNamespace: true
+      # wait: false
+      wait: true
+      artifactOverrides:
+        image: eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere
+      imageStrategy:
+        helm: {}
+      valuesFiles:
+      - example/gardener-local/provider-vsphere/values.yaml
+    - name: validator-vsphere
+      chartPath: charts/gardener-extension-validator-vsphere
+      namespace: garden
+      createNamespace: true
+      # wait: false
+      wait: true
+      artifactOverrides:
+        global:
+          image: eu.gcr.io/gardener-project/gardener/extensions/validator-vsphere
+      imageStrategy:
+        helm: {}
+      valuesFiles:
+      - example/gardener-local/validator-vsphere/values.yaml

@@ -35,12 +35,12 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
+	gardenerv1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	"github.com/gardener/gardener/pkg/extensions"
 	"github.com/go-logr/logr"
 
-	gardenerv1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/gardener/gardener/pkg/extensions"
 	"github.com/gardener/gardener/pkg/logger"
 	gardenerutils "github.com/gardener/gardener/pkg/utils"
 	"github.com/gardener/gardener/test/framework"
@@ -255,29 +255,19 @@ var _ = Describe("Infrastructure tests", func() {
 		Expect(vsphereClient).NotTo(BeNil())
 	})
 
+	AfterEach(func() {
+		framework.RunCleanupActions()
+	})
+
 	Context("with infrastructure creating own T1 gateway", func() {
-		AfterEach(func() {
-			framework.RunCleanupActions()
-		})
-
 		It("should successfully create and delete", func() {
-			namespace := nsxtInfraSpec.ClusterName
-			providerConfig := newProviderConfig("", "")
-			cloudProfileConfig := newCloudProfileConfig(nsxtConfig, nsxtInfraSpec)
-
-			err := runTest(ctx, log, c, namespace, providerConfig, decoder, nsxtConfig, vsphereClient, cloudProfileConfig, nsxtInfraSpec.WorkersNetwork)
-			Expect(err).NotTo(HaveOccurred())
+			runTest("", "")
 		})
 	})
 
 	Context("with infrastructure that uses existing T1 gateway", func() {
-		AfterEach(func() {
-			framework.RunCleanupActions()
-		})
-
 		It("should successfully create and delete", func() {
 			namespace := nsxtInfraSpec.ClusterName
-
 			t1Ref, lbSvcRef, err := prepareNewT1GatewayAndLBService(log, namespace, *nsxtInfraSpec, vsphereClient)
 			// ensure deleting resources even on errors
 			var cleanupHandle framework.CleanupActionHandle
@@ -288,28 +278,16 @@ var _ = Describe("Infrastructure tests", func() {
 				framework.RemoveCleanupAction(cleanupHandle)
 			})
 			Expect(err).NotTo(HaveOccurred())
-
-			providerConfig := newProviderConfig(t1Ref.Path, lbSvcRef.Path)
-			cloudProfileConfig := newCloudProfileConfig(nsxtConfig, nsxtInfraSpec)
-
-			err = runTest(ctx, log, c, namespace, providerConfig, decoder, nsxtConfig, vsphereClient, cloudProfileConfig, nsxtInfraSpec.WorkersNetwork)
-			Expect(err).NotTo(HaveOccurred())
+			runTest(t1Ref.Path, lbSvcRef.Path)
 		})
 	})
 })
 
-func runTest(
-	ctx context.Context,
-	log logr.Logger,
-	c client.Client,
-	namespaceName string,
-	providerConfig *vspherev1alpha1.InfrastructureConfig,
-	decoder runtime.Decoder,
-	nsxtConfig *infrastructure.NSXTConfig,
-	vsphereClient task.EnsurerContext,
-	cloudProfileConfig *vspherev1alpha1.CloudProfileConfig,
-	workerCIDR string,
-) error {
+func runTest(t1RefPath string, lbSvcRefPath string) {
+	namespaceName := nsxtInfraSpec.ClusterName
+	providerConfig := newProviderConfig(t1RefPath, lbSvcRefPath)
+	cloudProfileConfig := newCloudProfileConfig(nsxtConfig, nsxtInfraSpec)
+
 	var (
 		namespace      *corev1.Namespace
 		cluster        *extensionsv1alpha1.Cluster
@@ -349,14 +327,11 @@ func runTest(
 			Name: namespaceName,
 		},
 	}
-	if err := c.Create(ctx, namespace); err != nil {
-		return err
-	}
+	err := c.Create(ctx, namespace)
+	Expect(err).NotTo(HaveOccurred())
 
 	cloudProfileConfigJSON, err := json.Marshal(&cloudProfileConfig)
-	if err != nil {
-		return err
-	}
+	Expect(err).NotTo(HaveOccurred())
 
 	cloudprofile := gardenerv1beta1.CloudProfile{
 		TypeMeta: metav1.TypeMeta{
@@ -382,14 +357,10 @@ func runTest(
 	}
 
 	cloudProfileJSON, err := json.Marshal(&cloudprofile)
-	if err != nil {
-		return err
-	}
+	Expect(err).NotTo(HaveOccurred())
 
 	providerConfigJSON, err := json.Marshal(providerConfig)
-	if err != nil {
-		return err
-	}
+	Expect(err).NotTo(HaveOccurred())
 
 	nameParts := strings.Split(namespaceName, "--")
 	shoot := gardenerv1beta1.Shoot{
@@ -402,7 +373,7 @@ func runTest(
 		},
 		Spec: gardenerv1beta1.ShootSpec{
 			Networking: gardenerv1beta1.Networking{
-				Nodes: &workerCIDR,
+				Nodes: &nsxtInfraSpec.WorkersNetwork,
 			},
 			Provider: gardenerv1beta1.Provider{
 				InfrastructureConfig: &runtime.RawExtension{
@@ -413,9 +384,7 @@ func runTest(
 	}
 
 	shootJSON, err := json.Marshal(&shoot)
-	if err != nil {
-		return err
-	}
+	Expect(err).NotTo(HaveOccurred())
 
 	By("create cluster")
 	cluster = &extensionsv1alpha1.Cluster{
@@ -434,9 +403,8 @@ func runTest(
 			},
 		},
 	}
-	if err := c.Create(ctx, cluster); err != nil {
-		return err
-	}
+	err = c.Create(ctx, cluster)
+	Expect(err).NotTo(HaveOccurred())
 
 	By("deploy cloudprovider secret into namespace")
 	secret := &corev1.Secret{
@@ -451,22 +419,18 @@ func runTest(
 			vsphere.Password:     []byte(""),
 		},
 	}
-	if err := c.Create(ctx, secret); err != nil {
-		return err
-	}
+	err = c.Create(ctx, secret)
+	Expect(err).NotTo(HaveOccurred())
 
 	By("create infrastructure")
 	infra, err = newInfrastructure(namespaceName, cloudProfileConfig.Regions[0].Name, providerConfig)
-	if err != nil {
-		return err
-	}
+	Expect(err).NotTo(HaveOccurred())
 
-	if err := c.Create(ctx, infra); err != nil {
-		return err
-	}
+	err = c.Create(ctx, infra)
+	Expect(err).NotTo(HaveOccurred())
 
 	By("wait until infrastructure is created")
-	if err := extensions.WaitUntilExtensionObjectReady(
+	err = extensions.WaitUntilExtensionObjectReady(
 		ctx,
 		c,
 		log,
@@ -476,24 +440,21 @@ func runTest(
 		30*time.Second,
 		16*time.Minute,
 		nil,
-	); err != nil {
-		return err
-	}
+	)
+	Expect(err).NotTo(HaveOccurred())
 
 	By("decode infrastucture status")
-	if err := c.Get(ctx, client.ObjectKey{Namespace: infra.Namespace, Name: infra.Name}, infra); err != nil {
-		return err
-	}
+	err = c.Get(ctx, client.ObjectKey{Namespace: infra.Namespace, Name: infra.Name}, infra)
+	Expect(err).NotTo(HaveOccurred())
 
 	providerStatus = &vspherev1alpha1.InfrastructureStatus{}
-	if _, _, err := decoder.Decode(infra.Status.ProviderStatus.Raw, nil, providerStatus); err != nil {
-		return err
-	}
+	_, _, err = decoder.Decode(infra.Status.ProviderStatus.Raw, nil, providerStatus)
+	Expect(err).NotTo(HaveOccurred())
 
 	By("verify infrastructure creation")
 	verifyCreation(providerStatus)
 
-	return nil
+	Expect(err).NotTo(HaveOccurred())
 }
 
 func newProviderConfig(t1gwPath, lbSvcPath string) *vspherev1alpha1.InfrastructureConfig {
