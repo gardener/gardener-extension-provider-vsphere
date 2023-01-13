@@ -1,0 +1,114 @@
+kind: Shoot
+apiVersion: core.gardener.cloud/v1beta1
+metadata:
+  name: {{ .Values.shoot_name }}
+  namespace: garden-vmware-rot
+  labels:
+    extensions.extensions.gardener.cloud/shoot-cert-service: 'true'
+    extensions.extensions.gardener.cloud/shoot-dns-service: 'true'
+    extensions.extensions.gardener.cloud/shoot-networking-filter: 'true'
+    extensions.extensions.gardener.cloud/shoot-networking-problemdetector: 'true'
+    networking.extensions.gardener.cloud/calico: 'true'
+    operatingsystemconfig.extensions.gardener.cloud/gardenlinux: 'true'
+    provider.extensions.gardener.cloud/vsphere: 'true'
+    shoot.gardener.cloud/status: healthy
+spec:
+  addons:
+    kubernetesDashboard:
+      enabled: false
+      authenticationMode: token
+    nginxIngress:
+      enabled: true
+      externalTrafficPolicy: Cluster
+  cloudProfileName: vsphere-rot-lab-dell-1
+  extensions:
+    - type: shoot-dns-service
+      providerConfig:
+        apiVersion: service.dns.extensions.gardener.cloud/v1alpha1
+        kind: DNSConfig
+        syncProvidersFromShootSpecDNS: true
+  hibernation: {}
+  kubernetes:
+    allowPrivilegedContainers: true
+    kubeAPIServer:
+      enableBasicAuthentication: false
+      requests:
+        maxNonMutatingInflight: 400
+        maxMutatingInflight: 200
+      enableAnonymousAuthentication: false
+      eventTTL: 1h0m0s
+    kubeControllerManager:
+      nodeCIDRMaskSize: 24
+      podEvictionTimeout: 2m0s
+      nodeMonitorGracePeriod: 2m0s
+    kubeScheduler:
+      profile: balanced
+    kubeProxy:
+      mode: IPTables
+      enabled: true
+    kubelet:
+      failSwapOn: true
+      kubeReserved:
+        cpu: 80m
+        memory: 1Gi
+        pid: 20k
+      imageGCHighThresholdPercent: 50
+      imageGCLowThresholdPercent: 40
+      serializeImagePulls: true
+    version: 1.23.13
+    verticalPodAutoscaler:
+      enabled: false
+      evictAfterOOMThreshold: 10m0s
+      evictionRateBurst: 1
+      evictionRateLimit: -1
+      evictionTolerance: 0.5
+      recommendationMarginFraction: 0.15
+      updaterInterval: 1m0s
+      recommenderInterval: 1m0s
+    enableStaticTokenKubeconfig: true
+  networking:
+    type: calico
+    pods: 100.96.0.0/11
+    nodes: 10.250.0.0/16
+    services: 100.64.0.0/13
+  maintenance:
+    autoUpdate:
+      kubernetesVersion: true
+      machineImageVersion: true
+    timeWindow:
+      begin: 030000+0200
+      end: 040000+0200
+  provider:
+    type: vsphere
+    controlPlaneConfig:
+      apiVersion: vsphere.provider.extensions.gardener.cloud/v1alpha1
+      kind: ControlPlaneConfig
+    infrastructureConfig:
+      apiVersion: vsphere.provider.extensions.gardener.cloud/v1alpha1
+      kind: InfrastructureConfig
+    workers:
+      - cri:
+          name: containerd
+        name: worker-zk8s3a
+        machine:
+          type: std-08-reserved
+          image:
+            name: gardenlinux
+            version: 576.12.0
+          architecture: amd64
+        maximum: 3
+        minimum: 3
+        maxSurge: 1
+        maxUnavailable: 0
+        zones:
+          - rot-lab-dell-1a
+        systemComponents:
+          allow: true
+  purpose: evaluation
+  region: rot-lab-dell-1
+  secretBindingName: shoot-operator-vsphere-rot-lab-dell-1
+  seedName: vsphere-rld1
+  systemComponents:
+    coreDNS:
+      autoscaling:
+        mode: horizontal

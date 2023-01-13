@@ -1,0 +1,105 @@
+global:
+  virtualGarden:
+    enabled: false
+    user:
+      name: ""
+  image:
+    repository: eu.gcr.io/gardener-project/gardener/extensions/validator-vsphere
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources: {}
+  metricsPort: 8080
+  healthPort: 8081
+  vpa:
+    enabled: true
+    resourcePolicy:
+      minAllowed:
+        cpu: 50m
+        memory: 64Mi
+    updatePolicy:
+      updateMode: "Auto"
+  webhookConfig:
+    caBundle: |
+      -----BEGIN CERTIFICATE-----
+      MIIDRTCCAi2gAwIBAgIUET/YOdfX8LIrIMaGI8xPcI0kL7kwDQYJKoZIhvcNAQEL
+      BQAwMjEwMC4GA1UEAwwndmFsaWRhdG9yLXZzcGhlcmUtd2ViaG9vay1jYS0xNjcx
+      NTk3MTE2MB4XDTIyMTIyMTA0MzE1NloXDTMyMTIxODA0MzE1NlowMjEwMC4GA1UE
+      AwwndmFsaWRhdG9yLXZzcGhlcmUtd2ViaG9vay1jYS0xNjcxNTk3MTE2MIIBIjAN
+      BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsieUw4ns2f+r5j8jqmhXzgHQSWdt
+      BNz9fGDmie5pv2gxLvzNAia9o3rqoAJjKb5QPKDpql1T2kC2X74A7bQjKyhg06K+
+      4cJm/nWNZhk862hD8f/dUdF39qc6pRTYChdk/2TNtuowc/u/KcYr0YcQCDikxaKK
+      B4qOiHLDgif0ved2mesiKUF/9lCXZgICctGX9l9PP7Gp/lmknNUGuAa0ONeHudw5
+      rnModhXsxypz87yAPJ+OQRNK+0IFbMVIiSiNcL4oTiiJF7c4XapT9CX6LHSpO+Us
+      0FcART2Wl/4Yiw1oPQTnm6Yv8205bSPtZIK1ZKzZxnL8BCxa/yfuKdgahwIDAQAB
+      o1MwUTAdBgNVHQ4EFgQUmv+ZdS5s9lp4dXSp7Kw1bP/BTXMwHwYDVR0jBBgwFoAU
+      mv+ZdS5s9lp4dXSp7Kw1bP/BTXMwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0B
+      AQsFAAOCAQEAD2Ep+l42Kck6WI6gbn7XNFYZu46T8jrWJcKNcihAuDJX5rtYVdbk
+      KI/V8hDZOW4VwNlO5tgDhqy5Ne4pbFLelLZ1qvpnBB/Vun5d8Bwnfxigw01GNvt+
+      g9jeDhphsj/NGoJj8JUd9v84nakedKQm451eQ7aC6JI/QJKDo8WBSTWAwhxZkpuD
+      Fm03OJq9BT8W2k1va45yDduyOBQuXgj1itMDtRM0aukfqEMkI0qGQjzPJIeuhuuP
+      HZx/ojwfBe/75DT8R18aAEEH7+5WQogl5IgBPk+oWs+waByP6ma/7nl/QdQngwrv
+      BSfXFv4VL9ZggX11lc0dj/9xnFZG9tSpqA==
+      -----END CERTIFICATE-----
+    serverPort: 10250
+    tls:
+      crt: |
+        -----BEGIN CERTIFICATE-----
+        MIIDjzCCAnegAwIBAgIUJbNYfrMWOs12HLlM4xNN7qT6b3IwDQYJKoZIhvcNAQEL
+        BQAwMjEwMC4GA1UEAwwndmFsaWRhdG9yLXZzcGhlcmUtd2ViaG9vay1jYS0xNjcx
+        NTk3MTE2MB4XDTIyMTIyMTA0MzE1NloXDTI0MTIyMDA0MzE1NlowOjE4MDYGA1UE
+        AwwvZ2FyZGVuZXItZXh0ZW5zaW9uLXZhbGlkYXRvci12c3BoZXJlLmdhcmRlbi5z
+        dmMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCnGfuqYJ4FDTNHu4eA
+        wLwthYo9G0Lt7Kv1d4Mry2DZi00XlhXtyv7Tg9xx4oCdc+FdqE6j7R5D7NUdbj8a
+        uG9ZV4KJg9k+vvCFxfRE4mnvRWh/f4MlSc53CRmICr4b4ZZwRiDMZUFCZe/rUvt9
+        QMGein9k93+lj/1k+GN2orP/1exIl0St1VMzsQ0QnbBip+RNw+Wc+cjQ7ak78nWK
+        5+eovKPFltia2CGFMeDElLdmM4gVLIhIDVqxdIurF4pnLrFmBuXTB4CDJrx6Sp/Q
+        p0R3s2afvdaDXqW87dG1aeazMVVejaw3nEbhtRRwAyUJBqg3DWN6fapUtHbaktWT
+        0bYjAgMBAAGjgZQwgZEwOgYDVR0RBDMwMYIvZ2FyZGVuZXItZXh0ZW5zaW9uLXZh
+        bGlkYXRvci12c3BoZXJlLmdhcmRlbi5zdmMwEwYDVR0lBAwwCgYIKwYBBQUHAwEw
+        HQYDVR0OBBYEFDksiofcf/Af+Sh1y436e/2495sMMB8GA1UdIwQYMBaAFJr/mXUu
+        bPZaeHV0qeysNWz/wU1zMA0GCSqGSIb3DQEBCwUAA4IBAQCLi58Fy7pArvugVejX
+        XKB9LFzghN0TmrMO3gCK2Yfw9jCaF4mT4HM1SiRI7YINvfiWh+tQuuGWAm8ihlPE
+        8LVW7z4hthX3ggHvhhx177EZxgr+HUWWssYaKPrb+LkOKUqi2+f6Jy55QZmSj7We
+        Ufy+a+HDIbxwLFl6wu2J0IIhSAJ5Z4cFYzMiV4v8oHhrxf9spBledjV6fbuW+jcQ
+        /EM4ISk8qR0qZraYnj4oxW+bKJE+C2FEgXbeS/ExIG9nFZzm8nz6T2vZwhntkG+L
+        Z7g+/gOMrD7cEDZwli184GW41uNuR4mK6Lo4KPQg4Fqnd1ULGsVKb+CjYcFvzuEN
+        dy4S
+        -----END CERTIFICATE-----
+      key: |
+        -----BEGIN PRIVATE KEY-----
+        MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCnGfuqYJ4FDTNH
+        u4eAwLwthYo9G0Lt7Kv1d4Mry2DZi00XlhXtyv7Tg9xx4oCdc+FdqE6j7R5D7NUd
+        bj8auG9ZV4KJg9k+vvCFxfRE4mnvRWh/f4MlSc53CRmICr4b4ZZwRiDMZUFCZe/r
+        Uvt9QMGein9k93+lj/1k+GN2orP/1exIl0St1VMzsQ0QnbBip+RNw+Wc+cjQ7ak7
+        8nWK5+eovKPFltia2CGFMeDElLdmM4gVLIhIDVqxdIurF4pnLrFmBuXTB4CDJrx6
+        Sp/Qp0R3s2afvdaDXqW87dG1aeazMVVejaw3nEbhtRRwAyUJBqg3DWN6fapUtHba
+        ktWT0bYjAgMBAAECggEAR+s8cC+GQ1lTlU+Geek59IOxpCwsCbffqNXHvF0bsXWt
+        d/XOOVqxg3qQselQ/rNlr0gllJMVABoZ/UE6Yrc3oWWzFpmLMmC+p2yz/cPO4T7n
+        w1wvpyhVdtERToaFHP3iIC9mpWH9DOVPteIwwE9TJfeo7d1B8JGA92iacnCDdRu7
+        1zvTDiHKkyjSxgd8mvoz6OHx5KtyAYkERntrlwHOwcUvOAjdc6SMYKWThCldwkap
+        bJbVCleKe+nSKOS4LnaDfsWErbXGIbkGNgZRUjdT00+pLZAoMTvZ8JMbkXC0ePM7
+        7eb7BAg+WALmfgKDoWKBJcqEvWHK1XgZlLR3uMi3+QKBgQDksJXqTwkxQjMBA1Hd
+        vnvKOahyTlaZ78lCnlLOFBJkn58erf/sqDgDRHpk8s0tsgcaiqCpyDNe1r9K+Rh2
+        p2sUO7GJV0EYSsHY38nJaMQrva3L/SDsIKK5XQljCiMcodZYoPb8h2t3BNXMvuE8
+        82HQ6AdtlPSJBXuFBwFABnA/OwKBgQC7DoteMRCx3FUxQpCgTCfdS9t+kurEksfN
+        CZpH0qIk74yJYzo+NjtktkJpcETQRuHLdgqhoVKgiGZ2xtqdK6XYZGoowNIOt9Y3
+        V5KXZ61P8qWNvH1qTqhhnQzL0cBcsm2wdfQDxaJ9MBnIjXyYsZ8ZqPpPsdfs4UlR
+        MF1xlQTGOQKBgQChPeB11EQm9wX/MNgIAMZHT1/1OEbXQrokvnyj0IMnb2RBvW00
+        72aO5zlk88y2608W56dgDkgqFj/KHNei0WguW+hRbbP37L3ArAkaeUPXk2V27oLH
+        +jrBd1em/P7EsVbwJo3+f3zF7iLQucUVtITDRtX17ZB9C+CLauT2v5NlAQKBgA4t
+        SQTHhTNltpM4L0vm2bKc+DK8ocxqL3hrvOSqox1Xhng3LAfhBllYsunY125NoPlR
+        pfagCmoeTF2+Ln1w/G3NFnqmOoVhC3xAR9zvv6PqiP+YBI1VDs/vHjQoXoLoBwYz
+        ul260djZF2sqxgGwnJVOSEJYATxzyqG7n6lnGOiJAoGAP+NP/KzsFP3rz4CHjV4F
+        4uZWEH2Vfpx6u5eXMfQalN0RJxyUp8UHt7OjRRLkNWTscs9agT+UOdKx4G3cz3SD
+        M4xqfIlr+S+YXAgs811diZ4ELuNqpOUvsIl21tXPkpAwjfnEJ8cs4mF+BYAzAcdj
+        6LnHWUd0MdaSqC7lA2YK1P8=
+        -----END PRIVATE KEY-----
+    # Please make sure you are running `gardener@v1.42` or later before setting this to true.
+    useObjectSelector: true
+  # Kubeconfig to the target cluster. In-cluster configuration will be used if not specified.
+  kubeconfig:
+  serviceAccountTokenVolumeProjection:
+    enabled: false
+    expirationSeconds: 43200
+    audience: ""

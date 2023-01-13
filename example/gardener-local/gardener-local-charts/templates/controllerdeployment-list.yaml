@@ -1,0 +1,464 @@
+type: helm
+apiVersion: core.gardener.cloud/v1beta1
+kind: ControllerDeployment
+metadata:
+  annotations:
+  finalizers:
+  - core.gardener.cloud/controllerdeployment
+  generation: 29
+  name: provider-vsphere
+  resourceVersion: "1812039557"
+  uid: a8c8fa8b-d1cc-4ed1-836d-cdcc7b0357a8
+providerConfig:
+  chart: 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
+  values:
+    config:
+      etcd:
+        storage:
+          capacity: 25Gi
+          className: gardener.cloud-fast
+    controllers:
+      controlplane:
+        concurrentSyncs: 50
+      healthcheck:
+        concurrentSyncs: 50
+      infrastructure:
+        concurrentSyncs: 50
+      worker:
+        concurrentSyncs: 50
+    image:
+      repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/gardener/extensions/provider-vsphere
+      tag: sha256:e9781d3b8b04e37a801d93ceb9f9723f0c2c2fa5ec4416b9be18dc5b385e11a5
+    imageVectorOverwrite: |
+      images:
+      - name: csi-attacher
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/csi-attacher
+        tag: sha256:fbc9d50816bb1ec067bc841f3e09f1749cf20bf053394cdc5cb9ae3122b17b8b
+      - name: csi-resizer
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/csi-resizer
+        tag: sha256:e87981514c8fdeef58da57d4bf10f7b8e3e30dbf4b2bb5f5d9d881dfd2b24413
+      - name: csi-node-driver-registrar
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/csi-node-driver-registrar
+        tag: sha256:cd7341df01adf62f824e317382f75e0826351fa6f0e26e4f5a2bb4c7d919baab
+      - name: csi-provisioner
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/csi-provisioner
+        tag: sha256:0aa0187df3a197917c1c4c77b1eae057adce3b746d20bb5bcce210b3b86b1d42
+        targetVersion: '>= 1.20'
+      - name: csi-snapshotter
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/csi-snapshotter
+        tag: sha256:fee18fdeb735cdd93fedd39fb3d05dad75697595995b7f17a5727940e1280d89
+        targetVersion: '>= 1.20'
+      - name: csi-snapshot-controller
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/snapshot-controller
+        tag: sha256:66e3a5ae09ce3bc6ca216185b6810c61b3fa242724632c6c6c6831b80a55d209
+        targetVersion: '>= 1.20'
+      - name: csi-snapshot-validation-webhook
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/snapshot-validation-webhook
+        tag: sha256:b8672ce53b3ca6631f89f9c7fc76511e5f896007431a7b60e310aedad55aee9a
+        targetVersion: '>= 1.20'
+      - name: vsphere-cloud-controller-manager
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/gcr_io/cloud-provider-vsphere/cpi/release/manager
+        tag: sha256:fc3983133f19cf87b104d124e02be6357e8a8e079206d2e84ef4c60fb9bb3cb0
+      - name: vsphere-csi-driver-controller
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/patches/vsphere-csi-driver/driver
+        tag: sha256:d49e5b95ec5c6a3f914162af8364a40c022b242ca115f36090710e689616c6d5
+      - name: vsphere-csi-driver-node
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/patches/vsphere-csi-driver/driver
+        tag: sha256:d49e5b95ec5c6a3f914162af8364a40c022b242ca115f36090710e689616c6d5
+      - name: vsphere-csi-driver-syncer
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/patches/vsphere-csi-driver/syncer
+        tag: sha256:43ca13c0641d519b15df9adf3cb35945df4a2fb42538dc0d82bafb71094a8d3d
+      - name: liveness-probe
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/livenessprobe
+        tag: sha256:82f513e76b7a72ac9ad46c9ad00af9d70777f7848b11530fe377924d82092cbd
+      - name: machine-controller-manager
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/gardener/machine-controller-manager
+        sourceRepository: github.com/gardener/machine-controller-manager
+        tag: sha256:da96f461799093a1766dcef44b8e5b7d7125526cd70c06354c99e6b7473afaa0
+      - name: machine-controller-manager-provider-vsphere
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/gardener/machine-controller-manager-provider-vsphere
+        sourceRepository: github.com/gardener/machine-controller-manager-provider-vsphere
+        tag: sha256:9cb503fa6a41de218170fd5b9e34687e003c4bb9825161dd96874756a06c208e
+    replicaCount: 3
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 30m
+        memory: 256Mi
+    vpa:
+      enabled: true
+      updatePolicy:
+        updateMode: Auto
+---
+type: helm
+apiVersion: core.gardener.cloud/v1beta1
+kind: ControllerDeployment
+metadata:
+  annotations:
+  finalizers:
+  - core.gardener.cloud/controllerdeployment
+  generation: 132
+  name: provider-aws
+  resourceVersion: "1825830348"
+  uid: a5fb58ec-a521-4e07-a251-f92891d5d682
+providerConfig:
+  chart: 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
+  values:
+    config:
+      etcd:
+        storage:
+          capacity: 80Gi
+          className: gardener.cloud-fast
+    controllers:
+      backupentry:
+        concurrentSyncs: 50
+      controlplane:
+        concurrentSyncs: 50
+      dnsrecord:
+        concurrentSyncs: 50
+        providerClientBurst: 1
+        providerClientQPS: 0.5
+        providerClientWaitTimeout: 50s
+      healthcheck:
+        concurrentSyncs: 50
+      infrastructure:
+        concurrentSyncs: 50
+      worker:
+        concurrentSyncs: 50
+    image:
+      repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/gardener/extensions/provider-aws
+      tag: sha256:bec6e46cb60b7fb9684888c589dea63a10e679973ca55e6da27564c26b0bfcf5
+    imageVectorOverwrite: |
+      images:
+      - name: cloud-controller-manager
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/kubernetes/cloud-provider-aws
+        tag: sha256:6131b5e9b916edd5f54695205b674ff3fa4e705d2e220f6e7cf2253f461ea857
+        targetVersion: 1.17.x
+      - name: cloud-controller-manager
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/kubernetes/cloud-provider-aws
+        tag: sha256:95389be698a85bc1e7e4d6b079f048e1afec61beeec1c2224a64450f31b3ee27
+        targetVersion: 1.18.x
+      - name: cloud-controller-manager
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/kubernetes/cloud-provider-aws
+        tag: sha256:6b22606462f508c85aa56c674381d5766ebe38ca68097534e297969555d9940e
+        targetVersion: 1.19.x
+      - name: cloud-controller-manager
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/kubernetes/cloud-provider-aws
+        tag: sha256:d1ddcbb779c08e1489e20c34a18767b7d66d62e21fb2cb4a5c6fc122e3d36e41
+        targetVersion: 1.20.x
+      - name: cloud-controller-manager
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/kubernetes/cloud-provider-aws
+        tag: sha256:fd47a26cc55458bdc19507579835d8b28bdf528fd94dfd906f1ee32dc263815f
+        targetVersion: 1.21.x
+      - name: cloud-controller-manager
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/kubernetes/cloud-provider-aws
+        tag: sha256:1822d7dfb4a7bededc5b419b2e9c266e4c32ccffb23d62f94f95d97d6a40d501
+        targetVersion: 1.22.x
+      - name: cloud-controller-manager
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/kubernetes/cloud-provider-aws
+        tag: sha256:d6ec47d2e309981968c7d67a68c75daace516c67278449f12afa6fe4bd1052f4
+        targetVersion: 1.23.x
+      - name: cloud-controller-manager
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/kubernetes/cloud-provider-aws
+        tag: sha256:fdbc4a24fab9200bd7dc784a9b9b5d7e30744822e379f0a5f05fe5f8f711ebff
+        targetVersion: 1.24.x
+      - name: cloud-controller-manager
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/kubernetes/cloud-provider-aws
+        tag: sha256:cefd52642560bc05db4ec9018ecbec4ec2ffa0b920c1a35fa7abd1e909a83627
+        targetVersion: '>= 1.25'
+      - name: csi-driver
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/public_ecr_aws/ebs-csi-driver/aws-ebs-csi-driver
+        tag: sha256:081e55d5166184023cc7a358d204a739677de89fdd9e93d30ed010b4b344a6df
+      - name: csi-provisioner
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/csi-provisioner
+        tag: sha256:a971a88581d08e39ba18eab954fb7de5b41a0c3f9d91e965c35cd1369316628b
+        targetVersion: < 1.20
+      - name: csi-provisioner
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/csi-provisioner
+        tag: sha256:d50456d1729bf8ab53d71a05c95b6a23d2af6e6f22dcdec78ebad8c8c9d5e91f
+        targetVersion: '>= 1.20'
+      - name: csi-attacher
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/csi-attacher
+        tag: sha256:6f02f272adaa4fae972537ed228ec41172da367f0aada09a2ef6912764306edc
+      - name: csi-resizer
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/csi-resizer
+        tag: sha256:0ad3046c8f1637a4420ee17af696337f347ce9f82d78c5b18376e7d0668e7606
+      - name: csi-snapshotter
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/csi-snapshotter
+        tag: sha256:dde3177af806622cd3f357f7d77eb291cd98b16e133c37261e283e44c01cee59
+        targetVersion: < 1.20
+      - name: csi-snapshotter
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/csi-snapshotter
+        tag: sha256:726285b9b47f45e918664a0d63ca075f347ebc833517b5b7378dc6217867f9ff
+        targetVersion: '>= 1.20'
+      - name: csi-snapshot-validation-webhook
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/snapshot-validation-webhook
+        tag: sha256:6cc12d6b212fb2c06b737b5103337a3b2c03bcb3fdff2f50f7307ba29910a521
+        targetVersion: < 1.20
+      - name: csi-snapshot-validation-webhook
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/snapshot-validation-webhook
+        tag: sha256:d814ae281d2c9980b03ea45987f5a7808fba0b95a42cd33d8fdd9e0ea4970ff2
+        targetVersion: '>= 1.20'
+      - name: csi-snapshot-controller
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/snapshot-controller
+        tag: sha256:575ef5a0a67bb02f08a00b95059d357ad262931e07eb8bfad38ae505f3d6c72b
+        targetVersion: < 1.20
+      - name: csi-snapshot-controller
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/snapshot-controller
+        tag: sha256:4ca2ac7c05eccaf78bc0ad3efa82db7349da1e7cbf13f5ae2cb91963f7fed39c
+        targetVersion: '>= 1.20'
+      - name: csi-node-driver-registrar
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/csi-node-driver-registrar
+        tag: sha256:08701b293f568f36891f851d98018b5f47c239f6ecd37c12aaa0692b6c1e9764
+      - name: csi-liveness-probe
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/sig-storage/livenessprobe
+        tag: sha256:8fefad5dcd7f66c4bd7ebb963799417ea14092f5b0b011fba21dc8bbef4183ed
+      - labels:
+        - name: gardener.cloud/cve-categorisation
+          value:
+            authentication_enforced: false
+            availability_requirement: low
+            confidentiality_requirement: high
+            integrity_requirement: high
+            network_exposure: protected
+            user_interaction: gardener-operator
+        name: terraformer
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/gardener/terraformer
+        sourceRepository: github.com/gardener/terraformer
+        tag: sha256:43b252ede88c0558c82fdd6e904f6bccd0b50727d1ef30a393efea7fb5550166
+      - name: machine-controller-manager
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/gardener/machine-controller-manager
+        sourceRepository: github.com/gardener/machine-controller-manager
+        tag: sha256:da96f461799093a1766dcef44b8e5b7d7125526cd70c06354c99e6b7473afaa0
+      - name: machine-controller-manager-provider-aws
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/gardener/machine-controller-manager-provider-aws
+        sourceRepository: github.com/gardener/machine-controller-manager-provider-aws
+        tag: sha256:b083e472cddbb5edf19b0b6beb2d60074ac18f78b55aa12134a95856e420b5fe
+      - labels:
+        - name: gardener.cloud/cve-categorisation
+          value:
+            authentication_enforced: false
+            availability_requirement: high
+            confidentiality_requirement: high
+            integrity_requirement: high
+            network_exposure: protected
+            user_interaction: gardener-operator
+        name: aws-lb-readvertiser
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/gardener/aws-lb-readvertiser
+        sourceRepository: github.com/gardener/aws-lb-readvertiser
+        tag: sha256:c1dc8c4b3d1b08574f309d09c4a1e7138d0b0204b9e424ec003e4e28eac7ff0e
+      - labels:
+        - name: gardener.cloud/cve-categorisation
+          value:
+            authentication_enforced: false
+            availability_requirement: low
+            confidentiality_requirement: high
+            integrity_requirement: high
+            network_exposure: protected
+            user_interaction: gardener-operator
+        name: aws-custom-route-controller
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/gardener/aws-custom-route-controller
+        sourceRepository: github.com/gardener/aws-custom-route-controller
+        tag: sha256:192cf054a2b5419a6d9e8900635e1901a87f5d1e09039272b6df90b549b4d50d
+    images:
+      alpine: eu.gcr.io/sap-se-gcr-k8s-public/registry-1_docker_io/library/alpine@sha256:2d93dd6bd906859d0038aa840911e30ee3ac55e44570b20f8ffa7ea08d11588a
+      pause: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/pause@sha256:fcdae4b3743da526225197d299fba03564e0617cce5486c07e503164e1f5b0c7
+    replicaCount: 3
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 512Mi
+    vpa:
+      enabled: true
+      resourcePolicy:
+        minAllowed:
+          cpu: 50m
+          memory: 256Mi
+      updatePolicy:
+        updateMode: Auto
+---
+type: helm
+apiVersion: core.gardener.cloud/v1beta1
+kind: ControllerDeployment
+metadata:
+  annotations:
+  finalizers:
+  - core.gardener.cloud/controllerdeployment
+  generation: 85
+  name: extension-shoot-dns-service
+  resourceVersion: "1824651378"
+  uid: d49a1c06-9f0b-4c4a-a07b-ac4dcddfaea5
+providerConfig:
+  chart: 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
+  values:
+    controllers:
+      healthcheck:
+        concurrentSyncs: 25
+      lifecycle:
+        concurrentSyncs: 25
+      replication:
+        concurrentSyncs: 25
+    dnsControllerManager:
+      configuration:
+        cacheTtl: 300
+        controllers: dnscontrollers,dnssources
+        dnsPoolResyncPeriod: 30m
+        ingressDNSDefaultPoolSize: 10
+        poolSize: 25
+        providersPoolResyncPeriod: 24h
+        serverPortHttp: 8080
+        serviceDNSDefaultPoolSize: 10
+      createCRDs: true
+      deploy: true
+      image:
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/dns-controller-manager
+        tag: sha256:a7af6ba5c929eb699bb7ccbe57f1199ff2903f4ff33fdd1d28986dc225683b84
+      replicaCount: 1
+      resources:
+        limits:
+          memory: 1Gi
+        requests:
+          cpu: 30m
+          memory: 128Mi
+    dnsProviderManagement:
+      enabled: true
+    image:
+      repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/gardener/extensions/shoot-dns-service
+      tag: sha256:a3b8d702ec73048c8438b8346fa4bb3df9c1b7827428c46268d2fe1b62e0f996
+    imageVectorOverwrite: |
+      images:
+      - name: dns-controller-manager
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/dns-controller-manager
+        sourceRepository: github.com/gardener/external-dns-management
+        tag: sha256:a7af6ba5c929eb699bb7ccbe57f1199ff2903f4ff33fdd1d28986dc225683b84
+    replicaCount: 1
+    resources:
+      limits:
+        cpu: 300m
+        memory: 700Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi
+    vpa:
+      enabled: true
+      resourcePolicy:
+        minAllowed:
+          cpu: 30m
+          memory: 64Mi
+      updatePolicy:
+        updateMode: Auto
+---
+type: helm
+apiVersion: core.gardener.cloud/v1beta1
+kind: ControllerDeployment
+metadata:
+  annotations:
+  finalizers:
+  - core.gardener.cloud/controllerdeployment
+  generation: 65
+  name: networking-calico
+  resourceVersion: "1825795610"
+  uid: 5ecdf45c-28c5-48af-aff0-947fcd50f576
+providerConfig:
+  chart: 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
+  values:
+    controller:
+      concurrentSyncs: 25
+      healthcheck:
+        concurrentSyncs: 25
+    image:
+      repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/gardener/extensions/networking-calico
+      tag: sha256:6d03a13056a56f5f7ab80d7f2b72f32ddf3c1261873bc8d0a623e73f6b956de6
+    imageVectorOverwrite: |
+      images:
+      - name: calico-node
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry-1_docker_io/calico/node
+        tag: sha256:fa81c8ef09066b7e95294243c28da282a3f881f112c63d594a2f4eb382b3185f
+        targetVersion: '>= 1.21'
+      - name: calico-node
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry-1_docker_io/calico/node
+        tag: sha256:9bf69736030adcfe20c6a27dbef4e474113591bdf8195b598f287245166df8f6
+        targetVersion: < 1.21
+      - name: calico-cni
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry-1_docker_io/calico/cni
+        tag: sha256:b96f03e28846dd074f82314920fac3490d5e4f232f2c4a7eb3ab39b48368245e
+        targetVersion: '>= 1.21'
+      - name: calico-cni
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry-1_docker_io/calico/cni
+        tag: sha256:39472ef8a62f22e9651c9c639551c4a882e34922629f8fadd12c6154fc5a1b10
+        targetVersion: < 1.21
+      - name: calico-typha
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry-1_docker_io/calico/typha
+        tag: sha256:121307bb123fe951ecb9d5a92199d34fa131ca17c90d75bdbc6111f8e7fcb30c
+        targetVersion: '>= 1.21'
+      - name: calico-typha
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry-1_docker_io/calico/typha
+        tag: sha256:5b527ca38e9c8ad2578022a6af61e52cbf93e08bf5487876a5d716451d8dd8e4
+        targetVersion: < 1.21
+      - name: calico-kube-controllers
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry-1_docker_io/calico/kube-controllers
+        tag: sha256:1ecca15215e30b48b903537c3fc7e168ea2714bf1a9897f2c70b20229d3a6784
+        targetVersion: '>= 1.21'
+      - name: calico-kube-controllers
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry-1_docker_io/calico/kube-controllers
+        tag: sha256:1a90641c88b004d316e1a06b658fb043741c5c790462e5d44277ad9ce1cf83f3
+        targetVersion: < 1.21
+      - name: calico-podtodaemon-flex
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry-1_docker_io/calico/pod2daemon-flexvol
+        tag: sha256:d03951c7f1d8fd2867ab25baa43e81c5d35ce75167b6bf4298bb465479804d22
+      - name: calico-cpa
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/cpa/cluster-proportional-autoscaler
+        tag: sha256:505e6626ca4620e98ec99cd275d6cb85748aa8422f0376fbf51900a1e488ee54
+      - name: calico-cpva
+        repository: eu.gcr.io/sap-se-gcr-k8s-public/registry_k8s_io/cpa/cpvpa
+        tag: sha256:5c67cd124f9f1c00c6dd39b7aefa41e651c2f8303ddeb8f4ee491715d3938080
+    replicaCount: 1
+    resources:
+      limits:
+        cpu: 300m
+        memory: 512Mi
+      requests:
+        cpu: 30m
+        memory: 128Mi
+    vpa:
+      enabled: true
+      resourcePolicy:
+        minAllowed:
+          cpu: 10m
+          memory: 64Mi
+      updatePolicy:
+        updateMode: Auto
+type: helm
+---
+apiVersion: core.gardener.cloud/v1beta1
+kind: ControllerDeployment
+metadata:
+  annotations:
+  finalizers:
+  - core.gardener.cloud/controllerdeployment
+  generation: 16
+  name: os-gardenlinux
+  resourceVersion: "1810309799"
+  uid: 5cb25a57-d3a1-44f1-a8e3-432b953a4a2c
+providerConfig:
+  chart: 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
+  values:
+    controllers:
+      concurrentSyncs: 25
+    image:
+      repository: eu.gcr.io/sap-se-gcr-k8s-public/eu_gcr_io/gardener-project/gardener/extensions/os-gardenlinux
+      tag: sha256:c3f0cba35a283674e5c785a5164b1b545fb7bd384b2b095d23615da6c382eae9
+    replicaCount: 1
+    resources:
+      limits:
+        cpu: 300m
+        memory: 512Mi
+      requests:
+        cpu: 20m
+        memory: 128Mi
+type: helm
