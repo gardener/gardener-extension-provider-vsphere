@@ -1,0 +1,79 @@
+apiVersion: fluentbit.fluent.io/v1alpha2
+kind: ClusterFilter
+metadata:
+  labels:
+    fluentbit.gardener/type: "seed"
+  name: cloud-controller-manager-vsphere-cloud-controller-manager
+spec:
+  filters:
+  - parser:
+      keyName: log
+      parser: kube-apiserver-parser
+      reserveData: true
+  match: kubernetes.*cloud-controller-manager*vsphere-cloud-controller-manager*
+---
+apiVersion: fluentbit.fluent.io/v1alpha2
+kind: ClusterFilter
+metadata:
+  labels:
+    fluentbit.gardener/type: "seed"
+  name: machine-controller-manager-vsphere-machine-controller-manager
+spec:
+  filters:
+  - parser:
+      keyName: log
+      parser: kube-apiserver-parser
+      reserveData: true
+  match: kubernetes.*machine-controller-manager*vsphere-machine-controller-manager*
+---
+apiVersion: fluentbit.fluent.io/v1alpha2
+kind: ClusterFilter
+metadata:
+  labels:
+    fluentbit.gardener/type: "seed"
+  name: machine-controller-manager-machine-controller-manager-provider-vsphere
+spec:
+  filters:
+  - parser:
+      keyName: log
+      parser: kube-apiserver-parser
+      reserveData: true
+  match: kubernetes.*machine-controller-manager*machine-controller-manager-provider-vsphere*
+---
+apiVersion: fluentbit.fluent.io/v1alpha2
+kind: ClusterFilter
+metadata:
+  labels:
+    fluentbit.gardener/type: "seed"
+  name: vsphere-csi-controller-vsphere-csi
+spec:
+  filters:
+  - parser:
+      keyName: log
+      parser: kube-apiserver-parser
+      reserveData: true
+  match: kubernetes.*vsphere-csi-controller*vsphere-csi*
+---
+apiVersion: fluentbit.fluent.io/v1alpha2
+kind: ClusterFilter
+metadata:
+  labels:
+    fluentbit.gardener/type: "seed"
+  name: modify-provider-vsphere
+spec:
+  filters:
+  - modify:
+      conditions:
+        - keyValueMatches:
+            tag: ^kubernetes\.var\.log\.containers\.(cloud-controller-manager-.+?_.+?_vsphere-cloud-controller-manager|vsphere-csi-controller-.+?_.+?_vsphere-csi)
+      rules:
+        - add:
+            __gardener_multitenant_id__: operator;user
+  - modify:
+      conditions:
+        - keyValueMatches:
+            tag: ^kubernetes\.var\.log\.containers\.machine-controller-manager-.+?_.+?_(machine-controller-manager-provider-vsphere|vsphere-machine-controller-manager)
+      rules:
+        - add:
+            __gardener_multitenant_id__: operator;user
+  match:  kubernetes.*
