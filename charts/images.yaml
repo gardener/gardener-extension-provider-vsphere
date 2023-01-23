@@ -111,10 +111,28 @@ images:
   sourceRepository: github.com/gardener/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
   tag: "v0.48.0"
+  labels:
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'protected'
+      authentication_enforced: false
+      user_interaction: 'gardener-operator'
+      confidentiality_requirement: 'high'
+      integrity_requirement: 'high'
+      availability_requirement: 'low'
 - name: machine-controller-manager-provider-vsphere
   sourceRepository: github.com/gardener/machine-controller-manager-provider-vsphere
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager-provider-vsphere
   tag: "v0.19.0"
+  labels:
+  - name: 'gardener.cloud/cve-categorisation'
+    value:
+      network_exposure: 'protected'
+      authentication_enforced: false
+      user_interaction: 'gardener-operator'
+      confidentiality_requirement: 'high'
+      integrity_requirement: 'high'
+      availability_requirement: 'low'
 - name: vsphere-csi-driver-controller
   sourceRepository: github.com/gardener/vsphere-csi-driver
   repository: eu.gcr.io/gardener-project/patches/vsphere-csi-driver/driver
