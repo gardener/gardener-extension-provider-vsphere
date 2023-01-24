@@ -233,6 +233,9 @@ require (
 
 replace (
 	github.com/gardener/gardener => github.com/shafeeqes/gardener v1.32.1-0.20230124065915-30bc9f40c34c
+	github.com/onsi/ginkgo/v2 => github.com/onsi/ginkgo/v2 v2.4.0
+	github.com/onsi/gomega => github.com/onsi/gomega v1.22.1
+
 	k8s.io/api => k8s.io/api v0.26.1
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.26.1
 	k8s.io/apimachinery => k8s.io/apimachinery v0.26.1
@@ -254,6 +257,3 @@ replace (
 	k8s.io/mount-utils => k8s.io/mount-utils v0.26.1
 	k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.26.1
 )
-
-// needed for infra-cli and load balancer cleanup
-replace k8s.io/cloud-provider-vsphere => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20210910074917-6559ac3f3bcf

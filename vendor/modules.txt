@@ -649,7 +649,7 @@ github.com/mxk/go-flowrate/flowrate
 # github.com/nwaples/rardecode v1.1.2
 ## explicit
 github.com/nwaples/rardecode
-# github.com/onsi/ginkgo/v2 v2.6.1
+# github.com/onsi/ginkgo/v2 v2.6.1 => github.com/onsi/ginkgo/v2 v2.4.0
 ## explicit; go 1.18
 github.com/onsi/ginkgo/v2
 github.com/onsi/ginkgo/v2/config
@@ -671,7 +671,7 @@ github.com/onsi/ginkgo/v2/internal/parallel_support
 github.com/onsi/ginkgo/v2/internal/testingtproxy
 github.com/onsi/ginkgo/v2/reporters
 github.com/onsi/ginkgo/v2/types
-# github.com/onsi/gomega v1.24.2
+# github.com/onsi/gomega v1.24.2 => github.com/onsi/gomega v1.22.1
 ## explicit; go 1.18
 github.com/onsi/gomega
 github.com/onsi/gomega/format
@@ -1809,8 +1809,8 @@ k8s.io/cloud-provider/node/helpers
 k8s.io/cloud-provider/volume
 k8s.io/cloud-provider/volume/errors
 k8s.io/cloud-provider/volume/helpers
-# k8s.io/cloud-provider-vsphere v1.25.0 => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20210910074917-6559ac3f3bcf
-## explicit; go 1.16
+# k8s.io/cloud-provider-vsphere v1.25.0
+## explicit; go 1.19
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer/config
 k8s.io/cloud-provider-vsphere/pkg/nsxt
@@ -2028,8 +2028,6 @@ k8s.io/kubernetes/pkg/capabilities
 k8s.io/kubernetes/pkg/client/conditions
 k8s.io/kubernetes/pkg/cluster/ports
 k8s.io/kubernetes/pkg/controller
-k8s.io/kubernetes/pkg/controller/daemon
-k8s.io/kubernetes/pkg/controller/daemon/util
 k8s.io/kubernetes/pkg/controller/deployment/util
 k8s.io/kubernetes/pkg/credentialprovider
 k8s.io/kubernetes/pkg/credentialprovider/plugin
@@ -2213,19 +2211,13 @@ k8s.io/kubernetes/pkg/volume/util/subpath
 k8s.io/kubernetes/pkg/volume/util/types
 k8s.io/kubernetes/pkg/volume/util/volumepathhandler
 k8s.io/kubernetes/pkg/volume/validation
-k8s.io/kubernetes/test/e2e/chaosmonkey
-k8s.io/kubernetes/test/e2e/cloud/gcp/common
 k8s.io/kubernetes/test/e2e/common
 k8s.io/kubernetes/test/e2e/common/network
 k8s.io/kubernetes/test/e2e/common/node
 k8s.io/kubernetes/test/e2e/common/storage
 k8s.io/kubernetes/test/e2e/framework
-k8s.io/kubernetes/test/e2e/framework/config
-k8s.io/kubernetes/test/e2e/framework/daemonset
 k8s.io/kubernetes/test/e2e/framework/debug
-k8s.io/kubernetes/test/e2e/framework/deployment
 k8s.io/kubernetes/test/e2e/framework/events
-k8s.io/kubernetes/test/e2e/framework/job
 k8s.io/kubernetes/test/e2e/framework/kubectl
 k8s.io/kubernetes/test/e2e/framework/manifest
 k8s.io/kubernetes/test/e2e/framework/metrics
@@ -2233,10 +2225,8 @@ k8s.io/kubernetes/test/e2e/framework/network
 k8s.io/kubernetes/test/e2e/framework/node
 k8s.io/kubernetes/test/e2e/framework/pod
 k8s.io/kubernetes/test/e2e/framework/pod/output
-k8s.io/kubernetes/test/e2e/framework/providers
 k8s.io/kubernetes/test/e2e/framework/pv
 k8s.io/kubernetes/test/e2e/framework/rc
-k8s.io/kubernetes/test/e2e/framework/replicaset
 k8s.io/kubernetes/test/e2e/framework/resource
 k8s.io/kubernetes/test/e2e/framework/skipper
 k8s.io/kubernetes/test/e2e/framework/ssh
@@ -2248,11 +2238,8 @@ k8s.io/kubernetes/test/e2e/perftype
 k8s.io/kubernetes/test/e2e/storage/podlogs
 k8s.io/kubernetes/test/e2e/storage/utils
 k8s.io/kubernetes/test/e2e/testing-manifests
-k8s.io/kubernetes/test/e2e/upgrades
-k8s.io/kubernetes/test/e2e/upgrades/apps
 k8s.io/kubernetes/test/utils
 k8s.io/kubernetes/test/utils/image
-k8s.io/kubernetes/test/utils/junit
 k8s.io/kubernetes/test/utils/kubeconfig
 k8s.io/kubernetes/third_party/forked/golang/expansion
 # k8s.io/metrics v0.26.1 => k8s.io/metrics v0.26.1
@@ -2380,6 +2367,8 @@ sigs.k8s.io/structured-merge-diff/v4/value
 ## explicit; go 1.12
 sigs.k8s.io/yaml
 # github.com/gardener/gardener => github.com/shafeeqes/gardener v1.32.1-0.20230124065915-30bc9f40c34c
+# github.com/onsi/ginkgo/v2 => github.com/onsi/ginkgo/v2 v2.4.0
+# github.com/onsi/gomega => github.com/onsi/gomega v1.22.1
 # k8s.io/api => k8s.io/api v0.26.1
 # k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.26.1
 # k8s.io/apimachinery => k8s.io/apimachinery v0.26.1
@@ -2400,4 +2389,3 @@ sigs.k8s.io/yaml
 # k8s.io/metrics => k8s.io/metrics v0.26.1
 # k8s.io/mount-utils => k8s.io/mount-utils v0.26.1
 # k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.26.1
-# k8s.io/cloud-provider-vsphere => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20210910074917-6559ac3f3bcf
