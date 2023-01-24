@@ -19,4 +19,5 @@ spec:
       --nsxt-t0-gateway="${NSXT_T0_GATEWAY}"
       --nsxt-edge-cluster="${NSXT_EDGE_CLUSTER}"
       --nsxt-snat-ip-pool="${NSXT_SNAT_IP_POOL}"
+      --ginkgo.focus="Infrastructure tests"
   image: golang:1.19.5

@@ -27,23 +27,39 @@ import (
 	"strings"
 	"time"
 
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	vsphereinstall "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
+	vspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
+	controllerinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/infrastructure"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
 	gardenerv1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/extensions"
 	"github.com/gardener/gardener/pkg/logger"
 	gardenerutils "github.com/gardener/gardener/pkg/utils"
-	"github.com/gardener/gardener/test/framework"
+	gframework "github.com/gardener/gardener/test/framework"
 	"github.com/go-logr/logr"
-	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	appsv1 "k8s.io/api/apps/v1"
+	clientset "k8s.io/client-go/kubernetes"
+	kframework "k8s.io/kubernetes/test/e2e/framework"
+	e2epv "k8s.io/kubernetes/test/e2e/framework/pv"
+	e2estatefulset "k8s.io/kubernetes/test/e2e/framework/statefulset"
+	admissionapi "k8s.io/pod-security-admission/api"
+
 	vapi_errors "github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	vapiclient "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/ip_pools"
 	t1nat "github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/tier_1s/nat"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+
+	"github.com/google/uuid"
 	corev1 "k8s.io/api/core/v1"
 	schedulingv1 "k8s.io/api/scheduling/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -55,15 +71,6 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	vsphereinstall "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
-	vspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
-	controllerinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/infrastructure"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
 )
 
 var (
@@ -230,7 +237,7 @@ var _ = AfterSuite(func() {
 	}()
 
 	By("running cleanup actions")
-	framework.RunCleanupActions()
+	gframework.RunCleanupActions()
 
 	By("stopping test environment")
 	Expect(testEnv.Stop()).To(Succeed())
@@ -254,7 +261,7 @@ var _ = Describe("Infrastructure tests", func() {
 	})
 
 	AfterEach(func() {
-		framework.RunCleanupActions()
+		gframework.RunCleanupActions()
 	})
 
 	Context("with infrastructure creating own T1 gateway", func() {
@@ -268,15 +275,65 @@ var _ = Describe("Infrastructure tests", func() {
 			namespace := nsxtInfraSpec.ClusterName
 			t1Ref, lbSvcRef, err := prepareNewT1GatewayAndLBService(log, namespace, *nsxtInfraSpec, vsphereClient)
 			// ensure deleting resources even on errors
-			var cleanupHandle framework.CleanupActionHandle
-			cleanupHandle = framework.AddCleanupAction(func() {
+			var cleanupHandle gframework.CleanupActionHandle
+			cleanupHandle = gframework.AddCleanupAction(func() {
 				err := teardownT1GatewayAndLBService(log, t1Ref, lbSvcRef, vsphereClient)
 				Expect(err).NotTo(HaveOccurred())
 
-				framework.RemoveCleanupAction(cleanupHandle)
+				gframework.RemoveCleanupAction(cleanupHandle)
 			})
 			Expect(err).NotTo(HaveOccurred())
 			runTest(t1Ref.Path, lbSvcRef.Path)
+		})
+	})
+
+	Context("with iterative volume mapping checks", func() {
+		f := kframework.NewDefaultFramework("statefulset")
+		f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
+		ssName := "ss"
+		var ss *appsv1.StatefulSet
+		var ns string
+		var clientSet clientset.Interface
+		BeforeEach(func() {
+			clientSet = f.ClientSet
+			ns = f.Namespace.Name
+		})
+
+		It("should provide basic identity", func() {
+			By("Creating statefulset " + ssName + " in namespace " + ns)
+			e2epv.SkipIfNoDefaultStorageClass(clientSet)
+			*(ss.Spec.Replicas) = 3
+			e2estatefulset.PauseNewPods(ss)
+
+			_, err := clientSet.AppsV1().StatefulSets(ns).Create(context.TODO(), ss, metav1.CreateOptions{})
+			kframework.ExpectNoError(err)
+
+			By("Saturating stateful set " + ss.Name)
+			e2estatefulset.Saturate(clientSet, ss)
+
+			By("Verifying statefulset mounted data directory is usable")
+			kframework.ExpectNoError(e2estatefulset.CheckMount(clientSet, ss, "/data"))
+
+			By("Verifying statefulset provides a stable hostname for each pod")
+			kframework.ExpectNoError(e2estatefulset.CheckHostname(clientSet, ss))
+
+			By("Verifying statefulset set proper service name")
+			kframework.ExpectNoError(e2estatefulset.CheckServiceName(ss, "test"))
+
+			cmd := "echo $(hostname) | dd of=/data/hostname conv=fsync"
+			By("Running " + cmd + " in all stateful pods")
+			kframework.ExpectNoError(e2estatefulset.ExecInStatefulPods(clientSet, ss, cmd))
+
+			By("Restarting statefulset " + ss.Name)
+			e2estatefulset.Restart(clientSet, ss)
+			e2estatefulset.WaitForRunningAndReady(clientSet, *ss.Spec.Replicas, ss)
+
+			By("Verifying statefulset mounted data directory is usable")
+			kframework.ExpectNoError(e2estatefulset.CheckMount(clientSet, ss, "/data"))
+
+			cmd = "if [ \"$(cat /data/hostname)\" = \"$(hostname)\" ]; then exit 0; else exit 1; fi"
+			By("Running " + cmd + " in all stateful pods")
+			kframework.ExpectNoError(e2estatefulset.ExecInStatefulPods(clientSet, ss, cmd))
 		})
 	})
 })
@@ -293,8 +350,8 @@ func runTest(t1RefPath string, lbSvcRefPath string) {
 		providerStatus *vspherev1alpha1.InfrastructureStatus
 	)
 
-	var cleanupHandle framework.CleanupActionHandle
-	cleanupHandle = framework.AddCleanupAction(func() {
+	var cleanupHandle gframework.CleanupActionHandle
+	cleanupHandle = gframework.AddCleanupAction(func() {
 		By("delete infrastructure")
 		Expect(client.IgnoreNotFound(c.Delete(ctx, infra))).To(Succeed())
 
@@ -316,7 +373,7 @@ func runTest(t1RefPath string, lbSvcRefPath string) {
 		Expect(client.IgnoreNotFound(c.Delete(ctx, namespace))).To(Succeed())
 		Expect(client.IgnoreNotFound(c.Delete(ctx, cluster))).To(Succeed())
 
-		framework.RemoveCleanupAction(cleanupHandle)
+		gframework.RemoveCleanupAction(cleanupHandle)
 	})
 
 	By("create namespace for test execution")
