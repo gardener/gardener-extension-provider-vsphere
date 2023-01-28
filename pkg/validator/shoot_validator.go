@@ -80,6 +80,7 @@ func (v *Shoot) validateShootUpdate(ctx context.Context, oldShoot, shoot *core.S
 
 	allErrs := field.ErrorList{}
 
+	allErrs = append(allErrs, vspherevalidation.ValidateNetworkingUpdate(oldShoot.Spec.Networking, shoot.Spec.Networking, nwPath)...)
 	allErrs = append(allErrs, vspherevalidation.ValidateInfrastructureConfigUpdate(oldValContext.infraConfig, valContext.infraConfig, infraConfigPath)...)
 	// Only validate against cloud profile when related configuration is updated.
 	// This ensures that already running shoots won't break after constraints were removed from the cloud profile.
