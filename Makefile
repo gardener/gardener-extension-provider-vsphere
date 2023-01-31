@@ -29,8 +29,7 @@ KIND_ENV                    := "skaffold"
 
 GARDENER_LOCAL_KUBECONFIG   = $(GGARCHIVE)/example/gardener-local/kind/local/kubeconfig
 GGTARBALL                   = /tmp/ggtarball.tgz
-#GGTARBALLURL                = $(shell #curl -s https://api.github.com/repos/gardener/gardener/releases/latest | jq '.tarball_url')
-GGTARBALLURL                = https://codeload.github.com/gardener/gardener/legacy.tar.gz/refs/heads/master
+GGTARBALLURL                = $(shell curl -s https://api.github.com/repos/gardener/gardener/releases/latest | jq '.tarball_url')
 export GGARCHIVE            = /tmp/ggarchive
 
 SHELL=/usr/bin/env bash -o pipefail
