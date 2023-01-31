@@ -194,6 +194,7 @@ spec:
             - "--kube-api-burst=100"
             - "--feature-gates=Topology=true"
             - "--strict-topology"
+            - "--default-fstype=ext4"
             - "--leader-election"
             - "--leader-election-namespace=kube-system"
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
