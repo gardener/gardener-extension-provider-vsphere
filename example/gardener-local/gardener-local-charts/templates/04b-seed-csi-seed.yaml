@@ -1,0 +1,26 @@
+apiVersion: core.gardener.cloud/v1beta1
+kind: Seed
+metadata:
+  annotations:
+    migration.seed.gardener.cloud/cloudProfile: {{ .Values.CloudProfile }}
+    migration.seed.gardener.cloud/providerType: vsphere
+  name: {{ .Values.Seed.Name }}
+spec:
+  backup:
+    region: {{ .Values.Seed.BackupRegion}}
+    provider: {{ .Values.Seed.BackupProvider}}
+    secretRef:
+      name: {{ .Values.Seed.BackupSecret}}
+      namespace: {{ .Values.Seed.Namespace }}
+  provider:
+    type: vsphere
+    region: {{ .Values.Seed.Region }}
+  secretRef:
+    name: {{ .Values.Seed.SecretName }}
+    namespace: {{ .Values.Seed.Namespace }}
+  dns:
+    ingressDomain: {{ .Values.Seed.IngressDomain }}
+  networks: # Seed and Shoot networks must be disjunct
+    nodes: {{ .Values.Seed.NodeRange }}
+    pods: {{ .Values.Seed.PodRange }}
+    services: {{ .Values.Seed.ServiceRange }}

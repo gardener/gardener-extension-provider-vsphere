@@ -1,0 +1,19 @@
+apiVersion: core.gardener.cloud/v1beta1
+kind: ControllerRegistration
+metadata:
+  name: provider-vsphere
+spec:
+  deployment:
+    deploymentRefs:
+    - name: provider-vsphere
+    policy: Always
+  resources:
+  - kind: ControlPlane
+    primary: true
+    type: vsphere
+  - kind: Infrastructure
+    primary: true
+    type: vsphere
+  - kind: Worker
+    primary: true
+    type: vsphere

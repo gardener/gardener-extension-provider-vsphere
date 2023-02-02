@@ -9,7 +9,7 @@ maxSurge: 50%
 
 resources: {}
 vpa:
-  enabled: true
+  enabled: false
 # resourcePolicy:
 #   minAllowed:
 #     cpu: 100m

@@ -83,18 +83,18 @@ build:
 deploy:
   helm:
     releases:
-    - name: provider-vsphere
-      chartPath: charts/gardener-extension-provider-vsphere
-      namespace: garden
-      createNamespace: true
-      # wait: false
-      wait: true
-      artifactOverrides:
-        image: eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere
-      imageStrategy:
-        helm: {}
-      valuesFiles:
-      - example/gardener-local/provider-vsphere/values.yaml
+    # - name: provider-vsphere
+    #   chartPath: charts/gardener-extension-provider-vsphere
+    #   namespace: garden
+    #   createNamespace: true
+    #   # wait: false
+    #   wait: true
+    #   artifactOverrides:
+    #     image: eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere
+    #   imageStrategy:
+    #     helm: {}
+    #   valuesFiles:
+    #   - example/gardener-local/provider-vsphere/values.yaml
     - name: validator-vsphere
       chartPath: charts/gardener-extension-validator-vsphere
       namespace: garden
@@ -108,3 +108,17 @@ deploy:
         helm: {}
       valuesFiles:
       - example/gardener-local/validator-vsphere/values.yaml
+    - name: Cloud Profile
+      chartPath: example/gardener-local/gardener-local-charts/
+      namespace: garden
+      createNamespace: true
+      # wait: false
+      wait: true
+      imageStrategy:
+        helm: {}
+      valuesFiles:
+      - example/gardener-local/values.yaml
+  #   Kubectl is an untested option that we would be required for the deployment-list
+  kubectl:
+    defaultNamespace: garden
+    path:

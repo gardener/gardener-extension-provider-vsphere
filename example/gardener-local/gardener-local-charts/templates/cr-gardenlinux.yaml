@@ -1,0 +1,15 @@
+apiVersion: core.gardener.cloud/v1beta1
+kind: ControllerRegistration
+metadata:
+  finalizers:
+  - core.gardener.cloud/controllerregistration
+  name: os-gardenlinux
+spec:
+  deployment:
+    deploymentRefs:
+    - name: os-gardenlinux
+    policy: OnDemand
+  resources:
+  - kind: OperatingSystemConfig
+    primary: true
+    type: gardenlinux

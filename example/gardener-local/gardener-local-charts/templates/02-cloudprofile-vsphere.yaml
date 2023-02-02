@@ -1,0 +1,164 @@
+apiVersion: core.gardener.cloud/v1beta1
+kind: CloudProfile
+metadata:
+  annotations:
+    garden.sapcloud.io/displayName:  {{ .Values.DisplayName}}
+  finalizers:
+  - gardener
+  labels:
+    provider.extensions.gardener.cloud/vsphere: "true"
+  name: {{ .Values.CloudprofileName}}
+spec:
+  kubernetes:
+    versions:
+    - classification: supported
+      version: 1.25.4
+    - classification: supported
+      version: 1.24.8
+    - classification: supported
+      version: 1.23.14
+  machineImages:
+  - name: gardenlinux
+    versions:
+    - architectures:
+      - amd64
+      - arm64
+      classification: preview
+      cri:
+      - name: docker
+      - containerRuntimes:
+        - type: gvisor
+        name: containerd
+      version: 934.1.0
+    - architectures:
+      - amd64
+      - arm64
+      classification: deprecated
+      cri:
+      - name: docker
+      - containerRuntimes:
+        - type: gvisor
+        name: containerd
+      expirationDate: "2023-03-31T23:59:59Z"
+      version: 934.0.0
+    - architectures:
+      - amd64
+      classification: supported
+      cri:
+      - name: docker
+      - containerRuntimes:
+        - type: gvisor
+        name: containerd
+      version: 576.12.0
+  machineTypes:
+  - architecture: amd64
+    cpu: "2"
+    gpu: "0"
+    memory: 8Gi
+    name: std-02
+    usable: true
+  - architecture: amd64
+    cpu: "4"
+    gpu: "0"
+    memory: 16Gi
+    name: std-04
+    usable: true
+  - architecture: amd64
+    cpu: "8"
+    gpu: "0"
+    memory: 32Gi
+    name: std-08
+    usable: true
+  - architecture: amd64
+    cpu: "16"
+    gpu: "0"
+    memory: 64Gi
+    name: std-16
+    usable: true
+  - architecture: amd64
+    cpu: "32"
+    gpu: "0"
+    memory: 128Gi
+    name: std-32
+    usable: true
+  - architecture: amd64
+    cpu: "2"
+    gpu: "0"
+    memory: 8Gi
+    name: std-02-reserved
+    usable: true
+  - architecture: amd64
+    cpu: "4"
+    gpu: "0"
+    memory: 16Gi
+    name: std-04-reserved
+    usable: true
+  - architecture: amd64
+    cpu: "8"
+    gpu: "0"
+    memory: 32Gi
+    name: std-08-reserved
+    usable: true
+  - architecture: amd64
+    cpu: "16"
+    gpu: "0"
+    memory: 64Gi
+    name: std-16-reserved
+    usable: true
+  providerConfig:
+    apiVersion: vsphere.provider.extensions.gardener.cloud/v1alpha1
+    constraints:
+      loadBalancerConfig:
+        classes:
+        - ipPoolName: {{ .Values.IPPoolName}}
+          name: default
+        size:  {{ .Values.LoadBalanerSize}}
+    defaultClassStoragePolicyName: {{ .Values.StoragePolicyName}}
+    dnsServers:
+    - {{ .Values.DNS0}}
+    - {{ .Values.DNS1}}
+    failureDomainLabels:
+      region: k8s-region
+      zone: k8s-zone
+    folder: gardener
+    kind: CloudProfileConfig
+    machineImages:
+    - name: gardenlinux
+      versions:
+      - path: gardener/templates/gardenlinux-934.1.0
+        version: 934.1.0
+      - path: gardener/templates/gardenlinux-934.0.0
+        version: 934.0.0
+      - path: gardener/templates/gardenlinux-576.12.0
+        version: 576.12.0
+    machineTypeOptions:
+    - memoryReservationLockedToMax: true
+      name: std-02-reserved
+    - memoryReservationLockedToMax: true
+      name: std-04-reserved
+    - memoryReservationLockedToMax: true
+      name: std-08-reserved
+    - memoryReservationLockedToMax: true
+      name: std-16-reserved
+    namePrefix: {{ .Values.PrefixName}}
+    regions:
+    - datacenter: {{ .Values.DataCenterName}}
+      edgeCluster: {{ .Values.EdgeCluster}}
+      logicalTier0Router: {{ .Values.TierRouter}}
+      name: {{ .Values.RegionName}}
+      nsxtHost: {{ .Values.NSXTHostName}}
+      nsxtInsecureSSL: {{ .Values.InsecureSSLNSXT}}
+      snatIPPool: {{ .Values.IPPoolName}}
+      transportZone: {{ .Values.TransportZone}}
+      vsphereHost: {{ .Values.VsphereHost}}
+      vsphereInsecureSSL:  {{ .Values.InsecureSSLVsphere}}
+      zones:
+      - datastore: {{ .Values.datastore}}
+        name: {{ .Values.ZoneName}}
+        resourcePool: {{ .Values.ResourcePoolName}}
+        switchUuid: {{ .Values.SwitchUuid}}
+  regions:
+  - name: {{ .Values.RegionName}}
+    zones:
+    - name: {{ .Values.ZoneName}}
+  type: vsphere
