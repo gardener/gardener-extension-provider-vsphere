@@ -121,4 +121,4 @@ deploy:
   #   Kubectl is an untested option that we would be required for the deployment-list
   kubectl:
     defaultNamespace: garden
-    path:
+    path: example/gardener-local/gardener-local-charts/
