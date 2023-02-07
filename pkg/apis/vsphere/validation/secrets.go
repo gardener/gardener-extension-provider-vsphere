@@ -17,8 +17,9 @@ package validation
 import (
 	"fmt"
 
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	corev1 "k8s.io/api/core/v1"
+
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
 // ValidateCloudProviderSecret checks whether the given secret contains a valid vSphere client credentials.

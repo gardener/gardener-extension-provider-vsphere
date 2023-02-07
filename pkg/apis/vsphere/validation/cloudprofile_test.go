@@ -16,14 +16,13 @@ package validation_test
 
 import (
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	. "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	. "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
 )
 
 var _ = Describe("ValidateCloudProfileConfig", func() {

@@ -22,16 +22,6 @@ import (
 	"os"
 
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
-	vsphereinstall "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
-	vspherecmd "github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd"
-	vspherecontrolplane "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/controlplane"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/healthcheck"
-	vsphereinfrastructure "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/infrastructure"
-	vsphereworker "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/worker"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-	providervsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-	vspherecontrolplaneexposure "github.com/gardener/gardener-extension-provider-vsphere/pkg/webhook/controlplaneexposure"
-
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
@@ -49,6 +39,16 @@ import (
 	"k8s.io/component-base/version/verflag"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	vsphereinstall "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
+	vspherecmd "github.com/gardener/gardener-extension-provider-vsphere/pkg/cmd"
+	vspherecontrolplane "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/controlplane"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/healthcheck"
+	vsphereinfrastructure "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/infrastructure"
+	vsphereworker "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/worker"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	providervsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	vspherecontrolplaneexposure "github.com/gardener/gardener-extension-provider-vsphere/pkg/webhook/controlplaneexposure"
 )
 
 // NewControllerManagerCommand creates a new command for running a vSphere provider controller.

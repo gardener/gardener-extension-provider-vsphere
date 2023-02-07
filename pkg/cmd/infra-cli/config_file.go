@@ -21,6 +21,8 @@ import (
 	"context"
 	"fmt"
 
+	gardencoreinstall "github.com/gardener/gardener/pkg/apis/core/install"
+	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -28,9 +30,6 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	gardencoreinstall "github.com/gardener/gardener/pkg/apis/core/install"
-	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"

@@ -19,9 +19,6 @@ import (
 	"fmt"
 	"net/http"
 
-	vspherevalidation "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-
 	"github.com/gardener/gardener/extensions/pkg/util"
 	secretutil "github.com/gardener/gardener/extensions/pkg/util/secret"
 	"github.com/go-logr/logr"
@@ -31,6 +28,9 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	vspherevalidation "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
 // Shoot validates shoots
