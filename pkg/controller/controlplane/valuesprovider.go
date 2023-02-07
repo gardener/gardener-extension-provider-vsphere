@@ -24,16 +24,6 @@ import (
 	"strconv"
 	"strings"
 
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-	apishelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/utils"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/helpers"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
-
 	"github.com/Masterminds/semver"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
@@ -60,6 +50,16 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
+
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	apishelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/utils"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/helpers"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
 )
 
 const (

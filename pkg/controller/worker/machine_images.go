@@ -21,12 +21,11 @@ import (
 	"fmt"
 
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
+	"github.com/pkg/errors"
 
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	apisvspherehelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-
-	"github.com/pkg/errors"
 )
 
 // GetMachineImages returns the used machine images for the `Worker` resource.

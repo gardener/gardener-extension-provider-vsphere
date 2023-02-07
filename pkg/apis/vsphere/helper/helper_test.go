@@ -15,11 +15,11 @@
 package helper_test
 
 import (
-	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	. "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	. "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 )
 
 const somePath = "/some/somePath"

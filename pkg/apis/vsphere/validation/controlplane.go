@@ -17,13 +17,13 @@ package validation
 import (
 	"fmt"
 
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/utils"
-
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	featuregatevalidation "github.com/gardener/gardener/pkg/utils/validation/features"
 	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/utils"
 )
 
 // ValidateControlPlaneConfig validates a ControlPlaneConfig object.

@@ -20,12 +20,11 @@ package worker
 import (
 	"context"
 
+	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 
 	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"

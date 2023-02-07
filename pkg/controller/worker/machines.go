@@ -22,12 +22,6 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
@@ -35,6 +29,11 @@ import (
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	"github.com/pkg/errors"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
 // MachineClassKind yields the name of the machine class.
