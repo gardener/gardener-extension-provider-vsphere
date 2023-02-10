@@ -3,6 +3,8 @@ apiVersion: apps/v1
 metadata:
   name: vsphere-csi-node
   namespace: kube-system
+  labels:
+    node.gardener.cloud/critical-component: "true"
 spec:
   selector:
     matchLabels:
@@ -14,6 +16,7 @@ spec:
       annotations:
         checksum/secret-csi-vsphere-config: {{ include (print $.Template.BasePath "/secret-csi-vsphere-config.yaml") . | sha256sum }}
       labels:
+        node.gardener.cloud/critical-component: "true"
         app: vsphere-csi-node
         role: vsphere-csi
     spec:
