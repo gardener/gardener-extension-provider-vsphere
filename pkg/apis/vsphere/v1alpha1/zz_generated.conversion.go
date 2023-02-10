@@ -24,9 +24,10 @@ package v1alpha1
 import (
 	unsafe "unsafe"
 
-	vsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+
+	vsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 )
 
 func init() {

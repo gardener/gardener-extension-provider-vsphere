@@ -21,6 +21,15 @@ import (
 	"encoding/json"
 	"fmt"
 
+	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/clientcmd/api"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	apishelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	apisvspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
@@ -28,15 +37,6 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/helpers"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
-	"github.com/go-logr/logr"
-
-	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/pkg/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/tools/clientcmd/api"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type preparedReconcile struct {

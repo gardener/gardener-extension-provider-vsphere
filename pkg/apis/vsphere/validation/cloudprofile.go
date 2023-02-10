@@ -21,10 +21,9 @@ import (
 
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-
-	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 
 var validLoadBalancerSizeValues = sets.NewString("SMALL", "MEDIUM", "LARGE")

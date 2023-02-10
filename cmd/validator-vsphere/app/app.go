@@ -18,18 +18,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pkg/errors"
-
-	vsphereinstall "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/validator"
-	providervsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-
 	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	"github.com/gardener/gardener/extensions/pkg/util/index"
 	"github.com/gardener/gardener/pkg/apis/core/install"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	componentbaseconfig "k8s.io/component-base/config"
 	"k8s.io/component-base/version/verflag"
@@ -37,6 +32,10 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+
+	vsphereinstall "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/validator"
+	providervsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
 var log = logf.Log.WithName("gardener-extensions-validator-vsphere")

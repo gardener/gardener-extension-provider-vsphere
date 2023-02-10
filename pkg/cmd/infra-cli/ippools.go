@@ -22,10 +22,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
-
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -38,6 +34,10 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/ip_pools"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
 )
 
 func CreateIPPool(logger logr.Logger, cfg *infrastructure.NSXTConfig, ipPoolName, ipPoolRanges, ipPoolCidr string, advancedAPI bool) error {

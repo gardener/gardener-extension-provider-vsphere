@@ -18,6 +18,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/gardener/gardener/extensions/pkg/util"
 	"github.com/gardener/gardener/pkg/apis/core"
 	"github.com/go-logr/logr"
 	admissionv1 "k8s.io/api/admission/v1"
@@ -25,8 +26,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-
-	"github.com/gardener/gardener/extensions/pkg/util"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
