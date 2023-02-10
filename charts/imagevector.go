@@ -19,7 +19,6 @@ package charts
 
 import (
 	_ "embed"
-	"strings"
 
 	"github.com/gardener/gardener/pkg/utils/imagevector"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -32,7 +31,7 @@ var imageVector imagevector.ImageVector
 
 func init() {
 	var err error
-	imageVector, err = imagevector.Read(strings.NewReader(imagesYaml))
+	imageVector, err = imagevector.Read([]byte((imagesYaml)))
 	runtime.Must(err)
 
 	imageVector, err = imagevector.WithEnvOverride(imageVector)
