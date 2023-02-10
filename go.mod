@@ -7,7 +7,7 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gardener/etcd-druid v0.15.3
-	github.com/gardener/gardener v1.63.1-0.20230131115839-8d53342ddcf0
+	github.com/gardener/gardener v1.64.0
 	github.com/gardener/machine-controller-manager v0.47.0
 	github.com/go-logr/logr v1.2.3
 	github.com/golang/mock v1.6.0
@@ -29,7 +29,7 @@ require (
 	k8s.io/api v0.26.1
 	k8s.io/apiextensions-apiserver v0.26.1
 	k8s.io/apimachinery v0.26.1
-	k8s.io/autoscaler/vertical-pod-autoscaler v0.12.0
+	k8s.io/autoscaler/vertical-pod-autoscaler v0.13.0
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/cloud-provider-vsphere v1.25.0
 	k8s.io/code-generator v0.26.1
@@ -37,8 +37,8 @@ require (
 	k8s.io/klog v1.0.0
 	k8s.io/kubelet v0.26.1
 	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
-	sigs.k8s.io/controller-runtime v0.14.1
-	sigs.k8s.io/controller-tools v0.11.1
+	sigs.k8s.io/controller-runtime v0.14.4
+	sigs.k8s.io/controller-tools v0.11.3
 	sigs.k8s.io/yaml v1.3.0
 )
 
