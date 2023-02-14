@@ -4,6 +4,15 @@ set -o errexit
 set -o nounset
 set -o pipefail
 set -x
+trap cleanup EXIT
+
+function cleanup() {
+  cd ${CC_ROOT_DIR}/${SOURCE_PATH}/.ci/terraform
+  terraform destroy -input=false -auto-approve
+  terraform workspace select default
+  terraform workspace delete $workspace
+  /gcve-setup --phase=shutdown --cloud-id=$workspace --location=$zone --service-account=$GOOGLE_APPLICATION_CREDENTIALS --cred-file=$TF_VAR_privatecloud_cred
+}
 
 cd "$(dirname $0)/.."
 
@@ -26,7 +35,7 @@ export TF_VAR_tm_repo_path="${CC_ROOT_DIR}/${TM_REPO_PATH}"
 export zone="us-west2-a"
 
 /gcve-setup --phase=setup --allow-scavenging=true --location=$zone --cidr=10.120.0.0/20 --service-account=$GOOGLE_APPLICATION_CREDENTIALS --cred-file=$TF_VAR_privatecloud_cred
-export workspace=$(yq '.privateCloud.name' < $TF_VAR_privatecloud_cred | sed 's:.*/::')
+export workspace=$(yq '.privateCloud.name' <$TF_VAR_privatecloud_cred | sed 's:.*/::')
 
 cd ${CC_ROOT_DIR}/${SOURCE_PATH}/.ci/terraform
 terraform init -input=false || exit
@@ -40,18 +49,13 @@ terraform apply -input=false -auto-approve
 
 cd ${CC_ROOT_DIR}/${SOURCE_PATH}
 /testrunner run \
-    --tm-kubeconfig-path=/tmp/kubeconfig \
-    --testrun-prefix tm-extension-vsphere- \
-    --no-execution-group \
-    --timeout=1800 \
-    --testruns-chart-path=.ci/testruns/default \
-    --set revision="$(git rev-parse HEAD)"
+  --tm-kubeconfig-path=/tmp/kubeconfig \
+  --testrun-prefix tm-extension-vsphere- \
+  --no-execution-group \
+  --timeout=1800 \
+  --testruns-chart-path=.ci/testruns/default \
+  --set revision="$(git rev-parse HEAD)"
 
 kubectl --kubeconfig=/tmp/kubeconfig delete testrun --all
 
-cd ${CC_ROOT_DIR}/${SOURCE_PATH}/.ci/terraform
-terraform destroy -input=false -auto-approve
-terraform workspace select default
-terraform workspace delete $workspace
-
-/gcve-setup --phase=shutdown --cloud-id=$workspace --location=$zone --service-account=$GOOGLE_APPLICATION_CREDENTIALS --cred-file=$TF_VAR_privatecloud_cred
+cleanup
