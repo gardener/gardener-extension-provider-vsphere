@@ -6,8 +6,6 @@ gardener-extension-provider-vsphere:
       version:
         preprocess: 'inject-commit-hash'
         inject_effective_version: true
-  inherit:
-    publish_template: &publish_anchor
       publish:
         dockerimages:
           gardener-extension-provider-vsphere:
@@ -28,19 +26,7 @@ gardener-extension-provider-vsphere:
         draft_release: ~
         options:
           public_build_logs: true
-        <<: *publish_anchor
     pull-request:
-      repos:
-        - name: 'tm_repo'
-          path: 'gardener/test-infra'
-          branch: 'master'
-      steps:
-        test-integration:
-          timeout: "4h"
-          trait_depends:
-            - publish
-          image: 'eu.gcr.io/sap-se-gcr-k8s-private/vsphere-private/vsphere-gcve-tm-run:latest'
-          on_abort: test-abort
       traits:
         pull-request: ~
         component_descriptor: ~
@@ -49,7 +35,6 @@ gardener-extension-provider-vsphere:
 #       suppress_parallel_execution until we can sort constraints reusing vsphere clusters
         scheduling:
           suppress_parallel_execution: true
-        <<: *publish_anchor
     create-upgrade-prs:
       traits:
         component_descriptor: ~
@@ -57,14 +42,8 @@ gardener-extension-provider-vsphere:
         cronjob:
           interval: '5m'
         update_component_deps: ~
-    scan_artifacts:
-      traits:
-        component_descriptor: ~
-        image_scan:
-          email_recipients: ['brian.topping@sap.com']
     release:
       traits:
-        <<: *publish_anchor
         version:
           preprocess: 'finalize'
         release:
@@ -80,33 +59,10 @@ gardener-extension-provider-vsphere:
             internal_scp_workspace_vmware:
               channel_name: 'C02DYTGSUNQ' #sap-tech-gardener-on-vmware
               slack_cfg_name: 'scp_workspace'
-        component_descriptor:
-          component_labels:
-            - name: 'cloud.gardener.cnudie/responsibles'
-              value:
-                - type: 'githubUser'
-                  username: 'i562445'
-
-gardener-extension-provider-vsphere-test:
-  template: 'default'
-  base_definition:
-    repo: ~
-    traits:
-      version:
-        preprocess: 'inject-commit-hash'
-        inject_effective_version: true
-  jobs:
-    gcve-test-container:
-      traits:
         component_descriptor: ~
-        draft_release: ~
-        options:
-          public_build_logs: true
         publish:
           dockerimages:
-            gardener-extension-gcve-tm-run:
-              registry: 'gcr-readwrite'
-              image: 'eu.gcr.io/sap-se-gcr-k8s-private/vsphere-private/vsphere-gcve-tm-run'
-              dockerfile: 'Dockerfile'
-              target: gardener-extension-gcve-tm-run
+            gardener-extension-provider-vsphere:
+              tag_as_latest: true
+            gardener-extension-validator-vsphere:
               tag_as_latest: true
