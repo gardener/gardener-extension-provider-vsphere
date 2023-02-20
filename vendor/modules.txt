@@ -895,7 +895,7 @@ istio.io/api/meta/v1alpha1
 istio.io/api/networking/v1alpha3
 istio.io/api/networking/v1beta1
 istio.io/api/type/v1beta1
-# istio.io/client-go v1.16.1
+# istio.io/client-go v1.15.3
 ## explicit; go 1.17
 istio.io/client-go/pkg/apis/networking/v1alpha3
 istio.io/client-go/pkg/apis/networking/v1beta1
@@ -1282,8 +1282,8 @@ k8s.io/client-go/util/workqueue
 # k8s.io/cloud-provider v0.26.0
 ## explicit; go 1.19
 k8s.io/cloud-provider
-# k8s.io/cloud-provider-vsphere v1.25.0 => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20210910074917-6559ac3f3bcf
-## explicit; go 1.16
+# k8s.io/cloud-provider-vsphere v1.25.0
+## explicit; go 1.19
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer/config
 k8s.io/cloud-provider-vsphere/pkg/nsxt
@@ -1518,4 +1518,3 @@ sigs.k8s.io/structured-merge-diff/v4/value
 ## explicit; go 1.12
 sigs.k8s.io/yaml
 # k8s.io/client-go => k8s.io/client-go v0.26.1
-# k8s.io/cloud-provider-vsphere => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20210910074917-6559ac3f3bcf

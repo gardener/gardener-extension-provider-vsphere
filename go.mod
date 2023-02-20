@@ -149,7 +149,7 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	istio.io/api v0.0.0-20230103194534-bd0328192dcd // indirect
-	istio.io/client-go v1.16.1 // indirect
+	istio.io/client-go v1.15.3 // indirect
 	k8s.io/apiserver v0.26.1 // indirect
 	k8s.io/cloud-provider v0.26.0 // indirect
 	k8s.io/gengo v0.0.0-20220902162205-c0856e24416d // indirect
@@ -163,8 +163,4 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
 
-replace (
-	k8s.io/client-go => k8s.io/client-go v0.26.1
-	// needed for infra-cli and load balancer cleanup
-	k8s.io/cloud-provider-vsphere => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20210910074917-6559ac3f3bcf
-)
+replace k8s.io/client-go => k8s.io/client-go v0.26.1
