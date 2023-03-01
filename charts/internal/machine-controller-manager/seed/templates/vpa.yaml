@@ -15,14 +15,12 @@ spec:
     containerPolicies:
     - containerName: machine-controller-manager-provider-vsphere
       minAllowed:
-        cpu: 30m
         memory: 40M
       maxAllowed:
         cpu: 2
         memory: 5G
     - containerName: vsphere-machine-controller-manager
       minAllowed:
-        cpu: 30m
         memory: 40M
       maxAllowed:
         cpu: 2
