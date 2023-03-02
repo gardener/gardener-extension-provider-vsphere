@@ -31,7 +31,6 @@ spec:
   kubernetes:
     allowPrivilegedContainers: true
     kubeAPIServer:
-      enableBasicAuthentication: false
       requests:
         maxNonMutatingInflight: 400
         maxMutatingInflight: 200
