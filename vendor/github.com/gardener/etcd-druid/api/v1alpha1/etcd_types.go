@@ -111,24 +111,6 @@ type CompressionSpec struct {
 	Policy *CompressionPolicy `json:"policy,omitempty"`
 }
 
-// OwnerCheckSpec defines parameters related to checking if the cluster owner, as specified in the owner DNS record,
-// is the expected one.
-type OwnerCheckSpec struct {
-	// Name is the domain name of the owner DNS record.
-	Name string `json:"name"`
-	// ID is the owner id value that is expected to be found in the owner DNS record.
-	ID string `json:"id"`
-	// Interval is the time interval between owner checks.
-	// +optional
-	Interval *metav1.Duration `json:"interval,omitempty"`
-	// Timeout is the timeout for owner checks.
-	// +optional
-	Timeout *metav1.Duration `json:"timeout,omitempty"`
-	// DNSCacheTTL is the DNS cache TTL for owner checks.
-	// +optional
-	DNSCacheTTL *metav1.Duration `json:"dnsCacheTTL,omitempty"`
-}
-
 // LeaderElectionSpec defines parameters related to the LeaderElection configuration.
 type LeaderElectionSpec struct {
 	// ReelectionPeriod defines the Period after which leadership status of corresponding etcd is checked.
@@ -184,10 +166,6 @@ type BackupSpec struct {
 	// EtcdSnapshotTimeout defines the timeout duration for etcd FullSnapshot operation
 	// +optional
 	EtcdSnapshotTimeout *metav1.Duration `json:"etcdSnapshotTimeout,omitempty"`
-	// OwnerCheck defines parameters related to checking if the cluster owner, as specified in the owner DNS record,
-	// is the expected one.
-	// +optional
-	OwnerCheck *OwnerCheckSpec `json:"ownerCheck,omitempty"`
 	// LeaderElection defines parameters related to the LeaderElection configuration.
 	// +optional
 	LeaderElection *LeaderElectionSpec `json:"leaderElection,omitempty"`
@@ -453,9 +431,15 @@ type EtcdStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Ready",type=string,JSONPath=`.status.ready`
-// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.labelSelector
+// +kubebuilder:printcolumn:name="Ready",type=string,JSONPath=`.status.ready`
+// +kubebuilder:printcolumn:name="Quorate",type=string,JSONPath=`.status.conditions[?(@.type=="Ready")].status`
+// +kubebuilder:printcolumn:name="All Members Ready",type=string,JSONPath=`.status.conditions[?(@.type=="AllMembersReady")].status`
+// +kubebuilder:printcolumn:name="Backup Ready",type=string,JSONPath=`.status.conditions[?(@.type=="BackupReady")].status`
+// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
+// +kubebuilder:printcolumn:name="Cluster Size",type=integer,JSONPath=`.spec.replicas`,priority=1
+// +kubebuilder:printcolumn:name="Current Replicas",type=integer,JSONPath=`.status.currentReplicas`,priority=1
+// +kubebuilder:printcolumn:name="Ready Replicas",type=integer,JSONPath=`.status.readyReplicas`,priority=1
 
 // Etcd is the Schema for the etcds API
 type Etcd struct {
