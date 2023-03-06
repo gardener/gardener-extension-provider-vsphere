@@ -316,6 +316,8 @@ func checkKubeAPIServerDeployment(dep *appsv1.Deployment, annotations map[string
 
 	// Check that the Pod template contains all needed checksum annotations
 	Expect(dep.Spec.Template.Annotations).To(Equal(annotations))
+
+	Expect(dep.Spec.Template.Labels).To(HaveKeyWithValue("networking.resources.gardener.cloud/to-csi-snapshot-validation-tcp-443", "allowed"))
 }
 
 func checkKubeControllerManagerDeployment(dep *appsv1.Deployment, annotations, labels map[string]string) {
