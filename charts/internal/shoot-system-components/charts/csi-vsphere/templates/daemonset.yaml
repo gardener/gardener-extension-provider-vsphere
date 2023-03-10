@@ -14,6 +14,7 @@ spec:
   template:
     metadata:
       annotations:
+        node.gardener.cloud/wait-for-csi-node-vsphere: csi.vsphere.vmware.com
         checksum/secret-csi-vsphere-config: {{ include (print $.Template.BasePath "/secret-csi-vsphere-config.yaml") . | sha256sum }}
       labels:
         node.gardener.cloud/critical-component: "true"
