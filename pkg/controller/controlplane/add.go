@@ -48,6 +48,8 @@ type AddOptions struct {
 	GardenId string
 	// ShootWebhookConfig specifies the desired Shoot MutatingWebhooksConfiguration.
 	ShootWebhookConfig *atomic.Value
+	// WebhookServerNamespace is the namespace in which the webhook server runs.
+	WebhookServerNamespace string
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
@@ -58,7 +60,7 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 			secretConfigsFunc, shootAccessSecretsFunc, nil, nil,
 			configChart, controlPlaneChart, controlPlaneShootChart, controlPlaneShootCRDsChart, storageClassChart, nil,
 			NewValuesProvider(logger, opts.GardenId), extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
-			charts.ImageVector(), "", opts.ShootWebhookConfig, mgr.GetWebhookServer().Port),
+			charts.ImageVector(), "", opts.ShootWebhookConfig, opts.WebhookServerNamespace, mgr.GetWebhookServer().Port),
 		ControllerOptions: opts.Controller,
 		Predicates:        controlplane.DefaultPredicates(opts.IgnoreOperationAnnotation),
 		Type:              vsphere.Type,
