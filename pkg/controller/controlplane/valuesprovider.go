@@ -657,6 +657,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 				"secrets": map[string]interface{}{
 					"server": csiSnapshotValidationServerSecret.Name,
 				},
+				"topologyAwareRoutingEnabled": gardencorev1beta1helper.IsTopologyAwareRoutingForShootControlPlaneEnabled(cluster.Seed, cluster.Shoot),
 			},
 			"volumesnapshots": map[string]interface{}{
 				"enabled": false, // not supported in vsphere-csi-driver v2.3.0
