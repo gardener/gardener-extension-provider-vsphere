@@ -8,9 +8,15 @@ data:
   "improved-csi-idempotency": "true"
   "block-volume-snapshot": "true"
   "use-csinode-id": "true"
+  "list-volumes": "false"
   "improved-volume-topology": "true"
   "pv-to-backingdiskobjectid-mapping": "false"
-  "cnsmgr-suspend-create-volume": "false"
+  "cnsmgr-suspend-create-volume": "true"
+  "topology-preferential-datastores": "false"
+  "max-pvscsi-targets-per-vm": "true"
+  "multi-vcenter-csi-topology": "true"
+  "csi-internal-generated-cluster-id": "true"
+  "listview-tasks": "false"
 kind: ConfigMap
 metadata:
   name: internal-feature-states.csi.vsphere.vmware.com

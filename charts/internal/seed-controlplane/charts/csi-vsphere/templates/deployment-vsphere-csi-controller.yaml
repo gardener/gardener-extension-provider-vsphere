@@ -55,7 +55,12 @@ spec:
             - "--timeout=300s"
             - "--csi-address=/csi/csi.sock"
             - "--leader-election"
+            - "--leader-election-lease-duration=120s"
+            - "--leader-election-renew-deadline=60s"
+            - "--leader-election-retry-period=30s"
             - "--leader-election-namespace=kube-system"
+            - "--kube-api-qps=100"
+            - "--kube-api-burst=100"
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
 {{- if .Values.resources.attacher }}
           resources:
@@ -78,6 +83,9 @@ spec:
             - "--kube-api-qps=100"
             - "--kube-api-burst=100"
             - "--leader-election"
+            - "--leader-election-lease-duration=120s"
+            - "--leader-election-renew-deadline=60s"
+            - "--leader-election-retry-period=30s"
             - "--leader-election-namespace=kube-system"
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
 {{- if .Values.resources.resizer }}
@@ -102,6 +110,10 @@ spec:
               value: unix:///csi/csi.sock
             - name: X_CSI_MODE
               value: "controller"
+            - name: X_CSI_SPEC_DISABLE_LEN_CHECK
+              value: "true"
+            - name: X_CSI_SERIAL_VOL_ACCESS_TIMEOUT
+              value: 3m
             - name: VSPHERE_CSI_CONFIG
               value: "/etc/cloud/csi-vsphere.conf"
             - name: LOGGER_LEVEL
@@ -144,6 +156,9 @@ spec:
           image: {{ index .Values.images "vsphere-csi-driver-syncer" }}
           args:
             - "--leader-election"
+            - "--leader-election-lease-duration=120s"
+            - "--leader-election-renew-deadline=60s"
+            - "--leader-election-retry-period=30s"
             - "--leader-election-namespace=kube-system"
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
             - "--fss-name=internal-feature-states.csi.vsphere.vmware.com"
@@ -196,6 +211,9 @@ spec:
             - "--strict-topology"
             - "--default-fstype=ext4"
             - "--leader-election"
+            - "--leader-election-lease-duration=120s"
+            - "--leader-election-renew-deadline=60s"
+            - "--leader-election-retry-period=30s"
             - "--leader-election-namespace=kube-system"
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
 {{- if .Values.resources.provisioner }}
@@ -219,6 +237,9 @@ spec:
             - "--csi-address=/csi/csi.sock"
             - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
             - "--leader-election"
+            - "--leader-election-lease-duration=120s"
+            - "--leader-election-renew-deadline=60s"
+            - "--leader-election-retry-period=30s"
             - "--leader-election-namespace=kube-system"
             - "--snapshot-name-prefix={{ .Release.Namespace }}"
 {{- if .Values.resources.snapshotter }}
