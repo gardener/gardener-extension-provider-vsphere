@@ -95,6 +95,7 @@ csiSnapshotValidationWebhook:
     memory: 50Mi
   secrets:
     server: csi-snapshot-validation-server
+  topologyAwareRoutingEnabled: false
 
 volumesnapshots:
   enabled: false # currently not supported by vsphere-csi-driver

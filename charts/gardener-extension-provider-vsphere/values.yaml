@@ -90,3 +90,6 @@ gardener:
         providerConfig:
           storagePolicyName: gardener-fast-etcd-main
           #svStorageClass: my-sv-storage-class
+      settings:
+        topologyAwareRouting:
+          enabled: false
