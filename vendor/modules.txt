@@ -63,8 +63,6 @@ github.com/dsnet/compress/bzip2/internal/sais
 github.com/dsnet/compress/internal
 github.com/dsnet/compress/internal/errors
 github.com/dsnet/compress/internal/prefix
-# github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484
-## explicit
 # github.com/emicklei/go-restful/v3 v3.10.1
 ## explicit; go 1.13
 github.com/emicklei/go-restful/v3
@@ -78,15 +76,13 @@ github.com/evanphx/json-patch/v5
 # github.com/fatih/color v1.13.0
 ## explicit; go 1.13
 github.com/fatih/color
-# github.com/frankban/quicktest v1.14.4
-## explicit; go 1.13
 # github.com/fsnotify/fsnotify v1.6.0
 ## explicit; go 1.16
 github.com/fsnotify/fsnotify
 # github.com/gardener/etcd-druid v0.16.0
 ## explicit; go 1.19
 github.com/gardener/etcd-druid/api/v1alpha1
-# github.com/gardener/gardener v1.66.1
+# github.com/gardener/gardener v1.67.1
 ## explicit; go 1.20
 github.com/gardener/gardener/.github
 github.com/gardener/gardener/.github/ISSUE_TEMPLATE
@@ -198,8 +194,8 @@ github.com/gardener/gardener/test/utils/shoots/access
 # github.com/gardener/hvpa-controller/api v0.10.0
 ## explicit; go 1.19
 github.com/gardener/hvpa-controller/api/v1alpha1
-# github.com/gardener/machine-controller-manager v0.47.0
-## explicit; go 1.17
+# github.com/gardener/machine-controller-manager v0.48.1
+## explicit; go 1.19
 github.com/gardener/machine-controller-manager/pkg/apis/machine
 github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1
 github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme
@@ -1025,7 +1021,7 @@ k8s.io/apiserver/pkg/apis/config/v1
 ## explicit; go 1.19
 k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1
 k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2
-# k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible => k8s.io/client-go v0.26.1
+# k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible => k8s.io/client-go v0.26.2
 ## explicit; go 1.19
 k8s.io/client-go/applyconfigurations/admissionregistration/v1
 k8s.io/client-go/applyconfigurations/admissionregistration/v1alpha1
@@ -1516,4 +1512,4 @@ sigs.k8s.io/structured-merge-diff/v4/value
 # sigs.k8s.io/yaml v1.3.0
 ## explicit; go 1.12
 sigs.k8s.io/yaml
-# k8s.io/client-go => k8s.io/client-go v0.26.1
+# k8s.io/client-go => k8s.io/client-go v0.26.2
