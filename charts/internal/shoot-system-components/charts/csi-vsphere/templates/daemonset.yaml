@@ -22,7 +22,7 @@ spec:
         role: vsphere-csi
     spec:
       hostNetwork: true
-      dnsPolicy: "ClusterFirstWithHostNet"
+      dnsPolicy: Default
       priorityClassName: system-node-critical
       serviceAccount: csi-driver-node
       tolerations:
