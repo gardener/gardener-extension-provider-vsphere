@@ -87,6 +87,8 @@ spec:
           value: kube-system
         - name: NODEGETINFO_WATCH_TIMEOUT_MINUTES
           value: "1"
+        - name: KUBERNETES_SERVICE_HOST
+          value: {{ .Values.kubernetesServiceHost }}
         securityContext:
           privileged: true
           capabilities:
