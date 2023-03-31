@@ -62,14 +62,21 @@ type APIClient struct {
 	NetworkTransportApi             *NetworkTransportApiService
 	NormalizationApi                *NormalizationApiService
 	NsxComponentAdministrationApi   *NsxComponentAdministrationApiService
+	NsxManagerHealthApi             *NsxManagerHealthApiService
 	OperationsApi                   *OperationsApiService
 	PolicyApi                       *PolicyApiService
 	PoolManagementApi               *PoolManagementApiService
 	RealizationApi                  *RealizationApiService
 	ServicesApi                     *ServicesApiService
+	SupportBundleApi                *SupportBundleApiService
 	TransportEntitiesApi            *TransportEntitiesApiService
 	TroubleshootingAndMonitoringApi *TroubleshootingAndMonitoringApiService
 	UpgradeApi                      *UpgradeApiService
+	ContainerApplicationsApi        *ManagementPlaneApiFabricContainerApplicationsApiService
+	ContainerClustersApi            *ManagementPlaneApiFabricContainerClustersApiService
+	ContainerInventoryApi           *ManagementPlaneApiFabricContainerInventoryApiService
+	ContainerProjectsApi            *ManagementPlaneApiFabricContainerProjectsApiService
+	ClusterControlPlaneApi          *SystemAdministrationPolicyClusterControlPlaneApiService
 }
 
 type service struct {
@@ -77,7 +84,7 @@ type service struct {
 }
 
 func GetContext(cfg *Configuration) context.Context {
-	if len(cfg.ClientAuthCertFile) == 0 && cfg.RemoteAuth == false {
+	if len(cfg.ClientAuthCertFile) == 0 && len(cfg.ClientAuthCertString) == 0 && cfg.RemoteAuth == false {
 		auth := BasicAuth{UserName: cfg.UserName,
 			Password: cfg.Password}
 		return context.WithValue(context.Background(), ContextBasicAuth, auth)
@@ -92,7 +99,6 @@ func GetDefaultHeaders(client *APIClient) error {
 	XSRF_TOKEN := "X-XSRF-TOKEN"
 	var (
 		httpMethod = strings.ToUpper("Post")
-		postBody   interface{}
 		fileName   string
 		fileBytes  []byte
 	)
@@ -104,6 +110,10 @@ func GetDefaultHeaders(client *APIClient) error {
 		"Content-Type": "application/x-www-form-urlencoded",
 	}
 
+	if client.cfg.DefaultHeader == nil {
+		client.cfg.DefaultHeader = make(map[string]string)
+	}
+
 	// For remote Auth (vIDM use case), construct the REMOTE auth header
 	remoteAuthHeader := ""
 	if client.cfg.RemoteAuth {
@@ -111,8 +121,11 @@ func GetDefaultHeaders(client *APIClient) error {
 		encoded := base64.StdEncoding.EncodeToString([]byte(auth))
 		remoteAuthHeader = "Remote " + encoded
 		requestHeaders["Authorization"] = remoteAuthHeader
+
+		client.cfg.DefaultHeader["Authorization"] = remoteAuthHeader
 	}
 
+	postBody := fmt.Sprintf("j_username=%s&j_password=%s", client.cfg.UserName, client.cfg.Password)
 	path := strings.TrimSuffix(client.cfg.BasePath, "v1") + "session/create"
 	// Call session create
 	r, err := client.prepareRequest(
@@ -126,15 +139,15 @@ func GetDefaultHeaders(client *APIClient) error {
 		fileName,
 		fileBytes)
 	if err != nil {
-		return fmt.Errorf("Failed to create session: %s.", err)
+		return fmt.Errorf("Failed to create session: %s", err)
 	}
 	response, err := client.callAPI(r)
 	if err != nil || response == nil {
-		return fmt.Errorf("Failed to create session: %s.", err)
+		return fmt.Errorf("Failed to create session: %s", err)
 	}
 
-	if client.cfg.DefaultHeader == nil {
-		client.cfg.DefaultHeader = make(map[string]string)
+	if response.StatusCode != 200 {
+		return fmt.Errorf("Failed to create session: status code %d", response.StatusCode)
 	}
 
 	// Go over the headers
@@ -153,10 +166,6 @@ func GetDefaultHeaders(client *APIClient) error {
 
 	response.Body.Close()
 
-	// For remote Auth (vIDM use case), construct the REMOTE auth header
-	if client.cfg.RemoteAuth {
-		client.cfg.DefaultHeader["Authorization"] = remoteAuthHeader
-	}
 	return nil
 }
 
@@ -181,6 +190,19 @@ func InitHttpClient(cfg *Configuration) error {
 
 	}
 
+	if len(cfg.ClientAuthCertString) > 0 {
+		cert, err := tls.X509KeyPair([]byte(cfg.ClientAuthCertString),
+			[]byte(cfg.ClientAuthKeyString))
+		if err != nil {
+			return err
+		}
+
+		tlsConfig.GetClientCertificate = func(*tls.CertificateRequestInfo) (*tls.Certificate, error) {
+			return &cert, nil
+		}
+
+	}
+
 	if len(cfg.CAFile) > 0 {
 		caCert, err := ioutil.ReadFile(cfg.CAFile)
 		if err != nil {
@@ -193,7 +215,13 @@ func InitHttpClient(cfg *Configuration) error {
 		tlsConfig.RootCAs = caCertPool
 	}
 
-	tlsConfig.BuildNameToCertificate()
+	if len(cfg.CAString) > 0 {
+
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM([]byte(cfg.CAString))
+
+		tlsConfig.RootCAs = caCertPool
+	}
 
 	transport := &http.Transport{Proxy: http.ProxyFromEnvironment,
 		TLSClientConfig:     tlsConfig,
@@ -220,9 +248,11 @@ func NewAPIClient(cfg *Configuration) (*APIClient, error) {
 	c.cfg = cfg
 	c.Context = GetContext(cfg)
 	c.common.client = c
-	err := GetDefaultHeaders(c)
-	if err != nil {
-		return nil, err
+	if !c.cfg.SkipSessionAuth {
+		err := GetDefaultHeaders(c)
+		if err != nil {
+			log.Printf("Warning: %v", err)
+		}
 	}
 
 	// API Services
@@ -241,15 +271,21 @@ func NewAPIClient(cfg *Configuration) (*APIClient, error) {
 	c.NetworkTransportApi = (*NetworkTransportApiService)(&c.common)
 	c.NormalizationApi = (*NormalizationApiService)(&c.common)
 	c.NsxComponentAdministrationApi = (*NsxComponentAdministrationApiService)(&c.common)
+	c.NsxManagerHealthApi = (*NsxManagerHealthApiService)(&c.common)
 	c.OperationsApi = (*OperationsApiService)(&c.common)
 	c.PolicyApi = (*PolicyApiService)(&c.common)
 	c.PoolManagementApi = (*PoolManagementApiService)(&c.common)
 	c.RealizationApi = (*RealizationApiService)(&c.common)
 	c.ServicesApi = (*ServicesApiService)(&c.common)
+	c.SupportBundleApi = (*SupportBundleApiService)(&c.common)
 	c.TransportEntitiesApi = (*TransportEntitiesApiService)(&c.common)
 	c.TroubleshootingAndMonitoringApi = (*TroubleshootingAndMonitoringApiService)(&c.common)
 	c.UpgradeApi = (*UpgradeApiService)(&c.common)
-
+	c.ContainerApplicationsApi = (*ManagementPlaneApiFabricContainerApplicationsApiService)(&c.common)
+	c.ContainerClustersApi = (*ManagementPlaneApiFabricContainerClustersApiService)(&c.common)
+	c.ContainerInventoryApi = (*ManagementPlaneApiFabricContainerInventoryApiService)(&c.common)
+	c.ContainerProjectsApi = (*ManagementPlaneApiFabricContainerProjectsApiService)(&c.common)
+	c.ClusterControlPlaneApi = (*SystemAdministrationPolicyClusterControlPlaneApiService)(&c.common)
 	return c, nil
 }
 
@@ -362,7 +398,11 @@ func (c *APIClient) callAPI(request *http.Request) (*http.Response, error) {
 			}
 			log.Printf("[DEBUG] Retrying request %s %s for the %d time because of status %d", request.Method, request.URL, n_try, status)
 			// sleep a random increasing time
-			float_delay := float64(rand.Intn(config.RetryMinDelay * n_try))
+			minDelay := 1
+			if config.RetryMinDelay > 0 {
+				minDelay = config.RetryMinDelay
+			}
+			float_delay := float64(rand.Intn(minDelay * n_try))
 			fixed_delay := time.Duration(math.Min(float64(config.RetryMaxDelay), float_delay))
 			time.Sleep(fixed_delay * time.Millisecond)
 			// reset Request.Body
@@ -421,6 +461,7 @@ func (c *APIClient) prepareRequest(
 		if err != nil {
 			return nil, err
 		}
+		headerParams["Content-Length"] = fmt.Sprintf("%d", body.Len())
 	}
 
 	// add form paramters and file if available.
@@ -665,4 +706,42 @@ func CacheExpires(r *http.Response) time.Time {
 
 func strlen(s string) int {
 	return utf8.RuneCountInString(s)
+}
+
+// Added for supporting NSX 3.0 Container Inventory API
+func (c *APIClient) decode(v interface{}, b []byte, contentType string) (err error) {
+	if strings.Contains(contentType, "application/xml") {
+		if err = xml.Unmarshal(b, v); err != nil {
+			return err
+		}
+		return nil
+	} else if strings.Contains(contentType, "application/json") {
+		if err = json.Unmarshal(b, v); err != nil {
+			return err
+		}
+		return nil
+	}
+	return errors.New("undefined response type")
+}
+
+// GenericSwaggerError Provides access to the body, error and model on returned errors.
+type GenericSwaggerError struct {
+	body  []byte
+	error string
+	model interface{}
+}
+
+// Error returns non-empty string if there was an error.
+func (e GenericSwaggerError) Error() string {
+	return e.error
+}
+
+// Body returns the raw bytes of the response
+func (e GenericSwaggerError) Body() []byte {
+	return e.body
+}
+
+// Model returns the unpacked model of the error
+func (e GenericSwaggerError) Model() interface{} {
+	return e.model
 }

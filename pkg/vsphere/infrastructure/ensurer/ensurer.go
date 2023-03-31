@@ -127,7 +127,7 @@ func (e *ensurer) NewStateWithVersion(overwriteVersion *string) (*api.NSXTInfraS
 }
 
 func (e *ensurer) CheckConnection() error {
-	client := infra.NewDefaultTier0sClient(e.connector)
+	client := infra.NewTier0sClient(e.connector)
 	_, err := client.List(nil, nil, nil, nil, nil, nil)
 	return err
 }
@@ -266,7 +266,7 @@ func (e *ensurer) GetIPPoolTags(ipPoolName string) (map[string]string, error) {
 		return nil, err
 	}
 
-	client := infra.NewDefaultIpPoolsClient(e.Connector())
+	client := infra.NewIpPoolsClient(e.Connector())
 	pool, err := client.Get(id)
 	if err != nil {
 		return nil, err

@@ -88,7 +88,7 @@ func generateID(prefix string) string {
 }
 
 func getRealizedIPAddress(connector vapiclient.Connector, ipAllocationPath string, timeout time.Duration) (*string, error) {
-	client := realized_state.NewDefaultRealizedEntitiesClient(connector)
+	client := realized_state.NewRealizedEntitiesClient(connector)
 
 	// wait for realized state
 	limit := time.Now().Add(timeout)
@@ -299,7 +299,7 @@ func newDHCPConfig(spec vinfra.NSXTInfraSpec) (*dhcpConfig, error) {
 }
 
 func LookupIPPoolIDByName(ctx EnsurerContext, name string) (string, string, error) {
-	client := infra.NewDefaultIpPoolsClient(ctx.Connector())
+	client := infra.NewIpPoolsClient(ctx.Connector())
 	var cursor *string
 	total := 0
 	count := 0
