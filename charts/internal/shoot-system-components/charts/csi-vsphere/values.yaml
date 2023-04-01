@@ -11,6 +11,7 @@ datacenters: dc1
 insecureFlag: true
 # topology-aware setup
 topologyAware: true
+kubernetesServiceHost: kubernetes.example.com
 
 #labelRegion: k8s-region
 #labelZone: k8s-zone

@@ -22,7 +22,7 @@ spec:
         role: vsphere-csi
     spec:
       hostNetwork: true
-      dnsPolicy: "ClusterFirstWithHostNet"
+      dnsPolicy: Default
       priorityClassName: system-node-critical
       serviceAccount: csi-driver-node
       tolerations:
@@ -87,6 +87,8 @@ spec:
           value: kube-system
         - name: NODEGETINFO_WATCH_TIMEOUT_MINUTES
           value: "1"
+        - name: KUBERNETES_SERVICE_HOST
+          value: {{ .Values.kubernetesServiceHost }}
         securityContext:
           privileged: true
           capabilities:

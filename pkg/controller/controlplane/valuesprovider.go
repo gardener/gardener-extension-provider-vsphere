@@ -711,6 +711,11 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 		return nil, fmt.Errorf("secret %q not found", caNameControlPlane)
 	}
 
+	kubernetesServiceHost, err := vp.getKubernetesServiceHost(cluster)
+	if err != nil {
+		return nil, err
+	}
+
 	_, csiClusterID := vp.calcClusterIDs(cp)
 	values := map[string]interface{}{
 		"csi-vsphere": map[string]interface{}{
@@ -725,7 +730,8 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 				"url":      "https://" + vsphere.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
 				"caBundle": string(caSecret.Data[secretutils.DataKeyCertificateBundle]),
 			},
-			"pspDisabled": gardencorev1beta1helper.IsPSPDisabled(cluster.Shoot),
+			"pspDisabled":           gardencorev1beta1helper.IsPSPDisabled(cluster.Shoot),
+			"kubernetesServiceHost": kubernetesServiceHost,
 		},
 	}
 
@@ -741,6 +747,15 @@ func (vp *valuesProvider) calcClusterIDs(cp *extensionsv1alpha1.ControlPlane) (c
 	clusterID = cp.Namespace + "-" + vp.gardenID
 	csiClusterID = shortenID(clusterID, 63)
 	return
+}
+
+func (vp *valuesProvider) getKubernetesServiceHost(cluster *extensionscontroller.Cluster) (string, error) {
+	for _, addr := range cluster.Shoot.Status.AdvertisedAddresses {
+		if addr.Name == "internal" {
+			return strings.TrimPrefix(addr.URL, "https://"), nil
+		}
+	}
+	return "", fmt.Errorf("cannot find internal advertised address of kube-apiserver")
 }
 
 func shortenID(id string, maxlen int) string {

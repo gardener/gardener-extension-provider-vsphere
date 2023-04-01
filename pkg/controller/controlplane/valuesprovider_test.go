@@ -345,7 +345,8 @@ insecure-flag = "true"
 					"url":      "https://" + vsphere.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
 					"caBundle": "",
 				},
-				"pspDisabled": false,
+				"pspDisabled":           false,
+				"kubernetesServiceHost": "api.foo.test.com",
 			},
 		}
 
@@ -400,6 +401,11 @@ insecure-flag = "true"
 						ControlPlaneConfig: &runtime.RawExtension{
 							Raw: encode(cpConfig),
 						},
+					},
+				},
+				Status: gardencorev1beta1.ShootStatus{
+					AdvertisedAddresses: []gardencorev1beta1.ShootAdvertisedAddress{
+						{Name: "internal", URL: "https://api.foo.test.com"},
 					},
 				},
 			},
@@ -536,7 +542,8 @@ insecure-flag = "true"
 							"url":      "https://" + vsphere.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
 							"caBundle": "",
 						},
-						"pspDisabled": false,
+						"pspDisabled":           false,
+						"kubernetesServiceHost": "api.foo.test.com",
 					},
 				}
 
@@ -573,7 +580,8 @@ insecure-flag = "true"
 							"url":      "https://" + vsphere.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
 							"caBundle": "",
 						},
-						"pspDisabled": true,
+						"pspDisabled":           true,
+						"kubernetesServiceHost": "api.foo.test.com",
 					},
 				}
 
