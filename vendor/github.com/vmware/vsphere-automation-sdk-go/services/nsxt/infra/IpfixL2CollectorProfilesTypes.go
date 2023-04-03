@@ -1,34 +1,30 @@
-/* Copyright © 2019 VMware, Inc. All Rights Reserved.
-   SPDX-License-Identifier: BSD-2-Clause */
+// Copyright © 2019-2021 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
 
-// Code generated. DO NOT EDIT.
+// Auto generated code. DO NOT EDIT.
 
-/*
- * Data type definitions file for service: IpfixL2CollectorProfiles.
- * Includes binding types of a structures and enumerations defined in the service.
- * Shared by client-side stubs and server-side skeletons to ensure type
- * compatibility.
- */
+// Data type definitions file for service: IpfixL2CollectorProfiles.
+// Includes binding types of a structures and enumerations defined in the service.
+// Shared by client-side stubs and server-side skeletons to ensure type
+// compatibility.
 
 package infra
 
 import (
-	"reflect"
-	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+	"reflect"
 )
-
-
-
-
 
 func ipfixL2CollectorProfilesDeleteInputType() bindings.StructType {
 	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
 	fields["ipfix_l2_collector_profile_id"] = bindings.NewStringType()
+	fields["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	fieldNameMap["ipfix_l2_collector_profile_id"] = "IpfixL2CollectorProfileId"
+	fieldNameMap["override"] = "Override"
 	var validators = []bindings.Validator{}
 	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
@@ -47,10 +43,14 @@ func ipfixL2CollectorProfilesDeleteRestMetadata() protocol.OperationRestMetadata
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
 	fields["ipfix_l2_collector_profile_id"] = bindings.NewStringType()
+	fields["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	fieldNameMap["ipfix_l2_collector_profile_id"] = "IpfixL2CollectorProfileId"
+	fieldNameMap["override"] = "Override"
+	paramsTypeMap["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	paramsTypeMap["ipfix_l2_collector_profile_id"] = bindings.NewStringType()
 	paramsTypeMap["ipfixL2CollectorProfileId"] = bindings.NewStringType()
 	pathParams["ipfix_l2_collector_profile_id"] = "ipfixL2CollectorProfileId"
+	queryParams["override"] = "override"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
 	return protocol.NewOperationRestMetadata(
@@ -71,7 +71,7 @@ func ipfixL2CollectorProfilesDeleteRestMetadata() protocol.OperationRestMetadata
 		204,
 		"",
 		errorHeaders,
-		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400,"com.vmware.vapi.std.errors.unauthorized": 403,"com.vmware.vapi.std.errors.service_unavailable": 503,"com.vmware.vapi.std.errors.internal_server_error": 500,"com.vmware.vapi.std.errors.not_found": 404})
+		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
 func ipfixL2CollectorProfilesGetInputType() bindings.StructType {
@@ -121,7 +121,7 @@ func ipfixL2CollectorProfilesGetRestMetadata() protocol.OperationRestMetadata {
 		200,
 		"",
 		errorHeaders,
-		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400,"com.vmware.vapi.std.errors.unauthorized": 403,"com.vmware.vapi.std.errors.service_unavailable": 503,"com.vmware.vapi.std.errors.internal_server_error": 500,"com.vmware.vapi.std.errors.not_found": 404})
+		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
 func ipfixL2CollectorProfilesListInputType() bindings.StructType {
@@ -200,7 +200,7 @@ func ipfixL2CollectorProfilesListRestMetadata() protocol.OperationRestMetadata {
 		200,
 		"",
 		errorHeaders,
-		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400,"com.vmware.vapi.std.errors.unauthorized": 403,"com.vmware.vapi.std.errors.service_unavailable": 503,"com.vmware.vapi.std.errors.internal_server_error": 500,"com.vmware.vapi.std.errors.not_found": 404})
+		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
 func ipfixL2CollectorProfilesPatchInputType() bindings.StructType {
@@ -208,8 +208,10 @@ func ipfixL2CollectorProfilesPatchInputType() bindings.StructType {
 	fieldNameMap := make(map[string]string)
 	fields["ipfix_l2_collector_profile_id"] = bindings.NewStringType()
 	fields["i_PFIX_l2_collector_profile"] = bindings.NewReferenceType(model.IPFIXL2CollectorProfileBindingType)
+	fields["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	fieldNameMap["ipfix_l2_collector_profile_id"] = "IpfixL2CollectorProfileId"
 	fieldNameMap["i_PFIX_l2_collector_profile"] = "IPFIXL2CollectorProfile"
+	fieldNameMap["override"] = "Override"
 	var validators = []bindings.Validator{}
 	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
@@ -229,12 +231,16 @@ func ipfixL2CollectorProfilesPatchRestMetadata() protocol.OperationRestMetadata 
 	bodyFieldsMap := map[string]string{}
 	fields["ipfix_l2_collector_profile_id"] = bindings.NewStringType()
 	fields["i_PFIX_l2_collector_profile"] = bindings.NewReferenceType(model.IPFIXL2CollectorProfileBindingType)
+	fields["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	fieldNameMap["ipfix_l2_collector_profile_id"] = "IpfixL2CollectorProfileId"
 	fieldNameMap["i_PFIX_l2_collector_profile"] = "IPFIXL2CollectorProfile"
+	fieldNameMap["override"] = "Override"
 	paramsTypeMap["i_PFIX_l2_collector_profile"] = bindings.NewReferenceType(model.IPFIXL2CollectorProfileBindingType)
+	paramsTypeMap["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	paramsTypeMap["ipfix_l2_collector_profile_id"] = bindings.NewStringType()
 	paramsTypeMap["ipfixL2CollectorProfileId"] = bindings.NewStringType()
 	pathParams["ipfix_l2_collector_profile_id"] = "ipfixL2CollectorProfileId"
+	queryParams["override"] = "override"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
 	return protocol.NewOperationRestMetadata(
@@ -255,7 +261,7 @@ func ipfixL2CollectorProfilesPatchRestMetadata() protocol.OperationRestMetadata 
 		204,
 		"",
 		errorHeaders,
-		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400,"com.vmware.vapi.std.errors.unauthorized": 403,"com.vmware.vapi.std.errors.service_unavailable": 503,"com.vmware.vapi.std.errors.internal_server_error": 500,"com.vmware.vapi.std.errors.not_found": 404})
+		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
 func ipfixL2CollectorProfilesUpdateInputType() bindings.StructType {
@@ -263,8 +269,10 @@ func ipfixL2CollectorProfilesUpdateInputType() bindings.StructType {
 	fieldNameMap := make(map[string]string)
 	fields["ipfix_l2_collector_profile_id"] = bindings.NewStringType()
 	fields["i_PFIX_l2_collector_profile"] = bindings.NewReferenceType(model.IPFIXL2CollectorProfileBindingType)
+	fields["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	fieldNameMap["ipfix_l2_collector_profile_id"] = "IpfixL2CollectorProfileId"
 	fieldNameMap["i_PFIX_l2_collector_profile"] = "IPFIXL2CollectorProfile"
+	fieldNameMap["override"] = "Override"
 	var validators = []bindings.Validator{}
 	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
@@ -284,12 +292,16 @@ func ipfixL2CollectorProfilesUpdateRestMetadata() protocol.OperationRestMetadata
 	bodyFieldsMap := map[string]string{}
 	fields["ipfix_l2_collector_profile_id"] = bindings.NewStringType()
 	fields["i_PFIX_l2_collector_profile"] = bindings.NewReferenceType(model.IPFIXL2CollectorProfileBindingType)
+	fields["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	fieldNameMap["ipfix_l2_collector_profile_id"] = "IpfixL2CollectorProfileId"
 	fieldNameMap["i_PFIX_l2_collector_profile"] = "IPFIXL2CollectorProfile"
+	fieldNameMap["override"] = "Override"
 	paramsTypeMap["i_PFIX_l2_collector_profile"] = bindings.NewReferenceType(model.IPFIXL2CollectorProfileBindingType)
+	paramsTypeMap["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	paramsTypeMap["ipfix_l2_collector_profile_id"] = bindings.NewStringType()
 	paramsTypeMap["ipfixL2CollectorProfileId"] = bindings.NewStringType()
 	pathParams["ipfix_l2_collector_profile_id"] = "ipfixL2CollectorProfileId"
+	queryParams["override"] = "override"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
 	return protocol.NewOperationRestMetadata(
@@ -310,7 +322,5 @@ func ipfixL2CollectorProfilesUpdateRestMetadata() protocol.OperationRestMetadata
 		200,
 		"",
 		errorHeaders,
-		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400,"com.vmware.vapi.std.errors.unauthorized": 403,"com.vmware.vapi.std.errors.service_unavailable": 503,"com.vmware.vapi.std.errors.internal_server_error": 500,"com.vmware.vapi.std.errors.not_found": 404})
+		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
-
-

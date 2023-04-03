@@ -1,34 +1,30 @@
-/* Copyright © 2019 VMware, Inc. All Rights Reserved.
-   SPDX-License-Identifier: BSD-2-Clause */
+// Copyright © 2019-2021 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
 
-// Code generated. DO NOT EDIT.
+// Auto generated code. DO NOT EDIT.
 
-/*
- * Data type definitions file for service: IpDiscoveryProfiles.
- * Includes binding types of a structures and enumerations defined in the service.
- * Shared by client-side stubs and server-side skeletons to ensure type
- * compatibility.
- */
+// Data type definitions file for service: IpDiscoveryProfiles.
+// Includes binding types of a structures and enumerations defined in the service.
+// Shared by client-side stubs and server-side skeletons to ensure type
+// compatibility.
 
 package infra
 
 import (
-	"reflect"
-	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+	"reflect"
 )
-
-
-
-
 
 func ipDiscoveryProfilesDeleteInputType() bindings.StructType {
 	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
 	fields["ip_discovery_profile_id"] = bindings.NewStringType()
+	fields["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	fieldNameMap["ip_discovery_profile_id"] = "IpDiscoveryProfileId"
+	fieldNameMap["override"] = "Override"
 	var validators = []bindings.Validator{}
 	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
@@ -47,10 +43,14 @@ func ipDiscoveryProfilesDeleteRestMetadata() protocol.OperationRestMetadata {
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
 	fields["ip_discovery_profile_id"] = bindings.NewStringType()
+	fields["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	fieldNameMap["ip_discovery_profile_id"] = "IpDiscoveryProfileId"
+	fieldNameMap["override"] = "Override"
 	paramsTypeMap["ip_discovery_profile_id"] = bindings.NewStringType()
+	paramsTypeMap["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	paramsTypeMap["ipDiscoveryProfileId"] = bindings.NewStringType()
 	pathParams["ip_discovery_profile_id"] = "ipDiscoveryProfileId"
+	queryParams["override"] = "override"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
 	return protocol.NewOperationRestMetadata(
@@ -71,7 +71,7 @@ func ipDiscoveryProfilesDeleteRestMetadata() protocol.OperationRestMetadata {
 		204,
 		"",
 		errorHeaders,
-		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400,"com.vmware.vapi.std.errors.unauthorized": 403,"com.vmware.vapi.std.errors.service_unavailable": 503,"com.vmware.vapi.std.errors.internal_server_error": 500,"com.vmware.vapi.std.errors.not_found": 404})
+		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
 func ipDiscoveryProfilesGetInputType() bindings.StructType {
@@ -121,7 +121,7 @@ func ipDiscoveryProfilesGetRestMetadata() protocol.OperationRestMetadata {
 		200,
 		"",
 		errorHeaders,
-		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400,"com.vmware.vapi.std.errors.unauthorized": 403,"com.vmware.vapi.std.errors.service_unavailable": 503,"com.vmware.vapi.std.errors.internal_server_error": 500,"com.vmware.vapi.std.errors.not_found": 404})
+		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
 func ipDiscoveryProfilesListInputType() bindings.StructType {
@@ -200,7 +200,7 @@ func ipDiscoveryProfilesListRestMetadata() protocol.OperationRestMetadata {
 		200,
 		"",
 		errorHeaders,
-		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400,"com.vmware.vapi.std.errors.unauthorized": 403,"com.vmware.vapi.std.errors.service_unavailable": 503,"com.vmware.vapi.std.errors.internal_server_error": 500,"com.vmware.vapi.std.errors.not_found": 404})
+		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
 func ipDiscoveryProfilesPatchInputType() bindings.StructType {
@@ -208,8 +208,10 @@ func ipDiscoveryProfilesPatchInputType() bindings.StructType {
 	fieldNameMap := make(map[string]string)
 	fields["ip_discovery_profile_id"] = bindings.NewStringType()
 	fields["ip_discovery_profile"] = bindings.NewReferenceType(model.IPDiscoveryProfileBindingType)
+	fields["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	fieldNameMap["ip_discovery_profile_id"] = "IpDiscoveryProfileId"
 	fieldNameMap["ip_discovery_profile"] = "IpDiscoveryProfile"
+	fieldNameMap["override"] = "Override"
 	var validators = []bindings.Validator{}
 	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
@@ -229,12 +231,16 @@ func ipDiscoveryProfilesPatchRestMetadata() protocol.OperationRestMetadata {
 	bodyFieldsMap := map[string]string{}
 	fields["ip_discovery_profile_id"] = bindings.NewStringType()
 	fields["ip_discovery_profile"] = bindings.NewReferenceType(model.IPDiscoveryProfileBindingType)
+	fields["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	fieldNameMap["ip_discovery_profile_id"] = "IpDiscoveryProfileId"
 	fieldNameMap["ip_discovery_profile"] = "IpDiscoveryProfile"
+	fieldNameMap["override"] = "Override"
 	paramsTypeMap["ip_discovery_profile_id"] = bindings.NewStringType()
+	paramsTypeMap["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	paramsTypeMap["ip_discovery_profile"] = bindings.NewReferenceType(model.IPDiscoveryProfileBindingType)
 	paramsTypeMap["ipDiscoveryProfileId"] = bindings.NewStringType()
 	pathParams["ip_discovery_profile_id"] = "ipDiscoveryProfileId"
+	queryParams["override"] = "override"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
 	return protocol.NewOperationRestMetadata(
@@ -255,7 +261,7 @@ func ipDiscoveryProfilesPatchRestMetadata() protocol.OperationRestMetadata {
 		204,
 		"",
 		errorHeaders,
-		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400,"com.vmware.vapi.std.errors.unauthorized": 403,"com.vmware.vapi.std.errors.service_unavailable": 503,"com.vmware.vapi.std.errors.internal_server_error": 500,"com.vmware.vapi.std.errors.not_found": 404})
+		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
 func ipDiscoveryProfilesUpdateInputType() bindings.StructType {
@@ -263,8 +269,10 @@ func ipDiscoveryProfilesUpdateInputType() bindings.StructType {
 	fieldNameMap := make(map[string]string)
 	fields["ip_discovery_profile_id"] = bindings.NewStringType()
 	fields["ip_discovery_profile"] = bindings.NewReferenceType(model.IPDiscoveryProfileBindingType)
+	fields["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	fieldNameMap["ip_discovery_profile_id"] = "IpDiscoveryProfileId"
 	fieldNameMap["ip_discovery_profile"] = "IpDiscoveryProfile"
+	fieldNameMap["override"] = "Override"
 	var validators = []bindings.Validator{}
 	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
@@ -284,12 +292,16 @@ func ipDiscoveryProfilesUpdateRestMetadata() protocol.OperationRestMetadata {
 	bodyFieldsMap := map[string]string{}
 	fields["ip_discovery_profile_id"] = bindings.NewStringType()
 	fields["ip_discovery_profile"] = bindings.NewReferenceType(model.IPDiscoveryProfileBindingType)
+	fields["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	fieldNameMap["ip_discovery_profile_id"] = "IpDiscoveryProfileId"
 	fieldNameMap["ip_discovery_profile"] = "IpDiscoveryProfile"
+	fieldNameMap["override"] = "Override"
 	paramsTypeMap["ip_discovery_profile_id"] = bindings.NewStringType()
+	paramsTypeMap["override"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	paramsTypeMap["ip_discovery_profile"] = bindings.NewReferenceType(model.IPDiscoveryProfileBindingType)
 	paramsTypeMap["ipDiscoveryProfileId"] = bindings.NewStringType()
 	pathParams["ip_discovery_profile_id"] = "ipDiscoveryProfileId"
+	queryParams["override"] = "override"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
 	return protocol.NewOperationRestMetadata(
@@ -310,7 +322,5 @@ func ipDiscoveryProfilesUpdateRestMetadata() protocol.OperationRestMetadata {
 		200,
 		"",
 		errorHeaders,
-		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400,"com.vmware.vapi.std.errors.unauthorized": 403,"com.vmware.vapi.std.errors.service_unavailable": 503,"com.vmware.vapi.std.errors.internal_server_error": 500,"com.vmware.vapi.std.errors.not_found": 404})
+		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
-
-

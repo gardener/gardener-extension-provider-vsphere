@@ -43,7 +43,11 @@ type Configuration struct {
 	ClientAuthCertFile   string
 	ClientAuthKeyFile    string
 	CAFile               string
+	ClientAuthCertString string
+	ClientAuthKeyString  string
+	CAString             string
 	Insecure             bool
+	SkipSessionAuth      bool
 	RetriesConfiguration ClientRetriesConfiguration
 	HTTPClient           *http.Client
 }

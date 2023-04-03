@@ -1,28 +1,86 @@
-/* Copyright © 2019 VMware, Inc. All Rights Reserved.
-   SPDX-License-Identifier: BSD-2-Clause */
+// Copyright © 2019-2021 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
 
-// Code generated. DO NOT EDIT.
+// Auto generated code. DO NOT EDIT.
 
-/*
- * Data type definitions file for service: TransportZones.
- * Includes binding types of a structures and enumerations defined in the service.
- * Shared by client-side stubs and server-side skeletons to ensure type
- * compatibility.
- */
+// Data type definitions file for service: TransportZones.
+// Includes binding types of a structures and enumerations defined in the service.
+// Shared by client-side stubs and server-side skeletons to ensure type
+// compatibility.
 
 package enforcement_points
 
 import (
-	"reflect"
-	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+	"reflect"
 )
 
+func transportZonesDeleteInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
+	fieldNameMap := make(map[string]string)
+	fields["site_id"] = bindings.NewStringType()
+	fields["enforcementpoint_id"] = bindings.NewStringType()
+	fields["transport_zone_id"] = bindings.NewStringType()
+	fieldNameMap["site_id"] = "SiteId"
+	fieldNameMap["enforcementpoint_id"] = "EnforcementpointId"
+	fieldNameMap["transport_zone_id"] = "TransportZoneId"
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
+}
 
+func transportZonesDeleteOutputType() bindings.BindingType {
+	return bindings.NewVoidType()
+}
 
-
+func transportZonesDeleteRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
+	fieldNameMap := map[string]string{}
+	paramsTypeMap := map[string]bindings.BindingType{}
+	pathParams := map[string]string{}
+	queryParams := map[string]string{}
+	headerParams := map[string]string{}
+	dispatchHeaderParams := map[string]string{}
+	bodyFieldsMap := map[string]string{}
+	fields["site_id"] = bindings.NewStringType()
+	fields["enforcementpoint_id"] = bindings.NewStringType()
+	fields["transport_zone_id"] = bindings.NewStringType()
+	fieldNameMap["site_id"] = "SiteId"
+	fieldNameMap["enforcementpoint_id"] = "EnforcementpointId"
+	fieldNameMap["transport_zone_id"] = "TransportZoneId"
+	paramsTypeMap["enforcementpoint_id"] = bindings.NewStringType()
+	paramsTypeMap["site_id"] = bindings.NewStringType()
+	paramsTypeMap["transport_zone_id"] = bindings.NewStringType()
+	paramsTypeMap["siteId"] = bindings.NewStringType()
+	paramsTypeMap["enforcementpointId"] = bindings.NewStringType()
+	paramsTypeMap["transportZoneId"] = bindings.NewStringType()
+	pathParams["enforcementpoint_id"] = "enforcementpointId"
+	pathParams["transport_zone_id"] = "transportZoneId"
+	pathParams["site_id"] = "siteId"
+	resultHeaders := map[string]string{}
+	errorHeaders := map[string]map[string]string{}
+	return protocol.NewOperationRestMetadata(
+		fields,
+		fieldNameMap,
+		paramsTypeMap,
+		pathParams,
+		queryParams,
+		headerParams,
+		dispatchHeaderParams,
+		bodyFieldsMap,
+		"",
+		"",
+		"DELETE",
+		"/policy/api/v1/infra/sites/{siteId}/enforcement-points/{enforcementpointId}/transport-zones/{transportZoneId}",
+		"",
+		resultHeaders,
+		204,
+		"",
+		errorHeaders,
+		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
+}
 
 func transportZonesGetInputType() bindings.StructType {
 	fields := make(map[string]bindings.BindingType)
@@ -85,7 +143,7 @@ func transportZonesGetRestMetadata() protocol.OperationRestMetadata {
 		200,
 		"",
 		errorHeaders,
-		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400,"com.vmware.vapi.std.errors.unauthorized": 403,"com.vmware.vapi.std.errors.service_unavailable": 503,"com.vmware.vapi.std.errors.internal_server_error": 500,"com.vmware.vapi.std.errors.not_found": 404})
+		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
 func transportZonesListInputType() bindings.StructType {
@@ -178,7 +236,143 @@ func transportZonesListRestMetadata() protocol.OperationRestMetadata {
 		200,
 		"",
 		errorHeaders,
-		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400,"com.vmware.vapi.std.errors.unauthorized": 403,"com.vmware.vapi.std.errors.service_unavailable": 503,"com.vmware.vapi.std.errors.internal_server_error": 500,"com.vmware.vapi.std.errors.not_found": 404})
+		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
+func transportZonesPatchInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
+	fieldNameMap := make(map[string]string)
+	fields["site_id"] = bindings.NewStringType()
+	fields["enforcementpoint_id"] = bindings.NewStringType()
+	fields["transport_zone_id"] = bindings.NewStringType()
+	fields["policy_transport_zone"] = bindings.NewReferenceType(model.PolicyTransportZoneBindingType)
+	fieldNameMap["site_id"] = "SiteId"
+	fieldNameMap["enforcementpoint_id"] = "EnforcementpointId"
+	fieldNameMap["transport_zone_id"] = "TransportZoneId"
+	fieldNameMap["policy_transport_zone"] = "PolicyTransportZone"
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
+}
 
+func transportZonesPatchOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.PolicyTransportZoneBindingType)
+}
+
+func transportZonesPatchRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
+	fieldNameMap := map[string]string{}
+	paramsTypeMap := map[string]bindings.BindingType{}
+	pathParams := map[string]string{}
+	queryParams := map[string]string{}
+	headerParams := map[string]string{}
+	dispatchHeaderParams := map[string]string{}
+	bodyFieldsMap := map[string]string{}
+	fields["site_id"] = bindings.NewStringType()
+	fields["enforcementpoint_id"] = bindings.NewStringType()
+	fields["transport_zone_id"] = bindings.NewStringType()
+	fields["policy_transport_zone"] = bindings.NewReferenceType(model.PolicyTransportZoneBindingType)
+	fieldNameMap["site_id"] = "SiteId"
+	fieldNameMap["enforcementpoint_id"] = "EnforcementpointId"
+	fieldNameMap["transport_zone_id"] = "TransportZoneId"
+	fieldNameMap["policy_transport_zone"] = "PolicyTransportZone"
+	paramsTypeMap["enforcementpoint_id"] = bindings.NewStringType()
+	paramsTypeMap["policy_transport_zone"] = bindings.NewReferenceType(model.PolicyTransportZoneBindingType)
+	paramsTypeMap["site_id"] = bindings.NewStringType()
+	paramsTypeMap["transport_zone_id"] = bindings.NewStringType()
+	paramsTypeMap["siteId"] = bindings.NewStringType()
+	paramsTypeMap["enforcementpointId"] = bindings.NewStringType()
+	paramsTypeMap["transportZoneId"] = bindings.NewStringType()
+	pathParams["enforcementpoint_id"] = "enforcementpointId"
+	pathParams["transport_zone_id"] = "transportZoneId"
+	pathParams["site_id"] = "siteId"
+	resultHeaders := map[string]string{}
+	errorHeaders := map[string]map[string]string{}
+	return protocol.NewOperationRestMetadata(
+		fields,
+		fieldNameMap,
+		paramsTypeMap,
+		pathParams,
+		queryParams,
+		headerParams,
+		dispatchHeaderParams,
+		bodyFieldsMap,
+		"",
+		"policy_transport_zone",
+		"PATCH",
+		"/policy/api/v1/infra/sites/{siteId}/enforcement-points/{enforcementpointId}/transport-zones/{transportZoneId}",
+		"",
+		resultHeaders,
+		200,
+		"",
+		errorHeaders,
+		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
+}
+
+func transportZonesUpdateInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
+	fieldNameMap := make(map[string]string)
+	fields["site_id"] = bindings.NewStringType()
+	fields["enforcementpoint_id"] = bindings.NewStringType()
+	fields["transport_zone_id"] = bindings.NewStringType()
+	fields["policy_transport_zone"] = bindings.NewReferenceType(model.PolicyTransportZoneBindingType)
+	fieldNameMap["site_id"] = "SiteId"
+	fieldNameMap["enforcementpoint_id"] = "EnforcementpointId"
+	fieldNameMap["transport_zone_id"] = "TransportZoneId"
+	fieldNameMap["policy_transport_zone"] = "PolicyTransportZone"
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
+}
+
+func transportZonesUpdateOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.PolicyTransportZoneBindingType)
+}
+
+func transportZonesUpdateRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
+	fieldNameMap := map[string]string{}
+	paramsTypeMap := map[string]bindings.BindingType{}
+	pathParams := map[string]string{}
+	queryParams := map[string]string{}
+	headerParams := map[string]string{}
+	dispatchHeaderParams := map[string]string{}
+	bodyFieldsMap := map[string]string{}
+	fields["site_id"] = bindings.NewStringType()
+	fields["enforcementpoint_id"] = bindings.NewStringType()
+	fields["transport_zone_id"] = bindings.NewStringType()
+	fields["policy_transport_zone"] = bindings.NewReferenceType(model.PolicyTransportZoneBindingType)
+	fieldNameMap["site_id"] = "SiteId"
+	fieldNameMap["enforcementpoint_id"] = "EnforcementpointId"
+	fieldNameMap["transport_zone_id"] = "TransportZoneId"
+	fieldNameMap["policy_transport_zone"] = "PolicyTransportZone"
+	paramsTypeMap["enforcementpoint_id"] = bindings.NewStringType()
+	paramsTypeMap["policy_transport_zone"] = bindings.NewReferenceType(model.PolicyTransportZoneBindingType)
+	paramsTypeMap["site_id"] = bindings.NewStringType()
+	paramsTypeMap["transport_zone_id"] = bindings.NewStringType()
+	paramsTypeMap["siteId"] = bindings.NewStringType()
+	paramsTypeMap["enforcementpointId"] = bindings.NewStringType()
+	paramsTypeMap["transportZoneId"] = bindings.NewStringType()
+	pathParams["enforcementpoint_id"] = "enforcementpointId"
+	pathParams["transport_zone_id"] = "transportZoneId"
+	pathParams["site_id"] = "siteId"
+	resultHeaders := map[string]string{}
+	errorHeaders := map[string]map[string]string{}
+	return protocol.NewOperationRestMetadata(
+		fields,
+		fieldNameMap,
+		paramsTypeMap,
+		pathParams,
+		queryParams,
+		headerParams,
+		dispatchHeaderParams,
+		bodyFieldsMap,
+		"",
+		"policy_transport_zone",
+		"PUT",
+		"/policy/api/v1/infra/sites/{siteId}/enforcement-points/{enforcementpointId}/transport-zones/{transportZoneId}",
+		"",
+		resultHeaders,
+		200,
+		"",
+		errorHeaders,
+		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
+}

@@ -110,7 +110,7 @@ func createIPPoolPolicy(logger logr.Logger, connector vapiclient.Connector, ipPo
 	id := ipPoolName
 	logger.Info("Creating IP Pool (policy)", "id", id, "name", ipPoolName)
 
-	client := infra.NewDefaultIpPoolsClient(connector)
+	client := infra.NewIpPoolsClient(connector)
 	_, err := client.Get(id)
 	if err == nil {
 		return fmt.Errorf("pool with id %s already existing", id)
@@ -129,7 +129,7 @@ func createIPPoolPolicy(logger logr.Logger, connector vapiclient.Connector, ipPo
 		return errors.Wrap(err, "creating IP pool failed")
 	}
 
-	subnetClient := ip_pools.NewDefaultIpSubnetsClient(connector)
+	subnetClient := ip_pools.NewIpSubnetsClient(connector)
 	subnetID, subnetParam, err := ipAddressPoolStaticSubnetToStructValue(createdObj.Path, ipPoolName, ipPoolRanges, ipPoolCidr)
 	if err != nil {
 		return errors.Wrap(err, "creating IP pool subnet struct value failed")
@@ -225,7 +225,7 @@ func deleteIPPoolAdvanced(logger logr.Logger, nsxClient *nsxt.APIClient, ipPoolN
 func deleteIPPoolPolicy(logger logr.Logger, connector vapiclient.Connector, ipPoolName string) error {
 	logger.Info("Deleting IP Pool (policy)", "name", ipPoolName)
 
-	client := infra.NewDefaultIpPoolsClient(connector)
+	client := infra.NewIpPoolsClient(connector)
 	list, err := client.List(nil, nil, nil, nil, nil, nil)
 
 	if err != nil {
@@ -234,7 +234,7 @@ func deleteIPPoolPolicy(logger logr.Logger, connector vapiclient.Connector, ipPo
 
 	for _, pool := range list.Results {
 		if pool.DisplayName != nil && *pool.DisplayName == ipPoolName {
-			subnetClient := ip_pools.NewDefaultIpSubnetsClient(connector)
+			subnetClient := ip_pools.NewIpSubnetsClient(connector)
 			subnets, err := subnetClient.List(*pool.Id, nil, nil, nil, nil, nil, nil)
 			if err != nil {
 				return errors.Wrap(err, "listing subnets failed")
