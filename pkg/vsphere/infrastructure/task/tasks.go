@@ -432,7 +432,6 @@ func makeDhcpConfig(cfg *dhcpConfig) (*data.StructValue, error) {
 	}
 
 	converter := bindings.NewTypeConverter()
-	converter.SetMode(bindings.REST)
 	dataValue, errs := converter.ConvertToVapi(config, model.SegmentDhcpV4ConfigBindingType())
 	if errs != nil {
 		return nil, errs[0]
@@ -476,7 +475,6 @@ func equivalentSingleSubnet(a []model.SegmentSubnet, b []model.SegmentSubnet) bo
 		return a0.DhcpConfig == b0.DhcpConfig
 	}
 	converter := bindings.NewTypeConverter()
-	converter.SetMode(bindings.REST)
 	cfga0, err := converter.ConvertToGolang(a0.DhcpConfig, model.SegmentDhcpV4ConfigBindingType())
 	if err != nil {
 		return false

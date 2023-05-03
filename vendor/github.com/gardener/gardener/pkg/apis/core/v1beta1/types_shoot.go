@@ -500,7 +500,7 @@ type HibernationSchedule struct {
 	// End is a Cron spec at which time a Shoot will be woken up.
 	// +optional
 	End *string `json:"end,omitempty" protobuf:"bytes,2,opt,name=end"`
-	// Location is the time location in which both start and and shall be evaluated.
+	// Location is the time location in which both start and shall be evaluated.
 	// +optional
 	Location *string `json:"location,omitempty" protobuf:"bytes,3,opt,name=location"`
 }
@@ -850,6 +850,9 @@ type AdmissionPlugin struct {
 	// Disabled specifies whether this plugin should be disabled.
 	// +optional
 	Disabled *bool `json:"disabled,omitempty" protobuf:"varint,3,opt,name=disabled"`
+	// KubeconfigSecretName specifies the name of a secret containing the kubeconfig for this admission plugin.
+	// +optional
+	KubeconfigSecretName *string `json:"kubeconfigSecretName,omitempty" protobuf:"bytes,4,opt,name=kubeconfigSecretName"`
 }
 
 // WatchCacheSizes contains configuration of the API server's watch cache sizes.

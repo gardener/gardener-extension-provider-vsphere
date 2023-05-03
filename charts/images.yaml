@@ -2,7 +2,7 @@ images:
 - name: csi-attacher
   sourceRepository: github.com/kubernetes-csi/external-attacher
   repository: registry.k8s.io/sig-storage/csi-attacher
-  tag: v4.2.0
+  tag: v4.3.0
   labels:
     - name: 'gardener.cloud/cve-categorisation'
       value:
@@ -15,7 +15,7 @@ images:
 - name: csi-resizer
   sourceRepository: github.com/kubernetes-csi/external-resizer
   repository: registry.k8s.io/sig-storage/csi-resizer
-  tag: v1.7.0
+  tag: v1.8.0
   labels:
     - name: 'gardener.cloud/cve-categorisation'
       value:
@@ -28,7 +28,7 @@ images:
 - name: csi-node-driver-registrar
   sourceRepository: github.com/kubernetes-csi/node-driver-registrar
   repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
-  tag: v2.7.0
+  tag: v2.8.0
   labels:
     - name: 'gardener.cloud/cve-categorisation'
       value:
@@ -41,7 +41,7 @@ images:
 - name: csi-provisioner
   sourceRepository: github.com/kubernetes-csi/external-provisioner
   repository: registry.k8s.io/sig-storage/csi-provisioner
-  tag: v3.4.0
+  tag: v3.5.0
   targetVersion: ">= 1.20"
   labels:
     - name: 'gardener.cloud/cve-categorisation'
@@ -97,7 +97,7 @@ images:
 - name: vsphere-cloud-controller-manager
   sourceRepository: github.com/kubernetes/cloud-provider-vsphere
   repository: gcr.io/cloud-provider-vsphere/cpi/release/manager
-  tag: v1.25.0
+  tag: v1.26.1
   labels:
     - name: 'gardener.cloud/cve-categorisation'
       value:
@@ -123,7 +123,7 @@ images:
 - name: machine-controller-manager-provider-vsphere
   sourceRepository: github.com/gardener/machine-controller-manager-provider-vsphere
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager-provider-vsphere
-  tag: "v0.21.0"
+  tag: "v0.22.0"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -136,7 +136,7 @@ images:
 - name: vsphere-csi-driver-controller
   sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   repository: gcr.io/cloud-provider-vsphere/csi/release/driver
-  tag: v3.0.0
+  tag: v3.0.1
   labels:
     - name: 'gardener.cloud/cve-categorisation'
       value:
@@ -149,7 +149,7 @@ images:
 - name: vsphere-csi-driver-node
   sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   repository: gcr.io/cloud-provider-vsphere/csi/release/driver
-  tag: v3.0.0
+  tag: v3.0.1
   labels:
     - name: 'gardener.cloud/cve-categorisation'
       value:
@@ -162,7 +162,7 @@ images:
 - name: vsphere-csi-driver-syncer
   sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
   repository: gcr.io/cloud-provider-vsphere/csi/release/syncer
-  tag: v3.0.0
+  tag: v3.0.1
   labels:
     - name: 'gardener.cloud/cve-categorisation'
       value:
