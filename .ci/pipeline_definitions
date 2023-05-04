@@ -50,13 +50,6 @@ gardener-extension-provider-vsphere:
         scheduling:
           suppress_parallel_execution: true
         <<: *publish_anchor
-    create-upgrade-prs:
-      traits:
-        component_descriptor: ~
-        version: ~
-        cronjob:
-          interval: '5m'
-        update_component_deps: ~
     scan_artifacts:
       traits:
         component_descriptor: ~
