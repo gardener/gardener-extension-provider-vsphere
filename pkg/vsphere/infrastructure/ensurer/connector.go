@@ -35,14 +35,14 @@ import (
 	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 )
 
-type remoteBasicAuthHeaderProcessor struct {
-}
+//type remoteBasicAuthHeaderProcessor struct {
+//}
+//
+//func newRemoteBasicAuthHeaderProcessor() *remoteBasicAuthHeaderProcessor {
+//	return &remoteBasicAuthHeaderProcessor{}
+//}
 
-func newRemoteBasicAuthHeaderProcessor() *remoteBasicAuthHeaderProcessor {
-	return &remoteBasicAuthHeaderProcessor{}
-}
-
-func (processor remoteBasicAuthHeaderProcessor) Process(req *http.Request) error {
+func Process(req *http.Request) error {
 	oldAuthHeader := req.Header.Get("Authorization")
 	newAuthHeader := strings.Replace(oldAuthHeader, "Basic", "Remote", 1)
 	req.Header.Set("Authorization", newAuthHeader)
@@ -123,11 +123,12 @@ func createConnector(nsxtConfig *vinfra.NSXTConfig) (client.Connector, error) {
 	if err != nil {
 		return nil, err
 	}
-	connector := client.NewRestConnector(*url, *httpClient)
-	connector.SetSecurityContext(securityCtx)
+	connectorOptions := []client.ConnectorOption{client.UsingRest(nil), client.WithHttpClient(httpClient)}
 	if nsxtConfig.RemoteAuth {
-		connector.AddRequestProcessor(newRemoteBasicAuthHeaderProcessor())
+		connectorOptions = append(connectorOptions, client.WithRequestProcessors(Process))
 	}
+	connector := client.NewConnector(*url, connectorOptions...)
+	connector.SetSecurityContext(securityCtx)
 
 	// perform API call to check connector
 	_, err = infra.NewTier0sClient(connector).List(nil, nil, nil, nil, nil, nil)

@@ -167,7 +167,6 @@ func ipAddressPoolStaticSubnetToStructValue(poolPath *string, ipPoolName, ipPool
 	obj.AllocationRanges = poolRanges
 
 	converter := bindings.NewTypeConverter()
-	converter.SetMode(bindings.REST)
 
 	dataValue, errs := converter.ConvertToVapi(obj, model.IpAddressPoolStaticSubnetBindingType())
 	if errs != nil {

@@ -61,6 +61,10 @@ message AdmissionPlugin {
   // Disabled specifies whether this plugin should be disabled.
   // +optional
   optional bool disabled = 3;
+
+  // KubeconfigSecretName specifies the name of a secret containing the kubeconfig for this admission plugin.
+  // +optional
+  optional string kubeconfigSecretName = 4;
 }
 
 // Alerting contains information about how alerting will be done (i.e. who will receive alerts and how).
@@ -865,7 +869,7 @@ message HibernationSchedule {
   // +optional
   optional string end = 2;
 
-  // Location is the time location in which both start and and shall be evaluated.
+  // Location is the time location in which both start and shall be evaluated.
   // +optional
   optional string location = 3;
 }
@@ -2223,6 +2227,10 @@ message SeedSettingLoadBalancerServicesZones {
 }
 
 // SeedSettingOwnerChecks controls certain owner checks settings for shoots scheduled on this seed.
+//
+// Deprecated: This field is deprecated. The "bad-case" control plane migration is being removed in favor of the HA Shoot control planes (see https://github.com/gardener/gardener/issues/6302).
+// The field will be locked to false in a future version of Gardener. In this way gardenlet will clean up all owner DNSRecords. Finally, the field will be removed from the API.
+// Set this field to false to be prepared for the above-mentioned locking.
 message SeedSettingOwnerChecks {
   // Enabled controls whether owner checks are enabled for shoots scheduled on this seed. It
   // is enabled by default because it is a prerequisite for control plane migration.
@@ -2272,6 +2280,10 @@ message SeedSettings {
   optional SeedSettingVerticalPodAutoscaler verticalPodAutoscaler = 5;
 
   // SeedSettingOwnerChecks controls certain owner checks settings for shoots scheduled on this seed.
+  //
+  // Deprecated: This field is deprecated. The "bad-case" control plane migration is being removed in favor of the HA Shoot control planes (see https://github.com/gardener/gardener/issues/6302).
+  // The field will be locked to false in a future version of Gardener. In this way gardenlet will clean up all owner DNSRecords. Finally, the field will be removed from the API.
+  // Set this field to false to be prepared for the above-mentioned locking.
   // +optional
   optional SeedSettingOwnerChecks ownerChecks = 6;
 

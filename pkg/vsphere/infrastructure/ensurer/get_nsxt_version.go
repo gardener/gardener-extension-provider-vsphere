@@ -20,10 +20,7 @@ package ensurer
 import (
 	"fmt"
 
-	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
-	"github.com/vmware/vsphere-automation-sdk-go/runtime/lib"
-	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 
 	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
@@ -35,45 +32,15 @@ func GetNSXTVersion(nsxtConfig *vinfra.NSXTConfig) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return getNSXTVersion(connector)
+	return getNSXTVersion(connector, nsxtConfig)
 }
 
-func getNSXTVersion(connector client.Connector) (*string, error) {
-	buildRestMetadata := func() protocol.OperationRestMetadata {
-		fields := map[string]bindings.BindingType{}
-		fieldNameMap := map[string]string{}
-		paramsTypeMap := map[string]bindings.BindingType{}
-		pathParams := map[string]string{}
-		queryParams := map[string]string{}
-		headerParams := map[string]string{}
-		dispatchHeaderParams := map[string]string{}
-		bodyFieldsMap := map[string]string{}
-		resultHeaders := map[string]string{}
-		errorHeaders := map[string]map[string]string{}
-		return protocol.NewOperationRestMetadata(
-			fields,
-			fieldNameMap,
-			paramsTypeMap,
-			pathParams,
-			queryParams,
-			headerParams,
-			dispatchHeaderParams,
-			bodyFieldsMap,
-			"",
-			"",
-			"GET",
-			"/api/v1/node/version",
-			"",
-			resultHeaders,
-			200,
-			"",
-			errorHeaders,
-			map[string]int{"InvalidRequest": 400, "Unauthorized": 403, "ServiceUnavailable": 503, "InternalServerError": 500, "NotFound": 404})
+func getNSXTVersion(connector client.Connector, config *vinfra.NSXTConfig) (*string, error) {
+	context, err := createSecurityContext(config)
+	if err != nil {
+		return nil, fmt.Errorf("Could not create security context: %s", err)
 	}
-
-	restMetadata := buildRestMetadata()
-	connectionMetadata := map[string]interface{}{lib.REST_METADATA: restMetadata}
-	connector.SetConnectionMetadata(connectionMetadata)
+	connector.SetSecurityContext(context)
 	inputValue := data.NewStructValue("dummy", nil)
 	methodResult := connector.GetApiProvider().Invoke("", "", inputValue, nil)
 	if !methodResult.IsSuccess() {
