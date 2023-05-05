@@ -20,9 +20,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"strconv"
 
-	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	corev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
@@ -71,41 +69,12 @@ func (w *workerDelegate) GenerateMachineDeployments(ctx context.Context) (worker
 	return w.machineDeployments, nil
 }
 
-func (w *workerDelegate) generateMachineClassSecretData(ctx context.Context) (map[string][]byte, error) {
-	secret, err := extensionscontroller.GetSecretByReference(ctx, w.Client(), &w.worker.Spec.SecretRef)
-	if err != nil {
-		return nil, err
-	}
-
-	credentials, err := vsphere.ExtractCredentials(secret)
-	if err != nil {
-		return nil, err
-	}
-
-	region := helper.FindRegion(w.cluster.Shoot.Spec.Region, w.cloudProfileConfig)
-	if region == nil {
-		return nil, fmt.Errorf("region %q not found", w.cluster.Shoot.Spec.Region)
-	}
-
-	return map[string][]byte{
-		vsphere.Host:        []byte(region.VsphereHost),
-		vsphere.Username:    []byte(credentials.VsphereMCM().Username),
-		vsphere.Password:    []byte(credentials.VsphereMCM().Password),
-		vsphere.InsecureSSL: []byte(strconv.FormatBool(region.VsphereInsecureSSL)),
-	}, nil
-}
-
 func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 	var (
 		machineDeployments = worker.MachineDeployments{}
 		machineClasses     []map[string]interface{}
 		machineImages      []apisvsphere.MachineImage
 	)
-
-	machineClassSecretData, err := w.generateMachineClassSecretData(ctx)
-	if err != nil {
-		return err
-	}
 
 	infrastructureStatus, err := helper.GetInfrastructureStatus(w.worker.Namespace, w.worker.Spec.InfrastructureProviderStatus)
 	if err != nil {
@@ -170,6 +139,10 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 					"mcm.gardener.cloud/cluster": w.worker.Namespace,
 					"mcm.gardener.cloud/role":    "node",
 				},
+				"credentialsSecretRef": map[string]interface{}{
+					"name":      w.worker.Spec.SecretRef.Name,
+					"namespace": w.worker.Spec.SecretRef.Namespace,
+				},
 				"secret": map[string]interface{}{
 					"cloudConfig": string(pool.UserData),
 				},
@@ -216,11 +189,6 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 			})
 
 			machineClassSpec["name"] = className
-			secretMap := machineClassSpec["secret"].(map[string]interface{})
-			for k, v := range machineClassSecretData {
-				secretMap[k] = string(v)
-			}
-
 			machineClasses = append(machineClasses, machineClassSpec)
 		}
 	}
