@@ -11,8 +11,6 @@ type: Opaque
 data:
   userData: {{ $machineClass.secret.cloudConfig | b64enc }}
   vsphereHost: {{ $machineClass.secret.vsphereHost | b64enc }}
-  vsphereUsername: {{ $machineClass.secret.vsphereUsername | b64enc }}
-  vspherePassword: {{ $machineClass.secret.vspherePassword | b64enc }}
   vsphereInsecureSSL: {{ $machineClass.secret.vsphereInsecureSSL | b64enc }}
 ---
 apiVersion: machine.sapcloud.io/v1alpha1

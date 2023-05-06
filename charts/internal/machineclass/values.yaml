@@ -26,8 +26,6 @@ machineClasses:
   secret:
     cloudConfig: abc
     vsphereHost: "a_host"
-    vsphereUsername: "a_user"
-    vspherePassword: "a_password"
     vsphereInsecureSSL: "true"
   credentialsSecretRef:
     name: cloudprovider
