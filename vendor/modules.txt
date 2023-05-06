@@ -408,7 +408,7 @@ github.com/munnerz/goautoneg
 # github.com/nwaples/rardecode v1.1.2
 ## explicit
 github.com/nwaples/rardecode
-# github.com/onsi/ginkgo/v2 v2.9.2
+# github.com/onsi/ginkgo/v2 v2.8.3
 ## explicit; go 1.18
 github.com/onsi/ginkgo/v2
 github.com/onsi/ginkgo/v2/config
@@ -430,7 +430,7 @@ github.com/onsi/ginkgo/v2/internal/parallel_support
 github.com/onsi/ginkgo/v2/internal/testingtproxy
 github.com/onsi/ginkgo/v2/reporters
 github.com/onsi/ginkgo/v2/types
-# github.com/onsi/gomega v1.27.6
+# github.com/onsi/gomega v1.27.1
 ## explicit; go 1.18
 github.com/onsi/gomega
 github.com/onsi/gomega/format
@@ -1291,7 +1291,7 @@ k8s.io/client-go/util/workqueue
 # k8s.io/cloud-provider v0.26.3
 ## explicit; go 1.19
 k8s.io/cloud-provider
-# k8s.io/cloud-provider-vsphere v1.26.1 => github.com/briantopping/cloud-provider-vsphere v1.25.1-0.20230503224600-862eeed8229c
+# k8s.io/cloud-provider-vsphere v1.26.1
 ## explicit; go 1.19
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer/config
@@ -1360,7 +1360,7 @@ k8s.io/gengo/generator
 k8s.io/gengo/namer
 k8s.io/gengo/parser
 k8s.io/gengo/types
-# k8s.io/helm v2.17.0+incompatible
+# k8s.io/helm v2.17.0+incompatible => k8s.io/helm v2.16.1+incompatible
 ## explicit
 k8s.io/helm/internal/third_party/dep/fs
 k8s.io/helm/pkg/chartutil
@@ -1527,4 +1527,4 @@ sigs.k8s.io/structured-merge-diff/v4/value
 ## explicit; go 1.12
 sigs.k8s.io/yaml
 # k8s.io/client-go => k8s.io/client-go v0.26.3
-# k8s.io/cloud-provider-vsphere => github.com/briantopping/cloud-provider-vsphere v1.25.1-0.20230503224600-862eeed8229c
+# k8s.io/helm => k8s.io/helm v2.16.1+incompatible

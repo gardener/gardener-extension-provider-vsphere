@@ -9,7 +9,6 @@ import (
 	"github.com/onsi/ginkgo/v2/internal/parallel_support"
 	"github.com/onsi/ginkgo/v2/reporters"
 	"github.com/onsi/ginkgo/v2/types"
-	"golang.org/x/net/context"
 )
 
 type Phase uint
@@ -20,13 +19,9 @@ const (
 	PhaseRun
 )
 
-var PROGRESS_REPORTER_DEADLING = 5 * time.Second
-
 type Suite struct {
 	tree               *TreeNode
 	topLevelContainers Nodes
-
-	*ProgressReporterManager
 
 	phase Phase
 
@@ -69,9 +64,8 @@ type Suite struct {
 
 func NewSuite() *Suite {
 	return &Suite{
-		tree:                    &TreeNode{},
-		phase:                   PhaseBuildTopLevel,
-		ProgressReporterManager: NewProgressReporterManager(),
+		tree:  &TreeNode{},
+		phase: PhaseBuildTopLevel,
 
 		selectiveLock: &sync.Mutex{},
 	}
@@ -344,13 +338,10 @@ func (suite *Suite) generateProgressReport(fullReport bool) types.ProgressReport
 	suite.selectiveLock.Lock()
 	defer suite.selectiveLock.Unlock()
 
-	deadline, cancel := context.WithTimeout(context.Background(), PROGRESS_REPORTER_DEADLING)
-	defer cancel()
 	var additionalReports []string
 	if suite.currentSpecContext != nil {
-		additionalReports = append(additionalReports, suite.currentSpecContext.QueryProgressReporters(deadline, suite.failer)...)
+		additionalReports = suite.currentSpecContext.QueryProgressReporters()
 	}
-	additionalReports = append(additionalReports, suite.QueryProgressReporters(deadline, suite.failer)...)
 	gwOutput := suite.currentSpecReport.CapturedGinkgoWriterOutput + string(suite.writer.Bytes())
 	pr, err := NewProgressReport(suite.isRunningInParallel(), suite.currentSpecReport, suite.currentNode, suite.currentNodeStartTime, suite.currentByStep, gwOutput, timelineLocation, additionalReports, suite.config.SourceRoots, fullReport)
 

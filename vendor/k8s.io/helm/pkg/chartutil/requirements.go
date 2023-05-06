@@ -17,9 +17,7 @@ package chartutil
 
 import (
 	"errors"
-	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
@@ -221,9 +219,6 @@ func ProcessRequirementsTags(reqs *Requirements, cvals Values) {
 
 }
 
-// Validate alias names against this regexp
-var aliasRegexp = regexp.MustCompile("^[a-zA-Z0-9-_]+$")
-
 func getAliasDependency(charts []*chart.Chart, aliasChart *Dependency) *chart.Chart {
 	var chartFound chart.Chart
 	for _, existingChart := range charts {
@@ -242,11 +237,6 @@ func getAliasDependency(charts []*chart.Chart, aliasChart *Dependency) *chart.Ch
 		chartFound = *existingChart
 		newMetadata := *existingChart.Metadata
 		if aliasChart.Alias != "" {
-			// Make sure Alias is well-formed
-			if !aliasRegexp.MatchString(aliasChart.Alias) {
-				fmt.Printf("Invalid alias in dependency %q. Skipping.", aliasChart.Name)
-				continue
-			}
 			newMetadata.Name = aliasChart.Alias
 		}
 		chartFound.Metadata = &newMetadata
@@ -296,9 +286,6 @@ func doProcessRequirementsEnabled(c *chart.Chart, v *chart.Config, path string) 
 			chartDependencies = append(chartDependencies, chartDependency)
 		}
 		if req.Alias != "" {
-			if !aliasRegexp.MatchString(req.Alias) {
-				return fmt.Errorf("illegal alias name in %q", req.Name)
-			}
 			req.Name = req.Alias
 		}
 	}
@@ -409,7 +396,7 @@ func processImportValues(c *chart.Chart) error {
 	if err != nil {
 		return err
 	}
-	b := make(map[string]interface{}, 0)
+	b := cvals.AsMap()
 	// import values from each dependency if specified in import-values
 	for _, r := range reqs.Dependencies {
 		// only process raw requirement that is found in chart's dependencies (enabled)
@@ -430,34 +417,42 @@ func processImportValues(c *chart.Chart) error {
 		if len(r.ImportValues) > 0 {
 			var outiv []interface{}
 			for _, riv := range r.ImportValues {
-				nm := make(map[string]string, 0)
 				switch iv := riv.(type) {
 				case map[string]interface{}:
-					nm["child"] = iv["child"].(string)
-					nm["parent"] = iv["parent"].(string)
+					nm := map[string]string{
+						"child":  iv["child"].(string),
+						"parent": iv["parent"].(string),
+					}
+					outiv = append(outiv, nm)
+					s := name + "." + nm["child"]
+					// get child table
+					vv, err := cvals.Table(s)
+					if err != nil {
+						log.Printf("Warning: ImportValues missing table: %v", err)
+						continue
+					}
+					// create value map from child to be merged into parent
+					vm := pathToMap(nm["parent"], vv.AsMap())
+					b = coalesceTables(b, vm, c.Metadata.Name)
 				case string:
-					nm["child"] = "exports." + iv
-					nm["parent"] = "."
+					nm := map[string]string{
+						"child":  "exports." + iv,
+						"parent": ".",
+					}
+					outiv = append(outiv, nm)
+					s := name + "." + nm["child"]
+					vm, err := cvals.Table(s)
+					if err != nil {
+						log.Printf("Warning: ImportValues missing table: %v", err)
+						continue
+					}
+					b = coalesceTables(b, vm.AsMap(), c.Metadata.Name)
 				}
-
-				outiv = append(outiv, nm)
-				s := name + "." + nm["child"]
-				// get child table
-				vv, err := cvals.Table(s)
-				if err != nil {
-					log.Printf("Warning: ImportValues missing table: %v", err)
-					continue
-				}
-				// create value map from child to be merged into parent
-				vm := pathToMap(nm["parent"], vv.AsMap())
-				b = coalesceTables(b, vm, c.Metadata.Name)
-
 			}
 			// set our formatted import values
 			r.ImportValues = outiv
 		}
 	}
-	b = coalesceTables(b, cvals, c.Metadata.Name)
 	y, err := yaml.Marshal(b)
 	if err != nil {
 		return err

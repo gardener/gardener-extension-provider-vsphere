@@ -1,5 +1,5 @@
-//go:build ginkgoclidependencies
-// +build ginkgoclidependencies
+//go:build tools
+// +build tools
 
 package ginkgo
 

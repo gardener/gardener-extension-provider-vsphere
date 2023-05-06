@@ -36,9 +36,6 @@ type JunitReportConfig struct {
 
 	// Enable OmitLeafNodeType to prevent the spec leaf node type from appearing in the spec name
 	OmitLeafNodeType bool
-
-	// Enable OmitSuiteSetupNodes to prevent the creation of testcase entries for setup nodes
-	OmitSuiteSetupNodes bool
 }
 
 type JUnitTestSuites struct {
@@ -180,9 +177,6 @@ func GenerateJUnitReportWithConfig(report types.Report, dst string, config Junit
 		},
 	}
 	for _, spec := range report.SpecReports {
-		if config.OmitSuiteSetupNodes && spec.LeafNodeType != types.NodeTypeIt {
-			continue
-		}
 		name := fmt.Sprintf("[%s]", spec.LeafNodeType)
 		if config.OmitLeafNodeType {
 			name = ""
