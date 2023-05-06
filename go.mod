@@ -165,5 +165,4 @@ require (
 replace (
 	k8s.io/client-go => k8s.io/client-go v0.26.3
 	k8s.io/cloud-provider-vsphere => github.com/briantopping/cloud-provider-vsphere v1.25.1-0.20230503224600-862eeed8229c
-	k8s.io/helm => k8s.io/helm v2.16.1+incompatible
 )
