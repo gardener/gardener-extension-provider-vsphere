@@ -391,7 +391,7 @@ insecure-flag = "true"
 				},
 				Spec: gardencorev1beta1.ShootSpec{
 					Region: "testregion",
-					Networking: gardencorev1beta1.Networking{
+					Networking: &gardencorev1beta1.Networking{
 						Pods: &cidr,
 					},
 					Kubernetes: gardencorev1beta1.Kubernetes{

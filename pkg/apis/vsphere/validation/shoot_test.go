@@ -33,7 +33,7 @@ var _ = Describe("Shoot validation", func() {
 		var networkingPath = field.NewPath("spec", "networking")
 
 		It("should return no error because nodes CIDR was provided", func() {
-			networking := core.Networking{
+			networking := &core.Networking{
 				Nodes: pointer.StringPtr("1.2.3.4/5"),
 			}
 
@@ -43,7 +43,7 @@ var _ = Describe("Shoot validation", func() {
 		})
 
 		It("should return an error because no nodes CIDR was provided", func() {
-			networking := core.Networking{}
+			networking := &core.Networking{}
 
 			errorList := ValidateNetworking(networking, networkingPath)
 
@@ -68,10 +68,10 @@ var _ = Describe("Shoot validation", func() {
 		})
 
 		It("should return no error because nodes CIDR was not changed", func() {
-			networking := core.Networking{
+			networking := &core.Networking{
 				Nodes: nodes,
 			}
-			oldNetworking := core.Networking{
+			oldNetworking := &core.Networking{
 				Nodes: oldNodes,
 			}
 
@@ -81,10 +81,10 @@ var _ = Describe("Shoot validation", func() {
 
 		It("should return an error because nodes CIDR changed", func() {
 			nodes = pointer.String("100.0.0.0/8")
-			networking := core.Networking{
+			networking := &core.Networking{
 				Nodes: nodes,
 			}
-			oldNetworking := core.Networking{
+			oldNetworking := &core.Networking{
 				Nodes: oldNodes,
 			}
 

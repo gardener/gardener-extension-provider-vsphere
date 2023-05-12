@@ -39,6 +39,10 @@ var _ = Describe("InfrastructureConfig validation", func() {
 	})
 
 	Describe("#ValidateInfrastructureConfig", func() {
+		It("should return no errors for a nil configuration", func() {
+			Expect(ValidateInfrastructureConfig(nil, nilPath)).To(BeEmpty())
+		})
+
 		It("should return no errors for a valid configuration", func() {
 			Expect(ValidateInfrastructureConfig(infrastructureConfig, nilPath)).To(BeEmpty())
 		})
