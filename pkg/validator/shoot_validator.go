@@ -110,10 +110,14 @@ func (v *Shoot) validateShoot(context *validationContext) field.ErrorList {
 
 func (v *Shoot) validateShootSecret(ctx context.Context, shoot *core.Shoot) error {
 	var (
-		secretBinding    = &gardencorev1beta1.SecretBinding{}
-		secretBindingKey = kutil.Key(shoot.Namespace, shoot.Spec.SecretBindingName)
+		secretBinding = &gardencorev1beta1.SecretBinding{}
 	)
 
+	if shoot.Spec.SecretBindingName == nil {
+		return fmt.Errorf("secretBindingName can't be set to nil")
+	}
+
+	secretBindingKey := kutil.Key(shoot.Namespace, *shoot.Spec.SecretBindingName)
 	if err := kutil.LookupObject(ctx, v.client, v.apiReader, secretBindingKey, secretBinding); err != nil {
 		return err
 	}
