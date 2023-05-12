@@ -65,8 +65,7 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 				HealthCheck:   general.NewSeedDeploymentHealthChecker(vsphere.CloudControllerManagerName),
 			},
 		},
-		// TODO(acumino): Remove this condition in a future release.
-		sets.New[gardencorev1beta1.ConditionType](gardencorev1beta1.ShootSystemComponentsHealthy),
+		sets.Set[gardencorev1beta1.ConditionType]{},
 	); err != nil {
 		return err
 	}
@@ -89,8 +88,7 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 				HealthCheck:   worker.NewNodesChecker(),
 			},
 		},
-		// TODO(acumino): Remove this condition in a future release.
-		sets.New[gardencorev1beta1.ConditionType](gardencorev1beta1.ShootSystemComponentsHealthy),
+		sets.Set[gardencorev1beta1.ConditionType]{},
 	)
 }
 
