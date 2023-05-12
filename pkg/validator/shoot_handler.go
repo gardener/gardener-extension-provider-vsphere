@@ -20,6 +20,7 @@ import (
 
 	"github.com/gardener/gardener/extensions/pkg/util"
 	"github.com/gardener/gardener/pkg/apis/core"
+	gardencorehelper "github.com/gardener/gardener/pkg/apis/core/helper"
 	"github.com/go-logr/logr"
 	admissionv1 "k8s.io/api/admission/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -48,6 +49,11 @@ func (v *Shoot) Handle(ctx context.Context, req admission.Request) admission.Res
 
 	if shoot.Spec.Provider.Type != vsphere.Type {
 		return admission.Allowed("webhook not responsible for this provider")
+	}
+
+	// skip validation if it's a workerless Shoot
+	if gardencorehelper.IsWorkerless(shoot) {
+		return admission.Allowed("validations succeeded")
 	}
 
 	switch req.Operation {
