@@ -26,6 +26,10 @@ DEPLOY_REGISTRY=true
 MULTI_ZONAL=false
 CHART=$(dirname "$0")/../example/gardener-local/kind/cluster
 ADDITIONAL_ARGS=""
+SUDO=""
+if [[ "$(id -u)" != "0" ]]; then
+  SUDO="sudo "
+fi
 
 parse_flags() {
   while test $# -gt 0; do
@@ -103,12 +107,12 @@ setup_loopback_device() {
     LOOPBACK_IP_ADDRESSES+=(::10 ::11 ::12)
   fi
   echo "Checking loopback device ${LOOPBACK_DEVICE}..."
-  for address in ${LOOPBACK_IP_ADDRESSES[@]}; do
+  for address in "${LOOPBACK_IP_ADDRESSES[@]}"; do
     if ip address show dev ${LOOPBACK_DEVICE} | grep -q $address; then
       echo "IP address $address already assigned to ${LOOPBACK_DEVICE}."
     else
       echo "Adding IP address $address to ${LOOPBACK_DEVICE}..."
-      sudo ip address add $address dev ${LOOPBACK_DEVICE}
+      ${SUDO}ip address add "$address" dev "${LOOPBACK_DEVICE}"
     fi
   done
   echo "Setting up loopback device ${LOOPBACK_DEVICE} completed."
@@ -136,7 +140,7 @@ fi
 
 kind create cluster \
   --name "$CLUSTER_NAME" \
-  --image "kindest/node:v1.24.7" \
+  --image "kindest/node:v1.26.3" \
   --config <(helm template $CHART --values "$PATH_CLUSTER_VALUES" $ADDITIONAL_ARGS --set "environment=$ENVIRONMENT" --set "gardener.repositoryRoot"=$(dirname "$0")/..)
 
 # adjust Kind's CRI default OCI runtime spec for new containers to include the cgroup namespace
@@ -196,6 +200,10 @@ if [[ "$CLUSTER_NAME" == "gardener-local2" ]] ; then
   garden_cluster="gardener-local"
 fi
 
+if [[ "$CLUSTER_NAME" == "gardener-local2-ha-single-zone" ]]; then
+  garden_cluster="gardener-local-ha-single-zone"
+fi
+
 ip_address_field="IPAddress"
 if [[ "$IPFAMILY" == "ipv6" ]]; then
   ip_address_field="GlobalIPv6Address"
@@ -211,11 +219,11 @@ kubectl get nodes -o name |\
 # Inject garden.local.gardener.cloud into coredns config (after ready plugin, before kubernetes plugin)
 kubectl -n kube-system get configmap coredns -ojson | \
   yq '.data.Corefile' | \
-  sed '0,/ready.*$/s//&'" \n\
-    hosts { \n\
-      $garden_cluster_ip garden.local.gardener.cloud \n\
-      fallthrough \n\
-    } \
+  sed '0,/ready.*$/s//&'"\n\
+    hosts {\n\
+      $garden_cluster_ip garden.local.gardener.cloud\n\
+      fallthrough\n\
+    }\
 "'/' | \
   kubectl -n kube-system create configmap coredns --from-file Corefile=/dev/stdin --dry-run=client -oyaml | \
   kubectl -n kube-system patch configmap coredns --patch-file /dev/stdin
@@ -231,7 +239,7 @@ kubectl apply -k "$(dirname "$0")/../example/gardener-local/metrics-server"   --
 
 kubectl get nodes -l node-role.kubernetes.io/control-plane -o name |\
   cut -d/ -f2 |\
-  xargs -I {} kubectl taint node {} node-role.kubernetes.io/master:NoSchedule- node-role.kubernetes.io/control-plane:NoSchedule- || true
+  xargs -I {} kubectl taint node {} node-role.kubernetes.io/control-plane:NoSchedule- || true
 
 # Allow multiple shoot worker nodes with calico as shoot CNI: As we run overlay in overlay ip-in-ip needs to be allowed in the workload.
 # Unfortunately, the felix configuration is created on the fly by calico. Hence, we need to poll until kubectl wait for new resources

@@ -30,18 +30,20 @@ import (
 func ValidateInfrastructureConfig(infra *api.InfrastructureConfig, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
-	if !isValidEnsurerVersion(infra.OverwriteNSXTInfraVersion) {
-		allErrs = append(allErrs, field.NotSupported(fldPath.Child("overwriteNSXTInfraVersion"),
-			*infra.OverwriteNSXTInfraVersion, api.SupportedEnsurerVersions))
-	}
-
-	if infra.Networks != nil {
-		pathNetworks := fldPath.Child("networks")
-		if infra.Networks.Tier1GatewayPath == "" {
-			allErrs = append(allErrs, field.Required(pathNetworks.Child("tier1GatewayPath"), "required if networks is specified"))
+	if infra != nil {
+		if !isValidEnsurerVersion(infra.OverwriteNSXTInfraVersion) {
+			allErrs = append(allErrs, field.NotSupported(fldPath.Child("overwriteNSXTInfraVersion"),
+				*infra.OverwriteNSXTInfraVersion, api.SupportedEnsurerVersions))
 		}
-		if infra.Networks.LoadBalancerServicePath == "" {
-			allErrs = append(allErrs, field.Required(pathNetworks.Child("loadBalancerServicePath"), "required if networks is specified"))
+
+		if infra.Networks != nil {
+			pathNetworks := fldPath.Child("networks")
+			if infra.Networks.Tier1GatewayPath == "" {
+				allErrs = append(allErrs, field.Required(pathNetworks.Child("tier1GatewayPath"), "required if networks is specified"))
+			}
+			if infra.Networks.LoadBalancerServicePath == "" {
+				allErrs = append(allErrs, field.Required(pathNetworks.Child("loadBalancerServicePath"), "required if networks is specified"))
+			}
 		}
 	}
 	return allErrs
@@ -56,7 +58,7 @@ func ValidateInfrastructureConfigUpdate(oldConfig, newConfig *api.Infrastructure
 	allErrs := field.ErrorList{}
 
 	// networks is immutable
-	if !reflect.DeepEqual(oldConfig.Networks, newConfig.Networks) {
+	if oldConfig != nil && newConfig != nil && !reflect.DeepEqual(oldConfig.Networks, newConfig.Networks) {
 		allErrs = append(allErrs, field.Forbidden(fldPath.Child("networks"), "networks settings cannot be changed"))
 	}
 

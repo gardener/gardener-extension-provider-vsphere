@@ -370,7 +370,7 @@ func runTest(t1RefPath string, lbSvcRefPath string) {
 			Name: nameParts[len(nameParts)-1],
 		},
 		Spec: gardenerv1beta1.ShootSpec{
-			Networking: gardenerv1beta1.Networking{
+			Networking: &gardenerv1beta1.Networking{
 				Nodes: &nsxtInfraSpec.WorkersNetwork,
 			},
 			Provider: gardenerv1beta1.Provider{

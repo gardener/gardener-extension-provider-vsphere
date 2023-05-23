@@ -391,7 +391,7 @@ insecure-flag = "true"
 				},
 				Spec: gardencorev1beta1.ShootSpec{
 					Region: "testregion",
-					Networking: gardencorev1beta1.Networking{
+					Networking: &gardencorev1beta1.Networking{
 						Pods: &cidr,
 					},
 					Kubernetes: gardencorev1beta1.Kubernetes{
@@ -400,6 +400,11 @@ insecure-flag = "true"
 					Provider: gardencorev1beta1.Provider{
 						ControlPlaneConfig: &runtime.RawExtension{
 							Raw: encode(cpConfig),
+						},
+						Workers: []gardencorev1beta1.Worker{
+							{
+								Name: "test",
+							},
 						},
 					},
 				},
