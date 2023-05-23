@@ -79,13 +79,24 @@ github.com/evanphx/json-patch/v5
 # github.com/fatih/color v1.15.0
 ## explicit; go 1.17
 github.com/fatih/color
+# github.com/fluent/fluent-operator/v2 v2.2.0
+## explicit; go 1.19
+github.com/fluent/fluent-operator/v2/apis/fluentbit/v1alpha2
+github.com/fluent/fluent-operator/v2/apis/fluentbit/v1alpha2/plugins
+github.com/fluent/fluent-operator/v2/apis/fluentbit/v1alpha2/plugins/custom
+github.com/fluent/fluent-operator/v2/apis/fluentbit/v1alpha2/plugins/filter
+github.com/fluent/fluent-operator/v2/apis/fluentbit/v1alpha2/plugins/input
+github.com/fluent/fluent-operator/v2/apis/fluentbit/v1alpha2/plugins/output
+github.com/fluent/fluent-operator/v2/apis/fluentbit/v1alpha2/plugins/params
+github.com/fluent/fluent-operator/v2/apis/fluentbit/v1alpha2/plugins/parser
+github.com/fluent/fluent-operator/v2/pkg/utils
 # github.com/fsnotify/fsnotify v1.6.0
 ## explicit; go 1.16
 github.com/fsnotify/fsnotify
 # github.com/gardener/etcd-druid v0.16.1
 ## explicit; go 1.19
 github.com/gardener/etcd-druid/api/v1alpha1
-# github.com/gardener/gardener v1.70.2
+# github.com/gardener/gardener v1.71.0
 ## explicit; go 1.20
 github.com/gardener/gardener/.github
 github.com/gardener/gardener/.github/ISSUE_TEMPLATE
@@ -153,6 +164,14 @@ github.com/gardener/gardener/pkg/chartrenderer
 github.com/gardener/gardener/pkg/client/kubernetes
 github.com/gardener/gardener/pkg/client/kubernetes/cache
 github.com/gardener/gardener/pkg/client/kubernetes/mock
+github.com/gardener/gardener/pkg/component
+github.com/gardener/gardener/pkg/component/extensions/operatingsystemconfig/original/components
+github.com/gardener/gardener/pkg/component/extensions/operatingsystemconfig/original/components/containerd
+github.com/gardener/gardener/pkg/component/extensions/operatingsystemconfig/original/components/containerd/logrotate
+github.com/gardener/gardener/pkg/component/extensions/operatingsystemconfig/original/components/docker
+github.com/gardener/gardener/pkg/component/extensions/operatingsystemconfig/original/components/docker/logrotate
+github.com/gardener/gardener/pkg/component/extensions/operatingsystemconfig/original/components/kubelet
+github.com/gardener/gardener/pkg/component/extensions/operatingsystemconfig/utils
 github.com/gardener/gardener/pkg/controllerutils
 github.com/gardener/gardener/pkg/controllerutils/mapper
 github.com/gardener/gardener/pkg/controllerutils/predicate
@@ -163,13 +182,6 @@ github.com/gardener/gardener/pkg/gardenlet/apis/config/v1alpha1
 github.com/gardener/gardener/pkg/healthz
 github.com/gardener/gardener/pkg/logger
 github.com/gardener/gardener/pkg/mock/controller-runtime/client
-github.com/gardener/gardener/pkg/operation/botanist/component/extensions/operatingsystemconfig/original/components
-github.com/gardener/gardener/pkg/operation/botanist/component/extensions/operatingsystemconfig/original/components/containerd
-github.com/gardener/gardener/pkg/operation/botanist/component/extensions/operatingsystemconfig/original/components/containerd/logrotate
-github.com/gardener/gardener/pkg/operation/botanist/component/extensions/operatingsystemconfig/original/components/docker
-github.com/gardener/gardener/pkg/operation/botanist/component/extensions/operatingsystemconfig/original/components/docker/logrotate
-github.com/gardener/gardener/pkg/operation/botanist/component/extensions/operatingsystemconfig/original/components/kubelet
-github.com/gardener/gardener/pkg/operation/botanist/component/extensions/operatingsystemconfig/utils
 github.com/gardener/gardener/pkg/resourcemanager/controller/garbagecollector/references
 github.com/gardener/gardener/pkg/utils
 github.com/gardener/gardener/pkg/utils/chart
@@ -195,7 +207,7 @@ github.com/gardener/gardener/pkg/utils/validation/kubernetesversion
 github.com/gardener/gardener/pkg/utils/version
 github.com/gardener/gardener/test/framework
 github.com/gardener/gardener/test/testmachinery/extensions/generator
-github.com/gardener/gardener/test/utils/shoots/access
+github.com/gardener/gardener/test/utils/access
 # github.com/gardener/hvpa-controller/api v0.11.0
 ## explicit; go 1.19
 github.com/gardener/hvpa-controller/api/v1alpha1
@@ -217,6 +229,9 @@ github.com/go-logr/logr/funcr
 # github.com/go-logr/zapr v1.2.3
 ## explicit; go 1.16
 github.com/go-logr/zapr
+# github.com/go-openapi/errors v0.20.3
+## explicit; go 1.14
+github.com/go-openapi/errors
 # github.com/go-openapi/jsonpointer v0.19.6
 ## explicit; go 1.13
 github.com/go-openapi/jsonpointer
