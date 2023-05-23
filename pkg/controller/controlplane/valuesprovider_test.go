@@ -401,6 +401,11 @@ insecure-flag = "true"
 						ControlPlaneConfig: &runtime.RawExtension{
 							Raw: encode(cpConfig),
 						},
+						Workers: []gardencorev1beta1.Worker{
+							{
+								Name: "test",
+							},
+						},
 					},
 				},
 				Status: gardencorev1beta1.ShootStatus{
