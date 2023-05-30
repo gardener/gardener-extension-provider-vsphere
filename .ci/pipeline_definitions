@@ -44,6 +44,8 @@ gardener-extension-provider-vsphere:
           public_build_logs: true
         <<: *publish_anchor
     pull-request:
+      deploy_shoot: '.ci/deploy-shoot'
+      test_runner: '.ci/test-runner'
       traits:
         pull-request: ~
         component_descriptor: ~
