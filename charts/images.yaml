@@ -55,7 +55,7 @@ images:
 - name: csi-snapshotter
   sourceRepository: github.com/kubernetes-csi/external-snapshotter
   repository: registry.k8s.io/sig-storage/csi-snapshotter
-  tag: v6.2.1
+  tag: v6.2.2
   targetVersion: ">= 1.20"
   labels:
     - name: 'gardener.cloud/cve-categorisation'
@@ -69,7 +69,7 @@ images:
 - name: csi-snapshot-controller
   sourceRepository: github.com/kubernetes-csi/external-snapshotter
   repository: registry.k8s.io/sig-storage/snapshot-controller
-  tag: v6.2.1
+  tag: v6.2.2
   targetVersion: ">= 1.20"
   labels:
     - name: 'gardener.cloud/cve-categorisation'
@@ -83,7 +83,7 @@ images:
 - name: csi-snapshot-validation-webhook
   sourceRepository: github.com/kubernetes-csi/external-snapshotter
   repository: registry.k8s.io/sig-storage/snapshot-validation-webhook
-  tag: v6.2.1
+  tag: v6.2.2
   targetVersion: ">= 1.20"
   labels:
     - name: 'gardener.cloud/cve-categorisation'
@@ -110,7 +110,7 @@ images:
 - name: machine-controller-manager
   sourceRepository: github.com/gardener/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
-  tag: "v0.49.0"
+  tag: "v0.49.1"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:
@@ -123,7 +123,7 @@ images:
 - name: machine-controller-manager-provider-vsphere
   sourceRepository: github.com/gardener/machine-controller-manager-provider-vsphere
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager-provider-vsphere
-  tag: "v0.22.0"
+  tag: "v0.23.0"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
     value:

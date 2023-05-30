@@ -32,15 +32,10 @@ func GetNSXTVersion(nsxtConfig *vinfra.NSXTConfig) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return getNSXTVersion(connector, nsxtConfig)
+	return getNSXTVersion(connector)
 }
 
-func getNSXTVersion(connector client.Connector, config *vinfra.NSXTConfig) (*string, error) {
-	context, err := createSecurityContext(config)
-	if err != nil {
-		return nil, fmt.Errorf("Could not create security context: %s", err)
-	}
-	connector.SetSecurityContext(context)
+func getNSXTVersion(connector client.Connector) (*string, error) {
 	inputValue := data.NewStructValue("dummy", nil)
 	methodResult := connector.GetApiProvider().Invoke("", "", inputValue, nil)
 	if !methodResult.IsSuccess() {
