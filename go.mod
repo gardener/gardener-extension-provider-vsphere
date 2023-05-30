@@ -8,7 +8,7 @@ require (
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gardener/etcd-druid v0.16.1
 	github.com/gardener/gardener v1.71.0
-	github.com/gardener/machine-controller-manager v0.49.0
+	github.com/gardener/machine-controller-manager v0.49.2
 	github.com/go-logr/logr v1.2.4
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
@@ -165,7 +165,6 @@ require (
 )
 
 replace (
-	github.com/vmware/vsphere-automation-sdk-go/runtime => github.com/briantopping/vsphere-automation-sdk-go/runtime v0.0.0-20230530184132-d90421b2416b
 	k8s.io/client-go => k8s.io/client-go v0.26.3
 	k8s.io/cloud-provider-vsphere => github.com/briantopping/cloud-provider-vsphere v1.25.1-0.20230503224600-862eeed8229c
 )

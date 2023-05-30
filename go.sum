@@ -77,8 +77,6 @@ github.com/blang/semver/v4 v4.0.0 h1:1PFHFE6yCCTv8C1TeyNNarDzntLi7wMI5i/pzqYIsAM
 github.com/blang/semver/v4 v4.0.0/go.mod h1:IbckMUScFkM3pff0VJDNKRiT6TG/YpiHIM2yvyW5YoQ=
 github.com/briantopping/cloud-provider-vsphere v1.25.1-0.20230503224600-862eeed8229c h1:ke7LI6SjBmg1A4X7zQxEniYvxuwGABnJrNBlDJ36B7o=
 github.com/briantopping/cloud-provider-vsphere v1.25.1-0.20230503224600-862eeed8229c/go.mod h1:U+LYssJwj7XK2zi7UDn4riIu+6gIVgbijBBm6u2TOEg=
-github.com/briantopping/vsphere-automation-sdk-go/runtime v0.0.0-20230530184132-d90421b2416b h1:4EV+QX651xdxR2tiw8MuxK6gIiGDSvtuFhS8YxyQvYQ=
-github.com/briantopping/vsphere-automation-sdk-go/runtime v0.0.0-20230530184132-d90421b2416b/go.mod h1:qdzEFm2iK3dvlmm99EYYNxs70HbzuiHyENFD24Ps8fQ=
 github.com/bronze1man/yaml2json v0.0.0-20211227013850-8972abeaea25 h1:GMDsCxuwEJ1tYY5anXDexdmQ1BDVzyU5BDU7N3PQWl4=
 github.com/bronze1man/yaml2json v0.0.0-20211227013850-8972abeaea25/go.mod h1:mVTg4vqWRIHEJK5QnZhSXBUP8GmI7ArXGq182zSJbxM=
 github.com/bsm/ginkgo/v2 v2.5.0 h1:aOAnND1T40wEdAtkGSkvSICWeQ8L3UASX7YVCqQx+eQ=
@@ -158,8 +156,8 @@ github.com/gardener/gardener v1.71.0 h1:W0Yuc+QpLD/eyFLr9Xweuh92Jt5kFRIGRMF+wKmh
 github.com/gardener/gardener v1.71.0/go.mod h1:l6FaKO0wqF2qaUe4Zh05/CYGMNDAOuoqRGfHUnbjQ74=
 github.com/gardener/hvpa-controller/api v0.11.0 h1:+6gi0f1XUmVa9barLEaaBNo5u4Fv/XTOiLZ8Rw0jLag=
 github.com/gardener/hvpa-controller/api v0.11.0/go.mod h1:cPAMe1ixtY0X317+j7haOzk2pSReA2bpr4Cjnx99mLk=
-github.com/gardener/machine-controller-manager v0.49.0 h1:ZUQPhwVnLrgftFnM85035kDJJdWxIbL3iXHP6VgimJs=
-github.com/gardener/machine-controller-manager v0.49.0/go.mod h1:ypFf18+Y6mJpohfZrOJI+vq7NQ3Yn7Ke4ujW23u/6nM=
+github.com/gardener/machine-controller-manager v0.49.2 h1:Iuq4QXL0UMkVUGUhuwg6pkKV2tPPQQRqjj6cvp+FJco=
+github.com/gardener/machine-controller-manager v0.49.2/go.mod h1:ypFf18+Y6mJpohfZrOJI+vq7NQ3Yn7Ke4ujW23u/6nM=
 github.com/ghodss/yaml v0.0.0-20150909031657-73d445a93680/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/ghodss/yaml v1.0.0 h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
@@ -495,6 +493,8 @@ github.com/vmware/go-vmware-nsxt v0.0.0-20230223012718-d31b8a1ca05e h1:Vu41Q0Pv3
 github.com/vmware/go-vmware-nsxt v0.0.0-20230223012718-d31b8a1ca05e/go.mod h1:aRq5pxwgdJpAuP97SCjX1+Db32z/b0dggQ07FDF+fqE=
 github.com/vmware/vsphere-automation-sdk-go/lib v0.7.0 h1:pT+oqJ8FD5eUBQkl+e7LZwwtbwPvW5kDyyGXvt66gOM=
 github.com/vmware/vsphere-automation-sdk-go/lib v0.7.0/go.mod h1:f3+6YVZpNcK2pYyiQ94BoHWmjMj9BnYav0vNFuTiDVM=
+github.com/vmware/vsphere-automation-sdk-go/runtime v0.7.0 h1:pSBxa9Agh6bgW8Hr0A1eQxuwnxGTnuAVox8iQb023hg=
+github.com/vmware/vsphere-automation-sdk-go/runtime v0.7.0/go.mod h1:qdzEFm2iK3dvlmm99EYYNxs70HbzuiHyENFD24Ps8fQ=
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.11.0 h1:JLHgS3ffV52HXc9hXFDiFOqSwKv39hKiJIcEsGJ5S60=
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.11.0/go.mod h1:upLH9b9zpG86P0wwO4+gREf0lBXr8gYcs7P1FRZ9n30=
 github.com/xdg-go/pbkdf2 v1.0.0 h1:Su7DPu48wXMwC3bs7MCNG+z4FhcyEuz5dlvchbq0B0c=

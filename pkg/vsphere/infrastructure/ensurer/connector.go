@@ -24,12 +24,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/core"
-	"github.com/vmware/vsphere-automation-sdk-go/runtime/lib"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/security"
@@ -39,6 +39,7 @@ import (
 )
 
 func Process(req *http.Request) error {
+	fmt.Print(httputil.DumpRequest(req, true))
 	oldAuthHeader := req.Header.Get("Authorization")
 	newAuthHeader := strings.Replace(oldAuthHeader, "Basic", "Remote", 1)
 	req.Header.Set("Authorization", newAuthHeader)
@@ -61,41 +62,37 @@ func createHttpClient(nsxtConfig *vinfra.NSXTConfig) (*string, *http.Client, err
 	return &url, &httpClient, nil
 }
 
-func createSecurityContext(nsxtConfig *vinfra.NSXTConfig) (core.SecurityContext, error) {
-	securityCtx := core.NewSecurityContextImpl()
-	securityContextNeeded := true
+func addSecurityContext(connector client.Connector, nsxtConfig *vinfra.NSXTConfig) error {
 	if len(nsxtConfig.ClientAuthCertFile) > 0 {
-		securityContextNeeded = false
-	}
-
-	if securityContextNeeded {
+		securityCtx := core.NewSecurityContextImpl()
 		if len(nsxtConfig.VMCAccessToken) > 0 {
 			if nsxtConfig.VMCAuthHost == "" {
-				return nil, fmt.Errorf("vmc auth host must be provided if auth token is provided")
+				return fmt.Errorf("vmc auth host must be provided if auth token is provided")
 			}
 
 			apiToken, err := getAPIToken(nsxtConfig.VMCAuthHost, nsxtConfig.VMCAccessToken)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 			securityCtx.SetProperty(security.AUTHENTICATION_SCHEME_ID, security.OAUTH_SCHEME_ID)
 			securityCtx.SetProperty(security.ACCESS_TOKEN, apiToken)
 		} else {
 			if nsxtConfig.User == "" {
-				return nil, fmt.Errorf("username must be provided")
+				return fmt.Errorf("username must be provided")
 			}
 
 			if nsxtConfig.Password == "" {
-				return nil, fmt.Errorf("password must be provided")
+				return fmt.Errorf("password must be provided")
 			}
 
 			securityCtx.SetProperty(security.AUTHENTICATION_SCHEME_ID, security.USER_PASSWORD_SCHEME_ID)
 			securityCtx.SetProperty(security.USER_KEY, nsxtConfig.User)
 			securityCtx.SetProperty(security.PASSWORD_KEY, nsxtConfig.Password)
 		}
+		connector.SetSecurityContext(securityCtx)
 	}
-	return securityCtx, nil
+	return nil
 }
 
 func createConnectorNiceError(nsxtConfig *vinfra.NSXTConfig) (client.Connector, error) {
@@ -147,23 +144,18 @@ func createConnector(nsxtConfig *vinfra.NSXTConfig) (client.Connector, error) {
 	if err != nil {
 		return nil, err
 	}
-	securityCtx, err := createSecurityContext(nsxtConfig)
-	if err != nil {
-		return nil, err
-	}
 	connectorOptions := []client.ConnectorOption{
 		client.UsingRest(nil),
 		client.WithHttpClient(httpClient),
-		client.WithConnectionMetadata(
-			map[string]interface{}{
-				lib.REST_METADATA: buildRestMetadata(),
-			}),
 	}
 	if nsxtConfig.RemoteAuth {
 		connectorOptions = append(connectorOptions, client.WithRequestProcessors(Process))
 	}
 	connector := client.NewConnector(*url, connectorOptions...)
-	connector.SetSecurityContext(securityCtx)
+	err = addSecurityContext(connector, nsxtConfig)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to addSecurityContext: %v", err)
+	}
 
 	// perform API call to check connector
 	_, err = infra.NewTier0sClient(connector).List(nil, nil, nil, nil, nil, nil)

@@ -29,6 +29,9 @@ machineClasses:
     vsphereUsername: "a_user"
     vspherePassword: "a_password"
     vsphereInsecureSSL: "true"
+  credentialsSecretRef:
+    name: cloudprovider
+    namespace: shoot-namespace
   tags:
   - kubernetes.io/cluster/foo
   - kubernetes.io/role/node
