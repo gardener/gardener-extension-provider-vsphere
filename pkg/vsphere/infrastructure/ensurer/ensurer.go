@@ -64,7 +64,7 @@ func (e *ensurer) NSXTClient() *nsxt.APIClient {
 }
 
 func (e *ensurer) GetNSXTVersion() (*string, error) {
-	return getNSXTVersion(e.connector, nil)
+	return getNSXTVersion(e.connector)
 }
 
 func (e *ensurer) IsTryRecoverEnabled() bool {
@@ -112,7 +112,7 @@ func (e *ensurer) NewStateWithVersion(overwriteVersion *string) (*api.NSXTInfraS
 		}, nil
 	}
 
-	nsxtVersion, err := getNSXTVersion(e.connector, nil)
+	nsxtVersion, err := getNSXTVersion(e.connector)
 	if err != nil {
 		return nil, err
 	}

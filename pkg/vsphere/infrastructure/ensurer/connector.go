@@ -27,20 +27,16 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/core"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/lib"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/security"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra"
 
 	vinfra "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure"
 )
-
-//type remoteBasicAuthHeaderProcessor struct {
-//}
-//
-//func newRemoteBasicAuthHeaderProcessor() *remoteBasicAuthHeaderProcessor {
-//	return &remoteBasicAuthHeaderProcessor{}
-//}
 
 func Process(req *http.Request) error {
 	oldAuthHeader := req.Header.Get("Authorization")
@@ -114,6 +110,38 @@ func createConnectorNiceError(nsxtConfig *vinfra.NSXTConfig) (client.Connector, 
 	return connector, nil
 }
 
+func buildRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
+	fieldNameMap := map[string]string{}
+	paramsTypeMap := map[string]bindings.BindingType{}
+	pathParams := map[string]string{}
+	queryParams := map[string]string{}
+	headerParams := map[string]string{}
+	dispatchHeaderParams := map[string]string{}
+	bodyFieldsMap := map[string]string{}
+	resultHeaders := map[string]string{}
+	errorHeaders := map[string]map[string]string{}
+	return protocol.NewOperationRestMetadata(
+		fields,
+		fieldNameMap,
+		paramsTypeMap,
+		pathParams,
+		queryParams,
+		headerParams,
+		dispatchHeaderParams,
+		bodyFieldsMap,
+		"",
+		"",
+		"GET",
+		"/api/v1/node/version",
+		"",
+		resultHeaders,
+		200,
+		"",
+		errorHeaders,
+		map[string]int{"InvalidRequest": 400, "Unauthorized": 403, "ServiceUnavailable": 503, "InternalServerError": 500, "NotFound": 404})
+}
+
 func createConnector(nsxtConfig *vinfra.NSXTConfig) (client.Connector, error) {
 	url, httpClient, err := createHttpClient(nsxtConfig)
 	if err != nil {
@@ -123,7 +151,14 @@ func createConnector(nsxtConfig *vinfra.NSXTConfig) (client.Connector, error) {
 	if err != nil {
 		return nil, err
 	}
-	connectorOptions := []client.ConnectorOption{client.UsingRest(nil), client.WithHttpClient(httpClient)}
+	connectorOptions := []client.ConnectorOption{
+		client.UsingRest(nil),
+		client.WithHttpClient(httpClient),
+		client.WithConnectionMetadata(
+			map[string]interface{}{
+				lib.REST_METADATA: buildRestMetadata(),
+			}),
+	}
 	if nsxtConfig.RemoteAuth {
 		connectorOptions = append(connectorOptions, client.WithRequestProcessors(Process))
 	}
