@@ -541,7 +541,7 @@ github.com/vmware/go-vmware-nsxt/upgrade
 ## explicit; go 1.17
 github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std
 github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors
-# github.com/vmware/vsphere-automation-sdk-go/runtime v0.7.0
+# github.com/vmware/vsphere-automation-sdk-go/runtime v0.7.0 => github.com/briantopping/vsphere-automation-sdk-go/runtime v0.0.0-20230530184132-d90421b2416b
 ## explicit; go 1.17
 github.com/vmware/vsphere-automation-sdk-go/runtime/bindings
 github.com/vmware/vsphere-automation-sdk-go/runtime/common
@@ -1542,5 +1542,6 @@ sigs.k8s.io/structured-merge-diff/v4/value
 # sigs.k8s.io/yaml v1.3.0
 ## explicit; go 1.12
 sigs.k8s.io/yaml
+# github.com/vmware/vsphere-automation-sdk-go/runtime => github.com/briantopping/vsphere-automation-sdk-go/runtime v0.0.0-20230530184132-d90421b2416b
 # k8s.io/client-go => k8s.io/client-go v0.26.3
 # k8s.io/cloud-provider-vsphere => github.com/briantopping/cloud-provider-vsphere v1.25.1-0.20230503224600-862eeed8229c
