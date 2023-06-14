@@ -121,7 +121,7 @@ var configChart = &chart.Chart{
 	Name: "cloud-provider-config",
 	Path: filepath.Join(vsphere.InternalChartsPath, "cloud-provider-config"),
 	Objects: []*chart.Object{
-		{Type: &corev1.Secret{}, Name: vsphere.CloudProviderConfig},
+		{Type: &corev1.ConfigMap{}, Name: vsphere.CloudProviderConfig},
 	},
 }
 

@@ -333,6 +333,10 @@ var _ = Describe("Machines", func() {
 					"secret": map[string]interface{}{
 						"cloudConfig": string(userData),
 					},
+					"credentialsSecretRef": map[string]interface{}{
+						"name":      w.Spec.SecretRef.Name,
+						"namespace": w.Spec.SecretRef.Namespace,
+					},
 				}
 
 				machineClassNamePool1Zone1 := fmt.Sprintf("%s-%s-z1", namespace, namePool1)

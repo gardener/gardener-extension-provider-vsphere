@@ -80,7 +80,7 @@ var (
 
 func validateFlags() {
 	if len(testrunID) == 0 {
-		panic("environment variable TM_TESTRUN_ID must be set")
+		testrunID, _ = gardenerutils.GenerateRandomString(8)
 	}
 	if len(*nsxtHost) == 0 {
 		panic("--nsxt-host flag is not specified")
@@ -598,7 +598,7 @@ func prepareNewT1GatewayAndLBService(log logr.Logger, technicalShootName string,
 	log.Info("T1 Gateway", "path", state.Tier1GatewayRef.Path, "action", action)
 
 	// update tags for permissions
-	client := infra.NewDefaultTier1sClient(ensurerCtx.Connector())
+	client := infra.NewTier1sClient(ensurerCtx.Connector())
 	tier1, err := client.Get(t1Ref.ID)
 	if err != nil {
 		return
@@ -627,7 +627,7 @@ func prepareNewT1GatewayAndLBService(log logr.Logger, technicalShootName string,
 	}
 	log.Info("T1 Gateway Locale Service", "action", action)
 
-	lbClient := infra.NewDefaultLbServicesClient(ensurerCtx.Connector())
+	lbClient := infra.NewLbServicesClient(ensurerCtx.Connector())
 	lbID := "infrastructure-test-" + uuid.New().String()
 	lbService := model.LBService{
 		Description:      str("infrastructure-test for " + technicalShootName),
@@ -655,7 +655,7 @@ func teardownT1GatewayAndLBService(log logr.Logger, t1Ref, lbRef *apisvsphere.Re
 
 	errmsg := ""
 	if lbRef != nil {
-		client := infra.NewDefaultLbServicesClient(ensurerCtx.Connector())
+		client := infra.NewLbServicesClient(ensurerCtx.Connector())
 		err := client.Delete(lbRef.ID, boolptr(true))
 		if err != nil {
 			errmsg += fmt.Sprintf("deleting LB service failed with %s, ", err)
@@ -740,7 +740,7 @@ func verifyDeletion(
 
 	// SNAT IP address doesn't exist
 	if state.SNATIPAddressAllocRef != nil {
-		client := ip_pools.NewDefaultIpAllocationsClient(nsxtClientConnector)
+		client := ip_pools.NewIpAllocationsClient(nsxtClientConnector)
 		_, err := client.Get(state.SNATIPPoolRef.ID, state.SNATIPAddressAllocRef.ID)
 		Expect(err).To(HaveOccurred())
 		Expect(isNotFoundError(err)).To(BeTrue())
@@ -748,7 +748,7 @@ func verifyDeletion(
 
 	// SNAT rule doesn't exist
 	if state.SNATRuleRef != nil {
-		client := t1nat.NewDefaultNatRulesClient(nsxtClientConnector)
+		client := t1nat.NewNatRulesClient(nsxtClientConnector)
 		_, err := client.Get(state.Tier1GatewayRef.ID, model.PolicyNat_NAT_TYPE_USER, state.SNATRuleRef.ID)
 		Expect(err).To(HaveOccurred())
 		Expect(isNotFoundError(err)).To(BeTrue())
@@ -756,7 +756,7 @@ func verifyDeletion(
 
 	// DHCPServerConfig doesn't exist
 	if state.DHCPServerConfigRef != nil {
-		client := infra.NewDefaultDhcpServerConfigsClient(nsxtClientConnector)
+		client := infra.NewDhcpServerConfigsClient(nsxtClientConnector)
 		_, err := client.Get(state.DHCPServerConfigRef.ID)
 		Expect(err).To(HaveOccurred())
 		Expect(isNotFoundError(err)).To(BeTrue())
@@ -764,7 +764,7 @@ func verifyDeletion(
 
 	// network segment doesn't exist
 	if state.SegmentRef != nil {
-		client := infra.NewDefaultSegmentsClient(nsxtClientConnector)
+		client := infra.NewSegmentsClient(nsxtClientConnector)
 		_, err := client.Get(state.SegmentRef.ID)
 		Expect(err).To(HaveOccurred())
 		Expect(isNotFoundError(err)).To(BeTrue())
@@ -772,7 +772,7 @@ func verifyDeletion(
 
 	// network segment doesn't exist
 	if (state.ExternalTier1Gateway == nil || !*state.ExternalTier1Gateway) && state.Tier1GatewayRef != nil {
-		client := infra.NewDefaultTier1sClient(nsxtClientConnector)
+		client := infra.NewTier1sClient(nsxtClientConnector)
 		_, err := client.Get(state.Tier1GatewayRef.ID)
 		Expect(err).To(HaveOccurred())
 		Expect(isNotFoundError(err)).To(BeTrue())
