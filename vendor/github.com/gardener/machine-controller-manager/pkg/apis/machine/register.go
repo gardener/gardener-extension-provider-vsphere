@@ -43,11 +43,29 @@ var (
 	// the code-generation can find it.
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
 	// AddToScheme is exposed for API installation
-	AddToScheme = SchemeBuilder.AddToScheme
+	AddToScheme        = SchemeBuilder.AddToScheme
+	localSchemeBuilder = &SchemeBuilder
 )
 
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
+		&OpenStackMachineClass{},
+		&OpenStackMachineClassList{},
+
+		&AWSMachineClass{},
+		&AWSMachineClassList{},
+
+		&AzureMachineClass{},
+		&AzureMachineClassList{},
+
+		&GCPMachineClass{},
+		&GCPMachineClassList{},
+
+		&AlicloudMachineClass{},
+		&AlicloudMachineClassList{},
+
+		&PacketMachineClass{},
+		&PacketMachineClassList{},
 
 		&MachineClass{},
 		&MachineClassList{},

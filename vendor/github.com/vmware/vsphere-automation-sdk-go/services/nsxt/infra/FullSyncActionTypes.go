@@ -11,9 +11,9 @@
 package infra
 
 import (
-	vapiBindings_ "github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
-	vapiData_ "github.com/vmware/vsphere-automation-sdk-go/runtime/data"
-	vapiProtocol_ "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
 	"reflect"
 )
 
@@ -32,41 +32,41 @@ const FullSyncAction_CREATE_ACTION_PURGE_HISTORY = "purge_history"
 // Possible value for ``syncType`` of method FullSyncAction#create.
 const FullSyncAction_CREATE_SYNC_TYPE_SYNC = "gm_to_lm_full_sync"
 
-func fullSyncActionCreateInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func fullSyncActionCreateInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["action"] = vapiBindings_.NewStringType()
-	fields["sync_type"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
+	fields["action"] = bindings.NewStringType()
+	fields["sync_type"] = bindings.NewOptionalType(bindings.NewStringType())
 	fieldNameMap["action"] = "Action"
 	fieldNameMap["sync_type"] = "SyncType"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func FullSyncActionCreateOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewVoidType()
+func fullSyncActionCreateOutputType() bindings.BindingType {
+	return bindings.NewVoidType()
 }
 
-func fullSyncActionCreateRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func fullSyncActionCreateRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["action"] = vapiBindings_.NewStringType()
-	fields["sync_type"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
+	fields["action"] = bindings.NewStringType()
+	fields["sync_type"] = bindings.NewOptionalType(bindings.NewStringType())
 	fieldNameMap["action"] = "Action"
 	fieldNameMap["sync_type"] = "SyncType"
-	paramsTypeMap["sync_type"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	paramsTypeMap["action"] = vapiBindings_.NewStringType()
+	paramsTypeMap["action"] = bindings.NewStringType()
+	paramsTypeMap["sync_type"] = bindings.NewOptionalType(bindings.NewStringType())
 	queryParams["sync_type"] = "sync_type"
 	queryParams["action"] = "action"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,

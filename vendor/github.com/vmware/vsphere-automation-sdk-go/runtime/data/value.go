@@ -1,4 +1,4 @@
-/* Copyright © 2019-2021 VMware, Inc. All Rights Reserved.
+/* Copyright © 2019-2020 VMware, Inc. All Rights Reserved.
    SPDX-License-Identifier: BSD-2-Clause */
 
 package data
@@ -108,8 +108,7 @@ func (integerValue *IntegerValue) MarshalJSON() ([]byte, error) {
 }
 
 type ListValue struct {
-	list  []DataValue
-	isMap bool
+	list []DataValue
 }
 
 func NewListValue() *ListValue {
@@ -135,18 +134,6 @@ func (listValue *ListValue) IsEmpty() bool {
 
 func (listValue *ListValue) List() []DataValue {
 	return listValue.list
-}
-
-// MarkAsMap is used with the rest protocol to differentiate
-// maps converted to listValues and normal lists
-func (listValue *ListValue) MarkAsMap() {
-	listValue.isMap = true
-}
-
-// IsMap is used with the REST protocol to determine whether the
-// list value is a presentation of a map or of a list.
-func (listValue *ListValue) IsMap() bool {
-	return listValue.isMap
 }
 
 type OptionalValue struct {

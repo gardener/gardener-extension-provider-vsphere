@@ -9,24 +9,22 @@
 package infra
 
 import (
-	vapiStdErrors_ "github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
-	vapiBindings_ "github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
-	vapiCore_ "github.com/vmware/vsphere-automation-sdk-go/runtime/core"
-	vapiProtocolClient_ "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
-	nsx_policyModel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/core"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/lib"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 )
 
-const _ = vapiCore_.SupportedByRuntimeVersion2
+const _ = core.SupportedByRuntimeVersion1
 
 type AlbApplicationPersistenceProfilesClient interface {
 
-	// Delete the ALBApplicationPersistenceProfile along with all the entities contained by this ALBApplicationPersistenceProfile. This is a deprecated API. It is recommennded to use NSX Advanced Load Balancer (Avi) Controller UI or API directly instead of NSX-T ALB Policy UI and API.
-	//
-	// Deprecated: This API element is deprecated.
+	// Delete the ALBApplicationPersistenceProfile along with all the entities contained by this ALBApplicationPersistenceProfile.
 	//
 	// @param albApplicationpersistenceprofileIdParam ALBApplicationPersistenceProfile ID (required)
 	// @param forceParam Force delete the resource even if it is being used somewhere (optional, default to false)
-	//
 	// @throws InvalidRequest  Bad Request, Precondition Failed
 	// @throws Unauthorized  Forbidden
 	// @throws ServiceUnavailable  Service Unavailable
@@ -34,23 +32,18 @@ type AlbApplicationPersistenceProfilesClient interface {
 	// @throws NotFound  Not Found
 	Delete(albApplicationpersistenceprofileIdParam string, forceParam *bool) error
 
-	// Read a ALBApplicationPersistenceProfile. This is a deprecated API. It is recommennded to use NSX Advanced Load Balancer (Avi) Controller UI or API directly instead of NSX-T ALB Policy UI and API.
-	//
-	// Deprecated: This API element is deprecated.
+	// Read a ALBApplicationPersistenceProfile.
 	//
 	// @param albApplicationpersistenceprofileIdParam ALBApplicationPersistenceProfile ID (required)
 	// @return com.vmware.nsx_policy.model.ALBApplicationPersistenceProfile
-	//
 	// @throws InvalidRequest  Bad Request, Precondition Failed
 	// @throws Unauthorized  Forbidden
 	// @throws ServiceUnavailable  Service Unavailable
 	// @throws InternalServerError  Internal Server Error
 	// @throws NotFound  Not Found
-	Get(albApplicationpersistenceprofileIdParam string) (nsx_policyModel.ALBApplicationPersistenceProfile, error)
+	Get(albApplicationpersistenceprofileIdParam string) (model.ALBApplicationPersistenceProfile, error)
 
-	// Paginated list of all ALBApplicationPersistenceProfile for infra. This is a deprecated API. It is recommennded to use NSX Advanced Load Balancer (Avi) Controller UI or API directly instead of NSX-T ALB Policy UI and API.
-	//
-	// Deprecated: This API element is deprecated.
+	// Paginated list of all ALBApplicationPersistenceProfile for infra.
 	//
 	// @param cursorParam Opaque cursor to be used for getting next page of records (supplied by current result page) (optional)
 	// @param includeMarkForDeleteObjectsParam Include objects that are marked for deletion in results (optional, default to false)
@@ -59,140 +52,127 @@ type AlbApplicationPersistenceProfilesClient interface {
 	// @param sortAscendingParam (optional)
 	// @param sortByParam Field by which records are sorted (optional)
 	// @return com.vmware.nsx_policy.model.ALBApplicationPersistenceProfileApiResponse
-	//
 	// @throws InvalidRequest  Bad Request, Precondition Failed
 	// @throws Unauthorized  Forbidden
 	// @throws ServiceUnavailable  Service Unavailable
 	// @throws InternalServerError  Internal Server Error
 	// @throws NotFound  Not Found
-	List(cursorParam *string, includeMarkForDeleteObjectsParam *bool, includedFieldsParam *string, pageSizeParam *int64, sortAscendingParam *bool, sortByParam *string) (nsx_policyModel.ALBApplicationPersistenceProfileApiResponse, error)
+	List(cursorParam *string, includeMarkForDeleteObjectsParam *bool, includedFieldsParam *string, pageSizeParam *int64, sortAscendingParam *bool, sortByParam *string) (model.ALBApplicationPersistenceProfileApiResponse, error)
 
-	// If a ALBapplicationpersistenceprofile with the alb-applicationpersistenceprofile-id is not already present, create a new ALBapplicationpersistenceprofile. If it already exists, update the ALBapplicationpersistenceprofile. This is a full replace. This is a deprecated API. It is recommennded to use NSX Advanced Load Balancer (Avi) Controller UI or API directly instead of NSX-T ALB Policy UI and API.
-	//
-	// Deprecated: This API element is deprecated.
+	// If a ALBapplicationpersistenceprofile with the alb-applicationpersistenceprofile-id is not already present, create a new ALBapplicationpersistenceprofile. If it already exists, update the ALBapplicationpersistenceprofile. This is a full replace.
 	//
 	// @param albApplicationpersistenceprofileIdParam ALBapplicationpersistenceprofile ID (required)
 	// @param aLBApplicationPersistenceProfileParam (required)
-	//
 	// @throws InvalidRequest  Bad Request, Precondition Failed
 	// @throws Unauthorized  Forbidden
 	// @throws ServiceUnavailable  Service Unavailable
 	// @throws InternalServerError  Internal Server Error
 	// @throws NotFound  Not Found
-	Patch(albApplicationpersistenceprofileIdParam string, aLBApplicationPersistenceProfileParam nsx_policyModel.ALBApplicationPersistenceProfile) error
+	Patch(albApplicationpersistenceprofileIdParam string, aLBApplicationPersistenceProfileParam model.ALBApplicationPersistenceProfile) error
 
-	// If a ALBApplicationPersistenceProfile with the alb-ApplicationPersistenceProfile-id is not already present, create a new ALBApplicationPersistenceProfile. If it already exists, update the ALBApplicationPersistenceProfile. This is a full replace. This is a deprecated API. It is recommennded to use NSX Advanced Load Balancer (Avi) Controller UI or API directly instead of NSX-T ALB Policy UI and API.
-	//
-	// Deprecated: This API element is deprecated.
+	// If a ALBApplicationPersistenceProfile with the alb-ApplicationPersistenceProfile-id is not already present, create a new ALBApplicationPersistenceProfile. If it already exists, update the ALBApplicationPersistenceProfile. This is a full replace.
 	//
 	// @param albApplicationpersistenceprofileIdParam ALBApplicationPersistenceProfile ID (required)
 	// @param aLBApplicationPersistenceProfileParam (required)
 	// @return com.vmware.nsx_policy.model.ALBApplicationPersistenceProfile
-	//
 	// @throws InvalidRequest  Bad Request, Precondition Failed
 	// @throws Unauthorized  Forbidden
 	// @throws ServiceUnavailable  Service Unavailable
 	// @throws InternalServerError  Internal Server Error
 	// @throws NotFound  Not Found
-	Update(albApplicationpersistenceprofileIdParam string, aLBApplicationPersistenceProfileParam nsx_policyModel.ALBApplicationPersistenceProfile) (nsx_policyModel.ALBApplicationPersistenceProfile, error)
+	Update(albApplicationpersistenceprofileIdParam string, aLBApplicationPersistenceProfileParam model.ALBApplicationPersistenceProfile) (model.ALBApplicationPersistenceProfile, error)
 }
 
 type albApplicationPersistenceProfilesClient struct {
-	connector           vapiProtocolClient_.Connector
-	interfaceDefinition vapiCore_.InterfaceDefinition
-	errorsBindingMap    map[string]vapiBindings_.BindingType
+	connector           client.Connector
+	interfaceDefinition core.InterfaceDefinition
+	errorsBindingMap    map[string]bindings.BindingType
 }
 
-func NewAlbApplicationPersistenceProfilesClient(connector vapiProtocolClient_.Connector) *albApplicationPersistenceProfilesClient {
-	interfaceIdentifier := vapiCore_.NewInterfaceIdentifier("com.vmware.nsx_policy.infra.alb_application_persistence_profiles")
-	methodIdentifiers := map[string]vapiCore_.MethodIdentifier{
-		"delete": vapiCore_.NewMethodIdentifier(interfaceIdentifier, "delete"),
-		"get":    vapiCore_.NewMethodIdentifier(interfaceIdentifier, "get"),
-		"list":   vapiCore_.NewMethodIdentifier(interfaceIdentifier, "list"),
-		"patch":  vapiCore_.NewMethodIdentifier(interfaceIdentifier, "patch"),
-		"update": vapiCore_.NewMethodIdentifier(interfaceIdentifier, "update"),
+func NewAlbApplicationPersistenceProfilesClient(connector client.Connector) *albApplicationPersistenceProfilesClient {
+	interfaceIdentifier := core.NewInterfaceIdentifier("com.vmware.nsx_policy.infra.alb_application_persistence_profiles")
+	methodIdentifiers := map[string]core.MethodIdentifier{
+		"delete": core.NewMethodIdentifier(interfaceIdentifier, "delete"),
+		"get":    core.NewMethodIdentifier(interfaceIdentifier, "get"),
+		"list":   core.NewMethodIdentifier(interfaceIdentifier, "list"),
+		"patch":  core.NewMethodIdentifier(interfaceIdentifier, "patch"),
+		"update": core.NewMethodIdentifier(interfaceIdentifier, "update"),
 	}
-	interfaceDefinition := vapiCore_.NewInterfaceDefinition(interfaceIdentifier, methodIdentifiers)
-	errorsBindingMap := make(map[string]vapiBindings_.BindingType)
+	interfaceDefinition := core.NewInterfaceDefinition(interfaceIdentifier, methodIdentifiers)
+	errorsBindingMap := make(map[string]bindings.BindingType)
 
 	aIface := albApplicationPersistenceProfilesClient{interfaceDefinition: interfaceDefinition, errorsBindingMap: errorsBindingMap, connector: connector}
 	return &aIface
 }
 
-func (aIface *albApplicationPersistenceProfilesClient) GetErrorBindingType(errorName string) vapiBindings_.BindingType {
+func (aIface *albApplicationPersistenceProfilesClient) GetErrorBindingType(errorName string) bindings.BindingType {
 	if entry, ok := aIface.errorsBindingMap[errorName]; ok {
 		return entry
 	}
-	return vapiStdErrors_.ERROR_BINDINGS_MAP[errorName]
+	return errors.ERROR_BINDINGS_MAP[errorName]
 }
 
 func (aIface *albApplicationPersistenceProfilesClient) Delete(albApplicationpersistenceprofileIdParam string, forceParam *bool) error {
 	typeConverter := aIface.connector.TypeConverter()
 	executionContext := aIface.connector.NewExecutionContext()
-	operationRestMetaData := albApplicationPersistenceProfilesDeleteRestMetadata()
-	executionContext.SetConnectionMetadata(vapiCore_.RESTMetadataKey, operationRestMetaData)
-	executionContext.SetConnectionMetadata(vapiCore_.ResponseTypeKey, vapiCore_.NewResponseType(true, false))
-
-	sv := vapiBindings_.NewStructValueBuilder(albApplicationPersistenceProfilesDeleteInputType(), typeConverter)
+	sv := bindings.NewStructValueBuilder(albApplicationPersistenceProfilesDeleteInputType(), typeConverter)
 	sv.AddStructField("AlbApplicationpersistenceprofileId", albApplicationpersistenceprofileIdParam)
 	sv.AddStructField("Force", forceParam)
 	inputDataValue, inputError := sv.GetStructValue()
 	if inputError != nil {
-		return vapiBindings_.VAPIerrorsToError(inputError)
+		return bindings.VAPIerrorsToError(inputError)
 	}
-
+	operationRestMetaData := albApplicationPersistenceProfilesDeleteRestMetadata()
+	connectionMetadata := map[string]interface{}{lib.REST_METADATA: operationRestMetaData}
+	connectionMetadata["isStreamingResponse"] = false
+	aIface.connector.SetConnectionMetadata(connectionMetadata)
 	methodResult := aIface.connector.GetApiProvider().Invoke("com.vmware.nsx_policy.infra.alb_application_persistence_profiles", "delete", inputDataValue, executionContext)
 	if methodResult.IsSuccess() {
 		return nil
 	} else {
 		methodError, errorInError := typeConverter.ConvertToGolang(methodResult.Error(), aIface.GetErrorBindingType(methodResult.Error().Name()))
 		if errorInError != nil {
-			return vapiBindings_.VAPIerrorsToError(errorInError)
+			return bindings.VAPIerrorsToError(errorInError)
 		}
 		return methodError.(error)
 	}
 }
 
-func (aIface *albApplicationPersistenceProfilesClient) Get(albApplicationpersistenceprofileIdParam string) (nsx_policyModel.ALBApplicationPersistenceProfile, error) {
+func (aIface *albApplicationPersistenceProfilesClient) Get(albApplicationpersistenceprofileIdParam string) (model.ALBApplicationPersistenceProfile, error) {
 	typeConverter := aIface.connector.TypeConverter()
 	executionContext := aIface.connector.NewExecutionContext()
-	operationRestMetaData := albApplicationPersistenceProfilesGetRestMetadata()
-	executionContext.SetConnectionMetadata(vapiCore_.RESTMetadataKey, operationRestMetaData)
-	executionContext.SetConnectionMetadata(vapiCore_.ResponseTypeKey, vapiCore_.NewResponseType(true, false))
-
-	sv := vapiBindings_.NewStructValueBuilder(albApplicationPersistenceProfilesGetInputType(), typeConverter)
+	sv := bindings.NewStructValueBuilder(albApplicationPersistenceProfilesGetInputType(), typeConverter)
 	sv.AddStructField("AlbApplicationpersistenceprofileId", albApplicationpersistenceprofileIdParam)
 	inputDataValue, inputError := sv.GetStructValue()
 	if inputError != nil {
-		var emptyOutput nsx_policyModel.ALBApplicationPersistenceProfile
-		return emptyOutput, vapiBindings_.VAPIerrorsToError(inputError)
+		var emptyOutput model.ALBApplicationPersistenceProfile
+		return emptyOutput, bindings.VAPIerrorsToError(inputError)
 	}
-
+	operationRestMetaData := albApplicationPersistenceProfilesGetRestMetadata()
+	connectionMetadata := map[string]interface{}{lib.REST_METADATA: operationRestMetaData}
+	connectionMetadata["isStreamingResponse"] = false
+	aIface.connector.SetConnectionMetadata(connectionMetadata)
 	methodResult := aIface.connector.GetApiProvider().Invoke("com.vmware.nsx_policy.infra.alb_application_persistence_profiles", "get", inputDataValue, executionContext)
-	var emptyOutput nsx_policyModel.ALBApplicationPersistenceProfile
+	var emptyOutput model.ALBApplicationPersistenceProfile
 	if methodResult.IsSuccess() {
-		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), AlbApplicationPersistenceProfilesGetOutputType())
+		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), albApplicationPersistenceProfilesGetOutputType())
 		if errorInOutput != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInOutput)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInOutput)
 		}
-		return output.(nsx_policyModel.ALBApplicationPersistenceProfile), nil
+		return output.(model.ALBApplicationPersistenceProfile), nil
 	} else {
 		methodError, errorInError := typeConverter.ConvertToGolang(methodResult.Error(), aIface.GetErrorBindingType(methodResult.Error().Name()))
 		if errorInError != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInError)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInError)
 		}
 		return emptyOutput, methodError.(error)
 	}
 }
 
-func (aIface *albApplicationPersistenceProfilesClient) List(cursorParam *string, includeMarkForDeleteObjectsParam *bool, includedFieldsParam *string, pageSizeParam *int64, sortAscendingParam *bool, sortByParam *string) (nsx_policyModel.ALBApplicationPersistenceProfileApiResponse, error) {
+func (aIface *albApplicationPersistenceProfilesClient) List(cursorParam *string, includeMarkForDeleteObjectsParam *bool, includedFieldsParam *string, pageSizeParam *int64, sortAscendingParam *bool, sortByParam *string) (model.ALBApplicationPersistenceProfileApiResponse, error) {
 	typeConverter := aIface.connector.TypeConverter()
 	executionContext := aIface.connector.NewExecutionContext()
-	operationRestMetaData := albApplicationPersistenceProfilesListRestMetadata()
-	executionContext.SetConnectionMetadata(vapiCore_.RESTMetadataKey, operationRestMetaData)
-	executionContext.SetConnectionMetadata(vapiCore_.ResponseTypeKey, vapiCore_.NewResponseType(true, false))
-
-	sv := vapiBindings_.NewStructValueBuilder(albApplicationPersistenceProfilesListInputType(), typeConverter)
+	sv := bindings.NewStructValueBuilder(albApplicationPersistenceProfilesListInputType(), typeConverter)
 	sv.AddStructField("Cursor", cursorParam)
 	sv.AddStructField("IncludeMarkForDeleteObjects", includeMarkForDeleteObjectsParam)
 	sv.AddStructField("IncludedFields", includedFieldsParam)
@@ -201,82 +181,83 @@ func (aIface *albApplicationPersistenceProfilesClient) List(cursorParam *string,
 	sv.AddStructField("SortBy", sortByParam)
 	inputDataValue, inputError := sv.GetStructValue()
 	if inputError != nil {
-		var emptyOutput nsx_policyModel.ALBApplicationPersistenceProfileApiResponse
-		return emptyOutput, vapiBindings_.VAPIerrorsToError(inputError)
+		var emptyOutput model.ALBApplicationPersistenceProfileApiResponse
+		return emptyOutput, bindings.VAPIerrorsToError(inputError)
 	}
-
+	operationRestMetaData := albApplicationPersistenceProfilesListRestMetadata()
+	connectionMetadata := map[string]interface{}{lib.REST_METADATA: operationRestMetaData}
+	connectionMetadata["isStreamingResponse"] = false
+	aIface.connector.SetConnectionMetadata(connectionMetadata)
 	methodResult := aIface.connector.GetApiProvider().Invoke("com.vmware.nsx_policy.infra.alb_application_persistence_profiles", "list", inputDataValue, executionContext)
-	var emptyOutput nsx_policyModel.ALBApplicationPersistenceProfileApiResponse
+	var emptyOutput model.ALBApplicationPersistenceProfileApiResponse
 	if methodResult.IsSuccess() {
-		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), AlbApplicationPersistenceProfilesListOutputType())
+		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), albApplicationPersistenceProfilesListOutputType())
 		if errorInOutput != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInOutput)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInOutput)
 		}
-		return output.(nsx_policyModel.ALBApplicationPersistenceProfileApiResponse), nil
+		return output.(model.ALBApplicationPersistenceProfileApiResponse), nil
 	} else {
 		methodError, errorInError := typeConverter.ConvertToGolang(methodResult.Error(), aIface.GetErrorBindingType(methodResult.Error().Name()))
 		if errorInError != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInError)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInError)
 		}
 		return emptyOutput, methodError.(error)
 	}
 }
 
-func (aIface *albApplicationPersistenceProfilesClient) Patch(albApplicationpersistenceprofileIdParam string, aLBApplicationPersistenceProfileParam nsx_policyModel.ALBApplicationPersistenceProfile) error {
+func (aIface *albApplicationPersistenceProfilesClient) Patch(albApplicationpersistenceprofileIdParam string, aLBApplicationPersistenceProfileParam model.ALBApplicationPersistenceProfile) error {
 	typeConverter := aIface.connector.TypeConverter()
 	executionContext := aIface.connector.NewExecutionContext()
-	operationRestMetaData := albApplicationPersistenceProfilesPatchRestMetadata()
-	executionContext.SetConnectionMetadata(vapiCore_.RESTMetadataKey, operationRestMetaData)
-	executionContext.SetConnectionMetadata(vapiCore_.ResponseTypeKey, vapiCore_.NewResponseType(true, false))
-
-	sv := vapiBindings_.NewStructValueBuilder(albApplicationPersistenceProfilesPatchInputType(), typeConverter)
+	sv := bindings.NewStructValueBuilder(albApplicationPersistenceProfilesPatchInputType(), typeConverter)
 	sv.AddStructField("AlbApplicationpersistenceprofileId", albApplicationpersistenceprofileIdParam)
 	sv.AddStructField("ALBApplicationPersistenceProfile", aLBApplicationPersistenceProfileParam)
 	inputDataValue, inputError := sv.GetStructValue()
 	if inputError != nil {
-		return vapiBindings_.VAPIerrorsToError(inputError)
+		return bindings.VAPIerrorsToError(inputError)
 	}
-
+	operationRestMetaData := albApplicationPersistenceProfilesPatchRestMetadata()
+	connectionMetadata := map[string]interface{}{lib.REST_METADATA: operationRestMetaData}
+	connectionMetadata["isStreamingResponse"] = false
+	aIface.connector.SetConnectionMetadata(connectionMetadata)
 	methodResult := aIface.connector.GetApiProvider().Invoke("com.vmware.nsx_policy.infra.alb_application_persistence_profiles", "patch", inputDataValue, executionContext)
 	if methodResult.IsSuccess() {
 		return nil
 	} else {
 		methodError, errorInError := typeConverter.ConvertToGolang(methodResult.Error(), aIface.GetErrorBindingType(methodResult.Error().Name()))
 		if errorInError != nil {
-			return vapiBindings_.VAPIerrorsToError(errorInError)
+			return bindings.VAPIerrorsToError(errorInError)
 		}
 		return methodError.(error)
 	}
 }
 
-func (aIface *albApplicationPersistenceProfilesClient) Update(albApplicationpersistenceprofileIdParam string, aLBApplicationPersistenceProfileParam nsx_policyModel.ALBApplicationPersistenceProfile) (nsx_policyModel.ALBApplicationPersistenceProfile, error) {
+func (aIface *albApplicationPersistenceProfilesClient) Update(albApplicationpersistenceprofileIdParam string, aLBApplicationPersistenceProfileParam model.ALBApplicationPersistenceProfile) (model.ALBApplicationPersistenceProfile, error) {
 	typeConverter := aIface.connector.TypeConverter()
 	executionContext := aIface.connector.NewExecutionContext()
-	operationRestMetaData := albApplicationPersistenceProfilesUpdateRestMetadata()
-	executionContext.SetConnectionMetadata(vapiCore_.RESTMetadataKey, operationRestMetaData)
-	executionContext.SetConnectionMetadata(vapiCore_.ResponseTypeKey, vapiCore_.NewResponseType(true, false))
-
-	sv := vapiBindings_.NewStructValueBuilder(albApplicationPersistenceProfilesUpdateInputType(), typeConverter)
+	sv := bindings.NewStructValueBuilder(albApplicationPersistenceProfilesUpdateInputType(), typeConverter)
 	sv.AddStructField("AlbApplicationpersistenceprofileId", albApplicationpersistenceprofileIdParam)
 	sv.AddStructField("ALBApplicationPersistenceProfile", aLBApplicationPersistenceProfileParam)
 	inputDataValue, inputError := sv.GetStructValue()
 	if inputError != nil {
-		var emptyOutput nsx_policyModel.ALBApplicationPersistenceProfile
-		return emptyOutput, vapiBindings_.VAPIerrorsToError(inputError)
+		var emptyOutput model.ALBApplicationPersistenceProfile
+		return emptyOutput, bindings.VAPIerrorsToError(inputError)
 	}
-
+	operationRestMetaData := albApplicationPersistenceProfilesUpdateRestMetadata()
+	connectionMetadata := map[string]interface{}{lib.REST_METADATA: operationRestMetaData}
+	connectionMetadata["isStreamingResponse"] = false
+	aIface.connector.SetConnectionMetadata(connectionMetadata)
 	methodResult := aIface.connector.GetApiProvider().Invoke("com.vmware.nsx_policy.infra.alb_application_persistence_profiles", "update", inputDataValue, executionContext)
-	var emptyOutput nsx_policyModel.ALBApplicationPersistenceProfile
+	var emptyOutput model.ALBApplicationPersistenceProfile
 	if methodResult.IsSuccess() {
-		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), AlbApplicationPersistenceProfilesUpdateOutputType())
+		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), albApplicationPersistenceProfilesUpdateOutputType())
 		if errorInOutput != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInOutput)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInOutput)
 		}
-		return output.(nsx_policyModel.ALBApplicationPersistenceProfile), nil
+		return output.(model.ALBApplicationPersistenceProfile), nil
 	} else {
 		methodError, errorInError := typeConverter.ConvertToGolang(methodResult.Error(), aIface.GetErrorBindingType(methodResult.Error().Name()))
 		if errorInError != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInError)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInError)
 		}
 		return emptyOutput, methodError.(error)
 	}

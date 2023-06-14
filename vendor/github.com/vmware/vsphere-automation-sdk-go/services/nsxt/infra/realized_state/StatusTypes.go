@@ -11,54 +11,54 @@
 package realized_state
 
 import (
-	vapiBindings_ "github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
-	vapiData_ "github.com/vmware/vsphere-automation-sdk-go/runtime/data"
-	vapiProtocol_ "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
-	nsx_policyModel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 	"reflect"
 )
 
-func statusGetInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func statusGetInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["intent_path"] = vapiBindings_.NewStringType()
-	fields["include_enforced_status"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	fields["site_path"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
+	fields["intent_path"] = bindings.NewStringType()
+	fields["include_enforced_status"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	fields["site_path"] = bindings.NewOptionalType(bindings.NewStringType())
 	fieldNameMap["intent_path"] = "IntentPath"
 	fieldNameMap["include_enforced_status"] = "IncludeEnforcedStatus"
 	fieldNameMap["site_path"] = "SitePath"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func StatusGetOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewReferenceType(nsx_policyModel.ConsolidatedRealizedStatusBindingType)
+func statusGetOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.ConsolidatedRealizedStatusBindingType)
 }
 
-func statusGetRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func statusGetRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["intent_path"] = vapiBindings_.NewStringType()
-	fields["include_enforced_status"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	fields["site_path"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
+	fields["intent_path"] = bindings.NewStringType()
+	fields["include_enforced_status"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	fields["site_path"] = bindings.NewOptionalType(bindings.NewStringType())
 	fieldNameMap["intent_path"] = "IntentPath"
 	fieldNameMap["include_enforced_status"] = "IncludeEnforcedStatus"
 	fieldNameMap["site_path"] = "SitePath"
-	paramsTypeMap["site_path"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	paramsTypeMap["intent_path"] = vapiBindings_.NewStringType()
-	paramsTypeMap["include_enforced_status"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
+	paramsTypeMap["site_path"] = bindings.NewOptionalType(bindings.NewStringType())
+	paramsTypeMap["include_enforced_status"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	paramsTypeMap["intent_path"] = bindings.NewStringType()
 	queryParams["site_path"] = "site_path"
 	queryParams["intent_path"] = "intent_path"
 	queryParams["include_enforced_status"] = "include_enforced_status"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,

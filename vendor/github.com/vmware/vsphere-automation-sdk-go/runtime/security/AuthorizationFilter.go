@@ -1,4 +1,4 @@
-/* Copyright © 2019-2022 VMware, Inc. All Rights Reserved.
+/* Copyright © 2019-2021 VMware, Inc. All Rights Reserved.
    SPDX-License-Identifier: BSD-2-Clause */
 
 package security
@@ -36,8 +36,7 @@ func (a *AuthorizationFilter) Invoke(serviceID string, operationID string,
 
 	userId, err := RetrieveUserIdentity(ctx)
 	if err != nil {
-		log.Errorf("Could not find user identity for operation '%s' : %s", fullyQualifiedOperName, err)
-		return newInternalServerErrorResult("vapi.security.authorization.user.missing", nil)
+		return a.getInvalidAuthzMethodResult(err)
 	}
 	if userId == nil {
 		// No security context, or not authn data (because method doesn't require authn) => no authentication;
@@ -51,65 +50,48 @@ func (a *AuthorizationFilter) Invoke(serviceID string, operationID string,
 
 	requiredPrivileges, err := a.privilegeProv.GetPrivilegeInfo(fullyQualifiedOperName, inputValue)
 	if err != nil {
-		log.Errorf("Could not retrieve privilege information for operation '%s' : %s", fullyQualifiedOperName, err)
-		// Allow the PrivilegeProvider to return std vapi error directly to the client, e.g. ServiceUnavailable
-		if errorValue := getErrorValue(err); errorValue != nil {
-			return core.NewErrorResult(errorValue)
-		}
-		return newInternalServerErrorResult("vapi.security.authorization.privilege.error", nil)
+		return a.getInvalidAuthzMethodResult(err)
 	}
 
 	isValid, err := a.pValidator.Validate(userName, groupNames, requiredPrivileges)
-	if err != nil {
-		log.Errorf("Could not validate permission for operation '%s' : %s", fullyQualifiedOperName, err)
-		// Allow the PermissionValidator to return std vapi error directly to the client, e.g. ServiceUnavailable
-		if errorValue := getErrorValue(err); errorValue != nil {
-			return core.NewErrorResult(errorValue)
-		}
-		return newInternalServerErrorResult("vapi.security.authorization.permission.error", nil)
-	}
-	if !isValid {
-		log.Debugf("Permission denied for operation '%s'", fullyQualifiedOperName)
-		return newUnauthorizedResult("vapi.security.authorization.permission.denied", nil)
-	}
-
-	if len(a.handlers) == 0 {
-		return a.provider.Invoke(serviceID, operationID, inputValue, ctx)
+	if !isValid || err != nil {
+		return a.getInvalidAuthzMethodResult(err)
 	}
 
 	for _, authzHandler := range a.handlers {
 		//TODO invoke only those handlers which support auth schemes.
 		authzResult, err := authzHandler.Authorize(serviceID, operationID, ctx.SecurityContext())
 		if err != nil {
-			log.Errorf("AuthorizationHandler failed for operation '%s' : %s", fullyQualifiedOperName, err)
-			return newInternalServerErrorResult("vapi.security.authorization.handler.error", nil)
+			// authz failed.
+			return a.getInvalidAuthzMethodResult(err)
 		} else if authzResult {
 			return a.provider.Invoke(serviceID, operationID, inputValue, ctx)
 		}
 	}
-	return newUnauthorizedResult("vapi.security.authorization.invalid", nil)
+	return a.getInvalidAuthzMethodResult(nil)
 }
 
-func newUnauthorizedResult(msgId string, args map[string]string) core.MethodResult {
-	return core.NewErrorResult(bindings.CreateErrorValueFromMessageId(bindings.UNAUTHORIZED_ERROR_DEF, msgId, args))
-}
-
-func newInternalServerErrorResult(msgId string, args map[string]string) core.MethodResult {
-	return core.NewErrorResult(bindings.CreateErrorValueFromMessageId(bindings.INTERNAL_SERVER_ERROR_DEF, msgId, args))
-}
-
-func getErrorValue(e error) *data.ErrorValue {
-	vapiError, ok := e.(bindings.Structure)
-	if !ok {
-		return nil
-	}
-	dataValue, err := vapiError.GetDataValue__()
+func (a *AuthorizationFilter) getInvalidAuthzMethodResult(err error) core.MethodResult {
+	var errorValue *data.ErrorValue
 	if err != nil {
-		return nil
+		if vapiError, isVapiError := err.(bindings.Structure); isVapiError {
+			dataVal, err := vapiError.GetDataValue__()
+			if dataVal != nil && err == nil {
+				errorValue = dataVal.(*data.ErrorValue)
+			}
+		}
+
+		if errorValue == nil {
+			args := map[string]string{"err": err.Error()}
+			errorValue = bindings.CreateErrorValueFromMessageId(bindings.INTERNAL_SERVER_ERROR_DEF,
+				"vapi.security.authorization.internal_server_error", args)
+		}
+
+		return core.NewMethodResult(nil, errorValue)
 	}
-	errorValue, ok := dataValue.(*data.ErrorValue)
-	if !ok {
-		return nil
-	}
-	return errorValue
+
+	errorValue = bindings.CreateErrorValueFromMessageId(bindings.UNAUTHORIZED_ERROR_DEF,
+		"vapi.security.authorization.invalid", nil)
+
+	return core.NewMethodResult(nil, errorValue)
 }

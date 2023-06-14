@@ -11,9 +11,9 @@
 package std
 
 import (
-	vapiBindings_ "github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
-	vapiData_ "github.com/vmware/vsphere-automation-sdk-go/runtime/data"
-	vapiLog_ "github.com/vmware/vsphere-automation-sdk-go/runtime/log"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/log"
 	"reflect"
 	"time"
 )
@@ -107,16 +107,17 @@ const AuthenticationScheme_USER_PASSWORD = "com.vmware.vapi.std.security.user_pa
 //  vAPI runtime provides convenient factory methods that takes OAuth2 access token as input parameter and creates a security context that conforms to the above format.
 const AuthenticationScheme_OAUTH_ACCESS_TOKEN = "com.vmware.vapi.std.security.oauth"
 
-func (s *AuthenticationScheme) GetType__() vapiBindings_.BindingType {
+func (s *AuthenticationScheme) GetType__() bindings.BindingType {
 	return AuthenticationSchemeBindingType()
 }
 
-func (s *AuthenticationScheme) GetDataValue__() (vapiData_.DataValue, []error) {
-	typeConverter := vapiBindings_.NewTypeConverter()
+func (s *AuthenticationScheme) GetDataValue__() (data.DataValue, []error) {
+	typeConverter := bindings.NewTypeConverter()
+	typeConverter.SetMode(bindings.JSONRPC)
 	dataVal, err := typeConverter.ConvertToVapi(s, s.GetType__())
 	if err != nil {
-		vapiLog_.Errorf("Error in ConvertToVapi for AuthenticationScheme._GetDataValue method - %s",
-			vapiBindings_.VAPIerrorsToError(err).Error())
+		log.Errorf("Error in ConvertToVapi for AuthenticationScheme._GetDataValue method - %s",
+			bindings.VAPIerrorsToError(err).Error())
 		return nil, err
 	}
 	return dataVal, nil
@@ -132,16 +133,17 @@ type DynamicID struct {
 	Id string
 }
 
-func (s *DynamicID) GetType__() vapiBindings_.BindingType {
+func (s *DynamicID) GetType__() bindings.BindingType {
 	return DynamicIDBindingType()
 }
 
-func (s *DynamicID) GetDataValue__() (vapiData_.DataValue, []error) {
-	typeConverter := vapiBindings_.NewTypeConverter()
+func (s *DynamicID) GetDataValue__() (data.DataValue, []error) {
+	typeConverter := bindings.NewTypeConverter()
+	typeConverter.SetMode(bindings.JSONRPC)
 	dataVal, err := typeConverter.ConvertToVapi(s, s.GetType__())
 	if err != nil {
-		vapiLog_.Errorf("Error in ConvertToVapi for DynamicID._GetDataValue method - %s",
-			vapiBindings_.VAPIerrorsToError(err).Error())
+		log.Errorf("Error in ConvertToVapi for DynamicID._GetDataValue method - %s",
+			bindings.VAPIerrorsToError(err).Error())
 		return nil, err
 	}
 	return dataVal, nil
@@ -163,16 +165,17 @@ type LocalizableMessage struct {
 	Localized *string
 }
 
-func (s *LocalizableMessage) GetType__() vapiBindings_.BindingType {
+func (s *LocalizableMessage) GetType__() bindings.BindingType {
 	return LocalizableMessageBindingType()
 }
 
-func (s *LocalizableMessage) GetDataValue__() (vapiData_.DataValue, []error) {
-	typeConverter := vapiBindings_.NewTypeConverter()
+func (s *LocalizableMessage) GetDataValue__() (data.DataValue, []error) {
+	typeConverter := bindings.NewTypeConverter()
+	typeConverter.SetMode(bindings.JSONRPC)
 	dataVal, err := typeConverter.ConvertToVapi(s, s.GetType__())
 	if err != nil {
-		vapiLog_.Errorf("Error in ConvertToVapi for LocalizableMessage._GetDataValue method - %s",
-			vapiBindings_.VAPIerrorsToError(err).Error())
+		log.Errorf("Error in ConvertToVapi for LocalizableMessage._GetDataValue method - %s",
+			bindings.VAPIerrorsToError(err).Error())
 		return nil, err
 	}
 	return dataVal, nil
@@ -196,16 +199,17 @@ type LocalizationParam struct {
 	Precision *int64
 }
 
-func (s *LocalizationParam) GetType__() vapiBindings_.BindingType {
+func (s *LocalizationParam) GetType__() bindings.BindingType {
 	return LocalizationParamBindingType()
 }
 
-func (s *LocalizationParam) GetDataValue__() (vapiData_.DataValue, []error) {
-	typeConverter := vapiBindings_.NewTypeConverter()
+func (s *LocalizationParam) GetDataValue__() (data.DataValue, []error) {
+	typeConverter := bindings.NewTypeConverter()
+	typeConverter.SetMode(bindings.JSONRPC)
 	dataVal, err := typeConverter.ConvertToVapi(s, s.GetType__())
 	if err != nil {
-		vapiLog_.Errorf("Error in ConvertToVapi for LocalizationParam._GetDataValue method - %s",
-			vapiBindings_.VAPIerrorsToError(err).Error())
+		log.Errorf("Error in ConvertToVapi for LocalizationParam._GetDataValue method - %s",
+			bindings.VAPIerrorsToError(err).Error())
 		return nil, err
 	}
 	return dataVal, nil
@@ -284,84 +288,85 @@ type NestedLocalizableMessage struct {
 	Params map[string]LocalizationParam
 }
 
-func (s *NestedLocalizableMessage) GetType__() vapiBindings_.BindingType {
+func (s *NestedLocalizableMessage) GetType__() bindings.BindingType {
 	return NestedLocalizableMessageBindingType()
 }
 
-func (s *NestedLocalizableMessage) GetDataValue__() (vapiData_.DataValue, []error) {
-	typeConverter := vapiBindings_.NewTypeConverter()
+func (s *NestedLocalizableMessage) GetDataValue__() (data.DataValue, []error) {
+	typeConverter := bindings.NewTypeConverter()
+	typeConverter.SetMode(bindings.JSONRPC)
 	dataVal, err := typeConverter.ConvertToVapi(s, s.GetType__())
 	if err != nil {
-		vapiLog_.Errorf("Error in ConvertToVapi for NestedLocalizableMessage._GetDataValue method - %s",
-			vapiBindings_.VAPIerrorsToError(err).Error())
+		log.Errorf("Error in ConvertToVapi for NestedLocalizableMessage._GetDataValue method - %s",
+			bindings.VAPIerrorsToError(err).Error())
 		return nil, err
 	}
 	return dataVal, nil
 }
 
-func AuthenticationSchemeBindingType() vapiBindings_.BindingType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func AuthenticationSchemeBindingType() bindings.BindingType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("com.vmware.vapi.std.authentication_scheme", fields, reflect.TypeOf(AuthenticationScheme{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("com.vmware.vapi.std.authentication_scheme", fields, reflect.TypeOf(AuthenticationScheme{}), fieldNameMap, validators)
 }
 
-func DynamicIDBindingType() vapiBindings_.BindingType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func DynamicIDBindingType() bindings.BindingType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["type"] = vapiBindings_.NewStringType()
+	fields["type"] = bindings.NewStringType()
 	fieldNameMap["type"] = "Type_"
-	fields["id"] = vapiBindings_.NewIdType(nil, "type")
+	fields["id"] = bindings.NewIdType(nil, "type")
 	fieldNameMap["id"] = "Id"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("com.vmware.vapi.std.dynamic_ID", fields, reflect.TypeOf(DynamicID{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("com.vmware.vapi.std.dynamic_ID", fields, reflect.TypeOf(DynamicID{}), fieldNameMap, validators)
 }
 
-func LocalizableMessageBindingType() vapiBindings_.BindingType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func LocalizableMessageBindingType() bindings.BindingType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["id"] = vapiBindings_.NewStringType()
+	fields["id"] = bindings.NewStringType()
 	fieldNameMap["id"] = "Id"
-	fields["default_message"] = vapiBindings_.NewStringType()
+	fields["default_message"] = bindings.NewStringType()
 	fieldNameMap["default_message"] = "DefaultMessage"
-	fields["args"] = vapiBindings_.NewListType(vapiBindings_.NewStringType(), reflect.TypeOf([]string{}))
+	fields["args"] = bindings.NewListType(bindings.NewStringType(), reflect.TypeOf([]string{}))
 	fieldNameMap["args"] = "Args"
-	fields["params"] = vapiBindings_.NewOptionalType(vapiBindings_.NewMapType(vapiBindings_.NewStringType(), vapiBindings_.NewReferenceType(LocalizationParamBindingType), reflect.TypeOf(map[string]LocalizationParam{})))
+	fields["params"] = bindings.NewOptionalType(bindings.NewMapType(bindings.NewStringType(), bindings.NewReferenceType(LocalizationParamBindingType), reflect.TypeOf(map[string]LocalizationParam{})))
 	fieldNameMap["params"] = "Params"
-	fields["localized"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
+	fields["localized"] = bindings.NewOptionalType(bindings.NewStringType())
 	fieldNameMap["localized"] = "Localized"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("com.vmware.vapi.std.localizable_message", fields, reflect.TypeOf(LocalizableMessage{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("com.vmware.vapi.std.localizable_message", fields, reflect.TypeOf(LocalizableMessage{}), fieldNameMap, validators)
 }
 
-func LocalizationParamBindingType() vapiBindings_.BindingType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func LocalizationParamBindingType() bindings.BindingType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["s"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
+	fields["s"] = bindings.NewOptionalType(bindings.NewStringType())
 	fieldNameMap["s"] = "S"
-	fields["dt"] = vapiBindings_.NewOptionalType(vapiBindings_.NewDateTimeType())
+	fields["dt"] = bindings.NewOptionalType(bindings.NewDateTimeType())
 	fieldNameMap["dt"] = "Dt"
-	fields["i"] = vapiBindings_.NewOptionalType(vapiBindings_.NewIntegerType())
+	fields["i"] = bindings.NewOptionalType(bindings.NewIntegerType())
 	fieldNameMap["i"] = "I"
-	fields["d"] = vapiBindings_.NewOptionalType(vapiBindings_.NewDoubleType())
+	fields["d"] = bindings.NewOptionalType(bindings.NewDoubleType())
 	fieldNameMap["d"] = "D"
-	fields["l"] = vapiBindings_.NewOptionalType(vapiBindings_.NewReferenceType(NestedLocalizableMessageBindingType))
+	fields["l"] = bindings.NewOptionalType(bindings.NewReferenceType(NestedLocalizableMessageBindingType))
 	fieldNameMap["l"] = "L"
-	fields["format"] = vapiBindings_.NewOptionalType(vapiBindings_.NewEnumType("com.vmware.vapi.std.localization_param.date_time_format", reflect.TypeOf(LocalizationParamDateTimeFormatEnum(LocalizationParamDateTimeFormat_SHORT_DATE))))
+	fields["format"] = bindings.NewOptionalType(bindings.NewEnumType("com.vmware.vapi.std.localization_param.date_time_format", reflect.TypeOf(LocalizationParamDateTimeFormatEnum(LocalizationParamDateTimeFormat_SHORT_DATE))))
 	fieldNameMap["format"] = "Format"
-	fields["precision"] = vapiBindings_.NewOptionalType(vapiBindings_.NewIntegerType())
+	fields["precision"] = bindings.NewOptionalType(bindings.NewIntegerType())
 	fieldNameMap["precision"] = "Precision"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("com.vmware.vapi.std.localization_param", fields, reflect.TypeOf(LocalizationParam{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("com.vmware.vapi.std.localization_param", fields, reflect.TypeOf(LocalizationParam{}), fieldNameMap, validators)
 }
 
-func NestedLocalizableMessageBindingType() vapiBindings_.BindingType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func NestedLocalizableMessageBindingType() bindings.BindingType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["id"] = vapiBindings_.NewStringType()
+	fields["id"] = bindings.NewStringType()
 	fieldNameMap["id"] = "Id"
-	fields["params"] = vapiBindings_.NewOptionalType(vapiBindings_.NewMapType(vapiBindings_.NewStringType(), vapiBindings_.NewReferenceType(LocalizationParamBindingType), reflect.TypeOf(map[string]LocalizationParam{})))
+	fields["params"] = bindings.NewOptionalType(bindings.NewMapType(bindings.NewStringType(), bindings.NewReferenceType(LocalizationParamBindingType), reflect.TypeOf(map[string]LocalizationParam{})))
 	fieldNameMap["params"] = "Params"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("com.vmware.vapi.std.nested_localizable_message", fields, reflect.TypeOf(NestedLocalizableMessage{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("com.vmware.vapi.std.nested_localizable_message", fields, reflect.TypeOf(NestedLocalizableMessage{}), fieldNameMap, validators)
 }

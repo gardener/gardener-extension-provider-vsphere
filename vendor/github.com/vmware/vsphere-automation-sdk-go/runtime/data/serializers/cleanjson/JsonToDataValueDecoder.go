@@ -1,4 +1,4 @@
-/* Copyright © 2021 VMware, Inc. All Rights Reserved.
+/* Copyright © 2019 VMware, Inc. All Rights Reserved.
    SPDX-License-Identifier: BSD-2-Clause */
 
 package cleanjson
@@ -7,35 +7,27 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
-	"github.com/vmware/vsphere-automation-sdk-go/runtime/data/serializers"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/l10n"
 )
 
 type JsonToDataValueDecoder struct {
-	serializers.MethodResultDeserializerBase
 }
 
 func NewJsonToDataValueDecoder() *JsonToDataValueDecoder {
-	i := &JsonToDataValueDecoder{}
-	i.Impl = i
-	return i
+	return &JsonToDataValueDecoder{}
 }
 
-func (j *JsonToDataValueDecoder) GetDataValue(value interface{}) (data.DataValue, error) {
-	return j.Decode(value)
-}
+func (j *JsonToDataValueDecoder) Decode(cleanjson interface{}) (data.DataValue, error) {
 
-func (j *JsonToDataValueDecoder) Decode(cleanJson interface{}) (data.DataValue, error) {
-
-	switch result := cleanJson.(type) {
+	switch result := cleanjson.(type) {
 	case map[string]interface{}:
-		return j.visitJsonDict(cleanJson.(map[string]interface{}))
+		return j.visitJsonDict(cleanjson.(map[string]interface{}))
 	case []interface{}:
-		return j.visitJsonList(cleanJson.([]interface{}))
+		return j.visitJsonList(cleanjson.([]interface{}))
 	case string:
-		return data.NewStringValue(cleanJson.(string)), nil
+		return data.NewStringValue(cleanjson.(string)), nil
 	case bool:
-		return data.NewBooleanValue(cleanJson.(bool)), nil
+		return data.NewBooleanValue(cleanjson.(bool)), nil
 	case json.Number:
 		// By default, json marshaller converts json number to float64.
 		// Use the below strategy to distinguish between floating point numbers and int64

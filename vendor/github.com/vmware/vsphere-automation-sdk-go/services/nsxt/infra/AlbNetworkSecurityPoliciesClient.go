@@ -9,24 +9,22 @@
 package infra
 
 import (
-	vapiStdErrors_ "github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
-	vapiBindings_ "github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
-	vapiCore_ "github.com/vmware/vsphere-automation-sdk-go/runtime/core"
-	vapiProtocolClient_ "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
-	nsx_policyModel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/core"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/lib"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 )
 
-const _ = vapiCore_.SupportedByRuntimeVersion2
+const _ = core.SupportedByRuntimeVersion1
 
 type AlbNetworkSecurityPoliciesClient interface {
 
-	// Delete the ALBNetworkSecurityPolicy along with all the entities contained by this ALBNetworkSecurityPolicy. This is a deprecated API. It is recommennded to use NSX Advanced Load Balancer (Avi) Controller UI or API directly instead of NSX-T ALB Policy UI and API.
-	//
-	// Deprecated: This API element is deprecated.
+	// Delete the ALBNetworkSecurityPolicy along with all the entities contained by this ALBNetworkSecurityPolicy.
 	//
 	// @param albNetworksecuritypolicyIdParam ALBNetworkSecurityPolicy ID (required)
 	// @param forceParam Force delete the resource even if it is being used somewhere (optional, default to false)
-	//
 	// @throws InvalidRequest  Bad Request, Precondition Failed
 	// @throws Unauthorized  Forbidden
 	// @throws ServiceUnavailable  Service Unavailable
@@ -34,23 +32,18 @@ type AlbNetworkSecurityPoliciesClient interface {
 	// @throws NotFound  Not Found
 	Delete(albNetworksecuritypolicyIdParam string, forceParam *bool) error
 
-	// Read a ALBNetworkSecurityPolicy. This is a deprecated API. It is recommennded to use NSX Advanced Load Balancer (Avi) Controller UI or API directly instead of NSX-T ALB Policy UI and API.
-	//
-	// Deprecated: This API element is deprecated.
+	// Read a ALBNetworkSecurityPolicy.
 	//
 	// @param albNetworksecuritypolicyIdParam ALBNetworkSecurityPolicy ID (required)
 	// @return com.vmware.nsx_policy.model.ALBNetworkSecurityPolicy
-	//
 	// @throws InvalidRequest  Bad Request, Precondition Failed
 	// @throws Unauthorized  Forbidden
 	// @throws ServiceUnavailable  Service Unavailable
 	// @throws InternalServerError  Internal Server Error
 	// @throws NotFound  Not Found
-	Get(albNetworksecuritypolicyIdParam string) (nsx_policyModel.ALBNetworkSecurityPolicy, error)
+	Get(albNetworksecuritypolicyIdParam string) (model.ALBNetworkSecurityPolicy, error)
 
-	// Paginated list of all ALBNetworkSecurityPolicy for infra. This is a deprecated API. It is recommennded to use NSX Advanced Load Balancer (Avi) Controller UI or API directly instead of NSX-T ALB Policy UI and API.
-	//
-	// Deprecated: This API element is deprecated.
+	// Paginated list of all ALBNetworkSecurityPolicy for infra.
 	//
 	// @param cursorParam Opaque cursor to be used for getting next page of records (supplied by current result page) (optional)
 	// @param includeMarkForDeleteObjectsParam Include objects that are marked for deletion in results (optional, default to false)
@@ -59,140 +52,127 @@ type AlbNetworkSecurityPoliciesClient interface {
 	// @param sortAscendingParam (optional)
 	// @param sortByParam Field by which records are sorted (optional)
 	// @return com.vmware.nsx_policy.model.ALBNetworkSecurityPolicyApiResponse
-	//
 	// @throws InvalidRequest  Bad Request, Precondition Failed
 	// @throws Unauthorized  Forbidden
 	// @throws ServiceUnavailable  Service Unavailable
 	// @throws InternalServerError  Internal Server Error
 	// @throws NotFound  Not Found
-	List(cursorParam *string, includeMarkForDeleteObjectsParam *bool, includedFieldsParam *string, pageSizeParam *int64, sortAscendingParam *bool, sortByParam *string) (nsx_policyModel.ALBNetworkSecurityPolicyApiResponse, error)
+	List(cursorParam *string, includeMarkForDeleteObjectsParam *bool, includedFieldsParam *string, pageSizeParam *int64, sortAscendingParam *bool, sortByParam *string) (model.ALBNetworkSecurityPolicyApiResponse, error)
 
-	// If a ALBnetworksecuritypolicy with the alb-networksecuritypolicy-id is not already present, create a new ALBnetworksecuritypolicy. If it already exists, update the ALBnetworksecuritypolicy. This is a full replace. This is a deprecated API. It is recommennded to use NSX Advanced Load Balancer (Avi) Controller UI or API directly instead of NSX-T ALB Policy UI and API.
-	//
-	// Deprecated: This API element is deprecated.
+	// If a ALBnetworksecuritypolicy with the alb-networksecuritypolicy-id is not already present, create a new ALBnetworksecuritypolicy. If it already exists, update the ALBnetworksecuritypolicy. This is a full replace.
 	//
 	// @param albNetworksecuritypolicyIdParam ALBnetworksecuritypolicy ID (required)
 	// @param aLBNetworkSecurityPolicyParam (required)
-	//
 	// @throws InvalidRequest  Bad Request, Precondition Failed
 	// @throws Unauthorized  Forbidden
 	// @throws ServiceUnavailable  Service Unavailable
 	// @throws InternalServerError  Internal Server Error
 	// @throws NotFound  Not Found
-	Patch(albNetworksecuritypolicyIdParam string, aLBNetworkSecurityPolicyParam nsx_policyModel.ALBNetworkSecurityPolicy) error
+	Patch(albNetworksecuritypolicyIdParam string, aLBNetworkSecurityPolicyParam model.ALBNetworkSecurityPolicy) error
 
-	// If a ALBNetworkSecurityPolicy with the alb-NetworkSecurityPolicy-id is not already present, create a new ALBNetworkSecurityPolicy. If it already exists, update the ALBNetworkSecurityPolicy. This is a full replace. This is a deprecated API. It is recommennded to use NSX Advanced Load Balancer (Avi) Controller UI or API directly instead of NSX-T ALB Policy UI and API.
-	//
-	// Deprecated: This API element is deprecated.
+	// If a ALBNetworkSecurityPolicy with the alb-NetworkSecurityPolicy-id is not already present, create a new ALBNetworkSecurityPolicy. If it already exists, update the ALBNetworkSecurityPolicy. This is a full replace.
 	//
 	// @param albNetworksecuritypolicyIdParam ALBNetworkSecurityPolicy ID (required)
 	// @param aLBNetworkSecurityPolicyParam (required)
 	// @return com.vmware.nsx_policy.model.ALBNetworkSecurityPolicy
-	//
 	// @throws InvalidRequest  Bad Request, Precondition Failed
 	// @throws Unauthorized  Forbidden
 	// @throws ServiceUnavailable  Service Unavailable
 	// @throws InternalServerError  Internal Server Error
 	// @throws NotFound  Not Found
-	Update(albNetworksecuritypolicyIdParam string, aLBNetworkSecurityPolicyParam nsx_policyModel.ALBNetworkSecurityPolicy) (nsx_policyModel.ALBNetworkSecurityPolicy, error)
+	Update(albNetworksecuritypolicyIdParam string, aLBNetworkSecurityPolicyParam model.ALBNetworkSecurityPolicy) (model.ALBNetworkSecurityPolicy, error)
 }
 
 type albNetworkSecurityPoliciesClient struct {
-	connector           vapiProtocolClient_.Connector
-	interfaceDefinition vapiCore_.InterfaceDefinition
-	errorsBindingMap    map[string]vapiBindings_.BindingType
+	connector           client.Connector
+	interfaceDefinition core.InterfaceDefinition
+	errorsBindingMap    map[string]bindings.BindingType
 }
 
-func NewAlbNetworkSecurityPoliciesClient(connector vapiProtocolClient_.Connector) *albNetworkSecurityPoliciesClient {
-	interfaceIdentifier := vapiCore_.NewInterfaceIdentifier("com.vmware.nsx_policy.infra.alb_network_security_policies")
-	methodIdentifiers := map[string]vapiCore_.MethodIdentifier{
-		"delete": vapiCore_.NewMethodIdentifier(interfaceIdentifier, "delete"),
-		"get":    vapiCore_.NewMethodIdentifier(interfaceIdentifier, "get"),
-		"list":   vapiCore_.NewMethodIdentifier(interfaceIdentifier, "list"),
-		"patch":  vapiCore_.NewMethodIdentifier(interfaceIdentifier, "patch"),
-		"update": vapiCore_.NewMethodIdentifier(interfaceIdentifier, "update"),
+func NewAlbNetworkSecurityPoliciesClient(connector client.Connector) *albNetworkSecurityPoliciesClient {
+	interfaceIdentifier := core.NewInterfaceIdentifier("com.vmware.nsx_policy.infra.alb_network_security_policies")
+	methodIdentifiers := map[string]core.MethodIdentifier{
+		"delete": core.NewMethodIdentifier(interfaceIdentifier, "delete"),
+		"get":    core.NewMethodIdentifier(interfaceIdentifier, "get"),
+		"list":   core.NewMethodIdentifier(interfaceIdentifier, "list"),
+		"patch":  core.NewMethodIdentifier(interfaceIdentifier, "patch"),
+		"update": core.NewMethodIdentifier(interfaceIdentifier, "update"),
 	}
-	interfaceDefinition := vapiCore_.NewInterfaceDefinition(interfaceIdentifier, methodIdentifiers)
-	errorsBindingMap := make(map[string]vapiBindings_.BindingType)
+	interfaceDefinition := core.NewInterfaceDefinition(interfaceIdentifier, methodIdentifiers)
+	errorsBindingMap := make(map[string]bindings.BindingType)
 
 	aIface := albNetworkSecurityPoliciesClient{interfaceDefinition: interfaceDefinition, errorsBindingMap: errorsBindingMap, connector: connector}
 	return &aIface
 }
 
-func (aIface *albNetworkSecurityPoliciesClient) GetErrorBindingType(errorName string) vapiBindings_.BindingType {
+func (aIface *albNetworkSecurityPoliciesClient) GetErrorBindingType(errorName string) bindings.BindingType {
 	if entry, ok := aIface.errorsBindingMap[errorName]; ok {
 		return entry
 	}
-	return vapiStdErrors_.ERROR_BINDINGS_MAP[errorName]
+	return errors.ERROR_BINDINGS_MAP[errorName]
 }
 
 func (aIface *albNetworkSecurityPoliciesClient) Delete(albNetworksecuritypolicyIdParam string, forceParam *bool) error {
 	typeConverter := aIface.connector.TypeConverter()
 	executionContext := aIface.connector.NewExecutionContext()
-	operationRestMetaData := albNetworkSecurityPoliciesDeleteRestMetadata()
-	executionContext.SetConnectionMetadata(vapiCore_.RESTMetadataKey, operationRestMetaData)
-	executionContext.SetConnectionMetadata(vapiCore_.ResponseTypeKey, vapiCore_.NewResponseType(true, false))
-
-	sv := vapiBindings_.NewStructValueBuilder(albNetworkSecurityPoliciesDeleteInputType(), typeConverter)
+	sv := bindings.NewStructValueBuilder(albNetworkSecurityPoliciesDeleteInputType(), typeConverter)
 	sv.AddStructField("AlbNetworksecuritypolicyId", albNetworksecuritypolicyIdParam)
 	sv.AddStructField("Force", forceParam)
 	inputDataValue, inputError := sv.GetStructValue()
 	if inputError != nil {
-		return vapiBindings_.VAPIerrorsToError(inputError)
+		return bindings.VAPIerrorsToError(inputError)
 	}
-
+	operationRestMetaData := albNetworkSecurityPoliciesDeleteRestMetadata()
+	connectionMetadata := map[string]interface{}{lib.REST_METADATA: operationRestMetaData}
+	connectionMetadata["isStreamingResponse"] = false
+	aIface.connector.SetConnectionMetadata(connectionMetadata)
 	methodResult := aIface.connector.GetApiProvider().Invoke("com.vmware.nsx_policy.infra.alb_network_security_policies", "delete", inputDataValue, executionContext)
 	if methodResult.IsSuccess() {
 		return nil
 	} else {
 		methodError, errorInError := typeConverter.ConvertToGolang(methodResult.Error(), aIface.GetErrorBindingType(methodResult.Error().Name()))
 		if errorInError != nil {
-			return vapiBindings_.VAPIerrorsToError(errorInError)
+			return bindings.VAPIerrorsToError(errorInError)
 		}
 		return methodError.(error)
 	}
 }
 
-func (aIface *albNetworkSecurityPoliciesClient) Get(albNetworksecuritypolicyIdParam string) (nsx_policyModel.ALBNetworkSecurityPolicy, error) {
+func (aIface *albNetworkSecurityPoliciesClient) Get(albNetworksecuritypolicyIdParam string) (model.ALBNetworkSecurityPolicy, error) {
 	typeConverter := aIface.connector.TypeConverter()
 	executionContext := aIface.connector.NewExecutionContext()
-	operationRestMetaData := albNetworkSecurityPoliciesGetRestMetadata()
-	executionContext.SetConnectionMetadata(vapiCore_.RESTMetadataKey, operationRestMetaData)
-	executionContext.SetConnectionMetadata(vapiCore_.ResponseTypeKey, vapiCore_.NewResponseType(true, false))
-
-	sv := vapiBindings_.NewStructValueBuilder(albNetworkSecurityPoliciesGetInputType(), typeConverter)
+	sv := bindings.NewStructValueBuilder(albNetworkSecurityPoliciesGetInputType(), typeConverter)
 	sv.AddStructField("AlbNetworksecuritypolicyId", albNetworksecuritypolicyIdParam)
 	inputDataValue, inputError := sv.GetStructValue()
 	if inputError != nil {
-		var emptyOutput nsx_policyModel.ALBNetworkSecurityPolicy
-		return emptyOutput, vapiBindings_.VAPIerrorsToError(inputError)
+		var emptyOutput model.ALBNetworkSecurityPolicy
+		return emptyOutput, bindings.VAPIerrorsToError(inputError)
 	}
-
+	operationRestMetaData := albNetworkSecurityPoliciesGetRestMetadata()
+	connectionMetadata := map[string]interface{}{lib.REST_METADATA: operationRestMetaData}
+	connectionMetadata["isStreamingResponse"] = false
+	aIface.connector.SetConnectionMetadata(connectionMetadata)
 	methodResult := aIface.connector.GetApiProvider().Invoke("com.vmware.nsx_policy.infra.alb_network_security_policies", "get", inputDataValue, executionContext)
-	var emptyOutput nsx_policyModel.ALBNetworkSecurityPolicy
+	var emptyOutput model.ALBNetworkSecurityPolicy
 	if methodResult.IsSuccess() {
-		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), AlbNetworkSecurityPoliciesGetOutputType())
+		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), albNetworkSecurityPoliciesGetOutputType())
 		if errorInOutput != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInOutput)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInOutput)
 		}
-		return output.(nsx_policyModel.ALBNetworkSecurityPolicy), nil
+		return output.(model.ALBNetworkSecurityPolicy), nil
 	} else {
 		methodError, errorInError := typeConverter.ConvertToGolang(methodResult.Error(), aIface.GetErrorBindingType(methodResult.Error().Name()))
 		if errorInError != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInError)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInError)
 		}
 		return emptyOutput, methodError.(error)
 	}
 }
 
-func (aIface *albNetworkSecurityPoliciesClient) List(cursorParam *string, includeMarkForDeleteObjectsParam *bool, includedFieldsParam *string, pageSizeParam *int64, sortAscendingParam *bool, sortByParam *string) (nsx_policyModel.ALBNetworkSecurityPolicyApiResponse, error) {
+func (aIface *albNetworkSecurityPoliciesClient) List(cursorParam *string, includeMarkForDeleteObjectsParam *bool, includedFieldsParam *string, pageSizeParam *int64, sortAscendingParam *bool, sortByParam *string) (model.ALBNetworkSecurityPolicyApiResponse, error) {
 	typeConverter := aIface.connector.TypeConverter()
 	executionContext := aIface.connector.NewExecutionContext()
-	operationRestMetaData := albNetworkSecurityPoliciesListRestMetadata()
-	executionContext.SetConnectionMetadata(vapiCore_.RESTMetadataKey, operationRestMetaData)
-	executionContext.SetConnectionMetadata(vapiCore_.ResponseTypeKey, vapiCore_.NewResponseType(true, false))
-
-	sv := vapiBindings_.NewStructValueBuilder(albNetworkSecurityPoliciesListInputType(), typeConverter)
+	sv := bindings.NewStructValueBuilder(albNetworkSecurityPoliciesListInputType(), typeConverter)
 	sv.AddStructField("Cursor", cursorParam)
 	sv.AddStructField("IncludeMarkForDeleteObjects", includeMarkForDeleteObjectsParam)
 	sv.AddStructField("IncludedFields", includedFieldsParam)
@@ -201,82 +181,83 @@ func (aIface *albNetworkSecurityPoliciesClient) List(cursorParam *string, includ
 	sv.AddStructField("SortBy", sortByParam)
 	inputDataValue, inputError := sv.GetStructValue()
 	if inputError != nil {
-		var emptyOutput nsx_policyModel.ALBNetworkSecurityPolicyApiResponse
-		return emptyOutput, vapiBindings_.VAPIerrorsToError(inputError)
+		var emptyOutput model.ALBNetworkSecurityPolicyApiResponse
+		return emptyOutput, bindings.VAPIerrorsToError(inputError)
 	}
-
+	operationRestMetaData := albNetworkSecurityPoliciesListRestMetadata()
+	connectionMetadata := map[string]interface{}{lib.REST_METADATA: operationRestMetaData}
+	connectionMetadata["isStreamingResponse"] = false
+	aIface.connector.SetConnectionMetadata(connectionMetadata)
 	methodResult := aIface.connector.GetApiProvider().Invoke("com.vmware.nsx_policy.infra.alb_network_security_policies", "list", inputDataValue, executionContext)
-	var emptyOutput nsx_policyModel.ALBNetworkSecurityPolicyApiResponse
+	var emptyOutput model.ALBNetworkSecurityPolicyApiResponse
 	if methodResult.IsSuccess() {
-		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), AlbNetworkSecurityPoliciesListOutputType())
+		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), albNetworkSecurityPoliciesListOutputType())
 		if errorInOutput != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInOutput)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInOutput)
 		}
-		return output.(nsx_policyModel.ALBNetworkSecurityPolicyApiResponse), nil
+		return output.(model.ALBNetworkSecurityPolicyApiResponse), nil
 	} else {
 		methodError, errorInError := typeConverter.ConvertToGolang(methodResult.Error(), aIface.GetErrorBindingType(methodResult.Error().Name()))
 		if errorInError != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInError)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInError)
 		}
 		return emptyOutput, methodError.(error)
 	}
 }
 
-func (aIface *albNetworkSecurityPoliciesClient) Patch(albNetworksecuritypolicyIdParam string, aLBNetworkSecurityPolicyParam nsx_policyModel.ALBNetworkSecurityPolicy) error {
+func (aIface *albNetworkSecurityPoliciesClient) Patch(albNetworksecuritypolicyIdParam string, aLBNetworkSecurityPolicyParam model.ALBNetworkSecurityPolicy) error {
 	typeConverter := aIface.connector.TypeConverter()
 	executionContext := aIface.connector.NewExecutionContext()
-	operationRestMetaData := albNetworkSecurityPoliciesPatchRestMetadata()
-	executionContext.SetConnectionMetadata(vapiCore_.RESTMetadataKey, operationRestMetaData)
-	executionContext.SetConnectionMetadata(vapiCore_.ResponseTypeKey, vapiCore_.NewResponseType(true, false))
-
-	sv := vapiBindings_.NewStructValueBuilder(albNetworkSecurityPoliciesPatchInputType(), typeConverter)
+	sv := bindings.NewStructValueBuilder(albNetworkSecurityPoliciesPatchInputType(), typeConverter)
 	sv.AddStructField("AlbNetworksecuritypolicyId", albNetworksecuritypolicyIdParam)
 	sv.AddStructField("ALBNetworkSecurityPolicy", aLBNetworkSecurityPolicyParam)
 	inputDataValue, inputError := sv.GetStructValue()
 	if inputError != nil {
-		return vapiBindings_.VAPIerrorsToError(inputError)
+		return bindings.VAPIerrorsToError(inputError)
 	}
-
+	operationRestMetaData := albNetworkSecurityPoliciesPatchRestMetadata()
+	connectionMetadata := map[string]interface{}{lib.REST_METADATA: operationRestMetaData}
+	connectionMetadata["isStreamingResponse"] = false
+	aIface.connector.SetConnectionMetadata(connectionMetadata)
 	methodResult := aIface.connector.GetApiProvider().Invoke("com.vmware.nsx_policy.infra.alb_network_security_policies", "patch", inputDataValue, executionContext)
 	if methodResult.IsSuccess() {
 		return nil
 	} else {
 		methodError, errorInError := typeConverter.ConvertToGolang(methodResult.Error(), aIface.GetErrorBindingType(methodResult.Error().Name()))
 		if errorInError != nil {
-			return vapiBindings_.VAPIerrorsToError(errorInError)
+			return bindings.VAPIerrorsToError(errorInError)
 		}
 		return methodError.(error)
 	}
 }
 
-func (aIface *albNetworkSecurityPoliciesClient) Update(albNetworksecuritypolicyIdParam string, aLBNetworkSecurityPolicyParam nsx_policyModel.ALBNetworkSecurityPolicy) (nsx_policyModel.ALBNetworkSecurityPolicy, error) {
+func (aIface *albNetworkSecurityPoliciesClient) Update(albNetworksecuritypolicyIdParam string, aLBNetworkSecurityPolicyParam model.ALBNetworkSecurityPolicy) (model.ALBNetworkSecurityPolicy, error) {
 	typeConverter := aIface.connector.TypeConverter()
 	executionContext := aIface.connector.NewExecutionContext()
-	operationRestMetaData := albNetworkSecurityPoliciesUpdateRestMetadata()
-	executionContext.SetConnectionMetadata(vapiCore_.RESTMetadataKey, operationRestMetaData)
-	executionContext.SetConnectionMetadata(vapiCore_.ResponseTypeKey, vapiCore_.NewResponseType(true, false))
-
-	sv := vapiBindings_.NewStructValueBuilder(albNetworkSecurityPoliciesUpdateInputType(), typeConverter)
+	sv := bindings.NewStructValueBuilder(albNetworkSecurityPoliciesUpdateInputType(), typeConverter)
 	sv.AddStructField("AlbNetworksecuritypolicyId", albNetworksecuritypolicyIdParam)
 	sv.AddStructField("ALBNetworkSecurityPolicy", aLBNetworkSecurityPolicyParam)
 	inputDataValue, inputError := sv.GetStructValue()
 	if inputError != nil {
-		var emptyOutput nsx_policyModel.ALBNetworkSecurityPolicy
-		return emptyOutput, vapiBindings_.VAPIerrorsToError(inputError)
+		var emptyOutput model.ALBNetworkSecurityPolicy
+		return emptyOutput, bindings.VAPIerrorsToError(inputError)
 	}
-
+	operationRestMetaData := albNetworkSecurityPoliciesUpdateRestMetadata()
+	connectionMetadata := map[string]interface{}{lib.REST_METADATA: operationRestMetaData}
+	connectionMetadata["isStreamingResponse"] = false
+	aIface.connector.SetConnectionMetadata(connectionMetadata)
 	methodResult := aIface.connector.GetApiProvider().Invoke("com.vmware.nsx_policy.infra.alb_network_security_policies", "update", inputDataValue, executionContext)
-	var emptyOutput nsx_policyModel.ALBNetworkSecurityPolicy
+	var emptyOutput model.ALBNetworkSecurityPolicy
 	if methodResult.IsSuccess() {
-		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), AlbNetworkSecurityPoliciesUpdateOutputType())
+		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), albNetworkSecurityPoliciesUpdateOutputType())
 		if errorInOutput != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInOutput)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInOutput)
 		}
-		return output.(nsx_policyModel.ALBNetworkSecurityPolicy), nil
+		return output.(model.ALBNetworkSecurityPolicy), nil
 	} else {
 		methodError, errorInError := typeConverter.ConvertToGolang(methodResult.Error(), aIface.GetErrorBindingType(methodResult.Error().Name()))
 		if errorInError != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInError)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInError)
 		}
 		return emptyOutput, methodError.(error)
 	}

@@ -11,43 +11,43 @@
 package infra
 
 import (
-	vapiBindings_ "github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
-	vapiData_ "github.com/vmware/vsphere-automation-sdk-go/runtime/data"
-	vapiProtocol_ "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
-	nsx_policyModel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 	"reflect"
 )
 
-func albOnboardingWorkflowDeleteInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func albOnboardingWorkflowDeleteInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["managed_by"] = vapiBindings_.NewStringType()
+	fields["managed_by"] = bindings.NewStringType()
 	fieldNameMap["managed_by"] = "ManagedBy"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func AlbOnboardingWorkflowDeleteOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewVoidType()
+func albOnboardingWorkflowDeleteOutputType() bindings.BindingType {
+	return bindings.NewVoidType()
 }
 
-func albOnboardingWorkflowDeleteRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func albOnboardingWorkflowDeleteRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["managed_by"] = vapiBindings_.NewStringType()
+	fields["managed_by"] = bindings.NewStringType()
 	fieldNameMap["managed_by"] = "ManagedBy"
-	paramsTypeMap["managed_by"] = vapiBindings_.NewStringType()
-	paramsTypeMap["managedBy"] = vapiBindings_.NewStringType()
+	paramsTypeMap["managed_by"] = bindings.NewStringType()
+	paramsTypeMap["managedBy"] = bindings.NewStringType()
 	pathParams["managed_by"] = "managedBy"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -68,34 +68,34 @@ func albOnboardingWorkflowDeleteRestMetadata() vapiProtocol_.OperationRestMetada
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func albOnboardingWorkflowUpdateInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func albOnboardingWorkflowUpdateInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["a_LB_controller_configuration"] = vapiBindings_.NewReferenceType(nsx_policyModel.ALBControllerConfigurationBindingType)
+	fields["a_LB_controller_configuration"] = bindings.NewReferenceType(model.ALBControllerConfigurationBindingType)
 	fieldNameMap["a_LB_controller_configuration"] = "ALBControllerConfiguration"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func AlbOnboardingWorkflowUpdateOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewReferenceType(nsx_policyModel.EnforcementPointBindingType)
+func albOnboardingWorkflowUpdateOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.EnforcementPointBindingType)
 }
 
-func albOnboardingWorkflowUpdateRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func albOnboardingWorkflowUpdateRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["a_LB_controller_configuration"] = vapiBindings_.NewReferenceType(nsx_policyModel.ALBControllerConfigurationBindingType)
+	fields["a_LB_controller_configuration"] = bindings.NewReferenceType(model.ALBControllerConfigurationBindingType)
 	fieldNameMap["a_LB_controller_configuration"] = "ALBControllerConfiguration"
-	paramsTypeMap["a_LB_controller_configuration"] = vapiBindings_.NewReferenceType(nsx_policyModel.ALBControllerConfigurationBindingType)
+	paramsTypeMap["a_LB_controller_configuration"] = bindings.NewReferenceType(model.ALBControllerConfigurationBindingType)
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,

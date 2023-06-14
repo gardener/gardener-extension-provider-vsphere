@@ -343,11 +343,11 @@ type DynamicStructType struct {
 	validator     Validator
 }
 
-func NewDynamicStructType(hasFieldsOfTypes []ReferenceType) DynamicStructType {
+func NewDynamicStructType(hasFieldsOfTypes []ReferenceType, mode ConverterMode) DynamicStructType {
 	return DynamicStructType{
 		name:          "vmware.vapi.dynamic_struct",
 		bindingStruct: StructBindingType,
-		validator:     NewHasFieldsOfValidator(hasFieldsOfTypes),
+		validator:     NewHasFieldsOfValidator(hasFieldsOfTypes, mode),
 	}
 }
 

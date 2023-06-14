@@ -9,12 +9,40 @@ import (
 	"reflect"
 )
 
+type ConverterMode string
+
+var REST ConverterMode = "REST"
+var JSONRPC ConverterMode = "JSONRPC"
+
 // TypeConverter converts between Golang Native data model and API runtime data model.
 type TypeConverter struct {
+	// mode controls the way native types are rendered to DataValue. Most importantly if Maps will be represented as
+	// struct or list
+	options *typeConverterOptions
 }
 
-func NewTypeConverter() *TypeConverter {
-	return &TypeConverter{}
+type typeConverterOptions struct {
+	mode ConverterMode
+}
+
+type TypeConverterOption func(*typeConverterOptions)
+
+func NewTypeConverter(options ...TypeConverterOption) *TypeConverter {
+	doptions := &typeConverterOptions{
+		mode: JSONRPC,
+	}
+
+	for _, o := range options {
+		o(doptions)
+	}
+
+	return &TypeConverter{options: doptions}
+}
+
+func InRestMode() TypeConverterOption {
+	return func(opts *typeConverterOptions) {
+		opts.mode = REST
+	}
 }
 
 // ConvertToGolang converts vapiValue which is an API runtime representation to its equivalent golang native representation
@@ -47,13 +75,21 @@ func (t *TypeConverter) ConvertToVapi(golangValue interface{}, bindingType Bindi
 		}
 	}
 
-	visitor := NewGolangToVapiDataValueVisitor(golangValue)
-	err := visitor.visit(bindingType)
-	if err != nil {
-		return nil, err
+	if t.options.mode == REST {
+		visitor := NewGolangToRestDataValueVisitor(golangValue)
+		err := visitor.visit(bindingType)
+		if err != nil {
+			return nil, err
+		}
+		return visitor.OutputValue(), nil
+	} else {
+		visitor := NewGolangToVapiDataValueVisitor(golangValue)
+		err := visitor.visit(bindingType)
+		if err != nil {
+			return nil, err
+		}
+		return visitor.OutputValue(), nil
 	}
-	return visitor.OutputValue(), nil
-
 }
 
 // ConvertToDataDefinition outputs DataDefinition representation of bindingType.
@@ -78,4 +114,14 @@ func (t *TypeConverter) ConvertToDataDefinition(bindingType BindingType) (data.D
 // Deprecated: SetPermissive does nothing and is left to keep code compatiblity
 func (t *TypeConverter) SetPermissive(permissive bool) {
 	// Deprecated
+}
+
+// SetMode controls the way native types are rendered to DataValue. Most importantly if Maps will be represented as
+// struct or list
+func (t *TypeConverter) SetMode(mode ConverterMode) {
+	t.options.mode = mode
+}
+
+func (t *TypeConverter) Mode() ConverterMode {
+	return t.options.mode
 }

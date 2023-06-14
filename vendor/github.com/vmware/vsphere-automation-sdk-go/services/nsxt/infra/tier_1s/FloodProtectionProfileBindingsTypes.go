@@ -11,50 +11,50 @@
 package tier_1s
 
 import (
-	vapiBindings_ "github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
-	vapiData_ "github.com/vmware/vsphere-automation-sdk-go/runtime/data"
-	vapiProtocol_ "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
-	nsx_policyModel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 	"reflect"
 )
 
-func floodProtectionProfileBindingsDeleteInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func floodProtectionProfileBindingsDeleteInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["flood_protection_profile_binding_id"] = vapiBindings_.NewStringType()
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["flood_protection_profile_binding_id"] = bindings.NewStringType()
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["flood_protection_profile_binding_id"] = "FloodProtectionProfileBindingId"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func FloodProtectionProfileBindingsDeleteOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewVoidType()
+func floodProtectionProfileBindingsDeleteOutputType() bindings.BindingType {
+	return bindings.NewVoidType()
 }
 
-func floodProtectionProfileBindingsDeleteRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func floodProtectionProfileBindingsDeleteRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["flood_protection_profile_binding_id"] = vapiBindings_.NewStringType()
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["flood_protection_profile_binding_id"] = bindings.NewStringType()
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["flood_protection_profile_binding_id"] = "FloodProtectionProfileBindingId"
-	paramsTypeMap["tier1_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["flood_protection_profile_binding_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["tier1Id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["floodProtectionProfileBindingId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["tier1_id"] = bindings.NewStringType()
+	paramsTypeMap["flood_protection_profile_binding_id"] = bindings.NewStringType()
+	paramsTypeMap["tier1Id"] = bindings.NewStringType()
+	paramsTypeMap["floodProtectionProfileBindingId"] = bindings.NewStringType()
 	pathParams["tier1_id"] = "tier1Id"
 	pathParams["flood_protection_profile_binding_id"] = "floodProtectionProfileBindingId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -75,43 +75,43 @@ func floodProtectionProfileBindingsDeleteRestMetadata() vapiProtocol_.OperationR
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func floodProtectionProfileBindingsGetInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func floodProtectionProfileBindingsGetInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["flood_protection_profile_binding_id"] = vapiBindings_.NewStringType()
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["flood_protection_profile_binding_id"] = bindings.NewStringType()
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["flood_protection_profile_binding_id"] = "FloodProtectionProfileBindingId"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func FloodProtectionProfileBindingsGetOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewReferenceType(nsx_policyModel.FloodProtectionProfileBindingMapBindingType)
+func floodProtectionProfileBindingsGetOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.FloodProtectionProfileBindingMapBindingType)
 }
 
-func floodProtectionProfileBindingsGetRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func floodProtectionProfileBindingsGetRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["flood_protection_profile_binding_id"] = vapiBindings_.NewStringType()
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["flood_protection_profile_binding_id"] = bindings.NewStringType()
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["flood_protection_profile_binding_id"] = "FloodProtectionProfileBindingId"
-	paramsTypeMap["tier1_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["flood_protection_profile_binding_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["tier1Id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["floodProtectionProfileBindingId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["tier1_id"] = bindings.NewStringType()
+	paramsTypeMap["flood_protection_profile_binding_id"] = bindings.NewStringType()
+	paramsTypeMap["tier1Id"] = bindings.NewStringType()
+	paramsTypeMap["floodProtectionProfileBindingId"] = bindings.NewStringType()
 	pathParams["tier1_id"] = "tier1Id"
 	pathParams["flood_protection_profile_binding_id"] = "floodProtectionProfileBindingId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -132,48 +132,48 @@ func floodProtectionProfileBindingsGetRestMetadata() vapiProtocol_.OperationRest
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func floodProtectionProfileBindingsPatchInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func floodProtectionProfileBindingsPatchInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["flood_protection_profile_binding_id"] = vapiBindings_.NewStringType()
-	fields["flood_protection_profile_binding_map"] = vapiBindings_.NewReferenceType(nsx_policyModel.FloodProtectionProfileBindingMapBindingType)
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["flood_protection_profile_binding_id"] = bindings.NewStringType()
+	fields["flood_protection_profile_binding_map"] = bindings.NewReferenceType(model.FloodProtectionProfileBindingMapBindingType)
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["flood_protection_profile_binding_id"] = "FloodProtectionProfileBindingId"
 	fieldNameMap["flood_protection_profile_binding_map"] = "FloodProtectionProfileBindingMap"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func FloodProtectionProfileBindingsPatchOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewVoidType()
+func floodProtectionProfileBindingsPatchOutputType() bindings.BindingType {
+	return bindings.NewVoidType()
 }
 
-func floodProtectionProfileBindingsPatchRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func floodProtectionProfileBindingsPatchRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["flood_protection_profile_binding_id"] = vapiBindings_.NewStringType()
-	fields["flood_protection_profile_binding_map"] = vapiBindings_.NewReferenceType(nsx_policyModel.FloodProtectionProfileBindingMapBindingType)
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["flood_protection_profile_binding_id"] = bindings.NewStringType()
+	fields["flood_protection_profile_binding_map"] = bindings.NewReferenceType(model.FloodProtectionProfileBindingMapBindingType)
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["flood_protection_profile_binding_id"] = "FloodProtectionProfileBindingId"
 	fieldNameMap["flood_protection_profile_binding_map"] = "FloodProtectionProfileBindingMap"
-	paramsTypeMap["tier1_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["flood_protection_profile_binding_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["flood_protection_profile_binding_map"] = vapiBindings_.NewReferenceType(nsx_policyModel.FloodProtectionProfileBindingMapBindingType)
-	paramsTypeMap["tier1Id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["floodProtectionProfileBindingId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["flood_protection_profile_binding_map"] = bindings.NewReferenceType(model.FloodProtectionProfileBindingMapBindingType)
+	paramsTypeMap["tier1_id"] = bindings.NewStringType()
+	paramsTypeMap["flood_protection_profile_binding_id"] = bindings.NewStringType()
+	paramsTypeMap["tier1Id"] = bindings.NewStringType()
+	paramsTypeMap["floodProtectionProfileBindingId"] = bindings.NewStringType()
 	pathParams["tier1_id"] = "tier1Id"
 	pathParams["flood_protection_profile_binding_id"] = "floodProtectionProfileBindingId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -194,48 +194,48 @@ func floodProtectionProfileBindingsPatchRestMetadata() vapiProtocol_.OperationRe
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func floodProtectionProfileBindingsUpdateInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func floodProtectionProfileBindingsUpdateInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["flood_protection_profile_binding_id"] = vapiBindings_.NewStringType()
-	fields["flood_protection_profile_binding_map"] = vapiBindings_.NewReferenceType(nsx_policyModel.FloodProtectionProfileBindingMapBindingType)
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["flood_protection_profile_binding_id"] = bindings.NewStringType()
+	fields["flood_protection_profile_binding_map"] = bindings.NewReferenceType(model.FloodProtectionProfileBindingMapBindingType)
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["flood_protection_profile_binding_id"] = "FloodProtectionProfileBindingId"
 	fieldNameMap["flood_protection_profile_binding_map"] = "FloodProtectionProfileBindingMap"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func FloodProtectionProfileBindingsUpdateOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewReferenceType(nsx_policyModel.FloodProtectionProfileBindingMapBindingType)
+func floodProtectionProfileBindingsUpdateOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.FloodProtectionProfileBindingMapBindingType)
 }
 
-func floodProtectionProfileBindingsUpdateRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func floodProtectionProfileBindingsUpdateRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["flood_protection_profile_binding_id"] = vapiBindings_.NewStringType()
-	fields["flood_protection_profile_binding_map"] = vapiBindings_.NewReferenceType(nsx_policyModel.FloodProtectionProfileBindingMapBindingType)
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["flood_protection_profile_binding_id"] = bindings.NewStringType()
+	fields["flood_protection_profile_binding_map"] = bindings.NewReferenceType(model.FloodProtectionProfileBindingMapBindingType)
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["flood_protection_profile_binding_id"] = "FloodProtectionProfileBindingId"
 	fieldNameMap["flood_protection_profile_binding_map"] = "FloodProtectionProfileBindingMap"
-	paramsTypeMap["tier1_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["flood_protection_profile_binding_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["flood_protection_profile_binding_map"] = vapiBindings_.NewReferenceType(nsx_policyModel.FloodProtectionProfileBindingMapBindingType)
-	paramsTypeMap["tier1Id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["floodProtectionProfileBindingId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["flood_protection_profile_binding_map"] = bindings.NewReferenceType(model.FloodProtectionProfileBindingMapBindingType)
+	paramsTypeMap["tier1_id"] = bindings.NewStringType()
+	paramsTypeMap["flood_protection_profile_binding_id"] = bindings.NewStringType()
+	paramsTypeMap["tier1Id"] = bindings.NewStringType()
+	paramsTypeMap["floodProtectionProfileBindingId"] = bindings.NewStringType()
 	pathParams["tier1_id"] = "tier1Id"
 	pathParams["flood_protection_profile_binding_id"] = "floodProtectionProfileBindingId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,

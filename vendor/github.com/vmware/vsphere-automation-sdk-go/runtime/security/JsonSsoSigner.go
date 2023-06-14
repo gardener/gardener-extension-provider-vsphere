@@ -1,4 +1,4 @@
-/* Copyright © 2019, 2022 VMware, Inc. All Rights Reserved.
+/* Copyright © 2019 VMware, Inc. All Rights Reserved.
    SPDX-License-Identifier: BSD-2-Clause */
 
 package security
@@ -10,7 +10,7 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/log"
 )
 
-// JSONSsoSigner is used for signing Json request messages.
+//Used for signing Json request messages.
 type JSONSsoSigner struct {
 }
 
@@ -18,7 +18,8 @@ func NewJSONSsoSigner() *JSONSsoSigner {
 	return &JSONSsoSigner{}
 }
 
-// Process signs the input JSON request message.
+//
+// Sign the input JSON request message.
 // The message is signed using user's private key. The digest and saml
 // token is then added to the security context block of the execution
 // context. A timestamp is also added to guard against replay attacks
@@ -56,7 +57,7 @@ func NewJSONSsoSigner() *JSONSsoSigner {
 func (j *JSONSsoSigner) Process(jsonRequestBody *map[string]interface{}) error {
 	securityContext, err := GetSecurityContext(jsonRequestBody)
 	if err != nil {
-		// does not have to be propagated to higher layers.
+		// does not have to be propogated to higher layers.
 		// it is okay for some requests to not include security context.
 		return nil
 	}
@@ -69,14 +70,7 @@ func (j *JSONSsoSigner) Process(jsonRequestBody *map[string]interface{}) error {
 		newSecurityContext[AUTHENTICATION_SCHEME_ID] = SAML_HOK_SCHEME_ID
 	} else {
 		log.Debugf("Security Context does not contain authentication scheme ID")
-		return nil
 	}
-
-	err = SetSecurityContext(jsonRequestBody, newSecurityContext)
-	if err != nil {
-		return err
-	}
-
 	newSecurityContext[TIMESTAMP] = GenerateRequestTimeStamp()
 
 	var jwsAlgorithm string
@@ -101,6 +95,10 @@ func (j *JSONSsoSigner) Process(jsonRequestBody *map[string]interface{}) error {
 	}
 
 	newSecurityContext[SIGNATURE_ALGORITHM] = jwsAlgorithm
+	err = SetSecurityContext(jsonRequestBody, newSecurityContext)
+	if err != nil {
+		return err
+	}
 
 	var privateKey string
 	if pvtK, ok := securityContext[PRIVATE_KEY]; ok {

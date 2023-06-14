@@ -1,4 +1,4 @@
-/* Copyright © 2019,2021 VMware, Inc. All Rights Reserved.
+/* Copyright © 2019 VMware, Inc. All Rights Reserved.
    SPDX-License-Identifier: BSD-2-Clause */
 
 package bindings
@@ -129,10 +129,11 @@ func (uv UnionValidator) Validate(structVal *data.StructValue) []error {
 // required fields of the class specified
 type HasFieldsOfValidator struct {
 	hasFieldsOfTypes []ReferenceType
+	mode             ConverterMode
 }
 
-func NewHasFieldsOfValidator(hasFieldsOfTypes []ReferenceType) HasFieldsOfValidator {
-	return HasFieldsOfValidator{hasFieldsOfTypes: hasFieldsOfTypes}
+func NewHasFieldsOfValidator(hasFieldsOfTypes []ReferenceType, mode ConverterMode) HasFieldsOfValidator {
+	return HasFieldsOfValidator{hasFieldsOfTypes: hasFieldsOfTypes, mode: mode}
 }
 
 //Validates whether a StructValue satisfies the HasFieldsOf constraint
@@ -150,6 +151,7 @@ func (hv HasFieldsOfValidator) Validate(structValue *data.StructValue) []error {
 	for _, hasTypeRef := range hv.hasFieldsOfTypes {
 		hasBindingType := hasTypeRef.Resolve().(StructType)
 		converter := NewTypeConverter()
+		converter.SetMode(hv.mode)
 		_, err := converter.ConvertToGolang(structValue, hasBindingType)
 		if err != nil {
 			msg := l10n.NewRuntimeError("vapi.data.structure.dynamic.invalid",

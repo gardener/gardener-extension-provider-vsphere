@@ -9,24 +9,22 @@
 package infra
 
 import (
-	vapiStdErrors_ "github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
-	vapiBindings_ "github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
-	vapiCore_ "github.com/vmware/vsphere-automation-sdk-go/runtime/core"
-	vapiProtocolClient_ "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
-	nsx_policyModel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/core"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/lib"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 )
 
-const _ = vapiCore_.SupportedByRuntimeVersion2
+const _ = core.SupportedByRuntimeVersion1
 
 type AlbVsDataScriptSetsClient interface {
 
-	// Delete the ALBVSDataScriptSet along with all the entities contained by this ALBVSDataScriptSet. This is a deprecated API. It is recommennded to use NSX Advanced Load Balancer (Avi) Controller UI or API directly instead of NSX-T ALB Policy UI and API.
-	//
-	// Deprecated: This API element is deprecated.
+	// Delete the ALBVSDataScriptSet along with all the entities contained by this ALBVSDataScriptSet.
 	//
 	// @param albVsdatascriptsetIdParam ALBVSDataScriptSet ID (required)
 	// @param forceParam Force delete the resource even if it is being used somewhere (optional, default to false)
-	//
 	// @throws InvalidRequest  Bad Request, Precondition Failed
 	// @throws Unauthorized  Forbidden
 	// @throws ServiceUnavailable  Service Unavailable
@@ -34,23 +32,18 @@ type AlbVsDataScriptSetsClient interface {
 	// @throws NotFound  Not Found
 	Delete(albVsdatascriptsetIdParam string, forceParam *bool) error
 
-	// Read a ALBVSDataScriptSet. This is a deprecated API. It is recommennded to use NSX Advanced Load Balancer (Avi) Controller UI or API directly instead of NSX-T ALB Policy UI and API.
-	//
-	// Deprecated: This API element is deprecated.
+	// Read a ALBVSDataScriptSet.
 	//
 	// @param albVsdatascriptsetIdParam ALBVSDataScriptSet ID (required)
 	// @return com.vmware.nsx_policy.model.ALBVSDataScriptSet
-	//
 	// @throws InvalidRequest  Bad Request, Precondition Failed
 	// @throws Unauthorized  Forbidden
 	// @throws ServiceUnavailable  Service Unavailable
 	// @throws InternalServerError  Internal Server Error
 	// @throws NotFound  Not Found
-	Get(albVsdatascriptsetIdParam string) (nsx_policyModel.ALBVSDataScriptSet, error)
+	Get(albVsdatascriptsetIdParam string) (model.ALBVSDataScriptSet, error)
 
-	// Paginated list of all ALBVSDataScriptSet for infra. This is a deprecated API. It is recommennded to use NSX Advanced Load Balancer (Avi) Controller UI or API directly instead of NSX-T ALB Policy UI and API.
-	//
-	// Deprecated: This API element is deprecated.
+	// Paginated list of all ALBVSDataScriptSet for infra.
 	//
 	// @param cursorParam Opaque cursor to be used for getting next page of records (supplied by current result page) (optional)
 	// @param includeMarkForDeleteObjectsParam Include objects that are marked for deletion in results (optional, default to false)
@@ -59,140 +52,127 @@ type AlbVsDataScriptSetsClient interface {
 	// @param sortAscendingParam (optional)
 	// @param sortByParam Field by which records are sorted (optional)
 	// @return com.vmware.nsx_policy.model.ALBVSDataScriptSetApiResponse
-	//
 	// @throws InvalidRequest  Bad Request, Precondition Failed
 	// @throws Unauthorized  Forbidden
 	// @throws ServiceUnavailable  Service Unavailable
 	// @throws InternalServerError  Internal Server Error
 	// @throws NotFound  Not Found
-	List(cursorParam *string, includeMarkForDeleteObjectsParam *bool, includedFieldsParam *string, pageSizeParam *int64, sortAscendingParam *bool, sortByParam *string) (nsx_policyModel.ALBVSDataScriptSetApiResponse, error)
+	List(cursorParam *string, includeMarkForDeleteObjectsParam *bool, includedFieldsParam *string, pageSizeParam *int64, sortAscendingParam *bool, sortByParam *string) (model.ALBVSDataScriptSetApiResponse, error)
 
-	// If a ALBvsdatascriptset with the alb-vsdatascriptset-id is not already present, create a new ALBvsdatascriptset. If it already exists, update the ALBvsdatascriptset. This is a full replace. This is a deprecated API. It is recommennded to use NSX Advanced Load Balancer (Avi) Controller UI or API directly instead of NSX-T ALB Policy UI and API.
-	//
-	// Deprecated: This API element is deprecated.
+	// If a ALBvsdatascriptset with the alb-vsdatascriptset-id is not already present, create a new ALBvsdatascriptset. If it already exists, update the ALBvsdatascriptset. This is a full replace.
 	//
 	// @param albVsdatascriptsetIdParam ALBvsdatascriptset ID (required)
 	// @param aLBVSDataScriptSetParam (required)
-	//
 	// @throws InvalidRequest  Bad Request, Precondition Failed
 	// @throws Unauthorized  Forbidden
 	// @throws ServiceUnavailable  Service Unavailable
 	// @throws InternalServerError  Internal Server Error
 	// @throws NotFound  Not Found
-	Patch(albVsdatascriptsetIdParam string, aLBVSDataScriptSetParam nsx_policyModel.ALBVSDataScriptSet) error
+	Patch(albVsdatascriptsetIdParam string, aLBVSDataScriptSetParam model.ALBVSDataScriptSet) error
 
-	// If a ALBVSDataScriptSet with the alb-VSDataScriptSet-id is not already present, create a new ALBVSDataScriptSet. If it already exists, update the ALBVSDataScriptSet. This is a full replace. This is a deprecated API. It is recommennded to use NSX Advanced Load Balancer (Avi) Controller UI or API directly instead of NSX-T ALB Policy UI and API.
-	//
-	// Deprecated: This API element is deprecated.
+	// If a ALBVSDataScriptSet with the alb-VSDataScriptSet-id is not already present, create a new ALBVSDataScriptSet. If it already exists, update the ALBVSDataScriptSet. This is a full replace.
 	//
 	// @param albVsdatascriptsetIdParam ALBVSDataScriptSet ID (required)
 	// @param aLBVSDataScriptSetParam (required)
 	// @return com.vmware.nsx_policy.model.ALBVSDataScriptSet
-	//
 	// @throws InvalidRequest  Bad Request, Precondition Failed
 	// @throws Unauthorized  Forbidden
 	// @throws ServiceUnavailable  Service Unavailable
 	// @throws InternalServerError  Internal Server Error
 	// @throws NotFound  Not Found
-	Update(albVsdatascriptsetIdParam string, aLBVSDataScriptSetParam nsx_policyModel.ALBVSDataScriptSet) (nsx_policyModel.ALBVSDataScriptSet, error)
+	Update(albVsdatascriptsetIdParam string, aLBVSDataScriptSetParam model.ALBVSDataScriptSet) (model.ALBVSDataScriptSet, error)
 }
 
 type albVsDataScriptSetsClient struct {
-	connector           vapiProtocolClient_.Connector
-	interfaceDefinition vapiCore_.InterfaceDefinition
-	errorsBindingMap    map[string]vapiBindings_.BindingType
+	connector           client.Connector
+	interfaceDefinition core.InterfaceDefinition
+	errorsBindingMap    map[string]bindings.BindingType
 }
 
-func NewAlbVsDataScriptSetsClient(connector vapiProtocolClient_.Connector) *albVsDataScriptSetsClient {
-	interfaceIdentifier := vapiCore_.NewInterfaceIdentifier("com.vmware.nsx_policy.infra.alb_vs_data_script_sets")
-	methodIdentifiers := map[string]vapiCore_.MethodIdentifier{
-		"delete": vapiCore_.NewMethodIdentifier(interfaceIdentifier, "delete"),
-		"get":    vapiCore_.NewMethodIdentifier(interfaceIdentifier, "get"),
-		"list":   vapiCore_.NewMethodIdentifier(interfaceIdentifier, "list"),
-		"patch":  vapiCore_.NewMethodIdentifier(interfaceIdentifier, "patch"),
-		"update": vapiCore_.NewMethodIdentifier(interfaceIdentifier, "update"),
+func NewAlbVsDataScriptSetsClient(connector client.Connector) *albVsDataScriptSetsClient {
+	interfaceIdentifier := core.NewInterfaceIdentifier("com.vmware.nsx_policy.infra.alb_vs_data_script_sets")
+	methodIdentifiers := map[string]core.MethodIdentifier{
+		"delete": core.NewMethodIdentifier(interfaceIdentifier, "delete"),
+		"get":    core.NewMethodIdentifier(interfaceIdentifier, "get"),
+		"list":   core.NewMethodIdentifier(interfaceIdentifier, "list"),
+		"patch":  core.NewMethodIdentifier(interfaceIdentifier, "patch"),
+		"update": core.NewMethodIdentifier(interfaceIdentifier, "update"),
 	}
-	interfaceDefinition := vapiCore_.NewInterfaceDefinition(interfaceIdentifier, methodIdentifiers)
-	errorsBindingMap := make(map[string]vapiBindings_.BindingType)
+	interfaceDefinition := core.NewInterfaceDefinition(interfaceIdentifier, methodIdentifiers)
+	errorsBindingMap := make(map[string]bindings.BindingType)
 
 	aIface := albVsDataScriptSetsClient{interfaceDefinition: interfaceDefinition, errorsBindingMap: errorsBindingMap, connector: connector}
 	return &aIface
 }
 
-func (aIface *albVsDataScriptSetsClient) GetErrorBindingType(errorName string) vapiBindings_.BindingType {
+func (aIface *albVsDataScriptSetsClient) GetErrorBindingType(errorName string) bindings.BindingType {
 	if entry, ok := aIface.errorsBindingMap[errorName]; ok {
 		return entry
 	}
-	return vapiStdErrors_.ERROR_BINDINGS_MAP[errorName]
+	return errors.ERROR_BINDINGS_MAP[errorName]
 }
 
 func (aIface *albVsDataScriptSetsClient) Delete(albVsdatascriptsetIdParam string, forceParam *bool) error {
 	typeConverter := aIface.connector.TypeConverter()
 	executionContext := aIface.connector.NewExecutionContext()
-	operationRestMetaData := albVsDataScriptSetsDeleteRestMetadata()
-	executionContext.SetConnectionMetadata(vapiCore_.RESTMetadataKey, operationRestMetaData)
-	executionContext.SetConnectionMetadata(vapiCore_.ResponseTypeKey, vapiCore_.NewResponseType(true, false))
-
-	sv := vapiBindings_.NewStructValueBuilder(albVsDataScriptSetsDeleteInputType(), typeConverter)
+	sv := bindings.NewStructValueBuilder(albVsDataScriptSetsDeleteInputType(), typeConverter)
 	sv.AddStructField("AlbVsdatascriptsetId", albVsdatascriptsetIdParam)
 	sv.AddStructField("Force", forceParam)
 	inputDataValue, inputError := sv.GetStructValue()
 	if inputError != nil {
-		return vapiBindings_.VAPIerrorsToError(inputError)
+		return bindings.VAPIerrorsToError(inputError)
 	}
-
+	operationRestMetaData := albVsDataScriptSetsDeleteRestMetadata()
+	connectionMetadata := map[string]interface{}{lib.REST_METADATA: operationRestMetaData}
+	connectionMetadata["isStreamingResponse"] = false
+	aIface.connector.SetConnectionMetadata(connectionMetadata)
 	methodResult := aIface.connector.GetApiProvider().Invoke("com.vmware.nsx_policy.infra.alb_vs_data_script_sets", "delete", inputDataValue, executionContext)
 	if methodResult.IsSuccess() {
 		return nil
 	} else {
 		methodError, errorInError := typeConverter.ConvertToGolang(methodResult.Error(), aIface.GetErrorBindingType(methodResult.Error().Name()))
 		if errorInError != nil {
-			return vapiBindings_.VAPIerrorsToError(errorInError)
+			return bindings.VAPIerrorsToError(errorInError)
 		}
 		return methodError.(error)
 	}
 }
 
-func (aIface *albVsDataScriptSetsClient) Get(albVsdatascriptsetIdParam string) (nsx_policyModel.ALBVSDataScriptSet, error) {
+func (aIface *albVsDataScriptSetsClient) Get(albVsdatascriptsetIdParam string) (model.ALBVSDataScriptSet, error) {
 	typeConverter := aIface.connector.TypeConverter()
 	executionContext := aIface.connector.NewExecutionContext()
-	operationRestMetaData := albVsDataScriptSetsGetRestMetadata()
-	executionContext.SetConnectionMetadata(vapiCore_.RESTMetadataKey, operationRestMetaData)
-	executionContext.SetConnectionMetadata(vapiCore_.ResponseTypeKey, vapiCore_.NewResponseType(true, false))
-
-	sv := vapiBindings_.NewStructValueBuilder(albVsDataScriptSetsGetInputType(), typeConverter)
+	sv := bindings.NewStructValueBuilder(albVsDataScriptSetsGetInputType(), typeConverter)
 	sv.AddStructField("AlbVsdatascriptsetId", albVsdatascriptsetIdParam)
 	inputDataValue, inputError := sv.GetStructValue()
 	if inputError != nil {
-		var emptyOutput nsx_policyModel.ALBVSDataScriptSet
-		return emptyOutput, vapiBindings_.VAPIerrorsToError(inputError)
+		var emptyOutput model.ALBVSDataScriptSet
+		return emptyOutput, bindings.VAPIerrorsToError(inputError)
 	}
-
+	operationRestMetaData := albVsDataScriptSetsGetRestMetadata()
+	connectionMetadata := map[string]interface{}{lib.REST_METADATA: operationRestMetaData}
+	connectionMetadata["isStreamingResponse"] = false
+	aIface.connector.SetConnectionMetadata(connectionMetadata)
 	methodResult := aIface.connector.GetApiProvider().Invoke("com.vmware.nsx_policy.infra.alb_vs_data_script_sets", "get", inputDataValue, executionContext)
-	var emptyOutput nsx_policyModel.ALBVSDataScriptSet
+	var emptyOutput model.ALBVSDataScriptSet
 	if methodResult.IsSuccess() {
-		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), AlbVsDataScriptSetsGetOutputType())
+		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), albVsDataScriptSetsGetOutputType())
 		if errorInOutput != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInOutput)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInOutput)
 		}
-		return output.(nsx_policyModel.ALBVSDataScriptSet), nil
+		return output.(model.ALBVSDataScriptSet), nil
 	} else {
 		methodError, errorInError := typeConverter.ConvertToGolang(methodResult.Error(), aIface.GetErrorBindingType(methodResult.Error().Name()))
 		if errorInError != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInError)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInError)
 		}
 		return emptyOutput, methodError.(error)
 	}
 }
 
-func (aIface *albVsDataScriptSetsClient) List(cursorParam *string, includeMarkForDeleteObjectsParam *bool, includedFieldsParam *string, pageSizeParam *int64, sortAscendingParam *bool, sortByParam *string) (nsx_policyModel.ALBVSDataScriptSetApiResponse, error) {
+func (aIface *albVsDataScriptSetsClient) List(cursorParam *string, includeMarkForDeleteObjectsParam *bool, includedFieldsParam *string, pageSizeParam *int64, sortAscendingParam *bool, sortByParam *string) (model.ALBVSDataScriptSetApiResponse, error) {
 	typeConverter := aIface.connector.TypeConverter()
 	executionContext := aIface.connector.NewExecutionContext()
-	operationRestMetaData := albVsDataScriptSetsListRestMetadata()
-	executionContext.SetConnectionMetadata(vapiCore_.RESTMetadataKey, operationRestMetaData)
-	executionContext.SetConnectionMetadata(vapiCore_.ResponseTypeKey, vapiCore_.NewResponseType(true, false))
-
-	sv := vapiBindings_.NewStructValueBuilder(albVsDataScriptSetsListInputType(), typeConverter)
+	sv := bindings.NewStructValueBuilder(albVsDataScriptSetsListInputType(), typeConverter)
 	sv.AddStructField("Cursor", cursorParam)
 	sv.AddStructField("IncludeMarkForDeleteObjects", includeMarkForDeleteObjectsParam)
 	sv.AddStructField("IncludedFields", includedFieldsParam)
@@ -201,82 +181,83 @@ func (aIface *albVsDataScriptSetsClient) List(cursorParam *string, includeMarkFo
 	sv.AddStructField("SortBy", sortByParam)
 	inputDataValue, inputError := sv.GetStructValue()
 	if inputError != nil {
-		var emptyOutput nsx_policyModel.ALBVSDataScriptSetApiResponse
-		return emptyOutput, vapiBindings_.VAPIerrorsToError(inputError)
+		var emptyOutput model.ALBVSDataScriptSetApiResponse
+		return emptyOutput, bindings.VAPIerrorsToError(inputError)
 	}
-
+	operationRestMetaData := albVsDataScriptSetsListRestMetadata()
+	connectionMetadata := map[string]interface{}{lib.REST_METADATA: operationRestMetaData}
+	connectionMetadata["isStreamingResponse"] = false
+	aIface.connector.SetConnectionMetadata(connectionMetadata)
 	methodResult := aIface.connector.GetApiProvider().Invoke("com.vmware.nsx_policy.infra.alb_vs_data_script_sets", "list", inputDataValue, executionContext)
-	var emptyOutput nsx_policyModel.ALBVSDataScriptSetApiResponse
+	var emptyOutput model.ALBVSDataScriptSetApiResponse
 	if methodResult.IsSuccess() {
-		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), AlbVsDataScriptSetsListOutputType())
+		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), albVsDataScriptSetsListOutputType())
 		if errorInOutput != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInOutput)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInOutput)
 		}
-		return output.(nsx_policyModel.ALBVSDataScriptSetApiResponse), nil
+		return output.(model.ALBVSDataScriptSetApiResponse), nil
 	} else {
 		methodError, errorInError := typeConverter.ConvertToGolang(methodResult.Error(), aIface.GetErrorBindingType(methodResult.Error().Name()))
 		if errorInError != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInError)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInError)
 		}
 		return emptyOutput, methodError.(error)
 	}
 }
 
-func (aIface *albVsDataScriptSetsClient) Patch(albVsdatascriptsetIdParam string, aLBVSDataScriptSetParam nsx_policyModel.ALBVSDataScriptSet) error {
+func (aIface *albVsDataScriptSetsClient) Patch(albVsdatascriptsetIdParam string, aLBVSDataScriptSetParam model.ALBVSDataScriptSet) error {
 	typeConverter := aIface.connector.TypeConverter()
 	executionContext := aIface.connector.NewExecutionContext()
-	operationRestMetaData := albVsDataScriptSetsPatchRestMetadata()
-	executionContext.SetConnectionMetadata(vapiCore_.RESTMetadataKey, operationRestMetaData)
-	executionContext.SetConnectionMetadata(vapiCore_.ResponseTypeKey, vapiCore_.NewResponseType(true, false))
-
-	sv := vapiBindings_.NewStructValueBuilder(albVsDataScriptSetsPatchInputType(), typeConverter)
+	sv := bindings.NewStructValueBuilder(albVsDataScriptSetsPatchInputType(), typeConverter)
 	sv.AddStructField("AlbVsdatascriptsetId", albVsdatascriptsetIdParam)
 	sv.AddStructField("ALBVSDataScriptSet", aLBVSDataScriptSetParam)
 	inputDataValue, inputError := sv.GetStructValue()
 	if inputError != nil {
-		return vapiBindings_.VAPIerrorsToError(inputError)
+		return bindings.VAPIerrorsToError(inputError)
 	}
-
+	operationRestMetaData := albVsDataScriptSetsPatchRestMetadata()
+	connectionMetadata := map[string]interface{}{lib.REST_METADATA: operationRestMetaData}
+	connectionMetadata["isStreamingResponse"] = false
+	aIface.connector.SetConnectionMetadata(connectionMetadata)
 	methodResult := aIface.connector.GetApiProvider().Invoke("com.vmware.nsx_policy.infra.alb_vs_data_script_sets", "patch", inputDataValue, executionContext)
 	if methodResult.IsSuccess() {
 		return nil
 	} else {
 		methodError, errorInError := typeConverter.ConvertToGolang(methodResult.Error(), aIface.GetErrorBindingType(methodResult.Error().Name()))
 		if errorInError != nil {
-			return vapiBindings_.VAPIerrorsToError(errorInError)
+			return bindings.VAPIerrorsToError(errorInError)
 		}
 		return methodError.(error)
 	}
 }
 
-func (aIface *albVsDataScriptSetsClient) Update(albVsdatascriptsetIdParam string, aLBVSDataScriptSetParam nsx_policyModel.ALBVSDataScriptSet) (nsx_policyModel.ALBVSDataScriptSet, error) {
+func (aIface *albVsDataScriptSetsClient) Update(albVsdatascriptsetIdParam string, aLBVSDataScriptSetParam model.ALBVSDataScriptSet) (model.ALBVSDataScriptSet, error) {
 	typeConverter := aIface.connector.TypeConverter()
 	executionContext := aIface.connector.NewExecutionContext()
-	operationRestMetaData := albVsDataScriptSetsUpdateRestMetadata()
-	executionContext.SetConnectionMetadata(vapiCore_.RESTMetadataKey, operationRestMetaData)
-	executionContext.SetConnectionMetadata(vapiCore_.ResponseTypeKey, vapiCore_.NewResponseType(true, false))
-
-	sv := vapiBindings_.NewStructValueBuilder(albVsDataScriptSetsUpdateInputType(), typeConverter)
+	sv := bindings.NewStructValueBuilder(albVsDataScriptSetsUpdateInputType(), typeConverter)
 	sv.AddStructField("AlbVsdatascriptsetId", albVsdatascriptsetIdParam)
 	sv.AddStructField("ALBVSDataScriptSet", aLBVSDataScriptSetParam)
 	inputDataValue, inputError := sv.GetStructValue()
 	if inputError != nil {
-		var emptyOutput nsx_policyModel.ALBVSDataScriptSet
-		return emptyOutput, vapiBindings_.VAPIerrorsToError(inputError)
+		var emptyOutput model.ALBVSDataScriptSet
+		return emptyOutput, bindings.VAPIerrorsToError(inputError)
 	}
-
+	operationRestMetaData := albVsDataScriptSetsUpdateRestMetadata()
+	connectionMetadata := map[string]interface{}{lib.REST_METADATA: operationRestMetaData}
+	connectionMetadata["isStreamingResponse"] = false
+	aIface.connector.SetConnectionMetadata(connectionMetadata)
 	methodResult := aIface.connector.GetApiProvider().Invoke("com.vmware.nsx_policy.infra.alb_vs_data_script_sets", "update", inputDataValue, executionContext)
-	var emptyOutput nsx_policyModel.ALBVSDataScriptSet
+	var emptyOutput model.ALBVSDataScriptSet
 	if methodResult.IsSuccess() {
-		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), AlbVsDataScriptSetsUpdateOutputType())
+		output, errorInOutput := typeConverter.ConvertToGolang(methodResult.Output(), albVsDataScriptSetsUpdateOutputType())
 		if errorInOutput != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInOutput)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInOutput)
 		}
-		return output.(nsx_policyModel.ALBVSDataScriptSet), nil
+		return output.(model.ALBVSDataScriptSet), nil
 	} else {
 		methodError, errorInError := typeConverter.ConvertToGolang(methodResult.Error(), aIface.GetErrorBindingType(methodResult.Error().Name()))
 		if errorInError != nil {
-			return emptyOutput, vapiBindings_.VAPIerrorsToError(errorInError)
+			return emptyOutput, bindings.VAPIerrorsToError(errorInError)
 		}
 		return emptyOutput, methodError.(error)
 	}

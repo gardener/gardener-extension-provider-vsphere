@@ -1,4 +1,4 @@
-/* Copyright © 2019, 2022 VMware, Inc. All Rights Reserved.
+/* Copyright © 2019 VMware, Inc. All Rights Reserved.
    SPDX-License-Identifier: BSD-2-Clause */
 
 package msg
@@ -26,15 +26,13 @@ var optionalValuePtr = reflect.TypeOf((*data.OptionalValue)(nil))
 var errorValuePtr = reflect.TypeOf((*data.ErrorValue)(nil))
 var voidValuePtr = reflect.TypeOf((*data.VoidValue)(nil))
 var boolValuePtr = reflect.TypeOf((*data.BooleanValue)(nil))
-var blobValuePtr = reflect.TypeOf((*data.BlobValue)(nil))
+var blobValuePtr = reflect.TypeOf(((*data.BlobValue)(nil)))
 var secretValuePtr = reflect.TypeOf((*data.SecretValue)(nil))
-var methodResultType = reflect.TypeOf(core.NewMethodResult(nil, nil))
+var methodResultType = reflect.TypeOf(core.MethodResult{})
 var executionContextPtr = reflect.TypeOf((*core.ExecutionContext)(nil))
 var jsonRpcRequestType = reflect.TypeOf(JsonRpc20Request{})
 var jsonRpcResponseType = reflect.TypeOf(JsonRpc20Response{})
 var jsonRpcRequestErrorType = reflect.TypeOf((*JsonRpcRequestError)(nil))
-
-var monoResultType = reflect.TypeOf(core.NewMonoResult(nil, nil))
 
 // Encodes vapi structs to json.
 type JsonRpcEncoder struct {
@@ -83,8 +81,6 @@ func getCustomSerializer(val interface{}, redactSecret bool) interface{} {
 		return NewBooleanValueSerializer(val.(*data.BooleanValue))
 	case methodResultType:
 		return NewMethodResultSerializer(val.(core.MethodResult), redactSecret)
-	case monoResultType:
-		return NewMonoResultSerializer(val.(core.MonoResult), redactSecret)
 	case blobValuePtr:
 		return NewBlobValueSerializer(val.(*data.BlobValue))
 	case secretValuePtr:
@@ -162,13 +158,13 @@ func (j *JsonRpcRequestErrorSerializer) MarshalJSON() ([]byte, error) {
 	}
 	jsonRpc20Error := j.jsonRpcRequestError.jsonRpc20Error
 	if jsonRpc20Error != nil {
-		var resErr = make(map[string]interface{})
-		resErr[lib.ERROR_CODE] = jsonRpc20Error.Code()
-		resErr[lib.ERROR_MESSAGE] = jsonRpc20Error.Message()
+		var error = make(map[string]interface{})
+		error[lib.ERROR_CODE] = jsonRpc20Error.Code()
+		error[lib.ERROR_MESSAGE] = jsonRpc20Error.Message()
 		if jsonRpc20Error.data != nil {
-			resErr[lib.ERROR_DATA] = jsonRpc20Error.data
+			error[lib.ERROR_DATA] = jsonRpc20Error.data
 		}
-		result[lib.METHOD_RESULT_ERROR] = resErr
+		result[lib.METHOD_RESULT_ERROR] = error
 	}
 
 	return json.Marshal(result)
@@ -341,23 +337,44 @@ func (methodResultSerializer *MethodResultSerializer) MarshalJSON() ([]byte, err
 	return json.Marshal(result)
 }
 
-type MonoResultSerializer struct {
-	monoResult   core.MonoResult
-	redactSecret bool
+type ApplicationContextSerializer struct {
+	appContext *core.ApplicationContext
 }
 
-func NewMonoResultSerializer(monoResult core.MonoResult, redactSecret bool) *MonoResultSerializer {
-	return &MonoResultSerializer{monoResult: monoResult, redactSecret: redactSecret}
+func NewApplicationContextSerializer(appContext *core.ApplicationContext) *ApplicationContextSerializer {
+	return &ApplicationContextSerializer{appContext: appContext}
 }
 
-func (monoResultSerializer *MonoResultSerializer) MarshalJSON() ([]byte, error) {
+func (acs *ApplicationContextSerializer) MarshalJSON() ([]byte, error) {
+	return json.Marshal(acs.appContext)
+}
+
+type SecurityContextSerializer struct {
+	securityContext core.SecurityContext
+}
+
+func NewSecurityContextSerializer(context core.SecurityContext) *SecurityContextSerializer {
+	return &SecurityContextSerializer{securityContext: context}
+}
+
+func (scs *SecurityContextSerializer) MarshalJSON() ([]byte, error) {
+	return json.Marshal(scs.securityContext)
+}
+
+type ExecutionContextSerializer struct {
+	executionContext *core.ExecutionContext
+}
+
+func NewExecutionContextSerializer(executionContext *core.ExecutionContext) *ExecutionContextSerializer {
+	return &ExecutionContextSerializer{executionContext: executionContext}
+}
+
+func (ecs *ExecutionContextSerializer) MarshalJSON() ([]byte, error) {
 	var result = make(map[string]interface{})
-	var monoResult = monoResultSerializer.monoResult
-	if monoResult.IsSuccess() {
-		result[lib.METHOD_RESULT_OUTPUT] = getCustomSerializer(monoResult.Output(), monoResultSerializer.redactSecret)
-	} else {
-		result[lib.METHOD_RESULT_ERROR] = getCustomSerializer(monoResult.Error(), monoResultSerializer.redactSecret)
+	if ecs.executionContext.SecurityContext() != nil {
+		result[lib.SECURITY_CONTEXT] = NewSecurityContextSerializer(ecs.executionContext.SecurityContext())
 	}
+	result[lib.APPLICATION_CONTEXT] = NewApplicationContextSerializer(ecs.executionContext.ApplicationContext())
 	return json.Marshal(result)
 }
 
@@ -378,10 +395,8 @@ func dispatcher(val interface{}, redactSecret bool) ([]byte, error) {
 		return json.Marshal(errorValueSerializer)
 	case methodResultType:
 		return json.Marshal(NewMethodResultSerializer(val.(core.MethodResult), redactSecret))
-	case monoResultType:
-		return json.Marshal(NewMonoResultSerializer(val.(core.MonoResult), redactSecret))
 	case executionContextPtr:
-		return json.Marshal(val.(*core.ExecutionContext))
+		return json.Marshal(NewExecutionContextSerializer(val.(*core.ExecutionContext)))
 	case jsonRpcRequestType:
 		return json.Marshal(NewJsonRpc20RequestSerializer(val.(JsonRpc20Request)))
 	case jsonRpcResponseType:

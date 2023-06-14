@@ -11,43 +11,43 @@
 package infra
 
 import (
-	vapiBindings_ "github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
-	vapiData_ "github.com/vmware/vsphere-automation-sdk-go/runtime/data"
-	vapiProtocol_ "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
-	nsx_policyModel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 	"reflect"
 )
 
-func dnsForwarderZonesDeleteInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func dnsForwarderZonesDeleteInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["dns_forwarder_zone_id"] = vapiBindings_.NewStringType()
+	fields["dns_forwarder_zone_id"] = bindings.NewStringType()
 	fieldNameMap["dns_forwarder_zone_id"] = "DnsForwarderZoneId"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func DnsForwarderZonesDeleteOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewVoidType()
+func dnsForwarderZonesDeleteOutputType() bindings.BindingType {
+	return bindings.NewVoidType()
 }
 
-func dnsForwarderZonesDeleteRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func dnsForwarderZonesDeleteRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["dns_forwarder_zone_id"] = vapiBindings_.NewStringType()
+	fields["dns_forwarder_zone_id"] = bindings.NewStringType()
 	fieldNameMap["dns_forwarder_zone_id"] = "DnsForwarderZoneId"
-	paramsTypeMap["dns_forwarder_zone_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["dnsForwarderZoneId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["dns_forwarder_zone_id"] = bindings.NewStringType()
+	paramsTypeMap["dnsForwarderZoneId"] = bindings.NewStringType()
 	pathParams["dns_forwarder_zone_id"] = "dnsForwarderZoneId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -68,36 +68,36 @@ func dnsForwarderZonesDeleteRestMetadata() vapiProtocol_.OperationRestMetadata {
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func dnsForwarderZonesGetInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func dnsForwarderZonesGetInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["dns_forwarder_zone_id"] = vapiBindings_.NewStringType()
+	fields["dns_forwarder_zone_id"] = bindings.NewStringType()
 	fieldNameMap["dns_forwarder_zone_id"] = "DnsForwarderZoneId"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func DnsForwarderZonesGetOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewReferenceType(nsx_policyModel.PolicyDnsForwarderZoneBindingType)
+func dnsForwarderZonesGetOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.PolicyDnsForwarderZoneBindingType)
 }
 
-func dnsForwarderZonesGetRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func dnsForwarderZonesGetRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["dns_forwarder_zone_id"] = vapiBindings_.NewStringType()
+	fields["dns_forwarder_zone_id"] = bindings.NewStringType()
 	fieldNameMap["dns_forwarder_zone_id"] = "DnsForwarderZoneId"
-	paramsTypeMap["dns_forwarder_zone_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["dnsForwarderZoneId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["dns_forwarder_zone_id"] = bindings.NewStringType()
+	paramsTypeMap["dnsForwarderZoneId"] = bindings.NewStringType()
 	pathParams["dns_forwarder_zone_id"] = "dnsForwarderZoneId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -118,56 +118,56 @@ func dnsForwarderZonesGetRestMetadata() vapiProtocol_.OperationRestMetadata {
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func dnsForwarderZonesListInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func dnsForwarderZonesListInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["cursor"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	fields["include_mark_for_delete_objects"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	fields["included_fields"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	fields["page_size"] = vapiBindings_.NewOptionalType(vapiBindings_.NewIntegerType())
-	fields["sort_ascending"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	fields["sort_by"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
+	fields["cursor"] = bindings.NewOptionalType(bindings.NewStringType())
+	fields["include_mark_for_delete_objects"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	fields["included_fields"] = bindings.NewOptionalType(bindings.NewStringType())
+	fields["page_size"] = bindings.NewOptionalType(bindings.NewIntegerType())
+	fields["sort_ascending"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	fields["sort_by"] = bindings.NewOptionalType(bindings.NewStringType())
 	fieldNameMap["cursor"] = "Cursor"
 	fieldNameMap["include_mark_for_delete_objects"] = "IncludeMarkForDeleteObjects"
 	fieldNameMap["included_fields"] = "IncludedFields"
 	fieldNameMap["page_size"] = "PageSize"
 	fieldNameMap["sort_ascending"] = "SortAscending"
 	fieldNameMap["sort_by"] = "SortBy"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func DnsForwarderZonesListOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewReferenceType(nsx_policyModel.PolicyDnsForwarderZoneListResultBindingType)
+func dnsForwarderZonesListOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.PolicyDnsForwarderZoneListResultBindingType)
 }
 
-func dnsForwarderZonesListRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func dnsForwarderZonesListRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["cursor"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	fields["include_mark_for_delete_objects"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	fields["included_fields"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	fields["page_size"] = vapiBindings_.NewOptionalType(vapiBindings_.NewIntegerType())
-	fields["sort_ascending"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	fields["sort_by"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
+	fields["cursor"] = bindings.NewOptionalType(bindings.NewStringType())
+	fields["include_mark_for_delete_objects"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	fields["included_fields"] = bindings.NewOptionalType(bindings.NewStringType())
+	fields["page_size"] = bindings.NewOptionalType(bindings.NewIntegerType())
+	fields["sort_ascending"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	fields["sort_by"] = bindings.NewOptionalType(bindings.NewStringType())
 	fieldNameMap["cursor"] = "Cursor"
 	fieldNameMap["include_mark_for_delete_objects"] = "IncludeMarkForDeleteObjects"
 	fieldNameMap["included_fields"] = "IncludedFields"
 	fieldNameMap["page_size"] = "PageSize"
 	fieldNameMap["sort_ascending"] = "SortAscending"
 	fieldNameMap["sort_by"] = "SortBy"
-	paramsTypeMap["cursor"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	paramsTypeMap["sort_ascending"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	paramsTypeMap["included_fields"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	paramsTypeMap["sort_by"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	paramsTypeMap["include_mark_for_delete_objects"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	paramsTypeMap["page_size"] = vapiBindings_.NewOptionalType(vapiBindings_.NewIntegerType())
+	paramsTypeMap["included_fields"] = bindings.NewOptionalType(bindings.NewStringType())
+	paramsTypeMap["page_size"] = bindings.NewOptionalType(bindings.NewIntegerType())
+	paramsTypeMap["include_mark_for_delete_objects"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	paramsTypeMap["cursor"] = bindings.NewOptionalType(bindings.NewStringType())
+	paramsTypeMap["sort_by"] = bindings.NewOptionalType(bindings.NewStringType())
+	paramsTypeMap["sort_ascending"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	queryParams["cursor"] = "cursor"
 	queryParams["sort_ascending"] = "sort_ascending"
 	queryParams["included_fields"] = "included_fields"
@@ -176,7 +176,7 @@ func dnsForwarderZonesListRestMetadata() vapiProtocol_.OperationRestMetadata {
 	queryParams["page_size"] = "page_size"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -197,41 +197,41 @@ func dnsForwarderZonesListRestMetadata() vapiProtocol_.OperationRestMetadata {
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func dnsForwarderZonesPatchInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func dnsForwarderZonesPatchInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["dns_forwarder_zone_id"] = vapiBindings_.NewStringType()
-	fields["policy_dns_forwarder_zone"] = vapiBindings_.NewReferenceType(nsx_policyModel.PolicyDnsForwarderZoneBindingType)
+	fields["dns_forwarder_zone_id"] = bindings.NewStringType()
+	fields["policy_dns_forwarder_zone"] = bindings.NewReferenceType(model.PolicyDnsForwarderZoneBindingType)
 	fieldNameMap["dns_forwarder_zone_id"] = "DnsForwarderZoneId"
 	fieldNameMap["policy_dns_forwarder_zone"] = "PolicyDnsForwarderZone"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func DnsForwarderZonesPatchOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewVoidType()
+func dnsForwarderZonesPatchOutputType() bindings.BindingType {
+	return bindings.NewVoidType()
 }
 
-func dnsForwarderZonesPatchRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func dnsForwarderZonesPatchRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["dns_forwarder_zone_id"] = vapiBindings_.NewStringType()
-	fields["policy_dns_forwarder_zone"] = vapiBindings_.NewReferenceType(nsx_policyModel.PolicyDnsForwarderZoneBindingType)
+	fields["dns_forwarder_zone_id"] = bindings.NewStringType()
+	fields["policy_dns_forwarder_zone"] = bindings.NewReferenceType(model.PolicyDnsForwarderZoneBindingType)
 	fieldNameMap["dns_forwarder_zone_id"] = "DnsForwarderZoneId"
 	fieldNameMap["policy_dns_forwarder_zone"] = "PolicyDnsForwarderZone"
-	paramsTypeMap["dns_forwarder_zone_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["policy_dns_forwarder_zone"] = vapiBindings_.NewReferenceType(nsx_policyModel.PolicyDnsForwarderZoneBindingType)
-	paramsTypeMap["dnsForwarderZoneId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["dns_forwarder_zone_id"] = bindings.NewStringType()
+	paramsTypeMap["policy_dns_forwarder_zone"] = bindings.NewReferenceType(model.PolicyDnsForwarderZoneBindingType)
+	paramsTypeMap["dnsForwarderZoneId"] = bindings.NewStringType()
 	pathParams["dns_forwarder_zone_id"] = "dnsForwarderZoneId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -252,41 +252,41 @@ func dnsForwarderZonesPatchRestMetadata() vapiProtocol_.OperationRestMetadata {
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func dnsForwarderZonesUpdateInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func dnsForwarderZonesUpdateInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["dns_forwarder_zone_id"] = vapiBindings_.NewStringType()
-	fields["policy_dns_forwarder_zone"] = vapiBindings_.NewReferenceType(nsx_policyModel.PolicyDnsForwarderZoneBindingType)
+	fields["dns_forwarder_zone_id"] = bindings.NewStringType()
+	fields["policy_dns_forwarder_zone"] = bindings.NewReferenceType(model.PolicyDnsForwarderZoneBindingType)
 	fieldNameMap["dns_forwarder_zone_id"] = "DnsForwarderZoneId"
 	fieldNameMap["policy_dns_forwarder_zone"] = "PolicyDnsForwarderZone"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func DnsForwarderZonesUpdateOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewReferenceType(nsx_policyModel.PolicyDnsForwarderZoneBindingType)
+func dnsForwarderZonesUpdateOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.PolicyDnsForwarderZoneBindingType)
 }
 
-func dnsForwarderZonesUpdateRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func dnsForwarderZonesUpdateRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["dns_forwarder_zone_id"] = vapiBindings_.NewStringType()
-	fields["policy_dns_forwarder_zone"] = vapiBindings_.NewReferenceType(nsx_policyModel.PolicyDnsForwarderZoneBindingType)
+	fields["dns_forwarder_zone_id"] = bindings.NewStringType()
+	fields["policy_dns_forwarder_zone"] = bindings.NewReferenceType(model.PolicyDnsForwarderZoneBindingType)
 	fieldNameMap["dns_forwarder_zone_id"] = "DnsForwarderZoneId"
 	fieldNameMap["policy_dns_forwarder_zone"] = "PolicyDnsForwarderZone"
-	paramsTypeMap["dns_forwarder_zone_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["policy_dns_forwarder_zone"] = vapiBindings_.NewReferenceType(nsx_policyModel.PolicyDnsForwarderZoneBindingType)
-	paramsTypeMap["dnsForwarderZoneId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["dns_forwarder_zone_id"] = bindings.NewStringType()
+	paramsTypeMap["policy_dns_forwarder_zone"] = bindings.NewReferenceType(model.PolicyDnsForwarderZoneBindingType)
+	paramsTypeMap["dnsForwarderZoneId"] = bindings.NewStringType()
 	pathParams["dns_forwarder_zone_id"] = "dnsForwarderZoneId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,

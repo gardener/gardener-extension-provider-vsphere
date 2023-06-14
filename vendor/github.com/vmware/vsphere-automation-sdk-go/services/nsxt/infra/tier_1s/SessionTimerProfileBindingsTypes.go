@@ -11,50 +11,50 @@
 package tier_1s
 
 import (
-	vapiBindings_ "github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
-	vapiData_ "github.com/vmware/vsphere-automation-sdk-go/runtime/data"
-	vapiProtocol_ "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
-	nsx_policyModel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 	"reflect"
 )
 
-func sessionTimerProfileBindingsDeleteInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func sessionTimerProfileBindingsDeleteInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["session_timer_profile_binding_id"] = vapiBindings_.NewStringType()
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["session_timer_profile_binding_id"] = bindings.NewStringType()
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["session_timer_profile_binding_id"] = "SessionTimerProfileBindingId"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func SessionTimerProfileBindingsDeleteOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewVoidType()
+func sessionTimerProfileBindingsDeleteOutputType() bindings.BindingType {
+	return bindings.NewVoidType()
 }
 
-func sessionTimerProfileBindingsDeleteRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func sessionTimerProfileBindingsDeleteRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["session_timer_profile_binding_id"] = vapiBindings_.NewStringType()
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["session_timer_profile_binding_id"] = bindings.NewStringType()
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["session_timer_profile_binding_id"] = "SessionTimerProfileBindingId"
-	paramsTypeMap["tier1_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["session_timer_profile_binding_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["tier1Id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["sessionTimerProfileBindingId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["tier1_id"] = bindings.NewStringType()
+	paramsTypeMap["session_timer_profile_binding_id"] = bindings.NewStringType()
+	paramsTypeMap["tier1Id"] = bindings.NewStringType()
+	paramsTypeMap["sessionTimerProfileBindingId"] = bindings.NewStringType()
 	pathParams["tier1_id"] = "tier1Id"
 	pathParams["session_timer_profile_binding_id"] = "sessionTimerProfileBindingId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -75,43 +75,43 @@ func sessionTimerProfileBindingsDeleteRestMetadata() vapiProtocol_.OperationRest
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func sessionTimerProfileBindingsGetInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func sessionTimerProfileBindingsGetInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["session_timer_profile_binding_id"] = vapiBindings_.NewStringType()
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["session_timer_profile_binding_id"] = bindings.NewStringType()
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["session_timer_profile_binding_id"] = "SessionTimerProfileBindingId"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func SessionTimerProfileBindingsGetOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewReferenceType(nsx_policyModel.SessionTimerProfileBindingMapBindingType)
+func sessionTimerProfileBindingsGetOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.SessionTimerProfileBindingMapBindingType)
 }
 
-func sessionTimerProfileBindingsGetRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func sessionTimerProfileBindingsGetRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["session_timer_profile_binding_id"] = vapiBindings_.NewStringType()
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["session_timer_profile_binding_id"] = bindings.NewStringType()
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["session_timer_profile_binding_id"] = "SessionTimerProfileBindingId"
-	paramsTypeMap["tier1_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["session_timer_profile_binding_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["tier1Id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["sessionTimerProfileBindingId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["tier1_id"] = bindings.NewStringType()
+	paramsTypeMap["session_timer_profile_binding_id"] = bindings.NewStringType()
+	paramsTypeMap["tier1Id"] = bindings.NewStringType()
+	paramsTypeMap["sessionTimerProfileBindingId"] = bindings.NewStringType()
 	pathParams["tier1_id"] = "tier1Id"
 	pathParams["session_timer_profile_binding_id"] = "sessionTimerProfileBindingId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -132,48 +132,48 @@ func sessionTimerProfileBindingsGetRestMetadata() vapiProtocol_.OperationRestMet
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func sessionTimerProfileBindingsPatchInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func sessionTimerProfileBindingsPatchInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["session_timer_profile_binding_id"] = vapiBindings_.NewStringType()
-	fields["session_timer_profile_binding_map"] = vapiBindings_.NewReferenceType(nsx_policyModel.SessionTimerProfileBindingMapBindingType)
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["session_timer_profile_binding_id"] = bindings.NewStringType()
+	fields["session_timer_profile_binding_map"] = bindings.NewReferenceType(model.SessionTimerProfileBindingMapBindingType)
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["session_timer_profile_binding_id"] = "SessionTimerProfileBindingId"
 	fieldNameMap["session_timer_profile_binding_map"] = "SessionTimerProfileBindingMap"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func SessionTimerProfileBindingsPatchOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewVoidType()
+func sessionTimerProfileBindingsPatchOutputType() bindings.BindingType {
+	return bindings.NewVoidType()
 }
 
-func sessionTimerProfileBindingsPatchRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func sessionTimerProfileBindingsPatchRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["session_timer_profile_binding_id"] = vapiBindings_.NewStringType()
-	fields["session_timer_profile_binding_map"] = vapiBindings_.NewReferenceType(nsx_policyModel.SessionTimerProfileBindingMapBindingType)
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["session_timer_profile_binding_id"] = bindings.NewStringType()
+	fields["session_timer_profile_binding_map"] = bindings.NewReferenceType(model.SessionTimerProfileBindingMapBindingType)
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["session_timer_profile_binding_id"] = "SessionTimerProfileBindingId"
 	fieldNameMap["session_timer_profile_binding_map"] = "SessionTimerProfileBindingMap"
-	paramsTypeMap["tier1_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["session_timer_profile_binding_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["session_timer_profile_binding_map"] = vapiBindings_.NewReferenceType(nsx_policyModel.SessionTimerProfileBindingMapBindingType)
-	paramsTypeMap["tier1Id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["sessionTimerProfileBindingId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["tier1_id"] = bindings.NewStringType()
+	paramsTypeMap["session_timer_profile_binding_id"] = bindings.NewStringType()
+	paramsTypeMap["session_timer_profile_binding_map"] = bindings.NewReferenceType(model.SessionTimerProfileBindingMapBindingType)
+	paramsTypeMap["tier1Id"] = bindings.NewStringType()
+	paramsTypeMap["sessionTimerProfileBindingId"] = bindings.NewStringType()
 	pathParams["tier1_id"] = "tier1Id"
 	pathParams["session_timer_profile_binding_id"] = "sessionTimerProfileBindingId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -194,48 +194,48 @@ func sessionTimerProfileBindingsPatchRestMetadata() vapiProtocol_.OperationRestM
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func sessionTimerProfileBindingsUpdateInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func sessionTimerProfileBindingsUpdateInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["session_timer_profile_binding_id"] = vapiBindings_.NewStringType()
-	fields["session_timer_profile_binding_map"] = vapiBindings_.NewReferenceType(nsx_policyModel.SessionTimerProfileBindingMapBindingType)
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["session_timer_profile_binding_id"] = bindings.NewStringType()
+	fields["session_timer_profile_binding_map"] = bindings.NewReferenceType(model.SessionTimerProfileBindingMapBindingType)
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["session_timer_profile_binding_id"] = "SessionTimerProfileBindingId"
 	fieldNameMap["session_timer_profile_binding_map"] = "SessionTimerProfileBindingMap"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func SessionTimerProfileBindingsUpdateOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewReferenceType(nsx_policyModel.SessionTimerProfileBindingMapBindingType)
+func sessionTimerProfileBindingsUpdateOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.SessionTimerProfileBindingMapBindingType)
 }
 
-func sessionTimerProfileBindingsUpdateRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func sessionTimerProfileBindingsUpdateRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["tier1_id"] = vapiBindings_.NewStringType()
-	fields["session_timer_profile_binding_id"] = vapiBindings_.NewStringType()
-	fields["session_timer_profile_binding_map"] = vapiBindings_.NewReferenceType(nsx_policyModel.SessionTimerProfileBindingMapBindingType)
+	fields["tier1_id"] = bindings.NewStringType()
+	fields["session_timer_profile_binding_id"] = bindings.NewStringType()
+	fields["session_timer_profile_binding_map"] = bindings.NewReferenceType(model.SessionTimerProfileBindingMapBindingType)
 	fieldNameMap["tier1_id"] = "Tier1Id"
 	fieldNameMap["session_timer_profile_binding_id"] = "SessionTimerProfileBindingId"
 	fieldNameMap["session_timer_profile_binding_map"] = "SessionTimerProfileBindingMap"
-	paramsTypeMap["tier1_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["session_timer_profile_binding_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["session_timer_profile_binding_map"] = vapiBindings_.NewReferenceType(nsx_policyModel.SessionTimerProfileBindingMapBindingType)
-	paramsTypeMap["tier1Id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["sessionTimerProfileBindingId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["tier1_id"] = bindings.NewStringType()
+	paramsTypeMap["session_timer_profile_binding_id"] = bindings.NewStringType()
+	paramsTypeMap["session_timer_profile_binding_map"] = bindings.NewReferenceType(model.SessionTimerProfileBindingMapBindingType)
+	paramsTypeMap["tier1Id"] = bindings.NewStringType()
+	paramsTypeMap["sessionTimerProfileBindingId"] = bindings.NewStringType()
 	pathParams["tier1_id"] = "tier1Id"
 	pathParams["session_timer_profile_binding_id"] = "sessionTimerProfileBindingId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,

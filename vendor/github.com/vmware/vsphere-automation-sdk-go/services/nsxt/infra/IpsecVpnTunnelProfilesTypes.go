@@ -11,43 +11,43 @@
 package infra
 
 import (
-	vapiBindings_ "github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
-	vapiData_ "github.com/vmware/vsphere-automation-sdk-go/runtime/data"
-	vapiProtocol_ "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
-	nsx_policyModel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 	"reflect"
 )
 
-func ipsecVpnTunnelProfilesDeleteInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func ipsecVpnTunnelProfilesDeleteInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["tunnel_profile_id"] = vapiBindings_.NewStringType()
+	fields["tunnel_profile_id"] = bindings.NewStringType()
 	fieldNameMap["tunnel_profile_id"] = "TunnelProfileId"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func IpsecVpnTunnelProfilesDeleteOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewVoidType()
+func ipsecVpnTunnelProfilesDeleteOutputType() bindings.BindingType {
+	return bindings.NewVoidType()
 }
 
-func ipsecVpnTunnelProfilesDeleteRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func ipsecVpnTunnelProfilesDeleteRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["tunnel_profile_id"] = vapiBindings_.NewStringType()
+	fields["tunnel_profile_id"] = bindings.NewStringType()
 	fieldNameMap["tunnel_profile_id"] = "TunnelProfileId"
-	paramsTypeMap["tunnel_profile_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["tunnelProfileId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["tunnel_profile_id"] = bindings.NewStringType()
+	paramsTypeMap["tunnelProfileId"] = bindings.NewStringType()
 	pathParams["tunnel_profile_id"] = "tunnelProfileId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -68,36 +68,36 @@ func ipsecVpnTunnelProfilesDeleteRestMetadata() vapiProtocol_.OperationRestMetad
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func ipsecVpnTunnelProfilesGetInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func ipsecVpnTunnelProfilesGetInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["tunnel_profile_id"] = vapiBindings_.NewStringType()
+	fields["tunnel_profile_id"] = bindings.NewStringType()
 	fieldNameMap["tunnel_profile_id"] = "TunnelProfileId"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func IpsecVpnTunnelProfilesGetOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewReferenceType(nsx_policyModel.IPSecVpnTunnelProfileBindingType)
+func ipsecVpnTunnelProfilesGetOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.IPSecVpnTunnelProfileBindingType)
 }
 
-func ipsecVpnTunnelProfilesGetRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func ipsecVpnTunnelProfilesGetRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["tunnel_profile_id"] = vapiBindings_.NewStringType()
+	fields["tunnel_profile_id"] = bindings.NewStringType()
 	fieldNameMap["tunnel_profile_id"] = "TunnelProfileId"
-	paramsTypeMap["tunnel_profile_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["tunnelProfileId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["tunnel_profile_id"] = bindings.NewStringType()
+	paramsTypeMap["tunnelProfileId"] = bindings.NewStringType()
 	pathParams["tunnel_profile_id"] = "tunnelProfileId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -118,56 +118,56 @@ func ipsecVpnTunnelProfilesGetRestMetadata() vapiProtocol_.OperationRestMetadata
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func ipsecVpnTunnelProfilesListInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func ipsecVpnTunnelProfilesListInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["cursor"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	fields["include_mark_for_delete_objects"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	fields["included_fields"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	fields["page_size"] = vapiBindings_.NewOptionalType(vapiBindings_.NewIntegerType())
-	fields["sort_ascending"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	fields["sort_by"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
+	fields["cursor"] = bindings.NewOptionalType(bindings.NewStringType())
+	fields["include_mark_for_delete_objects"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	fields["included_fields"] = bindings.NewOptionalType(bindings.NewStringType())
+	fields["page_size"] = bindings.NewOptionalType(bindings.NewIntegerType())
+	fields["sort_ascending"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	fields["sort_by"] = bindings.NewOptionalType(bindings.NewStringType())
 	fieldNameMap["cursor"] = "Cursor"
 	fieldNameMap["include_mark_for_delete_objects"] = "IncludeMarkForDeleteObjects"
 	fieldNameMap["included_fields"] = "IncludedFields"
 	fieldNameMap["page_size"] = "PageSize"
 	fieldNameMap["sort_ascending"] = "SortAscending"
 	fieldNameMap["sort_by"] = "SortBy"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func IpsecVpnTunnelProfilesListOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewReferenceType(nsx_policyModel.IPSecVpnTunnelProfileListResultBindingType)
+func ipsecVpnTunnelProfilesListOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.IPSecVpnTunnelProfileListResultBindingType)
 }
 
-func ipsecVpnTunnelProfilesListRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func ipsecVpnTunnelProfilesListRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["cursor"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	fields["include_mark_for_delete_objects"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	fields["included_fields"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	fields["page_size"] = vapiBindings_.NewOptionalType(vapiBindings_.NewIntegerType())
-	fields["sort_ascending"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	fields["sort_by"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
+	fields["cursor"] = bindings.NewOptionalType(bindings.NewStringType())
+	fields["include_mark_for_delete_objects"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	fields["included_fields"] = bindings.NewOptionalType(bindings.NewStringType())
+	fields["page_size"] = bindings.NewOptionalType(bindings.NewIntegerType())
+	fields["sort_ascending"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	fields["sort_by"] = bindings.NewOptionalType(bindings.NewStringType())
 	fieldNameMap["cursor"] = "Cursor"
 	fieldNameMap["include_mark_for_delete_objects"] = "IncludeMarkForDeleteObjects"
 	fieldNameMap["included_fields"] = "IncludedFields"
 	fieldNameMap["page_size"] = "PageSize"
 	fieldNameMap["sort_ascending"] = "SortAscending"
 	fieldNameMap["sort_by"] = "SortBy"
-	paramsTypeMap["cursor"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	paramsTypeMap["sort_ascending"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	paramsTypeMap["included_fields"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	paramsTypeMap["sort_by"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	paramsTypeMap["include_mark_for_delete_objects"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	paramsTypeMap["page_size"] = vapiBindings_.NewOptionalType(vapiBindings_.NewIntegerType())
+	paramsTypeMap["included_fields"] = bindings.NewOptionalType(bindings.NewStringType())
+	paramsTypeMap["page_size"] = bindings.NewOptionalType(bindings.NewIntegerType())
+	paramsTypeMap["include_mark_for_delete_objects"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	paramsTypeMap["cursor"] = bindings.NewOptionalType(bindings.NewStringType())
+	paramsTypeMap["sort_by"] = bindings.NewOptionalType(bindings.NewStringType())
+	paramsTypeMap["sort_ascending"] = bindings.NewOptionalType(bindings.NewBooleanType())
 	queryParams["cursor"] = "cursor"
 	queryParams["sort_ascending"] = "sort_ascending"
 	queryParams["included_fields"] = "included_fields"
@@ -176,7 +176,7 @@ func ipsecVpnTunnelProfilesListRestMetadata() vapiProtocol_.OperationRestMetadat
 	queryParams["page_size"] = "page_size"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -197,41 +197,41 @@ func ipsecVpnTunnelProfilesListRestMetadata() vapiProtocol_.OperationRestMetadat
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func ipsecVpnTunnelProfilesPatchInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func ipsecVpnTunnelProfilesPatchInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["tunnel_profile_id"] = vapiBindings_.NewStringType()
-	fields["ip_sec_vpn_tunnel_profile"] = vapiBindings_.NewReferenceType(nsx_policyModel.IPSecVpnTunnelProfileBindingType)
+	fields["tunnel_profile_id"] = bindings.NewStringType()
+	fields["ip_sec_vpn_tunnel_profile"] = bindings.NewReferenceType(model.IPSecVpnTunnelProfileBindingType)
 	fieldNameMap["tunnel_profile_id"] = "TunnelProfileId"
 	fieldNameMap["ip_sec_vpn_tunnel_profile"] = "IpSecVpnTunnelProfile"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func IpsecVpnTunnelProfilesPatchOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewVoidType()
+func ipsecVpnTunnelProfilesPatchOutputType() bindings.BindingType {
+	return bindings.NewVoidType()
 }
 
-func ipsecVpnTunnelProfilesPatchRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func ipsecVpnTunnelProfilesPatchRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["tunnel_profile_id"] = vapiBindings_.NewStringType()
-	fields["ip_sec_vpn_tunnel_profile"] = vapiBindings_.NewReferenceType(nsx_policyModel.IPSecVpnTunnelProfileBindingType)
+	fields["tunnel_profile_id"] = bindings.NewStringType()
+	fields["ip_sec_vpn_tunnel_profile"] = bindings.NewReferenceType(model.IPSecVpnTunnelProfileBindingType)
 	fieldNameMap["tunnel_profile_id"] = "TunnelProfileId"
 	fieldNameMap["ip_sec_vpn_tunnel_profile"] = "IpSecVpnTunnelProfile"
-	paramsTypeMap["tunnel_profile_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["ip_sec_vpn_tunnel_profile"] = vapiBindings_.NewReferenceType(nsx_policyModel.IPSecVpnTunnelProfileBindingType)
-	paramsTypeMap["tunnelProfileId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["ip_sec_vpn_tunnel_profile"] = bindings.NewReferenceType(model.IPSecVpnTunnelProfileBindingType)
+	paramsTypeMap["tunnel_profile_id"] = bindings.NewStringType()
+	paramsTypeMap["tunnelProfileId"] = bindings.NewStringType()
 	pathParams["tunnel_profile_id"] = "tunnelProfileId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -252,41 +252,41 @@ func ipsecVpnTunnelProfilesPatchRestMetadata() vapiProtocol_.OperationRestMetada
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func ipsecVpnTunnelProfilesUpdateInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func ipsecVpnTunnelProfilesUpdateInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["tunnel_profile_id"] = vapiBindings_.NewStringType()
-	fields["ip_sec_vpn_tunnel_profile"] = vapiBindings_.NewReferenceType(nsx_policyModel.IPSecVpnTunnelProfileBindingType)
+	fields["tunnel_profile_id"] = bindings.NewStringType()
+	fields["ip_sec_vpn_tunnel_profile"] = bindings.NewReferenceType(model.IPSecVpnTunnelProfileBindingType)
 	fieldNameMap["tunnel_profile_id"] = "TunnelProfileId"
 	fieldNameMap["ip_sec_vpn_tunnel_profile"] = "IpSecVpnTunnelProfile"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func IpsecVpnTunnelProfilesUpdateOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewReferenceType(nsx_policyModel.IPSecVpnTunnelProfileBindingType)
+func ipsecVpnTunnelProfilesUpdateOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.IPSecVpnTunnelProfileBindingType)
 }
 
-func ipsecVpnTunnelProfilesUpdateRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func ipsecVpnTunnelProfilesUpdateRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["tunnel_profile_id"] = vapiBindings_.NewStringType()
-	fields["ip_sec_vpn_tunnel_profile"] = vapiBindings_.NewReferenceType(nsx_policyModel.IPSecVpnTunnelProfileBindingType)
+	fields["tunnel_profile_id"] = bindings.NewStringType()
+	fields["ip_sec_vpn_tunnel_profile"] = bindings.NewReferenceType(model.IPSecVpnTunnelProfileBindingType)
 	fieldNameMap["tunnel_profile_id"] = "TunnelProfileId"
 	fieldNameMap["ip_sec_vpn_tunnel_profile"] = "IpSecVpnTunnelProfile"
-	paramsTypeMap["tunnel_profile_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["ip_sec_vpn_tunnel_profile"] = vapiBindings_.NewReferenceType(nsx_policyModel.IPSecVpnTunnelProfileBindingType)
-	paramsTypeMap["tunnelProfileId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["ip_sec_vpn_tunnel_profile"] = bindings.NewReferenceType(model.IPSecVpnTunnelProfileBindingType)
+	paramsTypeMap["tunnel_profile_id"] = bindings.NewStringType()
+	paramsTypeMap["tunnelProfileId"] = bindings.NewStringType()
 	pathParams["tunnel_profile_id"] = "tunnelProfileId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,

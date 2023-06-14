@@ -1,10 +1,11 @@
-/* Copyright © 2019-2021 VMware, Inc. All Rights Reserved.
+/* Copyright © 2019, 2020 VMware, Inc. All Rights Reserved.
    SPDX-License-Identifier: BSD-2-Clause */
 
 package rest
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/url"
 	"reflect"
@@ -93,7 +94,7 @@ func SerializeRequests(inputValue *data.StructValue, ctx *core.ExecutionContext,
 // SerializeRequestsWithSecCtxSerializers serializes a request into a REST request
 // Return Request with urlPath, inputHeaders and requestBody
 func SerializeRequestsWithSecCtxSerializers(inputValue *data.StructValue, execCtx *core.ExecutionContext,
-	metadata *protocol.OperationRestMetadata, secCtxSerializer protocol.SecurityContextSerializer) (*Request, error) {
+	metadata *protocol.OperationRestMetadata, secCtxSerializer SecurityContextSerializer) (*Request, error) {
 	result, err := SerializeInput(inputValue, metadata)
 	if err != nil {
 		log.Error(err)
@@ -122,15 +123,28 @@ func SerializeRequestsWithSecCtxSerializers(inputValue *data.StructValue, execCt
 
 func createParamsFieldMap(inputValue *data.StructValue, fieldsMapBindingtype map[string]bindings.BindingType, fieldNamesMap map[string]string) (map[string][]string, error) {
 	fields := map[string][]string{}
+	dataValueToJSONEncoder := cleanjson.NewDataValueToJsonEncoder()
 	for field, fieldName := range fieldNamesMap {
 		val, err := getNestedParams(field, inputValue, fieldsMapBindingtype)
 		if err != nil {
 			log.Debugf("Error in request serialization: %s ", err.Error())
 			return nil, err
 		}
-		fields, err = replaceFieldValue(fields, fieldName, val)
-		if err != nil {
-			return nil, err
+		if reflect.TypeOf(val) == data.ListValuePtr {
+			temp := []string{}
+			for _, e := range val.(*data.ListValue).List() {
+				elem, err := unquote(dataValueToJSONEncoder.Encode(e))
+				if err != nil {
+					return nil, err
+				}
+				temp = append(temp, elem)
+			}
+			fields[fieldName] = temp
+		} else {
+			fields, err = replaceFieldValue(fields, fieldName, val)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	return fields, nil
@@ -259,34 +273,13 @@ func queryEscapeDispatchParams(dispatchParamsStr string, queryFields map[string]
 }
 
 func replaceFieldValue(fields map[string][]string, fieldName string, fieldValue data.DataValue) (map[string][]string, error) {
-	if optionalValue, ok := fieldValue.(*data.OptionalValue); ok {
-		if optionalValue.IsSet() {
-			_, err := replaceFieldValue(fields, fieldName, optionalValue.Value())
-			if err != nil {
-				return nil, err
-			}
-		}
-		return fields, nil
+	fieldStr, err := convertDataValueToString(fieldValue)
+	if err != nil {
+		return nil, err
 	}
-
-	if listValue, ok := fieldValue.(*data.ListValue); ok {
-		serializedListValues := []string{}
-		for _, e := range listValue.List() {
-			elem, err := convertDataValueToString(e)
-			if err != nil {
-				return nil, err
-			}
-			serializedListValues = append(serializedListValues, elem)
-		}
-		fields[fieldName] = serializedListValues
-	} else {
-		fieldStr, err := convertDataValueToString(fieldValue)
-		if err != nil {
-			return nil, err
-		}
+	if fieldStr != "" {
 		fields[fieldName] = []string{fieldStr}
 	}
-
 	return fields, nil
 }
 
@@ -294,6 +287,12 @@ func replaceFieldValue(fields map[string][]string, fieldName string, fieldValue 
 func convertDataValueToString(dataValue data.DataValue) (string, error) {
 	dataValueToJSONEncoder := cleanjson.NewDataValueToJsonEncoder()
 	switch reflect.TypeOf(dataValue) {
+	case data.OptionalValuePtr:
+		optionalVal := dataValue.(*data.OptionalValue)
+		if optionalVal.IsSet() {
+			return convertDataValueToString(optionalVal.Value())
+		}
+		return "", nil
 	case data.BoolValuePtr:
 		return dataValueToJSONEncoder.Encode(dataValue)
 	case data.StringValuePtr:
@@ -438,17 +437,27 @@ func getOauthCtxHeaders(securityContext core.SecurityContext) (map[string]interf
 	return map[string]interface{}{security.CSP_AUTH_TOKEN_KEY: oauthToken}, nil
 }
 
-// GetSecurityCtxStrValue returns value of the given security context key in *string.
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+// GetSecurityCtxStrValue returns value of the given key in *string.
 // Error will be raised if securityContext is nil or value is not string type
 func GetSecurityCtxStrValue(securityContext core.SecurityContext, propKey string) (*string, error) {
 	if securityContext == nil {
-		log.Error("SecurityContext should not be nil")
-		return nil, l10n.NewRuntimeErrorNoParam("vapi.data.serializers.rest.nilSecurityContext")
+		err := errors.New("securityContext can't be nil")
+		return nil, err
 	}
 
 	securityContextMap := securityContext.GetAllProperties()
-	propVal, ok := securityContextMap[propKey]
-	if !ok {
+	var propVal interface{}
+	var ok bool
+	if propVal, ok = securityContextMap[propKey]; !ok {
 		log.Debugf("%s is not present in the security context", propKey)
 		return nil, nil
 	}
@@ -457,15 +466,14 @@ func GetSecurityCtxStrValue(securityContext core.SecurityContext, propKey string
 		return nil, nil
 	}
 
-	propValueStr, ok := propVal.(string)
-	if !ok {
-		log.Errorf("Invalid type for '%s', expected type string, actual type is %s",
-			propKey, reflect.TypeOf(propVal).String())
-		return nil, l10n.NewRuntimeError(
-			"vapi.data.serializers.rest.invalidPropertyType",
-			map[string]string{"propKey": propKey, "propType": reflect.TypeOf(propVal).String()})
+	if propValueStr, ok := propVal.(string); ok {
+		return &propValueStr, nil
 	}
-	return &propValueStr, nil
+
+	err := fmt.Errorf("Invalid type for %s, expected type string, actual type %s",
+		propKey, reflect.TypeOf(propVal).String())
+	log.Error(err)
+	return nil, err
 }
 
 func getNestedParams(field string, inputValue *data.StructValue, fields map[string]bindings.BindingType) (data.DataValue, error) {

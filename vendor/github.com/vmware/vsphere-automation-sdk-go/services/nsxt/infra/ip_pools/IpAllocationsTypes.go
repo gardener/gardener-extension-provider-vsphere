@@ -11,50 +11,50 @@
 package ip_pools
 
 import (
-	vapiBindings_ "github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
-	vapiData_ "github.com/vmware/vsphere-automation-sdk-go/runtime/data"
-	vapiProtocol_ "github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
-	nsx_policyModel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model"
 	"reflect"
 )
 
-func ipAllocationsDeleteInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func ipAllocationsDeleteInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["ip_pool_id"] = vapiBindings_.NewStringType()
-	fields["ip_allocation_id"] = vapiBindings_.NewStringType()
+	fields["ip_pool_id"] = bindings.NewStringType()
+	fields["ip_allocation_id"] = bindings.NewStringType()
 	fieldNameMap["ip_pool_id"] = "IpPoolId"
 	fieldNameMap["ip_allocation_id"] = "IpAllocationId"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func IpAllocationsDeleteOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewVoidType()
+func ipAllocationsDeleteOutputType() bindings.BindingType {
+	return bindings.NewVoidType()
 }
 
-func ipAllocationsDeleteRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func ipAllocationsDeleteRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["ip_pool_id"] = vapiBindings_.NewStringType()
-	fields["ip_allocation_id"] = vapiBindings_.NewStringType()
+	fields["ip_pool_id"] = bindings.NewStringType()
+	fields["ip_allocation_id"] = bindings.NewStringType()
 	fieldNameMap["ip_pool_id"] = "IpPoolId"
 	fieldNameMap["ip_allocation_id"] = "IpAllocationId"
-	paramsTypeMap["ip_allocation_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["ip_pool_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["ipPoolId"] = vapiBindings_.NewStringType()
-	paramsTypeMap["ipAllocationId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["ip_allocation_id"] = bindings.NewStringType()
+	paramsTypeMap["ip_pool_id"] = bindings.NewStringType()
+	paramsTypeMap["ipPoolId"] = bindings.NewStringType()
+	paramsTypeMap["ipAllocationId"] = bindings.NewStringType()
 	pathParams["ip_allocation_id"] = "ipAllocationId"
 	pathParams["ip_pool_id"] = "ipPoolId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -75,43 +75,43 @@ func ipAllocationsDeleteRestMetadata() vapiProtocol_.OperationRestMetadata {
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func ipAllocationsGetInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func ipAllocationsGetInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["ip_pool_id"] = vapiBindings_.NewStringType()
-	fields["ip_allocation_id"] = vapiBindings_.NewStringType()
+	fields["ip_pool_id"] = bindings.NewStringType()
+	fields["ip_allocation_id"] = bindings.NewStringType()
 	fieldNameMap["ip_pool_id"] = "IpPoolId"
 	fieldNameMap["ip_allocation_id"] = "IpAllocationId"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func IpAllocationsGetOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewReferenceType(nsx_policyModel.IpAddressAllocationBindingType)
+func ipAllocationsGetOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.IpAddressAllocationBindingType)
 }
 
-func ipAllocationsGetRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func ipAllocationsGetRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["ip_pool_id"] = vapiBindings_.NewStringType()
-	fields["ip_allocation_id"] = vapiBindings_.NewStringType()
+	fields["ip_pool_id"] = bindings.NewStringType()
+	fields["ip_allocation_id"] = bindings.NewStringType()
 	fieldNameMap["ip_pool_id"] = "IpPoolId"
 	fieldNameMap["ip_allocation_id"] = "IpAllocationId"
-	paramsTypeMap["ip_allocation_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["ip_pool_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["ipPoolId"] = vapiBindings_.NewStringType()
-	paramsTypeMap["ipAllocationId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["ip_allocation_id"] = bindings.NewStringType()
+	paramsTypeMap["ip_pool_id"] = bindings.NewStringType()
+	paramsTypeMap["ipPoolId"] = bindings.NewStringType()
+	paramsTypeMap["ipAllocationId"] = bindings.NewStringType()
 	pathParams["ip_allocation_id"] = "ipAllocationId"
 	pathParams["ip_pool_id"] = "ipPoolId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -132,16 +132,16 @@ func ipAllocationsGetRestMetadata() vapiProtocol_.OperationRestMetadata {
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func ipAllocationsListInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func ipAllocationsListInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["ip_pool_id"] = vapiBindings_.NewStringType()
-	fields["cursor"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	fields["include_mark_for_delete_objects"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	fields["included_fields"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	fields["page_size"] = vapiBindings_.NewOptionalType(vapiBindings_.NewIntegerType())
-	fields["sort_ascending"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	fields["sort_by"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
+	fields["ip_pool_id"] = bindings.NewStringType()
+	fields["cursor"] = bindings.NewOptionalType(bindings.NewStringType())
+	fields["include_mark_for_delete_objects"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	fields["included_fields"] = bindings.NewOptionalType(bindings.NewStringType())
+	fields["page_size"] = bindings.NewOptionalType(bindings.NewIntegerType())
+	fields["sort_ascending"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	fields["sort_by"] = bindings.NewOptionalType(bindings.NewStringType())
 	fieldNameMap["ip_pool_id"] = "IpPoolId"
 	fieldNameMap["cursor"] = "Cursor"
 	fieldNameMap["include_mark_for_delete_objects"] = "IncludeMarkForDeleteObjects"
@@ -149,30 +149,30 @@ func ipAllocationsListInputType() vapiBindings_.StructType {
 	fieldNameMap["page_size"] = "PageSize"
 	fieldNameMap["sort_ascending"] = "SortAscending"
 	fieldNameMap["sort_by"] = "SortBy"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func IpAllocationsListOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewReferenceType(nsx_policyModel.IpAddressAllocationListResultBindingType)
+func ipAllocationsListOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.IpAddressAllocationListResultBindingType)
 }
 
-func ipAllocationsListRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func ipAllocationsListRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["ip_pool_id"] = vapiBindings_.NewStringType()
-	fields["cursor"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	fields["include_mark_for_delete_objects"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	fields["included_fields"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	fields["page_size"] = vapiBindings_.NewOptionalType(vapiBindings_.NewIntegerType())
-	fields["sort_ascending"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	fields["sort_by"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
+	fields["ip_pool_id"] = bindings.NewStringType()
+	fields["cursor"] = bindings.NewOptionalType(bindings.NewStringType())
+	fields["include_mark_for_delete_objects"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	fields["included_fields"] = bindings.NewOptionalType(bindings.NewStringType())
+	fields["page_size"] = bindings.NewOptionalType(bindings.NewIntegerType())
+	fields["sort_ascending"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	fields["sort_by"] = bindings.NewOptionalType(bindings.NewStringType())
 	fieldNameMap["ip_pool_id"] = "IpPoolId"
 	fieldNameMap["cursor"] = "Cursor"
 	fieldNameMap["include_mark_for_delete_objects"] = "IncludeMarkForDeleteObjects"
@@ -180,14 +180,14 @@ func ipAllocationsListRestMetadata() vapiProtocol_.OperationRestMetadata {
 	fieldNameMap["page_size"] = "PageSize"
 	fieldNameMap["sort_ascending"] = "SortAscending"
 	fieldNameMap["sort_by"] = "SortBy"
-	paramsTypeMap["cursor"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	paramsTypeMap["ip_pool_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["sort_ascending"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	paramsTypeMap["included_fields"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	paramsTypeMap["sort_by"] = vapiBindings_.NewOptionalType(vapiBindings_.NewStringType())
-	paramsTypeMap["include_mark_for_delete_objects"] = vapiBindings_.NewOptionalType(vapiBindings_.NewBooleanType())
-	paramsTypeMap["page_size"] = vapiBindings_.NewOptionalType(vapiBindings_.NewIntegerType())
-	paramsTypeMap["ipPoolId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["ip_pool_id"] = bindings.NewStringType()
+	paramsTypeMap["included_fields"] = bindings.NewOptionalType(bindings.NewStringType())
+	paramsTypeMap["page_size"] = bindings.NewOptionalType(bindings.NewIntegerType())
+	paramsTypeMap["include_mark_for_delete_objects"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	paramsTypeMap["cursor"] = bindings.NewOptionalType(bindings.NewStringType())
+	paramsTypeMap["sort_by"] = bindings.NewOptionalType(bindings.NewStringType())
+	paramsTypeMap["sort_ascending"] = bindings.NewOptionalType(bindings.NewBooleanType())
+	paramsTypeMap["ipPoolId"] = bindings.NewStringType()
 	pathParams["ip_pool_id"] = "ipPoolId"
 	queryParams["cursor"] = "cursor"
 	queryParams["sort_ascending"] = "sort_ascending"
@@ -197,7 +197,7 @@ func ipAllocationsListRestMetadata() vapiProtocol_.OperationRestMetadata {
 	queryParams["page_size"] = "page_size"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -218,48 +218,48 @@ func ipAllocationsListRestMetadata() vapiProtocol_.OperationRestMetadata {
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func ipAllocationsPatchInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func ipAllocationsPatchInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["ip_pool_id"] = vapiBindings_.NewStringType()
-	fields["ip_allocation_id"] = vapiBindings_.NewStringType()
-	fields["ip_address_allocation"] = vapiBindings_.NewReferenceType(nsx_policyModel.IpAddressAllocationBindingType)
+	fields["ip_pool_id"] = bindings.NewStringType()
+	fields["ip_allocation_id"] = bindings.NewStringType()
+	fields["ip_address_allocation"] = bindings.NewReferenceType(model.IpAddressAllocationBindingType)
 	fieldNameMap["ip_pool_id"] = "IpPoolId"
 	fieldNameMap["ip_allocation_id"] = "IpAllocationId"
 	fieldNameMap["ip_address_allocation"] = "IpAddressAllocation"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func IpAllocationsPatchOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewVoidType()
+func ipAllocationsPatchOutputType() bindings.BindingType {
+	return bindings.NewVoidType()
 }
 
-func ipAllocationsPatchRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func ipAllocationsPatchRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["ip_pool_id"] = vapiBindings_.NewStringType()
-	fields["ip_allocation_id"] = vapiBindings_.NewStringType()
-	fields["ip_address_allocation"] = vapiBindings_.NewReferenceType(nsx_policyModel.IpAddressAllocationBindingType)
+	fields["ip_pool_id"] = bindings.NewStringType()
+	fields["ip_allocation_id"] = bindings.NewStringType()
+	fields["ip_address_allocation"] = bindings.NewReferenceType(model.IpAddressAllocationBindingType)
 	fieldNameMap["ip_pool_id"] = "IpPoolId"
 	fieldNameMap["ip_allocation_id"] = "IpAllocationId"
 	fieldNameMap["ip_address_allocation"] = "IpAddressAllocation"
-	paramsTypeMap["ip_allocation_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["ip_address_allocation"] = vapiBindings_.NewReferenceType(nsx_policyModel.IpAddressAllocationBindingType)
-	paramsTypeMap["ip_pool_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["ipPoolId"] = vapiBindings_.NewStringType()
-	paramsTypeMap["ipAllocationId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["ip_allocation_id"] = bindings.NewStringType()
+	paramsTypeMap["ip_pool_id"] = bindings.NewStringType()
+	paramsTypeMap["ip_address_allocation"] = bindings.NewReferenceType(model.IpAddressAllocationBindingType)
+	paramsTypeMap["ipPoolId"] = bindings.NewStringType()
+	paramsTypeMap["ipAllocationId"] = bindings.NewStringType()
 	pathParams["ip_allocation_id"] = "ipAllocationId"
 	pathParams["ip_pool_id"] = "ipPoolId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
@@ -280,48 +280,48 @@ func ipAllocationsPatchRestMetadata() vapiProtocol_.OperationRestMetadata {
 		map[string]int{"com.vmware.vapi.std.errors.invalid_request": 400, "com.vmware.vapi.std.errors.unauthorized": 403, "com.vmware.vapi.std.errors.service_unavailable": 503, "com.vmware.vapi.std.errors.internal_server_error": 500, "com.vmware.vapi.std.errors.not_found": 404})
 }
 
-func ipAllocationsUpdateInputType() vapiBindings_.StructType {
-	fields := make(map[string]vapiBindings_.BindingType)
+func ipAllocationsUpdateInputType() bindings.StructType {
+	fields := make(map[string]bindings.BindingType)
 	fieldNameMap := make(map[string]string)
-	fields["ip_pool_id"] = vapiBindings_.NewStringType()
-	fields["ip_allocation_id"] = vapiBindings_.NewStringType()
-	fields["ip_address_allocation"] = vapiBindings_.NewReferenceType(nsx_policyModel.IpAddressAllocationBindingType)
+	fields["ip_pool_id"] = bindings.NewStringType()
+	fields["ip_allocation_id"] = bindings.NewStringType()
+	fields["ip_address_allocation"] = bindings.NewReferenceType(model.IpAddressAllocationBindingType)
 	fieldNameMap["ip_pool_id"] = "IpPoolId"
 	fieldNameMap["ip_allocation_id"] = "IpAllocationId"
 	fieldNameMap["ip_address_allocation"] = "IpAddressAllocation"
-	var validators = []vapiBindings_.Validator{}
-	return vapiBindings_.NewStructType("operation-input", fields, reflect.TypeOf(vapiData_.StructValue{}), fieldNameMap, validators)
+	var validators = []bindings.Validator{}
+	return bindings.NewStructType("operation-input", fields, reflect.TypeOf(data.StructValue{}), fieldNameMap, validators)
 }
 
-func IpAllocationsUpdateOutputType() vapiBindings_.BindingType {
-	return vapiBindings_.NewReferenceType(nsx_policyModel.IpAddressAllocationBindingType)
+func ipAllocationsUpdateOutputType() bindings.BindingType {
+	return bindings.NewReferenceType(model.IpAddressAllocationBindingType)
 }
 
-func ipAllocationsUpdateRestMetadata() vapiProtocol_.OperationRestMetadata {
-	fields := map[string]vapiBindings_.BindingType{}
+func ipAllocationsUpdateRestMetadata() protocol.OperationRestMetadata {
+	fields := map[string]bindings.BindingType{}
 	fieldNameMap := map[string]string{}
-	paramsTypeMap := map[string]vapiBindings_.BindingType{}
+	paramsTypeMap := map[string]bindings.BindingType{}
 	pathParams := map[string]string{}
 	queryParams := map[string]string{}
 	headerParams := map[string]string{}
 	dispatchHeaderParams := map[string]string{}
 	bodyFieldsMap := map[string]string{}
-	fields["ip_pool_id"] = vapiBindings_.NewStringType()
-	fields["ip_allocation_id"] = vapiBindings_.NewStringType()
-	fields["ip_address_allocation"] = vapiBindings_.NewReferenceType(nsx_policyModel.IpAddressAllocationBindingType)
+	fields["ip_pool_id"] = bindings.NewStringType()
+	fields["ip_allocation_id"] = bindings.NewStringType()
+	fields["ip_address_allocation"] = bindings.NewReferenceType(model.IpAddressAllocationBindingType)
 	fieldNameMap["ip_pool_id"] = "IpPoolId"
 	fieldNameMap["ip_allocation_id"] = "IpAllocationId"
 	fieldNameMap["ip_address_allocation"] = "IpAddressAllocation"
-	paramsTypeMap["ip_allocation_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["ip_address_allocation"] = vapiBindings_.NewReferenceType(nsx_policyModel.IpAddressAllocationBindingType)
-	paramsTypeMap["ip_pool_id"] = vapiBindings_.NewStringType()
-	paramsTypeMap["ipPoolId"] = vapiBindings_.NewStringType()
-	paramsTypeMap["ipAllocationId"] = vapiBindings_.NewStringType()
+	paramsTypeMap["ip_allocation_id"] = bindings.NewStringType()
+	paramsTypeMap["ip_pool_id"] = bindings.NewStringType()
+	paramsTypeMap["ip_address_allocation"] = bindings.NewReferenceType(model.IpAddressAllocationBindingType)
+	paramsTypeMap["ipPoolId"] = bindings.NewStringType()
+	paramsTypeMap["ipAllocationId"] = bindings.NewStringType()
 	pathParams["ip_allocation_id"] = "ipAllocationId"
 	pathParams["ip_pool_id"] = "ipPoolId"
 	resultHeaders := map[string]string{}
 	errorHeaders := map[string]map[string]string{}
-	return vapiProtocol_.NewOperationRestMetadata(
+	return protocol.NewOperationRestMetadata(
 		fields,
 		fieldNameMap,
 		paramsTypeMap,
