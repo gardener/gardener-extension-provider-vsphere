@@ -80,6 +80,8 @@ config:
 
 gardener:
   version: ""
+  gardenlet:
+    featureGates: {}
   garden:
     clusterIdentity: ""
   seed:

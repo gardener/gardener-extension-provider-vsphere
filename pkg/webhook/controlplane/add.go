@@ -28,7 +28,11 @@ import (
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
-var logger = log.Log.WithName("vsphere-controlplane-webhook")
+var (
+	logger = log.Log.WithName("vsphere-controlplane-webhook")
+	// GardenletManagesMCM specifies whether the machine-controller-manager should be managed.
+	GardenletManagesMCM bool
+)
 
 // AddToManager creates a webhook and adds it to the manager.
 func AddToManager(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
@@ -41,7 +45,7 @@ func AddToManager(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 			{Obj: &appsv1.Deployment{}},
 			{Obj: &extensionsv1alpha1.OperatingSystemConfig{}},
 		},
-		Mutator: genericmutator.NewMutator(NewEnsurer(logger), utils.NewUnitSerializer(),
+		Mutator: genericmutator.NewMutator(NewEnsurer(logger, GardenletManagesMCM), utils.NewUnitSerializer(),
 			kubelet.NewConfigCodec(fciCodec), fciCodec, logger),
 	})
 }

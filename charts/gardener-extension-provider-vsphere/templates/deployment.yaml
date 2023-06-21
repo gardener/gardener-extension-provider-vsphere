@@ -62,6 +62,9 @@ spec:
         {{- if .Values.metricsPort }}
         - --metrics-bind-address=:{{ .Values.metricsPort }}
         {{- end }}
+        {{- if .Values.gardener.gardenlet.featureGates.MachineControllerManagerDeployment }}
+        - --gardenlet-manages-mcm={{ .Values.gardener.gardenlet.featureGates.MachineControllerManagerDeployment }}
+        {{- end }}
         env:
         - name: LEADER_ELECTION_NAMESPACE
           valueFrom:
