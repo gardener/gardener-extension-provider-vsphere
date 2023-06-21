@@ -18,20 +18,11 @@ import (
 	"context"
 
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
-	"github.com/gardener/gardener/extensions/pkg/controller"
-	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	gcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	v1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
-	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/config"
 )
@@ -47,48 +38,7 @@ func NewEnsurer(etcdStorage *config.ETCDStorage, logger logr.Logger) genericmuta
 type ensurer struct {
 	genericmutator.NoopEnsurer
 	etcdStorage *config.ETCDStorage
-	client      client.Client
 	logger      logr.Logger
-}
-
-// InjectClient injects the given client into the ensurer.
-func (e *ensurer) InjectClient(client client.Client) error {
-	e.client = client
-	return nil
-}
-
-// EnsureKubeAPIServerDeployment ensures that the kube-apiserver deployment conforms to the provider requirements.
-func (e *ensurer) EnsureKubeAPIServerDeployment(ctx context.Context, gctx gcontext.GardenContext, new, old *appsv1.Deployment) error {
-	if v1beta1helper.IsAPIServerExposureManaged(new) {
-		return nil
-	}
-
-	cluster, err := controller.GetCluster(ctx, e.client, new.Namespace)
-	if err != nil {
-		return err
-	}
-
-	if controller.IsHibernated(cluster) {
-		return nil
-	}
-
-	// Get load balancer address of the kube-apiserver service
-	service := &v1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: new.Namespace,
-			Name:      v1beta1constants.DeploymentNameKubeAPIServer,
-		},
-	}
-	address, err := kutil.GetLoadBalancerIngress(ctx, e.client, service)
-	if err != nil {
-		return errors.Wrap(err, "could not get kube-apiserver service load balancer address")
-	}
-
-	if c := extensionswebhook.ContainerWithName(new.Spec.Template.Spec.Containers, "kube-apiserver"); c != nil {
-		c.Command = extensionswebhook.EnsureStringWithPrefix(c.Command, "--advertise-address=", address)
-		c.Command = extensionswebhook.EnsureStringWithPrefix(c.Command, "--external-hostname=", address)
-	}
-	return nil
 }
 
 // EnsureETCD ensures that the etcd conform to the provider requirements.
