@@ -35,6 +35,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	vpaautoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -44,21 +45,39 @@ import (
 )
 
 // NewEnsurer creates a new controlplane ensurer.
-func NewEnsurer(logger logr.Logger) genericmutator.Ensurer {
+func NewEnsurer(logger logr.Logger, gardenletManagesMCM bool) genericmutator.Ensurer {
 	return &ensurer{
-		logger: logger.WithName("vsphere-controlplane-ensurer"),
+		logger:              logger.WithName("vsphere-controlplane-ensurer"),
+		gardenletManagesMCM: gardenletManagesMCM,
 	}
 }
 
 type ensurer struct {
 	genericmutator.NoopEnsurer
-	client client.Client
-	logger logr.Logger
+	client              client.Client
+	logger              logr.Logger
+	gardenletManagesMCM bool
 }
 
 // InjectClient injects the given client into the ensurer.
 func (e *ensurer) InjectClient(client client.Client) error {
 	e.client = client
+	return nil
+}
+
+// EnsureMachineControllerManagerDeployment ensures that the machine-controller-manager deployment conforms to the provider requirements.
+func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ gcontext.GardenContext, newObj, _ *appsv1.Deployment) error {
+	if !e.gardenletManagesMCM {
+		return nil
+	}
+	return nil
+}
+
+// EnsureMachineControllerManagerVPA ensures that the machine-controller-manager VPA conforms to the provider requirements.
+func (e *ensurer) EnsureMachineControllerManagerVPA(_ context.Context, _ gcontext.GardenContext, newObj, _ *vpaautoscalingv1.VerticalPodAutoscaler) error {
+	if !e.gardenletManagesMCM {
+		return nil
+	}
 	return nil
 }
 

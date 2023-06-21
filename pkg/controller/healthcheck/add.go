@@ -46,6 +46,8 @@ var (
 			},
 		},
 	}
+	// GardenletManagesMCM specifies whether the machine-controller-manager is managed by gardenlet.
+	GardenletManagesMCM bool
 )
 
 // RegisterHealthChecks registers health checks for each extension resource
