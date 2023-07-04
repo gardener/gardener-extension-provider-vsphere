@@ -22,7 +22,6 @@ import (
 	"github.com/coreos/go-systemd/v22/unit"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	gcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
-	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -127,13 +126,13 @@ func (e *ensurer) EnsureKubeAPIServerDeployment(ctx context.Context, gctx gconte
 	if c := extensionswebhook.ContainerWithName(ps.Containers, "kube-apiserver"); c != nil {
 		ensureKubeAPIServerCommandLineArgs(c)
 	}
-	return e.ensureChecksumAnnotations(ctx, &new.Spec.Template, new.Namespace)
+	return nil
 }
 
 // EnsureKubeControllerManagerDeployment ensures that the kube-controller-manager deployment conforms to the provider requirements.
 func (e *ensurer) EnsureKubeControllerManagerDeployment(ctx context.Context, gctx gcontext.GardenContext, new, old *appsv1.Deployment) error {
 	ensureKubeControllerManagerAnnotations(&new.Spec.Template)
-	return e.ensureChecksumAnnotations(ctx, &new.Spec.Template, new.Namespace)
+	return nil
 }
 
 func ensureKubeAPIServerCommandLineArgs(c *corev1.Container) {
@@ -156,10 +155,6 @@ func ensureKubeControllerManagerAnnotations(t *corev1.PodTemplateSpec) {
 
 	t.Labels = extensionswebhook.EnsureAnnotationOrLabel(t.Labels, v1beta1constants.LabelNetworkPolicyToPublicNetworks, v1beta1constants.LabelNetworkPolicyAllowed)
 	t.Labels = extensionswebhook.EnsureAnnotationOrLabel(t.Labels, v1beta1constants.LabelNetworkPolicyToPrivateNetworks, v1beta1constants.LabelNetworkPolicyAllowed)
-}
-
-func (e *ensurer) ensureChecksumAnnotations(ctx context.Context, template *corev1.PodTemplateSpec, namespace string) error {
-	return controlplane.EnsureSecretChecksumAnnotation(ctx, template, e.client, namespace, vsphere.CloudProviderConfig)
 }
 
 // EnsureKubeletServiceUnitOptions ensures that the kubelet.service unit options conform to the provider requirements.
@@ -201,23 +196,23 @@ func (e *ensurer) ShouldProvisionKubeletCloudProviderConfig(context.Context, gco
 // EnsureKubeletCloudProviderConfig ensures that the cloud provider config file conforms to the provider requirements.
 func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, _ gcontext.GardenContext, _ *semver.Version, data *string, namespace string) error {
 	// Get `cloud-provider-config` secret
-	var secret corev1.Secret
-	err := e.client.Get(ctx, kutil.Key(namespace, vsphere.CloudProviderConfig), &secret)
+	var cm corev1.ConfigMap
+	err := e.client.Get(ctx, kutil.Key(namespace, vsphere.CloudProviderConfig), &cm)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			e.logger.Info("secret not found", "name", vsphere.CloudProviderConfig, "namespace", namespace)
+			e.logger.Info("configmap not found", "name", vsphere.CloudProviderConfig, "namespace", namespace)
 			return nil
 		}
-		return errors.Wrapf(err, "could not get secret '%s/%s'", namespace, vsphere.CloudProviderConfig)
+		return errors.Wrapf(err, "could not get configmap '%s/%s'", namespace, vsphere.CloudProviderConfig)
 	}
 
-	// Check if the data has "cloudprovider.conf" key
-	if secret.Data == nil || len(secret.Data[vsphere.CloudProviderConfigMapKey]) == 0 {
-		return nil
-	}
-
-	// Overwrite data variable
-	*data = string(secret.Data[vsphere.CloudProviderConfigMapKey])
+	//// Check if the data has "cloudprovider.conf" key
+	//if cm.Data == nil || len(cm.Data[vsphere.CloudProviderConfigMapKey]) == 0 {
+	//	return nil
+	//}
+	//
+	//// Overwrite data variable
+	//*data = string(cm.Data[vsphere.CloudProviderConfigMapKey])
 	return nil
 }
 

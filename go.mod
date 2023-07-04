@@ -31,7 +31,7 @@ require (
 	k8s.io/apimachinery v0.26.3
 	k8s.io/autoscaler/vertical-pod-autoscaler v0.13.0
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
-	k8s.io/cloud-provider-vsphere v1.26.1
+	k8s.io/cloud-provider-vsphere v1.26.1-0.20230503224600-862eeed8229c
 	k8s.io/code-generator v0.26.3
 	k8s.io/component-base v0.26.3
 	k8s.io/klog v1.0.0
@@ -75,7 +75,7 @@ require (
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/go-openapi/swag v0.22.3 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
-	github.com/gobuffalo/flect v1.0.2 // indirect
+	github.com/gobuffalo/flect v0.3.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
@@ -155,7 +155,7 @@ require (
 	k8s.io/cloud-provider v0.26.3 // indirect
 	k8s.io/gengo v0.0.0-20220902162205-c0856e24416d // indirect
 	k8s.io/helm v2.17.0+incompatible // indirect
-	k8s.io/klog/v2 v2.100.1 // indirect
+	k8s.io/klog/v2 v2.90.1 // indirect
 	k8s.io/kube-aggregator v0.26.3 // indirect
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
 	k8s.io/metrics v0.26.3 // indirect
@@ -164,8 +164,4 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
 
-replace (
-	github.com/vmware/vsphere-automation-sdk-go/runtime => github.com/briantopping/vsphere-automation-sdk-go/runtime v0.0.0-20230530184132-d90421b2416b
-	k8s.io/client-go => k8s.io/client-go v0.26.3
-	k8s.io/cloud-provider-vsphere => github.com/briantopping/cloud-provider-vsphere v1.25.1-0.20230503224600-862eeed8229c
-)
+replace k8s.io/client-go => k8s.io/client-go v0.26.2

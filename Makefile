@@ -28,8 +28,8 @@ IGNORE_OPERATION_ANNOTATION := true
 KIND_ENV                    := "skaffold"
 
 GARDENER_LOCAL_KUBECONFIG   = $(GGARCHIVE)/example/gardener-local/kind/local/kubeconfig
-GGTARBALL                   = /tmp/ggtarball.tgz
-GGTARBALLURL                = $(shell curl -s https://api.github.com/repos/gardener/gardener/releases/latest | jq '.tarball_url')
+#GGTARBALL                   = /tmp/ggtarball.tgz
+#GGTARBALLURL                = $(shell curl -s https://api.github.com/repos/gardener/gardener/releases/latest | jq '.tarball_url')
 export GGARCHIVE            = /tmp/ggarchive
 
 SHELL=/usr/bin/env bash -o pipefail
@@ -179,15 +179,15 @@ verify-extended: check-generate check format test-cov test-clean
 kind-up kind-down: export KUBECONFIG = $(GARDENER_LOCAL_KUBECONFIG)
 
 # FIXME: This code is eventually necessary, but until https://github.com/gardener/gardener/pull/7247 is released, the deployment will fail.
-$(GGTARBALL):
-	echo $(GGTARBALLURL) | xargs curl -Lo /tmp/ggtarball.tgz
-$(GGARCHIVE): $(GGTARBALL)
-	mkdir $(GGARCHIVE) || true
-	tar xfz /tmp/ggtarball.tgz -C $(GGARCHIVE) --strip-components=1 # --wildcards */hack/* */example/* */VERSION
+#$(GGTARBALL):
+#	echo $(GGTARBALLURL) | xargs curl -Lo /tmp/ggtarball.tgz
+#$(GGARCHIVE): $(GGTARBALL)
+#	mkdir $(GGARCHIVE) || true
+#	tar xfz /tmp/ggtarball.tgz -C $(GGARCHIVE) --strip-components=1 # --wildcards */hack/* */example/* */VERSION
 
-kind-up: $(GGARCHIVE) $(KIND) $(KUBECTL) $(HELM)
+kind-up: $(KIND) $(KUBECTL) $(HELM) # $(GGARCHIVE)
 	@$(GGARCHIVE)/hack/kind-up.sh --chart $(GGARCHIVE)/example/gardener-local/kind/cluster --cluster-name gardener-local --environment $(KIND_ENV) --path-kubeconfig $(GGARCHIVE)/example/provider-local/seed-kind/base/kubeconfig --path-cluster-values $(GGARCHIVE)/example/gardener-local/kind/local/values.yaml
-kind-down: $(GGARCHIVE) $(KIND)
+kind-down: $(KIND) # $(GGARCHIVE)
 	@$(GGARCHIVE)/hack/kind-down.sh --cluster-name gardener-local --path-kubeconfig $(GGARCHIVE)/example/provider-local/seed-kind/base/kubeconfig
 
 # speed-up skaffold deployments by building all images concurrently

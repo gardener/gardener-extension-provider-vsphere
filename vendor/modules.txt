@@ -248,7 +248,7 @@ github.com/go-openapi/swag
 # github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572
 ## explicit; go 1.13
 github.com/go-task/slim-sprig
-# github.com/gobuffalo/flect v1.0.2
+# github.com/gobuffalo/flect v0.3.0
 ## explicit; go 1.16
 github.com/gobuffalo/flect
 # github.com/gobwas/glob v0.2.3
@@ -544,7 +544,7 @@ github.com/vmware/go-vmware-nsxt/upgrade
 ## explicit; go 1.17
 github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std
 github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors
-# github.com/vmware/vsphere-automation-sdk-go/runtime v0.7.0 => github.com/briantopping/vsphere-automation-sdk-go/runtime v0.0.0-20230530184132-d90421b2416b
+# github.com/vmware/vsphere-automation-sdk-go/runtime v0.7.0
 ## explicit; go 1.17
 github.com/vmware/vsphere-automation-sdk-go/runtime/bindings
 github.com/vmware/vsphere-automation-sdk-go/runtime/common
@@ -1054,7 +1054,7 @@ k8s.io/apiserver/pkg/apis/config/v1
 ## explicit; go 1.19
 k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1
 k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2
-# k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible => k8s.io/client-go v0.26.3
+# k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible => k8s.io/client-go v0.26.2
 ## explicit; go 1.19
 k8s.io/client-go/applyconfigurations/admissionregistration/v1
 k8s.io/client-go/applyconfigurations/admissionregistration/v1alpha1
@@ -1310,7 +1310,7 @@ k8s.io/client-go/util/workqueue
 # k8s.io/cloud-provider v0.26.3
 ## explicit; go 1.19
 k8s.io/cloud-provider
-# k8s.io/cloud-provider-vsphere v1.26.1 => github.com/briantopping/cloud-provider-vsphere v1.25.1-0.20230503224600-862eeed8229c
+# k8s.io/cloud-provider-vsphere v1.26.1-0.20230503224600-862eeed8229c
 ## explicit; go 1.19
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer/config
@@ -1406,7 +1406,7 @@ k8s.io/helm/pkg/version
 # k8s.io/klog v1.0.0
 ## explicit; go 1.12
 k8s.io/klog
-# k8s.io/klog/v2 v2.100.1
+# k8s.io/klog/v2 v2.90.1
 ## explicit; go 1.13
 k8s.io/klog/v2
 k8s.io/klog/v2/internal/buffer
@@ -1545,6 +1545,4 @@ sigs.k8s.io/structured-merge-diff/v4/value
 # sigs.k8s.io/yaml v1.3.0
 ## explicit; go 1.12
 sigs.k8s.io/yaml
-# github.com/vmware/vsphere-automation-sdk-go/runtime => github.com/briantopping/vsphere-automation-sdk-go/runtime v0.0.0-20230530184132-d90421b2416b
-# k8s.io/client-go => k8s.io/client-go v0.26.3
-# k8s.io/cloud-provider-vsphere => github.com/briantopping/cloud-provider-vsphere v1.25.1-0.20230503224600-862eeed8229c
+# k8s.io/client-go => k8s.io/client-go v0.26.2
