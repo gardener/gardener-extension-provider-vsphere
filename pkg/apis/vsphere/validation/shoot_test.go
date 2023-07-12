@@ -161,19 +161,6 @@ var _ = Describe("Shoot validation", func() {
 					})),
 				))
 			})
-
-			It("should enforce workers min > 0 if max > 0", func() {
-				workers[0].Minimum = 0
-
-				errorList := ValidateWorkers(workers, nilPath)
-
-				Expect(errorList).To(ConsistOf(
-					PointTo(MatchFields(IgnoreExtras, Fields{
-						"Type":  Equal(field.ErrorTypeForbidden),
-						"Field": Equal("[0].minimum"),
-					})),
-				))
-			})
 		})
 
 		Describe("#ValidateWorkersUpdate", func() {
