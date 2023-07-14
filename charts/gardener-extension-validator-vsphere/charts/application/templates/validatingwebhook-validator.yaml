@@ -49,7 +49,7 @@ webhooks:
   failurePolicy: Fail
   objectSelector:
     matchLabels:
-      provider.shoot.gardener.cloud/gcp: "true"
+      provider.shoot.gardener.cloud/vsphere: "true"
   namespaceSelector: {}
   sideEffects: None
   admissionReviewVersions:
