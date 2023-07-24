@@ -7,7 +7,7 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gardener/etcd-druid v0.18.1
-	github.com/gardener/gardener v1.73.0
+	github.com/gardener/gardener v1.74.0
 	github.com/gardener/machine-controller-manager v0.49.0
 	github.com/go-logr/logr v1.2.4
 	github.com/golang/mock v1.6.0
@@ -151,7 +151,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	istio.io/api v0.0.0-20230327210753-eb5bfad7b73b // indirect
 	istio.io/client-go v1.17.1 // indirect
-	k8s.io/apiserver v0.26.3 // indirect
 	k8s.io/cloud-provider v0.26.3 // indirect
 	k8s.io/gengo v0.0.0-20220902162205-c0856e24416d // indirect
 	k8s.io/helm v2.17.0+incompatible // indirect
@@ -164,4 +163,4 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
 
-replace k8s.io/client-go => k8s.io/client-go v0.26.2
+replace k8s.io/client-go => k8s.io/client-go v0.26.3
