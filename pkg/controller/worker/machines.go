@@ -225,6 +225,15 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 				secretMap[k] = string(v)
 			}
 
+			if pool.NodeTemplate != nil {
+				machineClassSpec["nodeTemplate"] = machinev1alpha1.NodeTemplate{
+					Capacity:     pool.NodeTemplate.Capacity,
+					InstanceType: pool.MachineType,
+					Region:       w.worker.Spec.Region,
+					Zone:         zone,
+				}
+			}
+
 			machineClasses = append(machineClasses, machineClassSpec)
 		}
 	}
