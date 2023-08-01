@@ -47,7 +47,9 @@ webhooks:
     resources:
     - secrets
   failurePolicy: Fail
-  objectSelector: {}
+  objectSelector:
+    matchLabels:
+      provider.extensions.gardener.cloud/vsphere: "true"
   namespaceSelector: {}
   sideEffects: None
   admissionReviewVersions:
