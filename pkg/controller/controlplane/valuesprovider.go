@@ -50,7 +50,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
-	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
+	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
@@ -136,7 +136,7 @@ var controlPlaneChart = &chart.Chart{
 				{Type: &corev1.Service{}, Name: vsphere.CloudControllerManagerName},
 				{Type: &appsv1.Deployment{}, Name: vsphere.CloudControllerManagerName},
 				{Type: &corev1.ConfigMap{}, Name: vsphere.CloudControllerManagerName + "-observability-config"},
-				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: vsphere.CloudControllerManagerName + "-vpa"},
+				{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: vsphere.CloudControllerManagerName + "-vpa"},
 			},
 		},
 		{
@@ -158,10 +158,10 @@ var controlPlaneChart = &chart.Chart{
 				{Type: &corev1.Service{}, Name: vsphere.VsphereCSIControllerName},
 				{Type: &appsv1.Deployment{}, Name: vsphere.VsphereCSIControllerName},
 				{Type: &corev1.ConfigMap{}, Name: vsphere.VsphereCSIControllerName + "-observability-config"},
-				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: vsphere.VsphereCSIControllerName + "-vpa"},
+				{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: vsphere.VsphereCSIControllerName + "-vpa"},
 				// csi-snapshot-controller
 				{Type: &appsv1.Deployment{}, Name: vsphere.CSISnapshotControllerName},
-				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: vsphere.CSISnapshotControllerName + "-vpa"},
+				{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: vsphere.CSISnapshotControllerName + "-vpa"},
 				// csi-snapshot-validation-webhook
 				{Type: &appsv1.Deployment{}, Name: vsphere.CSISnapshotValidation},
 				{Type: &corev1.Service{}, Name: vsphere.CSISnapshotValidation},
