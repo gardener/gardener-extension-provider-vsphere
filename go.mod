@@ -30,7 +30,7 @@ require (
 	k8s.io/apiextensions-apiserver v0.26.3
 	k8s.io/apimachinery v0.26.3
 	k8s.io/autoscaler/vertical-pod-autoscaler v0.14.0
-	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
+	k8s.io/client-go v0.26.3
 	k8s.io/cloud-provider-vsphere v1.26.1-0.20230503224600-862eeed8229c
 	k8s.io/code-generator v0.26.3
 	k8s.io/component-base v0.26.3
@@ -162,5 +162,3 @@ require (
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
-
-replace k8s.io/client-go => k8s.io/client-go v0.26.3

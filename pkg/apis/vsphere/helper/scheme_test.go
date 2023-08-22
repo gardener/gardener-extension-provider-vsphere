@@ -18,38 +18,23 @@
 package helper_test
 
 import (
-	"context"
-
+	vsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
-
-	vsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/install"
 )
 
 var _ = Describe("Helper (decode)", func() {
 	var (
-		s                  *runtime.Scheme
-		ctx                context.Context
 		cluster            *controller.Cluster
 		cloudProfileConfig *vsphere.CloudProfileConfig
 	)
 
 	BeforeEach(func() {
-		s = scheme.Scheme
-		install.Install(s)
-		ctx = common.ClientContext{}
-		err := ctx.InjectScheme(s)
-		if err != nil {
-			panic(err)
-		}
-
 		cluster = &controller.Cluster{
 			Shoot: &gardencorev1beta1.Shoot{
 				ObjectMeta: v1.ObjectMeta{Name: "test"},

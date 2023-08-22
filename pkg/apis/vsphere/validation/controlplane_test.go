@@ -84,7 +84,7 @@ var _ = Describe("ControlPlaneConfig validation", func() {
 
 			Expect(errorList).To(ConsistOf(
 				PointTo(MatchFields(IgnoreExtras, Fields{
-					"Type":  Equal(field.ErrorTypeForbidden),
+					"Type":  Equal(field.ErrorTypeInvalid),
 					"Field": Equal("cloudControllerManager.featureGates.CustomResourceValidation"),
 				})),
 				PointTo(MatchFields(IgnoreExtras, Fields{
