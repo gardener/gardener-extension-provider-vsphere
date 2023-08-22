@@ -18,8 +18,9 @@
 package helper_test
 
 import (
+	"context"
+
 	"github.com/gardener/gardener/extensions/pkg/controller"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -35,7 +36,7 @@ import (
 var _ = Describe("Helper (decode)", func() {
 	var (
 		s                  *runtime.Scheme
-		ctx                common.ClientContext
+		ctx                context.Context
 		cluster            *controller.Cluster
 		cloudProfileConfig *vsphere.CloudProfileConfig
 	)

@@ -17,6 +17,7 @@
 package infrastructure
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
@@ -43,19 +44,19 @@ type AddOptions struct {
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
 // The opts.Reconciler is being set with a newly instantiated actuator.
-func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
+func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddOptions) error {
 	if opts.GardenId == "" {
 		return fmt.Errorf("Gardener garden cluster identity ('gardenId') is empty")
 	}
-	return infrastructure.Add(mgr, infrastructure.AddArgs{
-		Actuator:          NewActuator(opts.GardenId),
+	return infrastructure.Add(ctx, mgr, infrastructure.AddArgs{
+		Actuator:          NewActuator(mgr, opts.GardenId),
 		ControllerOptions: opts.Controller,
-		Predicates:        infrastructure.DefaultPredicates(opts.IgnoreOperationAnnotation),
+		Predicates:        infrastructure.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
 		Type:              vsphere.Type,
 	})
 }
 
 // AddToManager adds a controller with the default Options.
-func AddToManager(mgr manager.Manager) error {
-	return AddToManagerWithOptions(mgr, DefaultAddOptions)
+func AddToManager(ctx context.Context, mgr manager.Manager) error {
+	return AddToManagerWithOptions(ctx, mgr, DefaultAddOptions)
 }

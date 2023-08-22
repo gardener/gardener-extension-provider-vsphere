@@ -26,6 +26,7 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
+	mockmanager "github.com/gardener/gardener/pkg/mock/controller-runtime/manager"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	fakesecretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager/fake"
 	"github.com/golang/mock/gomock"
@@ -56,6 +57,7 @@ var _ = Describe("ValuesProvider", func() {
 		ctrl *gomock.Controller
 		c    *mockclient.MockClient
 		ctx  context.Context
+		mgr  *mockmanager.MockManager
 
 		fakeClient         client.Client
 		fakeSecretsManager secretsmanager.Interface
@@ -362,7 +364,8 @@ insecure-flag = "true"
 			c.EXPECT().Get(ctx, cpSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(cpSecret))
 
 			// Create valuesProvider
-			vp := NewValuesProvider(logger, "garden1234")
+			vp := NewValuesProvider(mgr, logger, "garden1234")
+
 			err := vp.(inject.Scheme).InjectScheme(scheme)
 			Expect(err).NotTo(HaveOccurred())
 			err = vp.(inject.Client).InjectClient(c)
@@ -415,6 +418,10 @@ insecure-flag = "true"
 				},
 			},
 		}
+
+		mgr := mockmanager.NewMockManager(ctrl)
+		mgr.EXPECT().GetClient().Return(c)
+		mgr.EXPECT().GetScheme().Return(scheme)
 
 		fakeClient = fakeclient.NewClientBuilder().Build()
 		fakeSecretsManager = fakesecretsmanager.New(fakeClient, namespace)
@@ -622,7 +629,7 @@ insecure-flag = "true"
 
 	Describe("#GetControlPlaneShootCRDsChartValues", func() {
 		It("should return correct control plane shoot CRDs chart values", func() {
-			vp := NewValuesProvider(logger, "garden1234")
+			vp := NewValuesProvider(mgr, logger, "garden1234")
 
 			values, err := vp.GetControlPlaneShootCRDsChartValues(ctx, cp, cluster)
 			Expect(err).NotTo(HaveOccurred())

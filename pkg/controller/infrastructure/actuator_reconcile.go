@@ -72,7 +72,7 @@ func (a *actuator) prepareReconcile(ctx context.Context, log logr.Logger, infra 
 		return nil, err
 	}
 
-	creds, err := vsphere.GetCredentials(ctx, a.Client(), infra.Spec.SecretRef)
+	creds, err := vsphere.GetCredentials(ctx, a.client, infra.Spec.SecretRef)
 	if err != nil {
 		return nil, err
 	}
@@ -274,14 +274,14 @@ func (a *actuator) doUpdateProviderStatus(
 	status *apisvsphere.InfrastructureStatus,
 ) error {
 	statusV1alpha1 := &apisvspherev1alpha1.InfrastructureStatus{}
-	if err := a.Scheme().Convert(status, statusV1alpha1, nil); err != nil {
+	if err := a.scheme.Convert(status, statusV1alpha1, nil); err != nil {
 		return err
 	}
 	statusV1alpha1.SetGroupVersionKind(apisvspherev1alpha1.SchemeGroupVersion.WithKind("InfrastructureStatus"))
 
 	patch := client.MergeFrom(infra.DeepCopy())
 	infra.Status.ProviderStatus = &runtime.RawExtension{Object: statusV1alpha1}
-	return a.Client().Status().Patch(ctx, infra, patch)
+	return a.client.Status().Patch(ctx, infra, patch)
 }
 
 func (a *actuator) logFailedSaveState(log logr.Logger, err error, state *apisvsphere.NSXTInfraState) {

@@ -45,7 +45,7 @@ func AddToManager(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 			{Obj: &appsv1.Deployment{}},
 			{Obj: &extensionsv1alpha1.OperatingSystemConfig{}},
 		},
-		Mutator: genericmutator.NewMutator(NewEnsurer(logger, GardenletManagesMCM), utils.NewUnitSerializer(),
+		Mutator: genericmutator.NewMutator(mgr, NewEnsurer(logger, GardenletManagesMCM), utils.NewUnitSerializer(),
 			kubelet.NewConfigCodec(fciCodec), fciCodec, logger),
 	})
 }

@@ -196,7 +196,7 @@ var _ = BeforeSuite(func() {
 	opts := controllerinfra.AddOptions{
 		GardenId: nsxtInfraSpec.GardenID,
 	}
-	Expect(controllerinfra.AddToManagerWithOptions(mgr, opts)).To(Succeed())
+	Expect(controllerinfra.AddToManagerWithOptions(ctx, mgr, opts)).To(Succeed())
 
 	var mgrContext context.Context
 	mgrContext, mgrCancel = context.WithCancel(ctx)

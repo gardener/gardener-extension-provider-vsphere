@@ -148,10 +148,10 @@ github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMo
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/fsnotify/fsnotify v1.6.0 h1:n+5WquG0fcWoWp6xPWfHdbskMCQaFnG6PfBrh1Ky4HY=
 github.com/fsnotify/fsnotify v1.6.0/go.mod h1:sl3t1tCWJFWoRz9R8WJCbQihKKwmorjAbSClcnxKAGw=
-github.com/gardener/etcd-druid v0.18.1 h1:dcId4WayxlZiKvDMxLZHmmvWFXjTBFVqQWmqB5/8mdM=
-github.com/gardener/etcd-druid v0.18.1/go.mod h1:Bn4doVhryu6GWdXaYlVNy7TZMjUSMr5EjChei06KX0w=
-github.com/gardener/gardener v1.74.0 h1:ckiij8W5F8LZSaycRDAZsL9PFt6mWuG8AhJOo54twno=
-github.com/gardener/gardener v1.74.0/go.mod h1:uSkzPPoAEvdU1fvciTAsZFxPQ9vQpMbMFRJLMQgdfEQ=
+github.com/gardener/etcd-druid v0.19.2 h1:Z8TTbmVUxZ7UWU5iJAwUHUI6A9E5Mfd5JcvokVfYH1A=
+github.com/gardener/etcd-druid v0.19.2/go.mod h1:0Q9nKPiONDac/Gr0SZYFkVXHGt/Yt//rcRfDIUfftZo=
+github.com/gardener/gardener v1.76.0 h1:y7cyDTCAeKDgt5R+3eqZYvK4EnQ4n9LuTGHGmwjScQg=
+github.com/gardener/gardener v1.76.0/go.mod h1:kSr7MNtOVSMHt/zW6C2OVZFhFG58246zBtoRNsvBc0o=
 github.com/gardener/hvpa-controller/api v0.11.0 h1:+6gi0f1XUmVa9barLEaaBNo5u4Fv/XTOiLZ8Rw0jLag=
 github.com/gardener/hvpa-controller/api v0.11.0/go.mod h1:cPAMe1ixtY0X317+j7haOzk2pSReA2bpr4Cjnx99mLk=
 github.com/gardener/machine-controller-manager v0.49.0 h1:ZUQPhwVnLrgftFnM85035kDJJdWxIbL3iXHP6VgimJs=
@@ -979,8 +979,8 @@ k8s.io/apimachinery v0.19.0/go.mod h1:DnPGDnARWFvYa3pMHgSxtbZb7gpzzAZ1pTfaUNDVlm
 k8s.io/apimachinery v0.26.3 h1:dQx6PNETJ7nODU3XPtrwkfuubs6w7sX0M8n61zHIV/k=
 k8s.io/apimachinery v0.26.3/go.mod h1:ats7nN1LExKHvJ9TmwootT00Yz05MuYqPXEXaVeOy5I=
 k8s.io/apiserver v0.26.3 h1:blBpv+yOiozkPH2aqClhJmJY+rp53Tgfac4SKPDJnU4=
-k8s.io/autoscaler/vertical-pod-autoscaler v0.13.0 h1:pH6AsxeBZcyX6KBqcnl7SPIJqbN1d59RrEBuIE6Rq6c=
-k8s.io/autoscaler/vertical-pod-autoscaler v0.13.0/go.mod h1:LraL5kR2xX7jb4VMCG6/tUH4I75uRHlnzC0VWQHcyWk=
+k8s.io/autoscaler/vertical-pod-autoscaler v0.14.0 h1:HkQHkcuwVP3BgJpVqTGeYHro83qGBj8mWotygHZND1k=
+k8s.io/autoscaler/vertical-pod-autoscaler v0.14.0/go.mod h1:w6/LjLR3DPQd57vlgvgbpzpuJKsCiily0+OzQI+nyfI=
 k8s.io/client-go v0.26.3 h1:k1UY+KXfkxV2ScEL3gilKcF7761xkYsSD6BC9szIu8s=
 k8s.io/client-go v0.26.3/go.mod h1:ZPNu9lm8/dbRIPAgteN30RSXea6vrCpFvq+MateTUuQ=
 k8s.io/cloud-provider v0.26.3 h1:qN4f0+PvgOZyKIIct+90eedYj8/S4EKPpSD9S+3RCFE=

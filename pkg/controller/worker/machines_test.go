@@ -26,8 +26,8 @@ import (
 	"time"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
+	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
@@ -41,11 +41,10 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	api "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	apiv1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
 	vspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
 	. "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/worker"
@@ -56,10 +55,12 @@ import (
 
 var _ = Describe("Machines", func() {
 	var (
-		ctrl         *gomock.Controller
-		c            *mockclient.MockClient
-		statusWriter *mockclient.MockStatusWriter
-		chartApplier *mockkubernetes.MockChartApplier
+		ctrl           *gomock.Controller
+		c              *mockclient.MockClient
+		statusWriter   *mockclient.MockStatusWriter
+		chartApplier   *mockkubernetes.MockChartApplier
+		workerDelegate genericworkeractuator.WorkerDelegate
+		scheme         *runtime.Scheme
 	)
 
 	BeforeEach(func() {
@@ -68,6 +69,10 @@ var _ = Describe("Machines", func() {
 		c = mockclient.NewMockClient(ctrl)
 		statusWriter = mockclient.NewMockStatusWriter(ctrl)
 		chartApplier = mockkubernetes.NewMockChartApplier(ctrl)
+
+		scheme = runtime.NewScheme()
+		_ = api.AddToScheme(scheme)
+		_ = apiv1alpha1.AddToScheme(scheme)
 	})
 
 	AfterEach(func() {
@@ -75,7 +80,9 @@ var _ = Describe("Machines", func() {
 	})
 
 	Context("workerDelegate", func() {
-		workerDelegate, _ := NewWorkerDelegate(common.NewClientContext(nil, nil, nil), nil, "", nil, nil)
+		BeforeEach(func() {
+			workerDelegate, _ = NewWorkerDelegate(nil, scheme, nil, "", nil, nil)
+		})
 
 		Describe("#MachineClassKind", func() {
 			It("should return the correct kind of the machine class", func() {
@@ -148,8 +155,6 @@ var _ = Describe("Machines", func() {
 
 				shootVersionMajorMinor string
 				shootVersion           string
-				scheme                 *runtime.Scheme
-				decoder                runtime.Decoder
 				cluster                *extensionscontroller.Cluster
 				w                      *extensionsv1alpha1.Worker
 			)
@@ -297,15 +302,10 @@ var _ = Describe("Machines", func() {
 					},
 				}
 
-				scheme = runtime.NewScheme()
-				_ = api.AddToScheme(scheme)
-				_ = apiv1alpha1.AddToScheme(scheme)
-				decoder = serializer.NewCodecFactory(scheme, serializer.EnableStrict).UniversalDecoder()
-
 				workerPoolHash1, _ = worker.WorkerPoolHash(w.Spec.Pools[0], cluster)
 				workerPoolHash2, _ = worker.WorkerPoolHash(w.Spec.Pools[1], cluster)
 
-				workerDelegate, _ = NewWorkerDelegate(common.NewClientContext(c, scheme, decoder), chartApplier, "", w, cluster)
+				workerDelegate, _ = NewWorkerDelegate(c, scheme, chartApplier, "", w, cluster)
 			})
 
 			It("should return the expected machine deployments", func() {
@@ -463,7 +463,7 @@ var _ = Describe("Machines", func() {
 				expectGetSecretCallToWork(c, username, password, nsxtUsername, nsxtPassword)
 
 				cluster.Shoot.Spec.Kubernetes.Version = "invalid"
-				workerDelegate, _ = NewWorkerDelegate(common.NewClientContext(c, scheme, decoder), chartApplier, "", w, cluster)
+				workerDelegate, _ = NewWorkerDelegate(c, scheme, chartApplier, "", w, cluster)
 
 				result, err := workerDelegate.GenerateMachineDeployments(context.TODO())
 				Expect(err).To(HaveOccurred())
@@ -475,7 +475,7 @@ var _ = Describe("Machines", func() {
 
 				w.Spec.InfrastructureProviderStatus = &runtime.RawExtension{Raw: []byte(`invalid`)}
 
-				workerDelegate, _ = NewWorkerDelegate(common.NewClientContext(c, scheme, decoder), chartApplier, "", w, cluster)
+				workerDelegate, _ = NewWorkerDelegate(c, scheme, chartApplier, "", w, cluster)
 
 				result, err := workerDelegate.GenerateMachineDeployments(context.TODO())
 				Expect(err).To(HaveOccurred())
@@ -498,7 +498,7 @@ var _ = Describe("Machines", func() {
 				}
 				clusterWithoutImages := createCluster(cloudProfileName, shootVersion, invalidImages)
 
-				workerDelegate, _ = NewWorkerDelegate(common.NewClientContext(c, scheme, decoder), chartApplier, "", w, clusterWithoutImages)
+				workerDelegate, _ = NewWorkerDelegate(c, scheme, chartApplier, "", w, clusterWithoutImages)
 
 				result, err := workerDelegate.GenerateMachineDeployments(context.TODO())
 				Expect(err).To(HaveOccurred())
@@ -521,7 +521,7 @@ var _ = Describe("Machines", func() {
 					NodeConditions:         testNodeConditions,
 				}
 
-				workerDelegate, _ = NewWorkerDelegate(common.NewClientContext(c, scheme, decoder), chartApplier, "", w, cluster)
+				workerDelegate, _ = NewWorkerDelegate(c, scheme, chartApplier, "", w, cluster)
 
 				result, err := workerDelegate.GenerateMachineDeployments(context.TODO())
 				resultSettings := result[0].MachineConfiguration
