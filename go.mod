@@ -6,8 +6,8 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/coreos/go-systemd/v22 v22.5.0
-	github.com/gardener/etcd-druid v0.18.1
-	github.com/gardener/gardener v1.74.0
+	github.com/gardener/etcd-druid v0.19.2
+	github.com/gardener/gardener v1.77.0
 	github.com/gardener/machine-controller-manager v0.49.0
 	github.com/go-logr/logr v1.2.4
 	github.com/golang/mock v1.6.0
@@ -29,7 +29,7 @@ require (
 	k8s.io/api v0.26.3
 	k8s.io/apiextensions-apiserver v0.26.3
 	k8s.io/apimachinery v0.26.3
-	k8s.io/autoscaler/vertical-pod-autoscaler v0.13.0
+	k8s.io/autoscaler/vertical-pod-autoscaler v0.14.0
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/cloud-provider-vsphere v1.26.1-0.20230503224600-862eeed8229c
 	k8s.io/code-generator v0.26.3
@@ -130,6 +130,7 @@ require (
 	go.etcd.io/etcd/client/v3 v3.5.8 // indirect
 	go.mongodb.org/mongo-driver v1.11.3 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
+	go.uber.org/mock v0.2.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go4.org/netipx v0.0.0-20230303233057-f1b76eb4bb35 // indirect
 	golang.org/x/crypto v0.8.0 // indirect
@@ -151,6 +152,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	istio.io/api v0.0.0-20230327210753-eb5bfad7b73b // indirect
 	istio.io/client-go v1.17.1 // indirect
+	k8s.io/apiserver v0.26.3 // indirect
 	k8s.io/cloud-provider v0.26.3 // indirect
 	k8s.io/gengo v0.0.0-20220902162205-c0856e24416d // indirect
 	k8s.io/helm v2.17.0+incompatible // indirect

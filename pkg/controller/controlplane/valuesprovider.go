@@ -26,7 +26,6 @@ import (
 
 	"github.com/Masterminds/semver"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	extensionssecretsmanager "github.com/gardener/gardener/extensions/pkg/util/secret/manager"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
@@ -51,6 +50,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
@@ -267,7 +267,7 @@ func NewValuesProvider(logger logr.Logger, gardenID string) genericactuator.Valu
 // valuesProvider is a ValuesProvider that provides vSphere-specific values for the 2 charts applied by the generic actuator.
 type valuesProvider struct {
 	genericactuator.NoopValuesProvider
-	common.ClientContext
+	client   client.Client
 	logger   logr.Logger
 	gardenID string
 }
@@ -284,7 +284,7 @@ func (vp *valuesProvider) GetConfigChartValues(
 	}
 
 	// Get credentials
-	credentials, err := vsphere.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
+	credentials, err := vsphere.GetCredentials(ctx, vp.client, cp.Spec.SecretRef)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get vSphere credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
 	}
@@ -311,23 +311,23 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	}
 
 	// Get credentials
-	credentials, err := vsphere.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
+	credentials, err := vsphere.GetCredentials(ctx, vp.client, cp.Spec.SecretRef)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get vSphere credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
 	}
 
 	secretCloudProviderConfig := &corev1.Secret{}
-	if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, vsphere.CloudProviderConfig), secretCloudProviderConfig); err == nil {
+	if err := vp.client.Get(ctx, kutil.Key(cp.Namespace, vsphere.CloudProviderConfig), secretCloudProviderConfig); err == nil {
 		checksums[vsphere.CloudProviderConfig] = gutils.ComputeChecksum(secretCloudProviderConfig.Data)
 	}
 
 	secretCSIVsphereConfig := &corev1.Secret{}
-	if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, vsphere.SecretCSIVsphereConfig), secretCSIVsphereConfig); err == nil {
+	if err := vp.client.Get(ctx, kutil.Key(cp.Namespace, vsphere.SecretCSIVsphereConfig), secretCSIVsphereConfig); err == nil {
 		checksums[vsphere.SecretCSIVsphereConfig] = gutils.ComputeChecksum(secretCSIVsphereConfig.Data)
 	}
 
 	// TODO(scheererj): Delete this in a future release.
-	if err := kutil.DeleteObject(ctx, vp.Client(), &networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: "allow-kube-apiserver-to-csi-snapshot-validation", Namespace: cp.Namespace}}); err != nil {
+	if err := kutil.DeleteObject(ctx, vp.client, &networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: "allow-kube-apiserver-to-csi-snapshot-validation", Namespace: cp.Namespace}}); err != nil {
 		return nil, fmt.Errorf("failed deleting legacy csi-snapshot-validation network policy: %w", err)
 	}
 	// Get control plane chart values
@@ -343,7 +343,7 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 	_ map[string]string,
 ) (map[string]interface{}, error) {
 	// Get credentials
-	credentials, err := vsphere.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
+	credentials, err := vsphere.GetCredentials(ctx, vp.client, cp.Spec.SecretRef)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get vSphere credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
 	}

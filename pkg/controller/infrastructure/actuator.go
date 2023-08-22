@@ -18,16 +18,17 @@ import (
 	"context"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
+	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type actuator struct {
-	common.ChartRendererContext
-
-	gardenID string
+	client     client.Client
+	restConfig *rest.Config
+	gardenID   string
 }
 
 // NewActuator creates a new Actuator that updates the status of the handled Infrastructure resources.

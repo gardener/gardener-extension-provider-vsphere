@@ -15,6 +15,7 @@
 package healthcheck
 
 import (
+	"context"
 	"time"
 
 	healthcheckconfig "github.com/gardener/gardener/extensions/pkg/apis/config"
@@ -48,12 +49,14 @@ var (
 	}
 	// GardenletManagesMCM specifies whether the machine-controller-manager is managed by gardenlet.
 	GardenletManagesMCM bool
+	ctx                 context.Context
 )
 
 // RegisterHealthChecks registers health checks for each extension resource
 // HealthChecks are grouped by extension (e.g worker), extension.type (e.g vsphere) and  Health Check Type (e.g ShootControlPlaneHealthy)
 func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) error {
 	if err := healthcheck.DefaultRegistration(
+		ctx,
 		vsphere.Type,
 		extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.ControlPlaneResource),
 		func() client.ObjectList { return &extensionsv1alpha1.ControlPlaneList{} },
@@ -89,6 +92,7 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 	}
 
 	return healthcheck.DefaultRegistration(
+		ctx,
 		vsphere.Type,
 		extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.WorkerResource),
 		func() client.ObjectList { return &extensionsv1alpha1.WorkerList{} },
