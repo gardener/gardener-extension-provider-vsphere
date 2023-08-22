@@ -25,15 +25,6 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver"
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-	apishelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/utils"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/helpers"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	extensionssecretsmanager "github.com/gardener/gardener/extensions/pkg/util/secret/manager"
@@ -63,6 +54,16 @@ import (
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	apishelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/utils"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/helpers"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
 )
 
 const (
