@@ -24,7 +24,6 @@ import (
 	"github.com/go-logr/logr"
 	admissionv1 "k8s.io/api/admission/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
@@ -89,11 +88,5 @@ func (v *Shoot) InjectClient(c client.Client) error {
 // InjectAPIReader injects the given apiReader into the validator.
 func (v *Shoot) InjectAPIReader(apiReader client.Reader) error {
 	v.apiReader = apiReader
-	return nil
-}
-
-// InjectScheme injects the scheme.
-func (v *Shoot) InjectScheme(s *runtime.Scheme) error {
-	v.decoder = serializer.NewCodecFactory(s).UniversalDecoder()
 	return nil
 }

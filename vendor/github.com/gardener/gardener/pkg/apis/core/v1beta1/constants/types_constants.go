@@ -14,6 +14,10 @@
 
 package constants
 
+import (
+	"time"
+)
+
 const (
 	// SecretManagerIdentityControllerManager is the identity for the secret manager used inside controller-manager.
 	SecretManagerIdentityControllerManager = "controller-manager"
@@ -69,6 +73,12 @@ const (
 	// SecretNamePrefixETCDEncryptionConfiguration is a constant for the name prefix of a Kubernetes secret object that
 	// contains the configuration for encryption data in ETCD.
 	SecretNamePrefixETCDEncryptionConfiguration = "kube-apiserver-etcd-encryption-configuration"
+	// SecretNameGardenerETCDEncryptionKey is a constant for the name of a Kubernetes secret object that contains the
+	// key for encryption data in ETCD for gardener-apiserver.
+	SecretNameGardenerETCDEncryptionKey = "gardener-apiserver-etcd-encryption-key"
+	// SecretNamePrefixGardenerETCDEncryptionConfiguration is a constant for the name prefix of a Kubernetes secret
+	// object that contains the configuration for encryption data in ETCD for gardener-apiserver.
+	SecretNamePrefixGardenerETCDEncryptionConfiguration = "gardener-apiserver-etcd-encryption-configuration"
 
 	// SecretNameGardener is a constant for the name of a Kubernetes secret object that contains the client
 	// certificate and a kubeconfig for a shoot cluster. It is used by Gardener and can be used by extension
@@ -82,18 +92,28 @@ const (
 	// for the shoot API server instead the DNS name or load balancer address.
 	SecretNameGardenerInternal = "gardener-internal"
 
+	// SecretPrefixGeneratedBackupBucket is a constant for the prefix of a secret name in the garden cluster related to
+	// BackpuBuckets.
+	SecretPrefixGeneratedBackupBucket = "generated-bucket-"
+
 	// SecretNameGenericTokenKubeconfig is a constant for the name of the kubeconfig used by the shoot controlplane
 	// components to authenticate against the shoot Kubernetes API server.
 	// Use `pkg/extensions.GenericTokenKubeconfigSecretNameFromCluster` instead.
 	SecretNameGenericTokenKubeconfig = "generic-token-kubeconfig"
+	// SecretNameGenericGardenKubeconfig is a constant for the name of the kubeconfig used by the extension
+	// components to authenticate against the garden Kubernetes API server.
+	SecretNameGenericGardenKubeconfig = "generic-garden-kubeconfig"
 	// AnnotationKeyGenericTokenKubeconfigSecretName is a constant for the key of an annotation on
 	// extensions.gardener.cloud/v1alpha1.Cluster resources whose value contains the name of the generic token
 	// kubeconfig secret in the seed cluster.
 	AnnotationKeyGenericTokenKubeconfigSecretName = "generic-token-kubeconfig.secret.gardener.cloud/name"
 
-	// SecretPrefixGeneratedBackupBucket is a constant for the prefix of a secret name in the garden cluster related to
-	// BackpuBuckets.
-	SecretPrefixGeneratedBackupBucket = "generated-bucket-"
+	// ExtensionGardenServiceAccountPrefix is the prefix of the default garden ServiceAccount generated for each
+	// ControllerInstallation.
+	ExtensionGardenServiceAccountPrefix = "extension-"
+
+	// ReferenceProtectionFinalizerName is the name of the finalizer used for the reference protection.
+	ReferenceProtectionFinalizerName = "gardener.cloud/reference-protection"
 
 	// DeploymentNameClusterAutoscaler is a constant for the name of a Kubernetes deployment object that contains
 	// the cluster-autoscaler pod.
@@ -501,6 +521,8 @@ const (
 	LabelRole = "role"
 	// LabelKubernetes is a constant for a label for Kubernetes workload.
 	LabelKubernetes = "kubernetes"
+	// LabelGardener is a constant for a label for Gardener workload.
+	LabelGardener = "gardener"
 	// LabelAPIServer is a constant for a label for the kube-apiserver.
 	LabelAPIServer = "apiserver"
 	// LabelControllerManager is a constant for a label for the kube-controller-manager.
@@ -542,6 +564,9 @@ const (
 	DefaultSNIIngressServiceName = "istio-ingressgateway"
 	// DefaultIngressGatewayAppLabelValue is the ingress gateway value for the app label.
 	DefaultIngressGatewayAppLabelValue = "istio-ingressgateway"
+
+	// DefaultSchedulerName is the name of the default scheduler.
+	DefaultSchedulerName = "default-scheduler"
 
 	// AnnotationManagedSeedAPIServer is a constant for an annotation on a Shoot resource containing the API server settings for a managed seed.
 	AnnotationManagedSeedAPIServer = "shoot.gardener.cloud/managed-seed-api-server"
@@ -603,6 +628,9 @@ const (
 	AnnotationSeccompAllowedProfiles = "seccomp.security.alpha.kubernetes.io/allowedProfileNames"
 	// AnnotationSeccompAllowedProfilesRuntimeDefaultValue is the value for the default container runtime profile.
 	AnnotationSeccompAllowedProfilesRuntimeDefaultValue = "runtime/default"
+	// AnnotationPodSecurityEnforce is a constant for an annotation on `ControllerRegistration`s and `ControllerInstallation`s. When set the
+	// `extension` namespace is created with "pod-security.kubernetes.io/enforce" label set to AnnotationPodSecurityEnforce's value.
+	AnnotationPodSecurityEnforce = "security.gardener.cloud/pod-security-enforce"
 	// OperatingSystemConfigUnitNameKubeletService is a constant for a unit in the operating system config that contains the kubelet service.
 	OperatingSystemConfigUnitNameKubeletService = "kubelet.service"
 	// OperatingSystemConfigUnitNameDockerService is a constant for a unit in the operating system config that contains the docker service.
@@ -716,6 +744,17 @@ const (
 	ArchitectureAMD64 = "amd64"
 	// ArchitectureARM64 is a constant for the 'arm64' architecture.
 	ArchitectureARM64 = "arm64"
+
+	// EnvGenericGardenKubeconfig is a constant for the environment variable which holds the path to the generic garden kubeconfig.
+	EnvGenericGardenKubeconfig = "GARDEN_KUBECONFIG"
+	// EnvSeedName is a constant for the environment variable which holds the name of the Seed that the extension
+	// controller is running on.
+	EnvSeedName = "SEED_NAME"
+
+	// IngressTLSCertificateValidity is the default validity for ingress TLS certificates.
+	IngressTLSCertificateValidity = 730 * 24 * time.Hour // ~2 years, see https://support.apple.com/en-us/HT210176
+	// VPNTunnel dictates that VPN is used as a tunnel between seed and shoot networks.
+	VPNTunnel string = "vpn-shoot"
 )
 
 var (

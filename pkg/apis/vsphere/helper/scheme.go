@@ -77,16 +77,6 @@ func GetCloudProfileConfig(cluster *controller.Cluster) (*vsphere.CloudProfileCo
 	return cloudProfileConfig, nil
 }
 
-func GetControlPlaneConfig(cluster *controller.Cluster) (*vsphere.ControlPlaneConfig, error) {
-	cpConfig := &vsphere.ControlPlaneConfig{}
-	if cluster.Shoot.Spec.Provider.ControlPlaneConfig != nil {
-		if _, _, err := decoder.Decode(cluster.Shoot.Spec.Provider.ControlPlaneConfig.Raw, nil, cpConfig); err != nil {
-			return nil, errors.Wrapf(err, "could not decode providerConfig of controlplane '%s'", cluster.ObjectMeta.Name)
-		}
-	}
-	return cpConfig, nil
-}
-
 func GetInfrastructureStatus(name string, extension *runtime.RawExtension) (*vsphere.InfrastructureStatus, error) {
 	if extension == nil || extension.Raw == nil {
 		return nil, nil

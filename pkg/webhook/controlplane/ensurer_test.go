@@ -19,15 +19,14 @@ import (
 	"testing"
 
 	"github.com/coreos/go-systemd/v22/unit"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	gcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/test"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
 	"github.com/gardener/gardener/pkg/utils/imagevector"
 	testutils "github.com/gardener/gardener/pkg/utils/test"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -40,9 +39,6 @@ import (
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
-
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
 const (
@@ -57,33 +53,13 @@ func TestController(t *testing.T) {
 
 var _ = Describe("Ensurer", func() {
 	var (
-		ctrl *gomock.Controller
-
 		dummyContext = gcontext.NewGardenContext(nil, nil)
-
-		secretObjectKey = client.ObjectKey{Namespace: namespace, Name: vsphere.CloudProviderConfig}
-		secret          = &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: vsphere.CloudProviderConfig},
-			Data:       map[string][]byte{"abc": []byte("xyz"), vsphere.CloudProviderConfigMapKey: []byte(cloudProviderConfigContent)},
-		}
-
-		annotations = map[string]string{
-			"checksum/secret-" + vsphere.CloudProviderConfig: "77666f4cd38d72a694c95f07bd98683012f5762a60e783d0b89863a3515fcf2e",
-		}
 
 		kubeControllerManagerLabels = map[string]string{
 			v1beta1constants.LabelNetworkPolicyToPublicNetworks:  v1beta1constants.LabelNetworkPolicyAllowed,
 			v1beta1constants.LabelNetworkPolicyToPrivateNetworks: v1beta1constants.LabelNetworkPolicyAllowed,
 		}
 	)
-
-	BeforeEach(func() {
-		ctrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		ctrl.Finish()
-	})
 
 	Describe("#EnsureKubeAPIServerDeployment", func() {
 		It("should add missing elements to kube-apiserver deployment", func() {
@@ -104,19 +80,13 @@ var _ = Describe("Ensurer", func() {
 				}
 			)
 
-			// Create mock client
-			client := mockclient.NewMockClient(ctrl)
-			client.EXPECT().Get(context.TODO(), secretObjectKey, &corev1.Secret{}).DoAndReturn(clientGet(secret))
-
 			// Create ensurer
 			ensurer := NewEnsurer(logger, false)
-			err := ensurer.(inject.Client).InjectClient(client)
-			Expect(err).To(Not(HaveOccurred()))
 
 			// Call EnsureKubeAPIServerDeployment method and check the result
-			err = ensurer.EnsureKubeAPIServerDeployment(context.TODO(), dummyContext, dep, nil)
+			err := ensurer.EnsureKubeAPIServerDeployment(context.TODO(), dummyContext, dep, nil)
 			Expect(err).To(Not(HaveOccurred()))
-			checkKubeAPIServerDeployment(dep, annotations)
+			checkKubeAPIServerDeployment(dep)
 		})
 
 		It("should modify existing elements of kube-apiserver deployment", func() {
@@ -142,19 +112,13 @@ var _ = Describe("Ensurer", func() {
 				}
 			)
 
-			// Create mock client
-			client := mockclient.NewMockClient(ctrl)
-			client.EXPECT().Get(context.TODO(), secretObjectKey, &corev1.Secret{}).DoAndReturn(clientGet(secret))
-
 			// Create ensurer
 			ensurer := NewEnsurer(logger, false)
-			err := ensurer.(inject.Client).InjectClient(client)
-			Expect(err).To(Not(HaveOccurred()))
 
 			// Call EnsureKubeAPIServerDeployment method and check the result
-			err = ensurer.EnsureKubeAPIServerDeployment(context.TODO(), dummyContext, dep, nil)
+			err := ensurer.EnsureKubeAPIServerDeployment(context.TODO(), dummyContext, dep, nil)
 			Expect(err).To(Not(HaveOccurred()))
-			checkKubeAPIServerDeployment(dep, annotations)
+			checkKubeAPIServerDeployment(dep)
 		})
 	})
 
@@ -181,20 +145,13 @@ var _ = Describe("Ensurer", func() {
 					},
 				}
 			)
-
-			// Create mock client
-			client := mockclient.NewMockClient(ctrl)
-			client.EXPECT().Get(context.TODO(), secretObjectKey, &corev1.Secret{}).DoAndReturn(clientGet(secret))
-
 			// Create ensurer
 			ensurer := NewEnsurer(logger, false)
-			err := ensurer.(inject.Client).InjectClient(client)
-			Expect(err).To(Not(HaveOccurred()))
 
 			// Call EnsureKubeControllerManagerDeployment method and check the result
-			err = ensurer.EnsureKubeControllerManagerDeployment(context.TODO(), dummyContext, dep, nil)
+			err := ensurer.EnsureKubeControllerManagerDeployment(context.TODO(), dummyContext, dep, nil)
 			Expect(err).To(Not(HaveOccurred()))
-			checkKubeControllerManagerDeployment(dep, annotations, kubeControllerManagerLabels)
+			checkKubeControllerManagerDeployment(dep, kubeControllerManagerLabels)
 		})
 
 		It("should modify existing elements of kube-controller-manager deployment", func() {
@@ -231,19 +188,13 @@ var _ = Describe("Ensurer", func() {
 				}
 			)
 
-			// Create mock client
-			client := mockclient.NewMockClient(ctrl)
-			client.EXPECT().Get(context.TODO(), secretObjectKey, &corev1.Secret{}).DoAndReturn(clientGet(secret))
-
 			// Create ensurer
 			ensurer := NewEnsurer(logger, false)
-			err := ensurer.(inject.Client).InjectClient(client)
-			Expect(err).To(Not(HaveOccurred()))
 
 			// Call EnsureKubeControllerManagerDeployment method and check the result
-			err = ensurer.EnsureKubeControllerManagerDeployment(context.TODO(), dummyContext, dep, nil)
+			err := ensurer.EnsureKubeControllerManagerDeployment(context.TODO(), dummyContext, dep, nil)
 			Expect(err).To(Not(HaveOccurred()))
-			checkKubeControllerManagerDeployment(dep, annotations, kubeControllerManagerLabels)
+			checkKubeControllerManagerDeployment(dep, kubeControllerManagerLabels)
 		})
 	})
 
@@ -437,7 +388,7 @@ var _ = Describe("Ensurer", func() {
 	})
 })
 
-func checkKubeAPIServerDeployment(dep *appsv1.Deployment, annotations map[string]string) {
+func checkKubeAPIServerDeployment(dep *appsv1.Deployment) {
 	// Check that the kube-apiserver container still exists and contains all needed command line args,
 	// env vars, and volume mounts
 	c := extensionswebhook.ContainerWithName(dep.Spec.Template.Spec.Containers, "kube-apiserver")
@@ -445,20 +396,19 @@ func checkKubeAPIServerDeployment(dep *appsv1.Deployment, annotations map[string
 	Expect(c.Command).To(Not(test.ContainElementWithPrefixContaining("--enable-admission-plugins=", "PersistentVolumeLabel", ",")))
 	Expect(c.Command).To(test.ContainElementWithPrefixContaining("--disable-admission-plugins=", "PersistentVolumeLabel", ","))
 
-	// Check that the Pod template contains all needed checksum annotations
-	Expect(dep.Spec.Template.Annotations).To(Equal(annotations))
+	Expect(dep.Spec.Template.Annotations).To(BeNil())
 
 	Expect(dep.Spec.Template.Labels).To(HaveKeyWithValue("networking.resources.gardener.cloud/to-csi-snapshot-validation-tcp-443", "allowed"))
 }
 
-func checkKubeControllerManagerDeployment(dep *appsv1.Deployment, annotations, labels map[string]string) {
+func checkKubeControllerManagerDeployment(dep *appsv1.Deployment, labels map[string]string) {
 	// Check that the kube-controller-manager container still exists and contains all needed command line args,
 	// env vars, and volume mounts
 	c := extensionswebhook.ContainerWithName(dep.Spec.Template.Spec.Containers, "kube-controller-manager")
 	Expect(c).To(Not(BeNil()))
 
 	// Check that the Pod template contains all needed checksum annotations
-	Expect(dep.Spec.Template.Annotations).To(Equal(annotations))
+	Expect(dep.Spec.Template.Annotations).To(BeNil())
 
 	// Check that the labels for network policies are added
 	Expect(dep.Spec.Template.Labels).To(Equal(labels))

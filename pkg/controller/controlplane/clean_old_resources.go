@@ -32,7 +32,7 @@ func (vp *valuesProvider) deleteCCMMonitoringConfig(ctx context.Context, ns stri
 		},
 	}
 
-	return client.IgnoreNotFound(vp.Client().Delete(ctx, cm))
+	return client.IgnoreNotFound(vp.client.Delete(ctx, cm))
 }
 
 // TODO: Remove this in a future version again.
@@ -44,5 +44,5 @@ func (vp *valuesProvider) deleteLegacyCloudProviderConfigMap(ctx context.Context
 		},
 	}
 
-	return client.IgnoreNotFound(vp.Client().Delete(ctx, cm))
+	return client.IgnoreNotFound(vp.client.Delete(ctx, cm))
 }

@@ -25,8 +25,16 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver"
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	apishelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/utils"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/helpers"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	extensionssecretsmanager "github.com/gardener/gardener/extensions/pkg/util/secret/manager"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
@@ -49,18 +57,12 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/util/sets"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
-
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-	apishelper "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/utils"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/helpers"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/ensurer"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere/infrastructure/task"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 const (
@@ -96,16 +98,15 @@ func secretConfigsFunc(namespace string) []extensionssecretsmanager.SecretConfig
 				DNSNames:                    kutil.DNSNamesForService(vsphere.CSISnapshotValidation, namespace),
 				CertType:                    secrets.ServerCert,
 				SkipPublishingCACertificate: true,
-			},
-			// use current CA for signing server cert to prevent mismatches when dropping the old CA from the webhook
+			}, // use current CA for signing server cert to prevent mismatches when dropping the old CA from the webhook
 			// config in phase Completing
 			Options: []secretsmanager.GenerateOption{secretsmanager.SignedByCA(caNameControlPlane, secretsmanager.UseCurrentCA)},
 		},
 	}
 }
 
-func shootAccessSecretsFunc(namespace string) []*gutil.ShootAccessSecret {
-	return []*gutil.ShootAccessSecret{
+func shootAccessSecretsFunc(namespace string) []*gutil.AccessSecret {
+	return []*gutil.AccessSecret{
 		gutil.NewShootAccessSecret(vsphere.CloudControllerManagerName, namespace),
 		gutil.NewShootAccessSecret(vsphere.CSIAttacherName, namespace),
 		gutil.NewShootAccessSecret(vsphere.CSIProvisionerName, namespace),
@@ -158,11 +159,9 @@ var controlPlaneChart = &chart.Chart{
 				{Type: &corev1.Service{}, Name: vsphere.VsphereCSIControllerName},
 				{Type: &appsv1.Deployment{}, Name: vsphere.VsphereCSIControllerName},
 				{Type: &corev1.ConfigMap{}, Name: vsphere.VsphereCSIControllerName + "-observability-config"},
-				{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: vsphere.VsphereCSIControllerName + "-vpa"},
-				// csi-snapshot-controller
+				{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: vsphere.VsphereCSIControllerName + "-vpa"}, // csi-snapshot-controller
 				{Type: &appsv1.Deployment{}, Name: vsphere.CSISnapshotControllerName},
-				{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: vsphere.CSISnapshotControllerName + "-vpa"},
-				// csi-snapshot-validation-webhook
+				{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: vsphere.CSISnapshotControllerName + "-vpa"}, // csi-snapshot-validation-webhook
 				{Type: &appsv1.Deployment{}, Name: vsphere.CSISnapshotValidation},
 				{Type: &corev1.Service{}, Name: vsphere.CSISnapshotValidation},
 			},
@@ -192,44 +191,36 @@ var controlPlaneShootChart = &chart.Chart{
 			},
 			Objects: []*chart.Object{
 				// csi-driver
-				{Type: &appsv1.DaemonSet{}, Name: vsphere.CSINodeName},
-				//{Type: &storagev1beta1.CSIDriver{}, Name: "csi.vsphere.vmware.com"},
+				{Type: &appsv1.DaemonSet{}, Name: vsphere.CSINodeName}, //{Type: &storagev1beta1.CSIDriver{}, Name: "csi.vsphere.vmware.com"},
 				{Type: &corev1.ServiceAccount{}, Name: vsphere.CSIDriverName + "-node"},
 				{Type: &corev1.Secret{}, Name: vsphere.SecretCSIVsphereConfig},
 				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.CSIDriverName},
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIDriverName},
-				{Type: &policyv1beta1.PodSecurityPolicy{}, Name: strings.Replace(vsphere.UsernamePrefix+vsphere.CSIDriverName, ":", ".", -1)},
-				// csi-provisioner
+				{Type: &policyv1beta1.PodSecurityPolicy{}, Name: strings.Replace(vsphere.UsernamePrefix+vsphere.CSIDriverName, ":", ".", -1)}, // csi-provisioner
 				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.CSIProvisionerName},
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIProvisionerName},
 				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.CSIProvisionerName},
-				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIProvisionerName},
-				// csi-attacher
+				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIProvisionerName}, // csi-attacher
 				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.CSIAttacherName},
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIAttacherName},
 				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.CSIAttacherName},
-				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIAttacherName},
-				// csi-resizer
+				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIAttacherName}, // csi-resizer
 				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.CSIResizerName},
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIResizerName},
 				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.CSIResizerName},
-				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIResizerName},
-				// csi-snapshotter
+				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIResizerName}, // csi-snapshotter
 				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotterName},
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotterName},
 				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotterName},
-				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotterName},
-				// csi-snapshot-controller
+				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotterName}, // csi-snapshot-controller
 				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotControllerName},
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotControllerName},
 				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotControllerName},
-				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotControllerName},
-				// csi-syncer
+				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSISnapshotControllerName}, // csi-syncer
 				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncerName},
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncerName},
 				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncerName},
-				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncerName},
-				// csi-snapshot-validation-webhook
+				{Type: &rbacv1.RoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.VsphereCSISyncerName}, // csi-snapshot-validation-webhook
 				{Type: &admissionregistrationv1.ValidatingWebhookConfiguration{}, Name: vsphere.CSISnapshotValidation},
 			},
 		},
@@ -257,8 +248,10 @@ var storageClassChart = &chart.Chart{
 }
 
 // NewValuesProvider creates a new ValuesProvider for the generic actuator.
-func NewValuesProvider(logger logr.Logger, gardenID string) genericactuator.ValuesProvider {
+func NewValuesProvider(mgr manager.Manager, logger logr.Logger, gardenID string) genericactuator.ValuesProvider {
 	return &valuesProvider{
+		client:   mgr.GetClient(),
+		decoder:  serializer.NewCodecFactory(mgr.GetScheme(), serializer.EnableStrict).UniversalDecoder(),
 		logger:   logger.WithName("vsphere-values-provider"),
 		gardenID: gardenID,
 	}
@@ -267,24 +260,23 @@ func NewValuesProvider(logger logr.Logger, gardenID string) genericactuator.Valu
 // valuesProvider is a ValuesProvider that provides vSphere-specific values for the 2 charts applied by the generic actuator.
 type valuesProvider struct {
 	genericactuator.NoopValuesProvider
-	common.ClientContext
+	client   client.Client
+	decoder  runtime.Decoder
 	logger   logr.Logger
 	gardenID string
 }
 
 // GetConfigChartValues returns the values for the config chart applied by the generic actuator.
-func (vp *valuesProvider) GetConfigChartValues(
-	ctx context.Context,
-	cp *extensionsv1alpha1.ControlPlane,
-	cluster *extensionscontroller.Cluster,
-) (map[string]interface{}, error) {
-	cpConfig, err := helper.GetControlPlaneConfig(cluster)
-	if err != nil {
-		return nil, err
+func (vp *valuesProvider) GetConfigChartValues(ctx context.Context, cp *extensionsv1alpha1.ControlPlane, cluster *extensionscontroller.Cluster) (map[string]interface{}, error) {
+	cpConfig := &apisvsphere.ControlPlaneConfig{}
+	if cluster.Shoot.Spec.Provider.ControlPlaneConfig != nil {
+		if _, _, err := vp.decoder.Decode(cluster.Shoot.Spec.Provider.ControlPlaneConfig.Raw, nil, cpConfig); err != nil {
+			return nil, errors.Wrapf(err, "could not decode providerConfig of controlplane '%s'", cluster.ObjectMeta.Name)
+		}
 	}
 
 	// Get credentials
-	credentials, err := vsphere.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
+	credentials, err := vsphere.GetCredentials(ctx, vp.client, cp.Spec.SecretRef)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get vSphere credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
 	}
@@ -294,40 +286,32 @@ func (vp *valuesProvider) GetConfigChartValues(
 }
 
 // GetControlPlaneChartValues returns the values for the control plane chart applied by the generic actuator.
-func (vp *valuesProvider) GetControlPlaneChartValues(
-	ctx context.Context,
-	cp *extensionsv1alpha1.ControlPlane,
-	cluster *extensionscontroller.Cluster,
-	secretsReader secretsmanager.Reader,
-	checksums map[string]string,
-	scaledDown bool,
-) (
-	map[string]interface{},
-	error,
-) {
-	cpConfig, err := helper.GetControlPlaneConfig(cluster)
-	if err != nil {
-		return nil, err
+func (vp *valuesProvider) GetControlPlaneChartValues(ctx context.Context, cp *extensionsv1alpha1.ControlPlane, cluster *extensionscontroller.Cluster, secretsReader secretsmanager.Reader, checksums map[string]string, scaledDown bool) (map[string]interface{}, error) {
+	cpConfig := &apisvsphere.ControlPlaneConfig{}
+	if cluster.Shoot.Spec.Provider.ControlPlaneConfig != nil {
+		if _, _, err := vp.decoder.Decode(cluster.Shoot.Spec.Provider.ControlPlaneConfig.Raw, nil, cpConfig); err != nil {
+			return nil, errors.Wrapf(err, "could not decode providerConfig of controlplane '%s'", cluster.ObjectMeta.Name)
+		}
 	}
 
 	// Get credentials
-	credentials, err := vsphere.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
+	credentials, err := vsphere.GetCredentials(ctx, vp.client, cp.Spec.SecretRef)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get vSphere credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
 	}
 
 	secretCloudProviderConfig := &corev1.Secret{}
-	if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, vsphere.CloudProviderConfig), secretCloudProviderConfig); err == nil {
+	if err := vp.client.Get(ctx, kutil.Key(cp.Namespace, vsphere.CloudProviderConfig), secretCloudProviderConfig); err == nil {
 		checksums[vsphere.CloudProviderConfig] = gutils.ComputeChecksum(secretCloudProviderConfig.Data)
 	}
 
 	secretCSIVsphereConfig := &corev1.Secret{}
-	if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, vsphere.SecretCSIVsphereConfig), secretCSIVsphereConfig); err == nil {
+	if err := vp.client.Get(ctx, kutil.Key(cp.Namespace, vsphere.SecretCSIVsphereConfig), secretCSIVsphereConfig); err == nil {
 		checksums[vsphere.SecretCSIVsphereConfig] = gutils.ComputeChecksum(secretCSIVsphereConfig.Data)
 	}
 
 	// TODO(scheererj): Delete this in a future release.
-	if err := kutil.DeleteObject(ctx, vp.Client(), &networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: "allow-kube-apiserver-to-csi-snapshot-validation", Namespace: cp.Namespace}}); err != nil {
+	if err := kutil.DeleteObject(ctx, vp.client, &networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: "allow-kube-apiserver-to-csi-snapshot-validation", Namespace: cp.Namespace}}); err != nil {
 		return nil, fmt.Errorf("failed deleting legacy csi-snapshot-validation network policy: %w", err)
 	}
 	// Get control plane chart values
@@ -335,15 +319,9 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 }
 
 // GetControlPlaneShootChartValues returns the values for the control plane shoot chart applied by the generic actuator.
-func (vp *valuesProvider) GetControlPlaneShootChartValues(
-	ctx context.Context,
-	cp *extensionsv1alpha1.ControlPlane,
-	cluster *extensionscontroller.Cluster,
-	secretsReader secretsmanager.Reader,
-	_ map[string]string,
-) (map[string]interface{}, error) {
+func (vp *valuesProvider) GetControlPlaneShootChartValues(ctx context.Context, cp *extensionsv1alpha1.ControlPlane, cluster *extensionscontroller.Cluster, secretsReader secretsmanager.Reader, _ map[string]string) (map[string]interface{}, error) {
 	// Get credentials
-	credentials, err := vsphere.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
+	credentials, err := vsphere.GetCredentials(ctx, vp.client, cp.Spec.SecretRef)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get vSphere credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
 	}
@@ -354,11 +332,7 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 
 // GetControlPlaneShootCRDsChartValues returns the values for the control plane shoot CRDs chart applied by the generic actuator.
 // Currently the provider extension does not specify a control plane shoot CRDs chart. That's why we simply return empty values.
-func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(
-	_ context.Context,
-	_ *extensionsv1alpha1.ControlPlane,
-	cluster *extensionscontroller.Cluster,
-) (map[string]interface{}, error) {
+func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(_ context.Context, _ *extensionsv1alpha1.ControlPlane, cluster *extensionscontroller.Cluster) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"volumesnapshots": map[string]interface{}{
 			"enabled": false, // not supported in vsphere-csi-driver v2.3.0
@@ -367,11 +341,7 @@ func (vp *valuesProvider) GetControlPlaneShootCRDsChartValues(
 }
 
 // GetStorageClassesChartValues returns the values for the shoot storageclasses chart applied by the generic actuator.
-func (vp *valuesProvider) GetStorageClassesChartValues(
-	_ context.Context,
-	_ *extensionsv1alpha1.ControlPlane,
-	cluster *extensionscontroller.Cluster,
-) (map[string]interface{}, error) {
+func (vp *valuesProvider) GetStorageClassesChartValues(_ context.Context, _ *extensionsv1alpha1.ControlPlane, cluster *extensionscontroller.Cluster) (map[string]interface{}, error) {
 
 	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
 	if err != nil {
@@ -411,12 +381,7 @@ func splitServerNameAndPort(host string) (name string, port int, err error) {
 }
 
 // getConfigChartValues collects and returns the configuration chart values.
-func (vp *valuesProvider) getConfigChartValues(
-	cp *extensionsv1alpha1.ControlPlane,
-	cpConfig *apisvsphere.ControlPlaneConfig,
-	cluster *extensionscontroller.Cluster,
-	credentials *vsphere.Credentials,
-) (map[string]interface{}, error) {
+func (vp *valuesProvider) getConfigChartValues(cp *extensionsv1alpha1.ControlPlane, cpConfig *apisvsphere.ControlPlaneConfig, cluster *extensionscontroller.Cluster, credentials *vsphere.Credentials) (map[string]interface{}, error) {
 
 	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
 	if err != nil {
@@ -444,8 +409,7 @@ func (vp *valuesProvider) getConfigChartValues(
 	}
 
 	checkFunc := vp.checkAuthorizationOfOverwrittenIPPoolName(cluster, cloudProfileConfig, credentials)
-	defaultClass, loadBalancersClasses, err := validation.OverwriteLoadBalancerClasses(
-		cloudProfileConfig.Constraints.LoadBalancerConfig.Classes, cpConfig, checkFunc)
+	defaultClass, loadBalancersClasses, err := validation.OverwriteLoadBalancerClasses(cloudProfileConfig.Constraints.LoadBalancerConfig.Classes, cpConfig, checkFunc)
 	if err != nil {
 		return nil, err
 	}
@@ -521,8 +485,7 @@ func (vp *valuesProvider) getConfigChartValues(
 	return values, nil
 }
 
-func (vp *valuesProvider) checkAuthorizationOfOverwrittenIPPoolName(cluster *extensionscontroller.Cluster,
-	cloudProfileConfig *apisvsphere.CloudProfileConfig, credentials *vsphere.Credentials) func(ipPoolName string) error {
+func (vp *valuesProvider) checkAuthorizationOfOverwrittenIPPoolName(cluster *extensionscontroller.Cluster, cloudProfileConfig *apisvsphere.CloudProfileConfig, credentials *vsphere.Credentials) func(ipPoolName string) error {
 
 	wrap := func(err error) error {
 		return errors.Wrap(err, "checkAuthorizationOfOverwrittenIPPoolName failed")
@@ -552,11 +515,7 @@ func (vp *valuesProvider) checkAuthorizationOfOverwrittenIPPoolName(cluster *ext
 func getTLSCipherSuites(kubeVersion *semver.Version) []string {
 	// the following suites are not supported by the deployed cloud-controller-manager
 	// TODO: This can be removed as soon as the cloud-controller-manager was updated to support the TLS suites.
-	unsupportedSuites := sets.NewString(
-		"TLS_AES_128_GCM_SHA256",
-		"TLS_AES_256_GCM_SHA384",
-		"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
-	)
+	unsupportedSuites := sets.NewString("TLS_AES_128_GCM_SHA256", "TLS_AES_256_GCM_SHA384", "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256")
 
 	var ciphers []string
 	for _, cipher := range kutil.TLSCipherSuites(kubeVersion) {
@@ -570,18 +529,7 @@ func getTLSCipherSuites(kubeVersion *semver.Version) []string {
 }
 
 // getControlPlaneChartValues collects and returns the control plane chart values.
-func (vp *valuesProvider) getControlPlaneChartValues(
-	cpConfig *apisvsphere.ControlPlaneConfig,
-	cp *extensionsv1alpha1.ControlPlane,
-	cluster *extensionscontroller.Cluster,
-	secretsReader secretsmanager.Reader,
-	credentials *vsphere.Credentials,
-	checksums map[string]string,
-	scaledDown bool,
-) (
-	map[string]interface{},
-	error,
-) {
+func (vp *valuesProvider) getControlPlaneChartValues(cpConfig *apisvsphere.ControlPlaneConfig, cp *extensionsv1alpha1.ControlPlane, cluster *extensionscontroller.Cluster, secretsReader secretsmanager.Reader, credentials *vsphere.Credentials, checksums map[string]string, scaledDown bool) (map[string]interface{}, error) {
 	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
 	if err != nil {
 		return nil, err
@@ -678,13 +626,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 }
 
 // getControlPlaneShootChartValues collects and returns the control plane shoot chart values.
-func (vp *valuesProvider) getControlPlaneShootChartValues(
-	ctx context.Context,
-	cp *extensionsv1alpha1.ControlPlane,
-	cluster *extensionscontroller.Cluster,
-	secretsReader secretsmanager.Reader,
-	credentials *vsphere.Credentials,
-) (map[string]interface{}, error) {
+func (vp *valuesProvider) getControlPlaneShootChartValues(ctx context.Context, cp *extensionsv1alpha1.ControlPlane, cluster *extensionscontroller.Cluster, secretsReader secretsmanager.Reader, credentials *vsphere.Credentials) (map[string]interface{}, error) {
 
 	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
 	if err != nil {

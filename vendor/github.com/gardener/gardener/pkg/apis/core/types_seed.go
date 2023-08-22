@@ -205,15 +205,10 @@ type SeedSettings struct {
 	LoadBalancerServices *SeedSettingLoadBalancerServices
 	// VerticalPodAutoscaler controls certain settings for the vertical pod autoscaler components deployed in the seed.
 	VerticalPodAutoscaler *SeedSettingVerticalPodAutoscaler
-	// SeedSettingOwnerChecks controls certain owner checks settings for shoots scheduled on this seed.
-	//
-	// Deprecated: This field is deprecated. The "bad-case" control plane migration is being removed in favor of the HA Shoot control planes (see https://github.com/gardener/gardener/issues/6302).
-	// The field is no-op and will be removed in a future version.
-	OwnerChecks *SeedSettingOwnerChecks
 	// DependencyWatchdog controls certain settings for the dependency-watchdog components deployed in the seed.
 	DependencyWatchdog *SeedSettingDependencyWatchdog
 	// TopologyAwareRouting controls certain settings for topology-aware traffic routing in the seed.
-	// See https://github.com/gardener/gardener/blob/master/docs/usage/topology_aware_routing.md.
+	// See https://github.com/gardener/gardener/blob/master/docs/operations/topology_aware_routing.md.
 	TopologyAwareRouting *SeedSettingTopologyAwareRouting
 }
 
@@ -267,15 +262,6 @@ type SeedSettingVerticalPodAutoscaler struct {
 	Enabled bool
 }
 
-// SeedSettingOwnerChecks controls certain owner checks settings for shoots scheduled on this seed.
-//
-// Deprecated: This field is deprecated. The "bad-case" control plane migration is being removed in favor of the HA Shoot control planes (see https://github.com/gardener/gardener/issues/6302).
-// The field is no-op and will be removed in a future version.
-type SeedSettingOwnerChecks struct {
-	// Enabled controls whether owner checks are enabled for shoots scheduled on this seed.
-	Enabled bool
-}
-
 // SeedSettingDependencyWatchdog controls the dependency-watchdog settings for the seed.
 type SeedSettingDependencyWatchdog struct {
 	// Endpoint controls the endpoint settings for the dependency-watchdog for the seed.
@@ -324,7 +310,7 @@ type SeedSettingDependencyWatchdogProber struct {
 }
 
 // SeedSettingTopologyAwareRouting controls certain settings for topology-aware traffic routing in the seed.
-// See https://github.com/gardener/gardener/blob/master/docs/usage/topology_aware_routing.md.
+// See https://github.com/gardener/gardener/blob/master/docs/operations/topology_aware_routing.md.
 type SeedSettingTopologyAwareRouting struct {
 	// Enabled controls whether certain Services deployed in the seed cluster should be topology-aware.
 	// These Services are etcd-main-client, etcd-events-client, kube-apiserver, gardener-resource-manager and vpa-webhook.

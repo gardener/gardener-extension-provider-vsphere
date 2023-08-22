@@ -25,7 +25,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
@@ -89,11 +88,5 @@ func (s *Secret) InjectClient(c client.Client) error {
 // InjectAPIReader injects the given apiReader into the validator.
 func (s *Secret) InjectAPIReader(apiReader client.Reader) error {
 	s.apiReader = apiReader
-	return nil
-}
-
-// InjectScheme injects the scheme.
-func (s *Secret) InjectScheme(_ *runtime.Scheme) error {
-	s.decoder = scheme.Codecs.UniversalDeserializer()
 	return nil
 }

@@ -20,12 +20,16 @@ import (
 	"context"
 	"encoding/json"
 
+	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
+	apisvspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
+	mockmanager "github.com/gardener/gardener/pkg/mock/controller-runtime/manager"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	fakesecretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager/fake"
 	"github.com/golang/mock/gomock"
@@ -39,11 +43,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
-
-	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
-	apisvspherev1alpha1 "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/v1alpha1"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
 const (
@@ -56,6 +55,7 @@ var _ = Describe("ValuesProvider", func() {
 		ctrl *gomock.Controller
 		c    *mockclient.MockClient
 		ctx  context.Context
+		mgr  *mockmanager.MockManager
 
 		fakeClient         client.Client
 		fakeSecretsManager secretsmanager.Interface
@@ -289,10 +289,10 @@ insecure-flag = "true"
 				"tlsCipherSuites": []string{
 					"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
 					"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+					"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+					"TLS_CHACHA20_POLY1305_SHA256",
+					"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305",
 					"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
-					"TLS_RSA_WITH_AES_128_CBC_SHA",
-					"TLS_RSA_WITH_AES_256_CBC_SHA",
-					"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
 				},
 				"secrets": map[string]interface{}{
 					"server": "cloud-controller-manager-server",
@@ -354,7 +354,6 @@ insecure-flag = "true"
 
 		prepareValueProvider = func(cpcAndCsi bool) genericactuator.ValuesProvider {
 			// Create mock client
-			c = mockclient.NewMockClient(ctrl)
 			if cpcAndCsi {
 				c.EXPECT().Get(ctx, cpcSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(cpcSecret))
 				c.EXPECT().Get(ctx, csiSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(csiSecret))
@@ -362,18 +361,13 @@ insecure-flag = "true"
 			c.EXPECT().Get(ctx, cpSecretKey, &corev1.Secret{}).DoAndReturn(clientGet(cpSecret))
 
 			// Create valuesProvider
-			vp := NewValuesProvider(logger, "garden1234")
-			err := vp.(inject.Scheme).InjectScheme(scheme)
-			Expect(err).NotTo(HaveOccurred())
-			err = vp.(inject.Client).InjectClient(c)
-			Expect(err).NotTo(HaveOccurred())
+			vp := NewValuesProvider(mgr, logger, "garden1234")
 
 			return vp
 		}
 	)
 
 	BeforeEach(func() {
-		ctrl = gomock.NewController(GinkgoT())
 		ctx = context.TODO()
 
 		cluster = &extensionscontroller.Cluster{
@@ -415,6 +409,12 @@ insecure-flag = "true"
 				},
 			},
 		}
+
+		ctrl = gomock.NewController(GinkgoT())
+		c = mockclient.NewMockClient(ctrl)
+		mgr = mockmanager.NewMockManager(ctrl)
+		mgr.EXPECT().GetClient().Return(c)
+		mgr.EXPECT().GetScheme().Return(scheme)
 
 		fakeClient = fakeclient.NewClientBuilder().Build()
 		fakeSecretsManager = fakesecretsmanager.New(fakeClient, namespace)
@@ -602,6 +602,9 @@ insecure-flag = "true"
 
 	Describe("#shortenID", func() {
 		It("should shorten ID to given max length", func() {
+			_ = mgr.GetClient()
+			_ = mgr.GetScheme()
+
 			id1 := "shoot--garden--something12-cf7607c1-1b8a-11e8-8c77-fa163e4902b1"
 			id2 := "shoot--garden--something123-cf7607c1-1b8a-11e8-8c77-fa163e4902b1"
 			id3 := "shoot--garden--something123-cf7607c1-1b8a-11e8-8c77-fa163e4902b2"
@@ -622,7 +625,7 @@ insecure-flag = "true"
 
 	Describe("#GetControlPlaneShootCRDsChartValues", func() {
 		It("should return correct control plane shoot CRDs chart values", func() {
-			vp := NewValuesProvider(logger, "garden1234")
+			vp := NewValuesProvider(mgr, logger, "garden1234")
 
 			values, err := vp.GetControlPlaneShootCRDsChartValues(ctx, cp, cluster)
 			Expect(err).NotTo(HaveOccurred())

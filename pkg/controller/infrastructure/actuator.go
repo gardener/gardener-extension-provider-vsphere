@@ -18,22 +18,29 @@ import (
 	"context"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 type actuator struct {
-	common.ChartRendererContext
-
-	gardenID string
+	client     client.Client
+	restConfig *rest.Config
+	scheme     *runtime.Scheme
+	gardenID   string
 }
 
 // NewActuator creates a new Actuator that updates the status of the handled Infrastructure resources.
-func NewActuator(gardenID string) infrastructure.Actuator {
+func NewActuator(mgr manager.Manager, gardenID string) infrastructure.Actuator {
 	return &actuator{
-		gardenID: gardenID,
+		client:     mgr.GetClient(),
+		restConfig: mgr.GetConfig(),
+		scheme:     mgr.GetScheme(),
+		gardenID:   gardenID,
 	}
 }
 

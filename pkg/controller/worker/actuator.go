@@ -20,7 +20,6 @@ import (
 	"context"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	"github.com/gardener/gardener/extensions/pkg/util"
@@ -28,7 +27,12 @@ import (
 	gardener "github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/chart"
 	imagevectorutils "github.com/gardener/gardener/pkg/utils/imagevector"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/charts"
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
@@ -37,18 +41,24 @@ import (
 )
 
 type delegateFactory struct {
-	common.RESTConfigContext
+	client     client.Client
+	restConfig *rest.Config
+	scheme     *runtime.Scheme
 }
 
 // NewActuator creates a new Actuator that updates the status of the handled WorkerPoolConfigs.
-func NewActuator(gardenletManagesMCM bool) worker.Actuator {
+func NewActuator(mgr manager.Manager, gardenletManagesMCM bool) (worker.Actuator, error) {
 	var (
 		mcmName              string
 		mcmChartSeed         *chart.Chart
 		mcmChartShoot        *chart.Chart
 		imageVector          imagevectorutils.ImageVector
 		chartRendererFactory extensionscontroller.ChartRendererFactory
-		workerDelegate       = &delegateFactory{}
+		workerDelegate       = &delegateFactory{
+			client:     mgr.GetClient(),
+			restConfig: mgr.GetConfig(),
+			scheme:     mgr.GetScheme(),
+		}
 	)
 
 	if !gardenletManagesMCM {
@@ -60,17 +70,19 @@ func NewActuator(gardenletManagesMCM bool) worker.Actuator {
 	}
 
 	return genericactuator.NewActuator(
+		mgr,
 		workerDelegate,
 		mcmName,
 		mcmChartSeed,
 		mcmChartShoot,
 		imageVector,
 		chartRendererFactory,
+		nil,
 	)
 }
 
 func (d *delegateFactory) WorkerDelegate(ctx context.Context, worker *extensionsv1alpha1.Worker, cluster *extensionscontroller.Cluster) (genericactuator.WorkerDelegate, error) {
-	clientset, err := kubernetes.NewForConfig(d.RESTConfig())
+	clientset, err := kubernetes.NewForConfig(d.restConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -80,13 +92,14 @@ func (d *delegateFactory) WorkerDelegate(ctx context.Context, worker *extensions
 		return nil, err
 	}
 
-	seedChartApplier, err := gardener.NewChartApplierForConfig(d.RESTConfig())
+	seedChartApplier, err := gardener.NewChartApplierForConfig(d.restConfig)
 	if err != nil {
 		return nil, err
 	}
 
 	return NewWorkerDelegate(
-		d.ClientContext,
+		d.client,
+		d.scheme,
 		seedChartApplier,
 		serverVersion.GitVersion,
 
@@ -96,7 +109,9 @@ func (d *delegateFactory) WorkerDelegate(ctx context.Context, worker *extensions
 }
 
 type workerDelegate struct {
-	common.ClientContext
+	client  client.Client
+	decoder runtime.Decoder
+	scheme  *runtime.Scheme
 
 	seedChartApplier gardener.ChartApplier
 	serverVersion    string
@@ -112,8 +127,8 @@ type workerDelegate struct {
 
 // NewWorkerDelegate creates a new context for a worker reconciliation.
 func NewWorkerDelegate(
-	clientContext common.ClientContext,
-
+	client client.Client,
+	scheme *runtime.Scheme,
 	seedChartApplier gardener.ChartApplier,
 	serverVersion string,
 
@@ -125,7 +140,9 @@ func NewWorkerDelegate(
 		return nil, err
 	}
 	return &workerDelegate{
-		ClientContext: clientContext,
+		client:  client,
+		scheme:  scheme,
+		decoder: serializer.NewCodecFactory(scheme, serializer.EnableStrict).UniversalDecoder(),
 
 		seedChartApplier: seedChartApplier,
 		serverVersion:    serverVersion,

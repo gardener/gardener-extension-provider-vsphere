@@ -51,6 +51,8 @@ const (
 	ImageNameFluentBitPluginInstaller = "fluent-bit-plugin-installer"
 	// ImageNameFluentOperator is a constant for an image in the image vector with name 'fluent-operator'.
 	ImageNameFluentOperator = "fluent-operator"
+	// ImageNameGardenerApiserver is a constant for an image in the image vector with name 'gardener-apiserver'.
+	ImageNameGardenerApiserver = "gardener-apiserver"
 	// ImageNameGardenerResourceManager is a constant for an image in the image vector with name 'gardener-resource-manager'.
 	ImageNameGardenerResourceManager = "gardener-resource-manager"
 	// ImageNameGardenlet is a constant for an image in the image vector with name 'gardenlet'.
@@ -87,8 +89,6 @@ const (
 	ImageNameMetricsServer = "metrics-server"
 	// ImageNameNginxIngressController is a constant for an image in the image vector with name 'nginx-ingress-controller'.
 	ImageNameNginxIngressController = "nginx-ingress-controller"
-	// ImageNameNginxIngressControllerSeed is a constant for an image in the image vector with name 'nginx-ingress-controller-seed'.
-	ImageNameNginxIngressControllerSeed = "nginx-ingress-controller-seed"
 	// ImageNameNodeExporter is a constant for an image in the image vector with name 'node-exporter'.
 	ImageNameNodeExporter = "node-exporter"
 	// ImageNameNodeLocalDns is a constant for an image in the image vector with name 'node-local-dns'.
