@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	"github.com/coreos/go-systemd/v22/unit"
-	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	gcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
@@ -39,6 +38,8 @@ import (
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
 
 const (
