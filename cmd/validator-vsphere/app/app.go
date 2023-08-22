@@ -94,8 +94,8 @@ func NewValidatorCommand(ctx context.Context) *cobra.Command {
 			hookServer := mgr.GetWebhookServer()
 
 			log.Info("Registering webhooks")
-			hookServer.Register("/webhooks/validate", &webhook.Admission{Handler: &validator.Shoot{Logger: log.WithName("shoot-validator")}})
-			hookServer.Register("/webhooks/validate/secrets", &webhook.Admission{Handler: &validator.Secret{Logger: log.WithName("secret-validator")}})
+			hookServer.Register("/webhooks/validate", &webhook.Admission{Handler: validator.NewShootHandler(mgr, log)})
+			hookServer.Register("/webhooks/validate/secrets", &webhook.Admission{Handler: validator.NewSecretHandler(mgr, log)})
 
 			if err := mgr.AddReadyzCheck("informer-sync", gardenerhealthz.NewCacheSyncHealthz(mgr.GetCache())); err != nil {
 				return fmt.Errorf("could not add readycheck for informers: %w", err)
