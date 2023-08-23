@@ -25,12 +25,24 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	vspherevalidation "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/validation"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
+
+// NewSecretHandler returns a new instance of a shoot handler.
+func NewSecretHandler(mgr manager.Manager, log logr.Logger) admission.Handler {
+	return &Secret{
+		client:    mgr.GetClient(),
+		decoder:   serializer.NewCodecFactory(mgr.GetScheme(), serializer.EnableStrict).UniversalDecoder(),
+		apiReader: mgr.GetAPIReader(),
+		Logger:    log.WithName("secret-validator"),
+	}
+}
 
 // Shoot validates shoots
 type Secret struct {
@@ -77,16 +89,4 @@ func (s *Secret) Handle(ctx context.Context, req admission.Request) admission.Re
 	}
 
 	return admission.Allowed("valid secret")
-}
-
-// InjectClient injects the client.
-func (s *Secret) InjectClient(c client.Client) error {
-	s.client = c
-	return nil
-}
-
-// InjectAPIReader injects the given apiReader into the validator.
-func (s *Secret) InjectAPIReader(apiReader client.Reader) error {
-	s.apiReader = apiReader
-	return nil
 }

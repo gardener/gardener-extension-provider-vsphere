@@ -24,11 +24,23 @@ import (
 	"github.com/go-logr/logr"
 	admissionv1 "k8s.io/api/admission/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
+
+// NewShootHandler returns a new instance of a shoot handler.
+func NewShootHandler(mgr manager.Manager, log logr.Logger) admission.Handler {
+	return &Shoot{
+		client:    mgr.GetClient(),
+		decoder:   serializer.NewCodecFactory(mgr.GetScheme(), serializer.EnableStrict).UniversalDecoder(),
+		apiReader: mgr.GetAPIReader(),
+		Logger:    log.WithName("shoot-validator"),
+	}
+}
 
 // Shoot validates shoots
 type Shoot struct {
@@ -77,16 +89,4 @@ func (v *Shoot) Handle(ctx context.Context, req admission.Request) admission.Res
 	}
 
 	return admission.Allowed("validations succeeded")
-}
-
-// InjectClient injects the client.
-func (v *Shoot) InjectClient(c client.Client) error {
-	v.client = c
-	return nil
-}
-
-// InjectAPIReader injects the given apiReader into the validator.
-func (v *Shoot) InjectAPIReader(apiReader client.Reader) error {
-	v.apiReader = apiReader
-	return nil
 }
