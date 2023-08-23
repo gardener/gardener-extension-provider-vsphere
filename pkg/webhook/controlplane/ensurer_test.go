@@ -24,8 +24,11 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/test"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
+	mockmanager "github.com/gardener/gardener/pkg/mock/controller-runtime/manager"
 	"github.com/gardener/gardener/pkg/utils/imagevector"
 	testutils "github.com/gardener/gardener/pkg/utils/test"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -60,7 +63,22 @@ var _ = Describe("Ensurer", func() {
 			v1beta1constants.LabelNetworkPolicyToPublicNetworks:  v1beta1constants.LabelNetworkPolicyAllowed,
 			v1beta1constants.LabelNetworkPolicyToPrivateNetworks: v1beta1constants.LabelNetworkPolicyAllowed,
 		}
+
+		ctrl *gomock.Controller
+		mgr  *mockmanager.MockManager
+		c    client.Client
 	)
+
+	BeforeEach(func() {
+		ctrl = gomock.NewController(GinkgoT())
+		c = mockclient.NewMockClient(ctrl)
+		mgr = mockmanager.NewMockManager(ctrl)
+		mgr.EXPECT().GetClient().Return(c)
+	})
+
+	AfterEach(func() {
+		ctrl.Finish()
+	})
 
 	Describe("#EnsureKubeAPIServerDeployment", func() {
 		It("should add missing elements to kube-apiserver deployment", func() {
@@ -82,7 +100,7 @@ var _ = Describe("Ensurer", func() {
 			)
 
 			// Create ensurer
-			ensurer := NewEnsurer(logger, false)
+			ensurer := NewEnsurer(mgr, logger, false)
 
 			// Call EnsureKubeAPIServerDeployment method and check the result
 			err := ensurer.EnsureKubeAPIServerDeployment(context.TODO(), dummyContext, dep, nil)
@@ -114,7 +132,7 @@ var _ = Describe("Ensurer", func() {
 			)
 
 			// Create ensurer
-			ensurer := NewEnsurer(logger, false)
+			ensurer := NewEnsurer(mgr, logger, false)
 
 			// Call EnsureKubeAPIServerDeployment method and check the result
 			err := ensurer.EnsureKubeAPIServerDeployment(context.TODO(), dummyContext, dep, nil)
@@ -147,7 +165,7 @@ var _ = Describe("Ensurer", func() {
 				}
 			)
 			// Create ensurer
-			ensurer := NewEnsurer(logger, false)
+			ensurer := NewEnsurer(mgr, logger, false)
 
 			// Call EnsureKubeControllerManagerDeployment method and check the result
 			err := ensurer.EnsureKubeControllerManagerDeployment(context.TODO(), dummyContext, dep, nil)
@@ -190,7 +208,7 @@ var _ = Describe("Ensurer", func() {
 			)
 
 			// Create ensurer
-			ensurer := NewEnsurer(logger, false)
+			ensurer := NewEnsurer(mgr, logger, false)
 
 			// Call EnsureKubeControllerManagerDeployment method and check the result
 			err := ensurer.EnsureKubeControllerManagerDeployment(context.TODO(), dummyContext, dep, nil)
@@ -227,7 +245,7 @@ var _ = Describe("Ensurer", func() {
 			)
 
 			// Create ensurer
-			ensurer := NewEnsurer(logger, false)
+			ensurer := NewEnsurer(mgr, logger, false)
 
 			// Call EnsureKubeletServiceUnitOptions method and check the result
 			opts, err := ensurer.EnsureKubeletServiceUnitOptions(context.TODO(), dummyContext, nil, oldUnitOptions, nil)
@@ -254,7 +272,7 @@ var _ = Describe("Ensurer", func() {
 			)
 
 			// Create ensurer
-			ensurer := NewEnsurer(logger, false)
+			ensurer := NewEnsurer(mgr, logger, false)
 
 			// Call EnsureKubeletConfiguration method and check the result
 			kubeletConfig := *oldKubeletConfig
@@ -276,7 +294,7 @@ var _ = Describe("Ensurer", func() {
 
 		Context("when gardenlet does not manage MCM", func() {
 			BeforeEach(func() {
-				ensurer = NewEnsurer(logger, false)
+				ensurer = NewEnsurer(mgr, logger, false)
 			})
 
 			It("should do nothing", func() {
@@ -288,7 +306,7 @@ var _ = Describe("Ensurer", func() {
 
 		Context("when gardenlet manages MCM", func() {
 			BeforeEach(func() {
-				ensurer = NewEnsurer(logger, true)
+				ensurer = NewEnsurer(mgr, logger, true)
 				DeferCleanup(testutils.WithVar(&ImageVector, imagevector.ImageVector{{
 					Name:       "machine-controller-manager-provider-vsphere",
 					Repository: "foo",
@@ -353,7 +371,7 @@ var _ = Describe("Ensurer", func() {
 
 		Context("when gardenlet does not manage MCM", func() {
 			BeforeEach(func() {
-				ensurer = NewEnsurer(logger, false)
+				ensurer = NewEnsurer(mgr, logger, false)
 			})
 
 			It("should do nothing", func() {
@@ -365,7 +383,7 @@ var _ = Describe("Ensurer", func() {
 
 		Context("when gardenlet manages MCM", func() {
 			BeforeEach(func() {
-				ensurer = NewEnsurer(logger, true)
+				ensurer = NewEnsurer(mgr, logger, true)
 			})
 
 			It("should inject the sidecar container policy", func() {
