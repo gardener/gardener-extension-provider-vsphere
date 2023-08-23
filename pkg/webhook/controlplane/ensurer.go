@@ -39,6 +39,7 @@ import (
 	vpaautoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/charts"
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
@@ -47,8 +48,9 @@ import (
 )
 
 // NewEnsurer creates a new controlplane ensurer.
-func NewEnsurer(logger logr.Logger, gardenletManagesMCM bool) genericmutator.Ensurer {
+func NewEnsurer(mgr manager.Manager, logger logr.Logger, gardenletManagesMCM bool) genericmutator.Ensurer {
 	return &ensurer{
+		client:              mgr.GetClient(),
 		logger:              logger.WithName("vsphere-controlplane-ensurer"),
 		gardenletManagesMCM: gardenletManagesMCM,
 	}
@@ -63,12 +65,6 @@ type ensurer struct {
 
 // ImageVector is exposed for testing.
 var ImageVector = charts.ImageVector()
-
-// InjectClient injects the given client into the ensurer.
-func (e *ensurer) InjectClient(client client.Client) error {
-	e.client = client
-	return nil
-}
 
 // EnsureMachineControllerManagerDeployment ensures that the machine-controller-manager deployment conforms to the provider requirements.
 func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ gcontext.GardenContext, newObj, _ *appsv1.Deployment) error {
