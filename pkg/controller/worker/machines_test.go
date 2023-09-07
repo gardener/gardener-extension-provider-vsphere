@@ -400,6 +400,8 @@ var _ = Describe("Machines", func() {
 				err = workerDelegate.UpdateMachineImagesStatus(ctx)
 				Expect(err).NotTo(HaveOccurred())
 
+				labelsZone1 := map[string]string{vsphere.CSITopologyRegionKey: region, vsphere.CSITopologyZoneKey: zone1}
+				labelsZone2 := map[string]string{vsphere.CSITopologyRegionKey: region, vsphere.CSITopologyZoneKey: zone2}
 				// Test workerDelegate.GenerateMachineDeployments()
 				machineDeployments := worker.MachineDeployments{
 					{
@@ -410,6 +412,7 @@ var _ = Describe("Machines", func() {
 						Maximum:              worker.DistributeOverZones(0, maxPool1, 2),
 						MaxSurge:             worker.DistributePositiveIntOrPercent(0, maxSurgePool1, 2, maxPool1),
 						MaxUnavailable:       worker.DistributePositiveIntOrPercent(0, maxUnavailablePool1, 2, minPool1),
+						Labels:               labelsZone1,
 						MachineConfiguration: machineConfiguration,
 					},
 					{
@@ -420,6 +423,7 @@ var _ = Describe("Machines", func() {
 						Maximum:              worker.DistributeOverZones(1, maxPool1, 2),
 						MaxSurge:             worker.DistributePositiveIntOrPercent(1, maxSurgePool1, 2, maxPool1),
 						MaxUnavailable:       worker.DistributePositiveIntOrPercent(1, maxUnavailablePool1, 2, minPool1),
+						Labels:               labelsZone2,
 						MachineConfiguration: machineConfiguration,
 					},
 					{
@@ -430,6 +434,7 @@ var _ = Describe("Machines", func() {
 						Maximum:              worker.DistributeOverZones(0, maxPool2, 2),
 						MaxSurge:             worker.DistributePositiveIntOrPercent(0, maxSurgePool2, 2, maxPool1),
 						MaxUnavailable:       worker.DistributePositiveIntOrPercent(0, maxUnavailablePool2, 2, minPool1),
+						Labels:               labelsZone1,
 						MachineConfiguration: machineConfiguration,
 					},
 					{
@@ -440,6 +445,7 @@ var _ = Describe("Machines", func() {
 						Maximum:              worker.DistributeOverZones(1, maxPool2, 2),
 						MaxSurge:             worker.DistributePositiveIntOrPercent(1, maxSurgePool2, 2, maxPool1),
 						MaxUnavailable:       worker.DistributePositiveIntOrPercent(1, maxUnavailablePool2, 2, minPool1),
+						Labels:               labelsZone2,
 						MachineConfiguration: machineConfiguration,
 					},
 				}
