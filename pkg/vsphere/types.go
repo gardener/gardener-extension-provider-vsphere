@@ -35,6 +35,15 @@ const (
 
 	// CSIAttacherImageName is the name of the CSI attacher image.
 	CSIAttacherImageName = "csi-attacher"
+	// CSITopologyLabelsDomain is the domain name used to identify  topology labels applied on the node by vSphere CSI driver.
+	// See [VSphere CSI Driver Config]
+	//
+	// [VSphere CSI Driver Config]: https://github.com/kubernetes-sigs/vsphere-csi-driver/blob/a14797738b474d331af96a62783ec94e1c24f53e/pkg/common/config/config.go#L87
+	CSITopologyLabelsDomain = "topology.csi.vmware.com"
+	// CSITopologyRegionKey is the topology key denoting the region.
+	CSITopologyRegionKey = CSITopologyLabelsDomain + "/" + "k8s-region"
+	// CSITopologyZoneKey is the topology key denoting the zone.
+	CSITopologyZoneKey = CSITopologyLabelsDomain + "/" + "k8s-zone"
 	// CSINodeDriverRegistrarImageName is the name of the CSI driver registrar image.
 	CSINodeDriverRegistrarImageName = "csi-node-driver-registrar"
 	// CSIProvisionerImageName is the name of the CSI provisioner image.

@@ -27,6 +27,7 @@ import (
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	corev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
+	"github.com/gardener/gardener/pkg/utils"
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -213,7 +214,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 				Maximum:              worker.DistributeOverZones(zoneIdx, pool.Maximum, zoneLen),
 				MaxSurge:             worker.DistributePositiveIntOrPercent(zoneIdx, pool.MaxSurge, zoneLen, pool.Maximum),
 				MaxUnavailable:       worker.DistributePositiveIntOrPercent(zoneIdx, pool.MaxUnavailable, zoneLen, pool.Minimum),
-				Labels:               pool.Labels,
+				Labels:               addTopologyLabels(pool.Labels, infrastructureStatus.VsphereConfig.Region, zone),
 				Annotations:          pool.Annotations,
 				Taints:               pool.Taints,
 				MachineConfiguration: genericworkeractuator.ReadMachineConfiguration(pool),
@@ -308,4 +309,15 @@ func (w *workerDelegate) extractMachineValues(machineTypeName string) (*machineV
 	}
 
 	return values, nil
+}
+
+// addTopologyLabels adds vsphere CSI region and zone topology labels to the given labels map.
+// See [VSphere Container Storage Plug-in Guide]
+//
+// [VSphere Container Storage Plug-in Guide]: https://docs.vmware.com/en/VMware-vSphere-Container-Storage-Plug-in/3.0/vmware-vsphere-csp-getting-started/GUID-162E7582-723B-4A0F-A937-3ACE82EAFD31.html
+func addTopologyLabels(labels map[string]string, region, zone string) map[string]string {
+	return utils.MergeStringMaps(labels, map[string]string{
+		vsphere.CSITopologyRegionKey: region,
+		vsphere.CSITopologyZoneKey:   zone,
+	})
 }
