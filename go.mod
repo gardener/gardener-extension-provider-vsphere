@@ -1,19 +1,21 @@
 module github.com/gardener/gardener-extension-provider-vsphere
 
-go 1.20
+go 1.21
+
+toolchain go1.21.0
 
 require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gardener/etcd-druid v0.19.3
-	github.com/gardener/gardener v1.77.0
+	github.com/gardener/gardener v1.79.0
 	github.com/gardener/machine-controller-manager v0.49.3
 	github.com/go-logr/logr v1.2.4
 	github.com/google/uuid v1.3.1
 	github.com/metal-stack/go-ipam v1.12.5
-	github.com/onsi/ginkgo/v2 v2.9.2
-	github.com/onsi/gomega v1.27.6
+	github.com/onsi/ginkgo/v2 v2.9.5
+	github.com/onsi/gomega v1.27.7
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
@@ -27,19 +29,19 @@ require (
 	golang.org/x/oauth2 v0.12.0
 	golang.org/x/tools v0.13.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.26.4
-	k8s.io/apiextensions-apiserver v0.26.4
-	k8s.io/apimachinery v0.26.4
+	k8s.io/api v0.27.5
+	k8s.io/apiextensions-apiserver v0.27.5
+	k8s.io/apimachinery v0.27.5
 	k8s.io/autoscaler/vertical-pod-autoscaler v0.14.0
-	k8s.io/client-go v0.26.4
+	k8s.io/client-go v0.27.5
 	k8s.io/cloud-provider-vsphere v1.26.1-0.20230503224600-862eeed8229c
-	k8s.io/code-generator v0.26.4
-	k8s.io/component-base v0.26.4
+	k8s.io/code-generator v0.27.5
+	k8s.io/component-base v0.27.5
 	k8s.io/klog v1.0.0
-	k8s.io/kubelet v0.26.4
+	k8s.io/kubelet v0.27.5
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2
-	sigs.k8s.io/controller-runtime v0.14.6
-	sigs.k8s.io/controller-tools v0.11.3
+	sigs.k8s.io/controller-runtime v0.15.2
+	sigs.k8s.io/controller-tools v0.11.4
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -70,7 +72,7 @@ require (
 	github.com/gardener/hvpa-controller/api v0.11.0 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/gibson042/canonicaljson-go v1.0.3 // indirect
-	github.com/go-logr/zapr v1.2.3 // indirect
+	github.com/go-logr/zapr v1.2.4 // indirect
 	github.com/go-openapi/errors v0.20.3 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
@@ -140,7 +142,7 @@ require (
 	golang.org/x/term v0.12.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
+	gomodules.xyz/jsonpatch/v2 v2.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230822172742-b8732ec3820d // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d // indirect
@@ -153,14 +155,14 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	istio.io/api v0.0.0-20230327210753-eb5bfad7b73b // indirect
 	istio.io/client-go v1.17.1 // indirect
-	k8s.io/apiserver v0.26.4 // indirect
+	k8s.io/apiserver v0.27.5 // indirect
 	k8s.io/cloud-provider v0.26.4 // indirect
 	k8s.io/gengo v0.0.0-20220902162205-c0856e24416d // indirect
 	k8s.io/helm v2.17.0+incompatible // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
-	k8s.io/kube-aggregator v0.26.4 // indirect
+	k8s.io/kube-aggregator v0.27.5 // indirect
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
-	k8s.io/metrics v0.26.4 // indirect
+	k8s.io/metrics v0.27.5 // indirect
 	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20221212190805-d4f1e822ca11 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
