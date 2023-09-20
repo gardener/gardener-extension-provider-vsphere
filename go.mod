@@ -7,10 +7,9 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gardener/etcd-druid v0.19.2
-	github.com/gardener/gardener v1.76.0
+	github.com/gardener/gardener v1.77.0
 	github.com/gardener/machine-controller-manager v0.49.0
 	github.com/go-logr/logr v1.2.4
-	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/metal-stack/go-ipam v1.11.6
 	github.com/onsi/ginkgo/v2 v2.9.2
@@ -22,20 +21,21 @@ require (
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.7.0
 	github.com/vmware/vsphere-automation-sdk-go/runtime v0.7.0
 	github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.11.0
+	go.uber.org/mock v0.2.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/oauth2 v0.7.0
 	golang.org/x/tools v0.8.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.26.3
-	k8s.io/apiextensions-apiserver v0.26.3
-	k8s.io/apimachinery v0.26.3
+	k8s.io/api v0.26.4
+	k8s.io/apiextensions-apiserver v0.26.4
+	k8s.io/apimachinery v0.26.4
 	k8s.io/autoscaler/vertical-pod-autoscaler v0.14.0
-	k8s.io/client-go v0.26.3
+	k8s.io/client-go v0.26.4
 	k8s.io/cloud-provider-vsphere v1.26.1-0.20230503224600-862eeed8229c
-	k8s.io/code-generator v0.26.3
-	k8s.io/component-base v0.26.3
+	k8s.io/code-generator v0.26.4
+	k8s.io/component-base v0.26.4
 	k8s.io/klog v1.0.0
-	k8s.io/kubelet v0.26.3
+	k8s.io/kubelet v0.26.4
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2
 	sigs.k8s.io/controller-runtime v0.14.6
 	sigs.k8s.io/controller-tools v0.11.3
@@ -151,13 +151,14 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	istio.io/api v0.0.0-20230327210753-eb5bfad7b73b // indirect
 	istio.io/client-go v1.17.1 // indirect
-	k8s.io/cloud-provider v0.26.3 // indirect
+	k8s.io/apiserver v0.26.4 // indirect
+	k8s.io/cloud-provider v0.26.4 // indirect
 	k8s.io/gengo v0.0.0-20220902162205-c0856e24416d // indirect
 	k8s.io/helm v2.17.0+incompatible // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
-	k8s.io/kube-aggregator v0.26.3 // indirect
+	k8s.io/kube-aggregator v0.26.4 // indirect
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
-	k8s.io/metrics v0.26.3 // indirect
+	k8s.io/metrics v0.26.4 // indirect
 	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20221212190805-d4f1e822ca11 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect

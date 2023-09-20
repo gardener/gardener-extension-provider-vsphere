@@ -96,7 +96,7 @@ github.com/fsnotify/fsnotify
 # github.com/gardener/etcd-druid v0.19.2
 ## explicit; go 1.20
 github.com/gardener/etcd-druid/api/v1alpha1
-# github.com/gardener/gardener v1.76.0
+# github.com/gardener/gardener v1.77.0
 ## explicit; go 1.20
 github.com/gardener/gardener/.github
 github.com/gardener/gardener/.github/ISSUE_TEMPLATE
@@ -131,6 +131,7 @@ github.com/gardener/gardener/extensions/pkg/webhook/shoot
 github.com/gardener/gardener/hack
 github.com/gardener/gardener/hack/.ci
 github.com/gardener/gardener/hack/api-reference/template
+github.com/gardener/gardener/imagevector
 github.com/gardener/gardener/pkg/api/core
 github.com/gardener/gardener/pkg/api/extensions
 github.com/gardener/gardener/pkg/apis/authentication
@@ -177,6 +178,7 @@ github.com/gardener/gardener/pkg/controllerutils/mapper
 github.com/gardener/gardener/pkg/controllerutils/predicate
 github.com/gardener/gardener/pkg/controllerutils/reconciler
 github.com/gardener/gardener/pkg/extensions
+github.com/gardener/gardener/pkg/features
 github.com/gardener/gardener/pkg/gardenlet/apis/config
 github.com/gardener/gardener/pkg/gardenlet/apis/config/v1alpha1
 github.com/gardener/gardener/pkg/healthz
@@ -190,7 +192,6 @@ github.com/gardener/gardener/pkg/utils/context
 github.com/gardener/gardener/pkg/utils/errors
 github.com/gardener/gardener/pkg/utils/flow
 github.com/gardener/gardener/pkg/utils/gardener
-github.com/gardener/gardener/pkg/utils/images
 github.com/gardener/gardener/pkg/utils/imagevector
 github.com/gardener/gardener/pkg/utils/kubernetes
 github.com/gardener/gardener/pkg/utils/kubernetes/health
@@ -211,6 +212,7 @@ github.com/gardener/gardener/pkg/utils/version
 github.com/gardener/gardener/test/framework
 github.com/gardener/gardener/test/testmachinery/extensions/generator
 github.com/gardener/gardener/test/utils/access
+github.com/gardener/gardener/third_party/gopkg.in/yaml.v2
 # github.com/gardener/hvpa-controller/api v0.11.0
 ## explicit; go 1.19
 github.com/gardener/hvpa-controller/api/v1alpha1
@@ -295,11 +297,6 @@ github.com/golang-jwt/jwt/v4
 # github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 ## explicit
 github.com/golang/groupcache/lru
-# github.com/golang/mock v1.6.0
-## explicit; go 1.11
-github.com/golang/mock/gomock
-github.com/golang/mock/mockgen
-github.com/golang/mock/mockgen/model
 # github.com/golang/protobuf v1.5.3
 ## explicit; go 1.9
 github.com/golang/protobuf/jsonpb
@@ -653,6 +650,11 @@ go.mongodb.org/mongo-driver/x/mongo/driver/wiremessage
 # go.uber.org/atomic v1.10.0
 ## explicit; go 1.18
 go.uber.org/atomic
+# go.uber.org/mock v0.2.0
+## explicit; go 1.19
+go.uber.org/mock/gomock
+go.uber.org/mock/mockgen
+go.uber.org/mock/mockgen/model
 # go.uber.org/multierr v1.11.0
 ## explicit; go 1.19
 go.uber.org/multierr
@@ -927,7 +929,7 @@ istio.io/api/type/v1beta1
 ## explicit; go 1.18
 istio.io/client-go/pkg/apis/networking/v1alpha3
 istio.io/client-go/pkg/apis/networking/v1beta1
-# k8s.io/api v0.26.3
+# k8s.io/api v0.26.4
 ## explicit; go 1.19
 k8s.io/api/admission/v1
 k8s.io/api/admission/v1beta1
@@ -982,7 +984,7 @@ k8s.io/api/scheduling/v1beta1
 k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
-# k8s.io/apiextensions-apiserver v0.26.3
+# k8s.io/apiextensions-apiserver v0.26.4
 ## explicit; go 1.19
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1
@@ -991,7 +993,7 @@ k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset
 k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/scheme
 k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1
 k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1
-# k8s.io/apimachinery v0.26.3
+# k8s.io/apimachinery v0.26.4
 ## explicit; go 1.19
 k8s.io/apimachinery/pkg/api/equality
 k8s.io/apimachinery/pkg/api/errors
@@ -1046,10 +1048,13 @@ k8s.io/apimachinery/pkg/watch
 k8s.io/apimachinery/third_party/forked/golang/json
 k8s.io/apimachinery/third_party/forked/golang/netutil
 k8s.io/apimachinery/third_party/forked/golang/reflect
+# k8s.io/apiserver v0.26.4
+## explicit; go 1.19
+k8s.io/apiserver/pkg/util/feature
 # k8s.io/autoscaler/vertical-pod-autoscaler v0.14.0
 ## explicit; go 1.19
 k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1
-# k8s.io/client-go v0.26.3
+# k8s.io/client-go v0.26.4
 ## explicit; go 1.19
 k8s.io/client-go/applyconfigurations/admissionregistration/v1
 k8s.io/client-go/applyconfigurations/admissionregistration/v1alpha1
@@ -1302,7 +1307,7 @@ k8s.io/client-go/util/homedir
 k8s.io/client-go/util/keyutil
 k8s.io/client-go/util/retry
 k8s.io/client-go/util/workqueue
-# k8s.io/cloud-provider v0.26.3
+# k8s.io/cloud-provider v0.26.4
 ## explicit; go 1.19
 k8s.io/cloud-provider
 # k8s.io/cloud-provider-vsphere v1.26.1-0.20230503224600-862eeed8229c
@@ -1311,7 +1316,7 @@ k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer
 k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer/config
 k8s.io/cloud-provider-vsphere/pkg/nsxt
 k8s.io/cloud-provider-vsphere/pkg/nsxt/config
-# k8s.io/code-generator v0.26.3
+# k8s.io/code-generator v0.26.4
 ## explicit; go 1.19
 k8s.io/code-generator
 k8s.io/code-generator/cmd/client-gen
@@ -1347,7 +1352,7 @@ k8s.io/code-generator/cmd/set-gen
 k8s.io/code-generator/pkg/namer
 k8s.io/code-generator/pkg/util
 k8s.io/code-generator/third_party/forked/golang/reflect
-# k8s.io/component-base v0.26.3
+# k8s.io/component-base v0.26.4
 ## explicit; go 1.19
 k8s.io/component-base/cli/flag
 k8s.io/component-base/config
@@ -1409,7 +1414,7 @@ k8s.io/klog/v2/internal/clock
 k8s.io/klog/v2/internal/dbg
 k8s.io/klog/v2/internal/serialize
 k8s.io/klog/v2/internal/severity
-# k8s.io/kube-aggregator v0.26.3
+# k8s.io/kube-aggregator v0.26.4
 ## explicit; go 1.19
 k8s.io/kube-aggregator/pkg/apis/apiregistration
 k8s.io/kube-aggregator/pkg/apis/apiregistration/v1
@@ -1434,11 +1439,11 @@ k8s.io/kube-openapi/pkg/spec3
 k8s.io/kube-openapi/pkg/util/proto
 k8s.io/kube-openapi/pkg/util/sets
 k8s.io/kube-openapi/pkg/validation/spec
-# k8s.io/kubelet v0.26.3
+# k8s.io/kubelet v0.26.4
 ## explicit; go 1.19
 k8s.io/kubelet/config/v1beta1
 k8s.io/kubelet/pkg/apis
-# k8s.io/metrics v0.26.3
+# k8s.io/metrics v0.26.4
 ## explicit; go 1.19
 k8s.io/metrics/pkg/apis/metrics
 k8s.io/metrics/pkg/apis/metrics/v1beta1
