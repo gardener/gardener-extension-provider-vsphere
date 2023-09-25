@@ -80,7 +80,7 @@ var _ = Describe("ControlPlaneConfig validation", func() {
 				},
 			}
 
-			errorList := ValidateControlPlaneConfig(controlPlane, "1.23.14", nilPath)
+			errorList := ValidateControlPlaneConfig(controlPlane, "1.26.4", nilPath)
 
 			Expect(errorList).To(ConsistOf(
 				PointTo(MatchFields(IgnoreExtras, Fields{

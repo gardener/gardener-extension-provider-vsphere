@@ -32,8 +32,6 @@ This extension controller supports the following Kubernetes versions:
 | Kubernetes 1.26 | 1.26.0+ | [![Gardener v1.26 Conformance Tests](https://testgrid.k8s.io/q/summary/conformance-gardener/Gardener,%20v1.26%20vSphere/tests_status?style=svg)](https://testgrid.k8s.io/conformance-gardener#Gardener,%20v1.26%20vSphere) |
 | Kubernetes 1.25 | 1.25.0+ | [![Gardener v1.25 Conformance Tests](https://testgrid.k8s.io/q/summary/conformance-gardener/Gardener,%20v1.25%20vSphere/tests_status?style=svg)](https://testgrid.k8s.io/conformance-gardener#Gardener,%20v1.25%20vSphere) |
 | Kubernetes 1.24 | 1.24.0+ | [![Gardener v1.24 Conformance Tests](https://testgrid.k8s.io/q/summary/conformance-gardener/Gardener,%20v1.24%20vSphere/tests_status?style=svg)](https://testgrid.k8s.io/conformance-gardener#Gardener,%20v1.24%20vSphere) |
-| Kubernetes 1.23 | 1.23.0+ | [![Gardener v1.23 Conformance Tests](https://testgrid.k8s.io/q/summary/conformance-gardener/Gardener,%20v1.23%20vSphere/tests_status?style=svg)](https://testgrid.k8s.io/conformance-gardener#Gardener,%20v1.23%20vSphere) |
-| Kubernetes 1.22 | 1.22.0+ | [![Gardener v1.22 Conformance Tests](https://testgrid.k8s.io/q/summary/conformance-gardener/Gardener,%20v1.22%20vSphere/tests_status?style=svg)](https://testgrid.k8s.io/conformance-gardener#Gardener,%20v1.22%20vSphere) |
 
 Older versions of the extension [(`v0.16.0` and earlier)](https://github.com/gardener/gardener-extension-provider-vsphere/releases/tag/v0.16.0) are supported prior to current releases.
 

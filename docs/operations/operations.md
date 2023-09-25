@@ -150,9 +150,9 @@ spec:
         guestId: other4xLinux64Guest
   kubernetes:
     versions:
-    - version: 1.23.4
-    - version: 1.24.0
-    - version: 1.24.1
+    - version: 1.27.4
+    - version: 1.26.0
+    - version: 1.25.1
   machineImages:
   - name: flatcar
     versions:
@@ -182,7 +182,7 @@ spec:
 
 ## Which versions of Kubernetes/vSphere are supported
 
-This extension targets Kubernetes >= `v1.22` and vSphere `6.7 U3` or later.
+This extension targets Kubernetes >= `v1.24` and vSphere `6.7 U3` or later.
 
 - vSphere CSI driver needs vSphere `6.7 U3` or later,
   and Kubernetes >= `v1.16`
