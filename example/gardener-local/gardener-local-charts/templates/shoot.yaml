@@ -54,7 +54,7 @@ spec:
       imageGCHighThresholdPercent: 50
       imageGCLowThresholdPercent: 40
       serializeImagePulls: true
-    version: 1.23.13
+    version: 1.26.6
     verticalPodAutoscaler:
       enabled: false
       evictAfterOOMThreshold: 10m0s
