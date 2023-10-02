@@ -13,6 +13,7 @@ LINKMODE := -extldflags '-static -s -w'
 .EXPORT_ALL_VARIABLES:
 
 all: proto server client test fuzz bench
+ci: proto test
 
 .PHONY: bench
 bench:
@@ -36,7 +37,7 @@ fuzz:
 
 .PHONY: golangcicheck
 golangcicheck:
-	@/bin/bash -c "type -P golangci-lint;" 2>/dev/null || (echo "golangci-lint is required but not available in current PATH. Install: https://github.com/golangci/golangci-lint#install"; exit 1)
+	@bash -c "type -P golangci-lint;" 2>/dev/null || (echo "golangci-lint is required but not available in current PATH. Install: https://github.com/golangci/golangci-lint#install"; exit 1)
 
 .PHONY: lint
 lint: golangcicheck
