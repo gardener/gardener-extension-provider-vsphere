@@ -35,7 +35,12 @@ func main() {
     // create a ipamer with in memory storage
     ipam := goipam.New()
 
-    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+    bgCtx := context.Background()
+    // Optional with Namespace
+    ctx := goipam.NewContextWithNamespace(bgCtx, "tenant-a")
+
+    ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
     defer cancel()
     prefix, err := ipam.NewPrefix(ctx, "192.168.0.0/24")
     if err != nil {
@@ -107,7 +112,12 @@ func main() {
             connect.WithGRPC(),
     )
 
-    result, err := c.CreatePrefix(context.Background(), connect.NewRequest(&v1.CreatePrefixRequest{Cidr: "192.168.0.0/16",}))
+    bgCtx := context.Background()
+
+    // Optional with Namespace
+    ctx := goipam.NewContextWithNamespace(bgCtx, "tenant-a")
+
+    result, err := c.CreatePrefix(ctx, connect.NewRequest(&v1.CreatePrefixRequest{Cidr: "192.168.0.0/16",}))
     if err != nil {
         panic(err)
     }
@@ -128,6 +138,7 @@ docker run -it --rm --entrypoint /cli ghcr.io/metal-stack/go-ipam
 | Database    | Acquire Child Prefix |  Acquire IP |  New Prefix | Prefix Overlap | Production-Ready | Geo-Redundant |
 |:------------|---------------------:|------------:|------------:|---------------:|:-----------------|:--------------|
 | In-Memory   |          106,861/sec | 196,687/sec | 330,578/sec |        248/sec | N                | N             |
+| File        |                      |             |             |                | N                | N             |
 | KeyDB       |              777/sec |     975/sec |   2,271/sec |                | Y                | Y             |
 | Redis       |              773/sec |     958/sec |   2,349/sec |                | Y                | N             |
 | MongoDB     |              415/sec |     682/sec |     772/sec |                | Y                | Y             |
@@ -139,11 +150,11 @@ The benchmarks above were performed using:
 
 * cpu: Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
 * postgres:15-alpine
-* cockroach:v22.2.0
-* redis:7.0-alpine
+* cockroach:v23.1.0
+* redis:7.2-alpine
 * keydb:alpine_x86_64_v6.3.1
-* etcd:v3.5.5
-* mongodb:5.0.13-focal
+* etcd:v3.5.9
+* mongodb:7.0.0-jammy
 
 ### Database Version Compatability
 
