@@ -44,7 +44,6 @@ spec:
         image: {{ include "image" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         args:
-        - --leader-election-resource-lock={{ .Values.leaderElection.resourceLock }}
         - --config-file=/etc/{{ include "name" . }}/config/config.yaml
         - --controlplane-max-concurrent-reconciles={{ .Values.controllers.controlplane.concurrentSyncs }}
         - --infrastructure-max-concurrent-reconciles={{ .Values.controllers.infrastructure.concurrentSyncs }}
