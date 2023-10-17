@@ -18,16 +18,17 @@ package controlplane
 
 import (
 	"context"
+	"fmt"
 	"sync/atomic"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/extensions/pkg/util"
-	kubernetesclient "github.com/gardener/gardener/pkg/client/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/charts"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
@@ -57,17 +58,23 @@ type AddOptions struct {
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
 // The opts.Reconciler is being set with a newly instantiated actuator.
 func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddOptions) error {
-	gardenerClientset, err := kubernetesclient.NewWithConfig(kubernetesclient.WithRESTConfig(mgr.GetConfig()))
+	webhookServer := mgr.GetWebhookServer()
+	defaultServer, ok := webhookServer.(*webhook.DefaultServer)
+	if !ok {
+		return fmt.Errorf("expected *webhook.DefaultServer, got %T", webhookServer)
+	}
+
+	genericActuator, err := genericactuator.NewActuator(mgr, vsphere.Name,
+		secretConfigsFunc, shootAccessSecretsFunc, nil, nil,
+		configChart, controlPlaneChart, controlPlaneShootChart, controlPlaneShootCRDsChart, storageClassChart, nil,
+		NewValuesProvider(mgr, logger, opts.GardenId), extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
+		charts.ImageVector(), "", opts.ShootWebhookConfig, opts.WebhookServerNamespace, defaultServer.Options.Port)
 	if err != nil {
 		return err
 	}
 
 	return controlplane.Add(ctx, mgr, controlplane.AddArgs{
-		Actuator: genericactuator.NewActuator(mgr, vsphere.Name,
-			secretConfigsFunc, shootAccessSecretsFunc, nil, nil,
-			configChart, controlPlaneChart, controlPlaneShootChart, controlPlaneShootCRDsChart, storageClassChart, nil,
-			NewValuesProvider(mgr, logger, opts.GardenId), extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
-			charts.ImageVector(), "", opts.ShootWebhookConfig, opts.WebhookServerNamespace, mgr.GetWebhookServer().Port, gardenerClientset),
+		Actuator:          genericActuator,
 		ControllerOptions: opts.Controller,
 		Predicates:        controlplane.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
 		Type:              vsphere.Type,
