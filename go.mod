@@ -7,7 +7,7 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gardener/etcd-druid v0.19.3
-	github.com/gardener/gardener v1.80.3
+	github.com/gardener/gardener v1.81.0
 	github.com/gardener/machine-controller-manager v0.49.3
 	github.com/go-logr/logr v1.2.4
 	github.com/google/uuid v1.3.1
@@ -48,7 +48,9 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
+	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
+	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
 	github.com/antihax/optional v1.0.0 // indirect
 	github.com/avast/retry-go/v4 v4.5.0 // indirect
 	github.com/beevik/etree v1.1.3 // indirect
@@ -119,7 +121,9 @@ require (
 	github.com/prometheus/procfs v0.11.1 // indirect
 	github.com/redis/go-redis/v9 v9.1.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/spf13/afero v1.8.2 // indirect
+	github.com/shopspring/decimal v1.2.0 // indirect
+	github.com/spf13/afero v1.9.5 // indirect
+	github.com/spf13/cast v1.5.1 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
