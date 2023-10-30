@@ -1,6 +1,6 @@
 # [Gardener Extension for vSphere provider](https://gardener.cloud)
 
-[![CI Build status](https://concourse.ci.gardener.cloud/api/v1/teams/gardener/pipelines/gardener-extension-provider-vsphere-main/jobs/main-head-update-job/badge)](https://concourse.ci.gardener.cloud/teams/gardener/pipelines/gardener-extension-provider-vsphere-main/jobs/main-head-update-job)
+[![CI Build status](https://concourse.ci.gardener.cloud/api/v1/teams/gardener-tests/pipelines/gardener-extension-provider-vsphere-main/jobs/main-head-update-job/badge)](https://concourse.ci.gardener.cloud/teams/gardener-tests/pipelines/gardener-extension-provider-vsphere-main/jobs/main-head-update-job)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gardener/gardener-extension-provider-vsphere)](https://goreportcard.com/report/github.com/gardener/gardener-extension-provider-vsphere)
 
 ## Overview 
