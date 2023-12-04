@@ -27,7 +27,7 @@ COPY --from=builder /go/bin/validator-vsphere /validator-vsphere
 ENTRYPOINT ["/validator-vsphere"]
 
 ############# gcve-tm-run
-FROM eu.gcr.io/gardener-project/gardener/testmachinery/testmachinery-run:stable AS tm-image
+FROM europe-docker.pkg.dev/gardener-project/releases/testmachinery/testmachinery-run:stable AS tm-image
 FROM eu.gcr.io/gardener-project/cc/job-image:latest AS gardener-extension-gcve-tm-run
 
 RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl; \
