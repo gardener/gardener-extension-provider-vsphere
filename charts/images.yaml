@@ -109,7 +109,7 @@ images:
         availability_requirement: 'low'
 - name: machine-controller-manager
   sourceRepository: github.com/gardener/machine-controller-manager
-  repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
+  repository: europe-docker.pkg.dev/gardener-project/releases/gardener/machine-controller-manager
   tag: "v0.49.3"
   labels:
   - name: 'gardener.cloud/cve-categorisation'
@@ -122,7 +122,7 @@ images:
       availability_requirement: 'low'
 - name: machine-controller-manager-provider-vsphere
   sourceRepository: github.com/gardener/machine-controller-manager-provider-vsphere
-  repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager-provider-vsphere
+  repository: europe-docker.pkg.dev/gardener-project/releases/gardener/machine-controller-manager-provider-vsphere
   tag: "v0.23.0"
   labels:
   - name: 'gardener.cloud/cve-categorisation'

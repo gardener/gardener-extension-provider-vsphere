@@ -4,10 +4,12 @@ gardener-extension-provider-vsphere:
       version:
         preprocess: 'inject-commit-hash'
         inject_effective_version: true
+      component_descriptor:
+        ocm_repository: europe-docker.pkg.dev/gardener-project/snapshots
       publish:
         dockerimages:
           gardener-extension-provider-vsphere:
-            image: 'eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere'
+            image: europe-docker.pkg.dev/gardener-project/snapshots/gardener/extensions/provider-vsphere
             dockerfile: 'Dockerfile'
             target: gardener-extension-provider-vsphere
             resource_labels:
@@ -18,7 +20,7 @@ gardener-extension-provider-vsphere:
                   - type: 'emailAddress'
                     email: 'brian.topping@sap.com'
           gardener-extension-validator-vsphere:
-            image: 'eu.gcr.io/gardener-project/gardener/extensions/validator-vsphere'
+            image: europe-docker.pkg.dev/gardener-project/snapshots/gardener/extensions/validator-vsphere
             dockerfile: 'Dockerfile'
             target: gardener-extension-validator-vsphere
             resource_labels:
@@ -32,6 +34,8 @@ gardener-extension-provider-vsphere:
     head-update:
       traits:
         component_descriptor:
+          ocm_repository_mappings:
+            - repository: europe-docker.pkg.dev/gardener-project/releases
           retention_policy: 'clean-snapshots'
         draft_release: ~
         options:
@@ -39,7 +43,9 @@ gardener-extension-provider-vsphere:
     pull-request:
       traits:
         pull-request: ~
-        component_descriptor: ~
+        component_descriptor:
+          ocm_repository_mappings:
+            - repository: europe-docker.pkg.dev/gardener-project/releases
         options:
           public_build_logs: true
 #       suppress_parallel_execution until we can sort constraints reusing vsphere clusters
@@ -49,7 +55,14 @@ gardener-extension-provider-vsphere:
       traits:
         version:
           preprocess: 'finalize'
-        component_descriptor: ~
+        component_descriptor:
+          ocm_repository: europe-docker.pkg.dev/gardener-project/releases
+        publish:
+          dockerimages:
+            gardener-extension-provider-vsphere:
+              image: europe-docker.pkg.dev/gardener-project/releases/gardener/extensions/provider-vsphere
+            gardener-extension-validator-vsphere:
+              image: europe-docker.pkg.dev/gardener-project/releases/gardener/extensions/validator-vsphere
         release:
           nextversion: 'bump_minor'
           next_version_callback: '.ci/prepare_release'
