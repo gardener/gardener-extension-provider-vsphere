@@ -6,7 +6,7 @@ requires:
  - path: "/tmp/ggarchive/skaffold.yaml"
 build:
   artifacts:
-  - image: eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere
+  - image: europe-docker.pkg.dev/gardener-project/public/gardener/extensions/provider-vsphere
     ko:
       main: ./cmd/provider-vsphere
       dependencies:
@@ -43,7 +43,7 @@ build:
           - pkg/controller/worker
           - pkg/controller/infrastructure
           - vendor
-  - image: eu.gcr.io/gardener-project/gardener/extensions/validator-vsphere
+  - image: europe-docker.pkg.de/gardener-project/public/gardener/extensions/validator-vsphere
     ko:
       main: ./cmd/validator-vsphere
       dependencies:
@@ -90,7 +90,7 @@ deploy:
       # wait: false
       wait: true
       artifactOverrides:
-        image: eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere
+        image: europe-docker.pkg.de/gardener-project/public/gardener/extensions/provider-vsphere
       imageStrategy:
         helm: {}
       valuesFiles:
@@ -103,7 +103,7 @@ deploy:
       wait: true
       artifactOverrides:
         global:
-          image: eu.gcr.io/gardener-project/gardener/extensions/validator-vsphere
+          image: europe-docker.pkg.de/gardener-project/public/gardener/extensions/validator-vsphere
       imageStrategy:
         helm: {}
       valuesFiles:
