@@ -1,4 +1,5 @@
 gardener-extension-provider-vsphere:
+  render_pipeline: no
   template: 'default'
   base_definition:
     repo: ~
