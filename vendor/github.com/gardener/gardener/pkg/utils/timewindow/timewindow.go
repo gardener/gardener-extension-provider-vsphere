@@ -1,16 +1,6 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package timewindow
 
@@ -41,6 +31,7 @@ func NewMaintenanceTime(hour, minute, second int) *MaintenanceTime {
 	if second >= 60 {
 		panic(fmt.Sprintf("invalid second %d", second))
 	}
+
 	return &MaintenanceTime{hour, minute, second}
 }
 
@@ -51,6 +42,7 @@ func ParseMaintenanceTime(value string) (*MaintenanceTime, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not parse the value into the maintenanceTime format: %s", err.Error())
 	}
+
 	return timeToMaintenanceTime(t), nil
 }
 
@@ -66,6 +58,7 @@ func RandomMaintenanceTimeWindow() *MaintenanceTimeWindow {
 		begin = NewMaintenanceTime(hour, 0, 0)
 		end   = NewMaintenanceTime(hour+1, 0, 0)
 	)
+
 	return NewMaintenanceTimeWindow(begin, end)
 }
 
@@ -144,6 +137,7 @@ func ParseMaintenanceTimeWindow(begin, end string) (*MaintenanceTimeWindow, erro
 	if err != nil {
 		return nil, fmt.Errorf("could not parse begin time: %s", err.Error())
 	}
+
 	maintenanceWindowEnd, err := ParseMaintenanceTime(end)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse end time: %s", err.Error())
@@ -206,8 +200,8 @@ func (m *MaintenanceTimeWindow) RandomDurationUntilNext(from time.Time, shiftBeg
 	from = from.UTC()
 
 	var (
-		begin = m.adjustedBegin(from)
-		end   = m.adjustedEnd(from)
+		begin = m.AdjustedBegin(from)
+		end   = m.AdjustedEnd(from)
 	)
 
 	if shiftBeginToFromIfContained && m.Contains(from) {
@@ -232,17 +226,19 @@ func (m *MaintenanceTimeWindow) RandomDurationUntilNext(from time.Time, shiftBeg
 func (m *MaintenanceTimeWindow) Duration() time.Duration {
 	var (
 		from  = time.Date(0, time.January, 1, 0, 0, 0, 0, time.UTC)
-		begin = m.adjustedBegin(from)
-		end   = m.adjustedEnd(from)
+		begin = m.AdjustedBegin(from)
+		end   = m.AdjustedEnd(from)
 	)
 	return end.Sub(begin)
 }
 
-func (m *MaintenanceTimeWindow) adjustedBegin(t time.Time) time.Time {
+// AdjustedBegin returns the MaintenanceTimeWindow's begin time, projected on the day, month and year given by the parameter t.
+func (m *MaintenanceTimeWindow) AdjustedBegin(t time.Time) time.Time {
 	return m.begin.adjust(t)
 }
 
-func (m *MaintenanceTimeWindow) adjustedEnd(t time.Time) time.Time {
+// AdjustedEnd returns the MaintenanceWindow's end time, projected on the day, month and year given by the parameter t.
+func (m *MaintenanceTimeWindow) AdjustedEnd(t time.Time) time.Time {
 	end := m.end.adjust(t)
 	if m.end.Compare(m.begin) <= 0 {
 		return end.AddDate(0, 0, 1)

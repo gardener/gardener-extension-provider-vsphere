@@ -1,16 +1,6 @@
-// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package controlplane
 
@@ -54,6 +44,8 @@ type Args struct {
 	Types []extensionswebhook.Type
 	// Mutator is a mutator to be used by the admission handler.
 	Mutator extensionswebhook.Mutator
+	// ObjectSelector is the object selector of the underlying webhook
+	ObjectSelector *metav1.LabelSelector
 }
 
 // New creates a new controlplane webhook with the given args.
@@ -70,7 +62,7 @@ func New(mgr manager.Manager, args Args) (*extensionswebhook.Webhook, error) {
 	logger.Info("Creating webhook", "name", getName(args.Kind))
 
 	// Build namespace selector from the webhook kind and provider
-	namespaceSelector, err := buildSelector(args.Kind, args.Provider)
+	namespaceSelector, err := buildNamespaceSelector(args.Kind, args.Provider)
 	if err != nil {
 		return nil, err
 	}
@@ -83,6 +75,7 @@ func New(mgr manager.Manager, args Args) (*extensionswebhook.Webhook, error) {
 		Path:              getName(args.Kind),
 		Webhook:           &admission.Webhook{Handler: handler, RecoverPanic: true},
 		NamespaceSelector: namespaceSelector,
+		ObjectSelector:    args.ObjectSelector,
 	}, nil
 }
 
@@ -97,10 +90,11 @@ func getName(kind string) string {
 	}
 }
 
-// buildSelector creates and returns a LabelSelector for the given webhook kind and provider.
-func buildSelector(kind, provider string) (*metav1.LabelSelector, error) {
+// buildNamespaceSelector creates and returns a LabelSelector for the given webhook kind and provider.
+func buildNamespaceSelector(kind, provider string) (*metav1.LabelSelector, error) {
 	// Determine label selector key from the kind
 	var key string
+
 	switch kind {
 	case KindSeed:
 		key = v1beta1constants.LabelSeedProvider

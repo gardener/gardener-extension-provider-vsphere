@@ -1,16 +1,6 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package kubernetes
 
@@ -34,6 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
 	gardencoreinstall "github.com/gardener/gardener/pkg/apis/core/install"
+	securityinstall "github.com/gardener/gardener/pkg/apis/security/install"
 	seedmanagementinstall "github.com/gardener/gardener/pkg/apis/seedmanagement/install"
 	settingsinstall "github.com/gardener/gardener/pkg/apis/settings/install"
 )
@@ -61,6 +52,7 @@ func init() {
 		gardencoreinstall.AddToScheme,
 		seedmanagementinstall.AddToScheme,
 		settingsinstall.AddToScheme,
+		securityinstall.AddToScheme,
 	)
 
 	utilruntime.Must(apiutil.AddToProtobufScheme(protobufSchemeBuilder.AddToScheme))
@@ -76,6 +68,7 @@ func NewClientFromFile(masterURL, kubeconfigPath string, fns ...ConfigFunc) (Int
 		if err != nil {
 			return nil, err
 		}
+
 		opts := append([]ConfigFunc{WithRESTConfig(kubeconfig)}, fns...)
 		return NewWithConfig(opts...)
 	}
@@ -97,12 +90,16 @@ func NewClientFromFile(masterURL, kubeconfigPath string, fns ...ConfigFunc) (Int
 
 // NewClientFromBytes creates a new Client struct for a given kubeconfig byte slice.
 func NewClientFromBytes(kubeconfig []byte, fns ...ConfigFunc) (Interface, error) {
-	config, err := RESTConfigFromClientConnectionConfiguration(nil, kubeconfig)
+	clientConfig, err := clientcmd.NewClientConfigFromBytes(kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+	restConfig, err := clientConfig.ClientConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	opts := append([]ConfigFunc{WithRESTConfig(config)}, fns...)
+	opts := append([]ConfigFunc{WithRESTConfig(restConfig)}, fns...)
 	return NewWithConfig(opts...)
 }
 

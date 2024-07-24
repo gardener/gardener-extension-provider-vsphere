@@ -1,20 +1,11 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package helper
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -60,7 +51,7 @@ func QuotaScope(scopeRef corev1.ObjectReference) (string, error) {
 	if scopeRef.APIVersion == "v1" && scopeRef.Kind == "Secret" {
 		return "secret", nil
 	}
-	return "", fmt.Errorf("unknown quota scope")
+	return "", errors.New("unknown quota scope")
 }
 
 // DetermineLatestMachineImageVersions determines the latest versions (semVer) of the given machine images from a slice of machine images
@@ -100,7 +91,7 @@ func DetermineLatestMachineImageVersion(versions []core.MachineImageVersion, fil
 		}
 	}
 
-	return core.MachineImageVersion{}, fmt.Errorf("the latest machine version has been removed")
+	return core.MachineImageVersion{}, errors.New("the latest machine version has been removed")
 }
 
 // DetermineLatestExpirableVersion determines the latest expirable version and the latest non-deprecated version from a slice of ExpirableVersions.
@@ -138,7 +129,7 @@ func DetermineLatestExpirableVersion(versions []core.ExpirableVersion, filterPre
 	}
 
 	if latestSemVerVersion == nil {
-		return core.ExpirableVersion{}, core.ExpirableVersion{}, fmt.Errorf("unable to determine latest expirable version")
+		return core.ExpirableVersion{}, core.ExpirableVersion{}, errors.New("unable to determine latest expirable version")
 	}
 
 	return latestExpirableVersion, latestNonDeprecatedExpirableVersion, nil
@@ -290,6 +281,7 @@ func getVersionDiff(v1, v2 []core.ExpirableVersion) map[string]int {
 	for _, x := range v2 {
 		v2Versions.Insert(x.Version)
 	}
+
 	diff := map[string]int{}
 	for index, x := range v1 {
 		if !v2Versions.Has(x.Version) {
@@ -306,6 +298,7 @@ func FilterVersionsWithClassification(versions []core.ExpirableVersion, classifi
 		if version.Classification == nil || *version.Classification != classification {
 			continue
 		}
+
 		result = append(result, version)
 	}
 	return result
@@ -323,6 +316,7 @@ func FindVersionsWithSameMajorMinor(versions []core.ExpirableVersion, version se
 		if semVer.Equal(&version) || semVer.Minor() != version.Minor() || semVer.Major() != version.Major() {
 			continue
 		}
+
 		result = append(result, v)
 	}
 	return result, nil
@@ -432,7 +426,7 @@ func ConvertSeed(obj runtime.Object) (*core.Seed, error) {
 	}
 	result, ok := obj.(*core.Seed)
 	if !ok {
-		return nil, fmt.Errorf("could not convert Seed to internal version")
+		return nil, errors.New("could not convert Seed to internal version")
 	}
 	return result, nil
 }
@@ -522,4 +516,9 @@ func DeterminePrimaryIPFamily(ipFamilies []core.IPFamily) core.IPFamily {
 		return core.IPFamilyIPv4
 	}
 	return ipFamilies[0]
+}
+
+// HasManagedIssuer checks if the shoot has managed issuer enabled.
+func HasManagedIssuer(shoot *core.Shoot) bool {
+	return shoot.GetAnnotations()[v1beta1constants.AnnotationAuthenticationIssuer] == v1beta1constants.AnnotationAuthenticationIssuerManaged
 }

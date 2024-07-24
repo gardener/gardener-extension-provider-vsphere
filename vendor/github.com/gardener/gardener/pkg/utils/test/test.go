@@ -1,16 +1,6 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package test
 
@@ -19,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/onsi/ginkgo/v2"
@@ -40,7 +31,7 @@ import (
 //
 //	v := "foo"
 //	DeferCleanup(WithVar(&v, "bar"))
-func WithVar(dst, src interface{}) func() {
+func WithVar(dst, src any) func() {
 	dstValue := reflect.ValueOf(dst)
 	if dstValue.Type().Kind() != reflect.Ptr {
 		ginkgo.Fail(fmt.Sprintf("destination value %T is not a pointer", dst))
@@ -68,7 +59,7 @@ func WithVar(dst, src interface{}) func() {
 // Example usage:
 //
 //	DeferCleanup(WithVars(&v, "foo", &x, "bar"))
-func WithVars(dstsAndSrcs ...interface{}) func() {
+func WithVars(dstsAndSrcs ...any) func() {
 	if len(dstsAndSrcs)%2 != 0 {
 		ginkgo.Fail(fmt.Sprintf("dsts and srcs are not of equal length: %v", dstsAndSrcs))
 	}
@@ -187,7 +178,7 @@ func WithTempFile(dir, pattern string, content []byte, fileName *string) func() 
 }
 
 // EXPECTPatch is a helper function for a GoMock call expecting a patch with the mock client.
-func EXPECTPatch(ctx interface{}, c *mockclient.MockClient, expectedObj, mergeFrom client.Object, patchType types.PatchType, rets ...interface{}) *gomock.Call {
+func EXPECTPatch(ctx any, c *mockclient.MockClient, expectedObj, mergeFrom client.Object, patchType types.PatchType, rets ...any) *gomock.Call {
 	var expectedPatch client.Patch
 
 	switch patchType {
@@ -201,7 +192,7 @@ func EXPECTPatch(ctx interface{}, c *mockclient.MockClient, expectedObj, mergeFr
 }
 
 // EXPECTStatusPatch is a helper function for a GoMock call expecting a status patch with the mock client.
-func EXPECTStatusPatch(ctx interface{}, c *mockclient.MockStatusWriter, expectedObj, mergeFrom client.Object, patchType types.PatchType, rets ...interface{}) *gomock.Call {
+func EXPECTStatusPatch(ctx any, c *mockclient.MockStatusWriter, expectedObj, mergeFrom client.Object, patchType types.PatchType, rets ...any) *gomock.Call {
 	var expectedPatch client.Patch
 
 	switch patchType {
@@ -216,7 +207,7 @@ func EXPECTStatusPatch(ctx interface{}, c *mockclient.MockStatusWriter, expected
 
 // EXPECTPatchWithOptimisticLock is a helper function for a GoMock call with the mock client
 // expecting a merge patch with optimistic lock.
-func EXPECTPatchWithOptimisticLock(ctx interface{}, c *mockclient.MockClient, expectedObj, mergeFrom client.Object, patchType types.PatchType, rets ...interface{}) *gomock.Call {
+func EXPECTPatchWithOptimisticLock(ctx any, c *mockclient.MockClient, expectedObj, mergeFrom client.Object, patchType types.PatchType, rets ...any) *gomock.Call {
 	var expectedPatch client.Patch
 
 	switch patchType {
@@ -229,12 +220,12 @@ func EXPECTPatchWithOptimisticLock(ctx interface{}, c *mockclient.MockClient, ex
 	return expectPatch(ctx, c, expectedObj, expectedPatch, rets...)
 }
 
-func expectPatch(ctx interface{}, c *mockclient.MockClient, expectedObj client.Object, expectedPatch client.Patch, rets ...interface{}) *gomock.Call {
+func expectPatch(ctx any, c *mockclient.MockClient, expectedObj client.Object, expectedPatch client.Patch, rets ...any) *gomock.Call {
 	expectedData, expectedErr := expectedPatch.Data(expectedObj)
 	Expect(expectedErr).NotTo(HaveOccurred())
 
 	if rets == nil {
-		rets = []interface{}{nil}
+		rets = []any{nil}
 	}
 
 	// match object key here, but verify contents only inside DoAndReturn.
@@ -258,12 +249,12 @@ func expectPatch(ctx interface{}, c *mockclient.MockClient, expectedObj client.O
 		Return(rets...)
 }
 
-func expectStatusPatch(ctx interface{}, c *mockclient.MockStatusWriter, expectedObj client.Object, expectedPatch client.Patch, rets ...interface{}) *gomock.Call {
+func expectStatusPatch(ctx any, c *mockclient.MockStatusWriter, expectedObj client.Object, expectedPatch client.Patch, rets ...any) *gomock.Call {
 	expectedData, expectedErr := expectedPatch.Data(expectedObj)
 	Expect(expectedErr).NotTo(HaveOccurred())
 
 	if rets == nil {
-		rets = []interface{}{nil}
+		rets = []any{nil}
 	}
 
 	// match object key here, but verify contents only inside DoAndReturn.
@@ -289,10 +280,25 @@ func expectStatusPatch(ctx interface{}, c *mockclient.MockStatusWriter, expected
 
 // CEventually is like gomega.Eventually but with a context.Context. When it has a deadline then the gomega.Eventually
 // call with be configured with a the respective timeout.
-func CEventually(ctx context.Context, actual interface{}) AsyncAssertion {
+func CEventually(ctx context.Context, actual any) AsyncAssertion {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return Eventually(actual)
 	}
 	return Eventually(actual).WithTimeout(time.Until(deadline))
+}
+
+// ExpectKindWithNameAndNamespace expects that kind, name and namespace is present in the given manifests.
+func ExpectKindWithNameAndNamespace(manifests []string, kind, name, namespace string) {
+	var objectFound bool
+
+	for _, manifest := range manifests {
+		if strings.Contains(manifest, "kind: "+kind) && strings.Contains(manifest, "name: "+name) &&
+			(namespace == "" || strings.Contains(manifest, "namespace: "+namespace)) {
+			objectFound = true
+			break
+		}
+	}
+
+	ExpectWithOffset(1, objectFound).To(BeTrue())
 }

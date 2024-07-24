@@ -1,16 +1,6 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package kubernetes
 
@@ -29,6 +19,8 @@ type ChartApplier interface {
 	chartrenderer.Interface
 	ApplyFromEmbeddedFS(ctx context.Context, embeddedFS embed.FS, chartPath, namespace, name string, opts ...ApplyOption) error
 	DeleteFromEmbeddedFS(ctx context.Context, embeddedFS embed.FS, chartPath, namespace, name string, opts ...DeleteOption) error
+	ApplyFromArchive(ctx context.Context, archive []byte, namespace, name string, opts ...ApplyOption) error
+	DeleteFromArchive(ctx context.Context, archive []byte, namespace, name string, opts ...DeleteOption) error
 }
 
 // chartApplier is a structure that contains a chart renderer and a manifest applier.
@@ -56,6 +48,83 @@ func NewChartApplierForConfig(config *rest.Config) (ChartApplier, error) {
 }
 
 func (c *chartApplier) ApplyFromEmbeddedFS(ctx context.Context, embeddedFS embed.FS, chartPath, namespace, name string, opts ...ApplyOption) error {
+	applyOpts := getApplyOptions(opts...)
+
+	reader, err := c.newManifestReaderFromEmbeddedFS(embeddedFS, chartPath, namespace, name, applyOpts.Values)
+	if err != nil {
+		return err
+	}
+
+	return c.apply(ctx, reader, namespace, applyOpts)
+}
+
+func (c *chartApplier) DeleteFromEmbeddedFS(ctx context.Context, embeddedFS embed.FS, chartPath, namespace, name string, opts ...DeleteOption) error {
+	deleteOpts := getDeleteOptions(opts...)
+
+	reader, err := c.newManifestReaderFromEmbeddedFS(embeddedFS, chartPath, namespace, name, deleteOpts.Values)
+	if err != nil {
+		return err
+	}
+
+	return c.delete(ctx, reader, namespace, deleteOpts)
+}
+
+func (c *chartApplier) ApplyFromArchive(ctx context.Context, archive []byte, namespace, name string, opts ...ApplyOption) error {
+	applyOpts := getApplyOptions(opts...)
+
+	release, err := c.RenderArchive(archive, name, namespace, applyOpts.Values)
+	if err != nil {
+		return err
+	}
+
+	return c.apply(ctx, NewManifestReader(release.Manifest()), namespace, applyOpts)
+}
+
+func (c *chartApplier) DeleteFromArchive(ctx context.Context, archive []byte, namespace, name string, opts ...DeleteOption) error {
+	deleteOpts := getDeleteOptions(opts...)
+
+	release, err := c.RenderArchive(archive, name, namespace, deleteOpts.Values)
+	if err != nil {
+		return err
+	}
+
+	return c.delete(ctx, NewManifestReader(release.Manifest()), namespace, deleteOpts)
+}
+
+func (c *chartApplier) apply(ctx context.Context, reader UnstructuredReader, namespace string, applyOpts *ApplyOptions) error {
+	if applyOpts.ForceNamespace {
+		reader = NewNamespaceSettingReader(reader, namespace)
+	}
+
+	return c.ApplyManifest(ctx, reader, applyOpts.MergeFuncs)
+}
+
+func (c *chartApplier) delete(ctx context.Context, reader UnstructuredReader, namespace string, deleteOpts *DeleteOptions) error {
+	if deleteOpts.ForceNamespace {
+		reader = NewNamespaceSettingReader(reader, namespace)
+	}
+
+	deleteManifestOpts := []DeleteManifestOption{}
+
+	for _, tf := range deleteOpts.TolerateErrorFuncs {
+		if tf != nil {
+			deleteManifestOpts = append(deleteManifestOpts, tf)
+		}
+	}
+
+	return c.DeleteManifest(ctx, reader, deleteManifestOpts...)
+}
+
+func (c *chartApplier) newManifestReaderFromEmbeddedFS(embeddedFS embed.FS, chartPath, namespace, name string, values any) (UnstructuredReader, error) {
+	release, err := c.RenderEmbeddedFS(embeddedFS, chartPath, name, namespace, values)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewManifestReader(release.Manifest()), nil
+}
+
+func getApplyOptions(opts ...ApplyOption) *ApplyOptions {
 	applyOpts := &ApplyOptions{}
 
 	for _, o := range opts {
@@ -68,19 +137,10 @@ func (c *chartApplier) ApplyFromEmbeddedFS(ctx context.Context, embeddedFS embed
 		applyOpts.MergeFuncs = DefaultMergeFuncs
 	}
 
-	manifestReader, err := c.newManifestReader(embeddedFS, chartPath, namespace, name, applyOpts.Values)
-	if err != nil {
-		return err
-	}
-
-	if applyOpts.ForceNamespace {
-		manifestReader = NewNamespaceSettingReader(manifestReader, namespace)
-	}
-
-	return c.ApplyManifest(ctx, manifestReader, applyOpts.MergeFuncs)
+	return applyOpts
 }
 
-func (c *chartApplier) DeleteFromEmbeddedFS(ctx context.Context, embeddedFS embed.FS, chartPath, namespace, name string, opts ...DeleteOption) error {
+func getDeleteOptions(opts ...DeleteOption) *DeleteOptions {
 	deleteOpts := &DeleteOptions{}
 
 	for _, o := range opts {
@@ -89,36 +149,5 @@ func (c *chartApplier) DeleteFromEmbeddedFS(ctx context.Context, embeddedFS embe
 		}
 	}
 
-	manifestReader, err := c.newManifestReader(embeddedFS, chartPath, namespace, name, deleteOpts.Values)
-	if err != nil {
-		return err
-	}
-
-	if deleteOpts.ForceNamespace {
-		manifestReader = NewNamespaceSettingReader(manifestReader, namespace)
-	}
-
-	deleteManifestOpts := []DeleteManifestOption{}
-
-	for _, tf := range deleteOpts.TolerateErrorFuncs {
-		if tf != nil {
-			deleteManifestOpts = append(deleteManifestOpts, tf)
-		}
-	}
-
-	return c.DeleteManifest(ctx, manifestReader, deleteManifestOpts...)
-}
-
-func (c *chartApplier) newManifestReader(embeddedFS embed.FS, chartPath, namespace, name string, values interface{}) (UnstructuredReader, error) {
-	var (
-		release *chartrenderer.RenderedChart
-		err     error
-	)
-
-	release, err = c.RenderEmbeddedFS(embeddedFS, chartPath, name, namespace, values)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewManifestReader(release.Manifest()), nil
+	return deleteOpts
 }

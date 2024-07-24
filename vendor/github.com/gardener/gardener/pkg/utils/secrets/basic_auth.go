@@ -1,16 +1,6 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package secrets
 
@@ -29,8 +19,8 @@ const (
 	DataKeyUserName = "username"
 	// DataKeyPassword is the key in a secret data holding the password.
 	DataKeyPassword = "password"
-	// DataKeySHA1Auth is the key in a secret data holding the sha1-schemed credentials pair as string.
-	DataKeySHA1Auth = "auth"
+	// DataKeyAuth is the key in a secret data holding the basic authentication schemed credentials pair as string.
+	DataKeyAuth = "auth"
 )
 
 // BasicAuthSecretConfig contains the specification for a to-be-generated basic authentication secret.
@@ -54,6 +44,7 @@ type BasicAuth struct {
 
 	Username string
 	Password string
+	auth     []byte
 }
 
 // GetName returns the name of the secret.
@@ -68,11 +59,17 @@ func (s *BasicAuthSecretConfig) Generate() (DataInterface, error) {
 		return nil, err
 	}
 
+	auth, err := utils.CreateBcryptCredentials([]byte(s.Username), []byte(password))
+	if err != nil {
+		return nil, err
+	}
+
 	basicAuth := &BasicAuth{
 		Name: s.Name,
 
 		Username: s.Username,
 		Password: password,
+		auth:     auth,
 	}
 
 	return basicAuth, nil
@@ -84,7 +81,7 @@ func (b *BasicAuth) SecretData() map[string][]byte {
 
 	data[DataKeyUserName] = []byte(b.Username)
 	data[DataKeyPassword] = []byte(b.Password)
-	data[DataKeySHA1Auth] = utils.CreateSHA1Secret(data[DataKeyUserName], data[DataKeyPassword])
+	data[DataKeyAuth] = b.auth
 
 	return data
 }

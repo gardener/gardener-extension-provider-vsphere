@@ -56,6 +56,9 @@ func SetObjectDefaults_GardenletConfiguration(in *GardenletConfiguration) {
 		if in.Controllers.ControllerInstallationRequired != nil {
 			SetDefaults_ControllerInstallationRequiredControllerConfiguration(in.Controllers.ControllerInstallationRequired)
 		}
+		if in.Controllers.Gardenlet != nil {
+			SetDefaults_GardenletObjectControllerConfiguration(in.Controllers.Gardenlet)
+		}
 		if in.Controllers.Seed != nil {
 			SetDefaults_SeedControllerConfiguration(in.Controllers.Seed)
 		}
@@ -82,6 +85,9 @@ func SetObjectDefaults_GardenletConfiguration(in *GardenletConfiguration) {
 		}
 		if in.Controllers.TokenRequestor != nil {
 			SetDefaults_TokenRequestorControllerConfiguration(in.Controllers.TokenRequestor)
+		}
+		if in.Controllers.VPAEvictionRequirements != nil {
+			SetDefaults_VPAEvictionRequirementsControllerConfiguration(in.Controllers.VPAEvictionRequirements)
 		}
 	}
 	if in.LeaderElection != nil {

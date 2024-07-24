@@ -1,16 +1,6 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package v1beta1
 
@@ -24,6 +14,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 )
 
 // +genclient
@@ -103,6 +95,7 @@ type ShootSpec struct {
 	Region string `json:"region" protobuf:"bytes,12,opt,name=region"`
 	// SecretBindingName is the name of the a SecretBinding that has a reference to the provider secret.
 	// The credentials inside the provider secret will be used to create the shoot in the respective account.
+	// The field is mutually exclusive with CredentialsBindingName.
 	// This field is immutable.
 	// +optional
 	SecretBindingName *string `json:"secretBindingName,omitempty" protobuf:"bytes,13,opt,name=secretBindingName"`
@@ -135,6 +128,14 @@ type ShootSpec struct {
 	// This field is immutable.
 	// +optional
 	SchedulerName *string `json:"schedulerName,omitempty" protobuf:"bytes,21,opt,name=schedulerName"`
+	// CloudProfile contains a reference to a CloudProfile or a NamespacedCloudProfile.
+	// +optional
+	CloudProfile *CloudProfileReference `json:"cloudProfile,omitempty" protobuf:"bytes,22,opt,name=cloudProfile"`
+	// CredentialsBindingName is the name of the a CredentialsBinding that has a reference to the provider credentials.
+	// The credentials will be used to create the shoot in the respective account. The field is mutually exclusive with SecretBindingName.
+	// This field is immutable.
+	// +optional
+	CredentialsBindingName *string `json:"credentialsBindingName,omitempty" protobuf:"bytes,23,opt,name=credentialsBindingName"`
 }
 
 // GetProviderType gets the type of the provider.
@@ -185,7 +186,8 @@ type ShootStatus struct {
 	// ClusterIdentity is the identity of the Shoot cluster. This field is immutable.
 	// +optional
 	ClusterIdentity *string `json:"clusterIdentity,omitempty" protobuf:"bytes,12,opt,name=clusterIdentity"`
-	// List of addresses on which the Kube API server can be reached.
+	// List of addresses that are relevant to the shoot.
+	// These include the Kube API server address and also the service account issuer.
 	// +optional
 	// +patchMergeKey=name
 	// +patchStrategy=merge
@@ -208,6 +210,9 @@ type ShootStatus struct {
 	// See https://github.com/gardener/gardener/blob/master/docs/usage/etcd_encryption_config.md for more details.
 	// +optional
 	EncryptedResources []string `json:"encryptedResources,omitempty" protobuf:"bytes,18,rep,name=encryptedResources"`
+	// Networking contains information about cluster networking such as CIDRs.
+	// +optional
+	Networking *NetworkingStatus `json:"networking,omitempty" protobuf:"bytes,19,opt,name=networking"`
 }
 
 // LastMaintenance holds information about a maintenance operation on the Shoot.
@@ -221,6 +226,19 @@ type LastMaintenance struct {
 	// FailureReason holds the information about the last maintenance operation failure reason.
 	// +optional
 	FailureReason *string `json:"failureReason,omitempty" protobuf:"bytes,4,opt,name=failureReason"`
+}
+
+// NetworkingStatus contains information about cluster networking such as CIDRs.
+type NetworkingStatus struct {
+	// Pods are the CIDRs of the pod network.
+	// +optional
+	Pods []string `json:"pods,omitempty" protobuf:"bytes,1,rep,name=pods"`
+	// Nodes are the CIDRs of the node network.
+	// +optional
+	Nodes []string `json:"nodes,omitempty" protobuf:"bytes,2,rep,name=nodes"`
+	// Services are the CIDRs of the service network.
+	// +optional
+	Services []string `json:"services,omitempty" protobuf:"bytes,3,rep,name=services"`
 }
 
 // ShootCredentials contains information about the shoot credentials.
@@ -429,21 +447,26 @@ type DNS struct {
 	Domain *string `json:"domain,omitempty" protobuf:"bytes,1,opt,name=domain"`
 	// Providers is a list of DNS providers that shall be enabled for this shoot cluster. Only relevant if
 	// not a default domain is used.
+	// Deprecated: Configuring multiple DNS providers is deprecated and will be forbidden in a future release.
+	// Please use the DNS extension provider config (e.g. shoot-dns-service) for additional providers.
 	// +patchMergeKey=type
 	// +patchStrategy=merge
 	// +optional
 	Providers []DNSProvider `json:"providers,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,2,rep,name=providers"`
 }
 
+// TODO(timuthy): Rework the 'DNSProvider' struct and deprecated fields in the scope of https://github.com/gardener/gardener/issues/9176.
+
 // DNSProvider contains information about a DNS provider.
 type DNSProvider struct {
-	// TODO(timuthy): Remove this field in the scope of https://github.com/gardener/gardener/issues/9176.
-
 	// Domains contains information about which domains shall be included/excluded for this provider.
 	// Deprecated: This field is deprecated and will be removed in a future release.
+	// Please use the DNS extension provider config (e.g. shoot-dns-service) for additional configuration.
 	// +optional
 	Domains *DNSIncludeExclude `json:"domains,omitempty" protobuf:"bytes,1,opt,name=domains"`
 	// Primary indicates that this DNSProvider is used for shoot related domains.
+	// Deprecated: This field is deprecated and will be removed in a future release.
+	// Please use the DNS extension provider config (e.g. shoot-dns-service) for additional and non-primary providers.
 	// +optional
 	Primary *bool `json:"primary,omitempty" protobuf:"varint,2,opt,name=primary"`
 	// SecretName is a name of a secret containing credentials for the stated domain and the
@@ -455,10 +478,10 @@ type DNSProvider struct {
 	// Type is the DNS provider type.
 	// +optional
 	Type *string `json:"type,omitempty" protobuf:"bytes,4,opt,name=type"`
-	// TODO(timuthy): Remove this field in the scope of https://github.com/gardener/gardener/issues/9176.
 
 	// Zones contains information about which hosted zones shall be included/excluded for this provider.
 	// Deprecated: This field is deprecated and will be removed in a future release.
+	// Please use the DNS extension provider config (e.g. shoot-dns-service) for additional configuration.
 	// +optional
 	Zones *DNSIncludeExclude `json:"zones,omitempty" protobuf:"bytes,5,opt,name=zones"`
 }
@@ -524,12 +547,9 @@ type HibernationSchedule struct {
 
 // Kubernetes contains the version and configuration variables for the Shoot control plane.
 type Kubernetes struct {
-	// AllowPrivilegedContainers indicates whether privileged containers are allowed in the Shoot.
-	// Defaults to true for Kubernetes versions below v1.25. Unusable for Kubernetes versions v1.25 and higher.
-	// +optional
-	//
-	// Deprecated: This field is deprecated and will be removed in a future version.
-	AllowPrivilegedContainers *bool `json:"allowPrivilegedContainers,omitempty" protobuf:"varint,1,opt,name=allowPrivilegedContainers"`
+	// AllowPrivilegedContainers is tombstoned to show why 1 is reserved protobuf tag.
+	// AllowPrivilegedContainers *bool `json:"allowPrivilegedContainers,omitempty" protobuf:"varint,1,opt,name=allowPrivilegedContainers"`
+
 	// ClusterAutoscaler contains the configuration flags for the Kubernetes cluster autoscaler.
 	// +optional
 	ClusterAutoscaler *ClusterAutoscaler `json:"clusterAutoscaler,omitempty" protobuf:"bytes,2,opt,name=clusterAutoscaler"`
@@ -1121,6 +1141,9 @@ type KubeletConfig struct {
 	KubeReserved *KubeletConfigReserved `json:"kubeReserved,omitempty" protobuf:"bytes,14,opt,name=kubeReserved"`
 	// SystemReserved is the configuration for resources reserved for system processes not managed by kubernetes (e.g. journald).
 	// When updating these values, be aware that cgroup resizes may not succeed on active worker nodes. Look for the NodeAllocatableEnforced event to determine if the configuration was applied.
+	// Deprecated: Separately configuring resource reservations for system processes is deprecated in Gardener and will be removed soon.
+	// Please merge existing resource reservations into the kubeReserved field.
+	// TODO(MichaelEischer): Drop this field after v1.113 has been released.
 	// +optional
 	SystemReserved *KubeletConfigReserved `json:"systemReserved,omitempty" protobuf:"bytes,15,opt,name=systemReserved"`
 	// ImageGCHighThresholdPercent describes the percent of the disk usage which triggers image garbage collection.
@@ -1251,11 +1274,15 @@ type KubeletConfigReserved struct {
 type SwapBehavior string
 
 const (
+	// NoSwap is a constant for the kubelet's swap behavior restricting Kubernetes workloads to not use swap.
+	// Only available for Kubernetes versions >= v1.30.
+	NoSwap SwapBehavior = "NoSwap"
 	// LimitedSwap is a constant for the kubelet's swap behavior limitting the amount of swap usable for Kubernetes workloads. Workloads on the node not managed by Kubernetes can still swap.
 	// - cgroupsv1 host: Kubernetes workloads can use any combination of memory and swap, up to the pod's memory limit
 	// - cgroupsv2 host: swap is managed independently from memory. Kubernetes workloads cannot use swap memory.
 	LimitedSwap SwapBehavior = "LimitedSwap"
 	// UnlimitedSwap is a constant for the kubelet's swap behavior enabling Kubernetes workloads to use as much swap memory as required, up to the system limit (not limited by pod or container memory limits).
+	// Only available for Kubernetes versions < v1.30.
 	UnlimitedSwap SwapBehavior = "UnlimitedSwap"
 )
 
@@ -1280,7 +1307,7 @@ type Networking struct {
 	// +optional
 	Pods *string `json:"pods,omitempty" protobuf:"bytes,3,opt,name=pods"`
 	// Nodes is the CIDR of the entire node network.
-	// This field is immutable if the feature gate MutableShootSpecNetworkingNodes is disabled.
+	// This field is mutable.
 	// +optional
 	Nodes *string `json:"nodes,omitempty" protobuf:"bytes,4,opt,name=nodes"`
 	// Services is the CIDR of the service network. This field is immutable.
@@ -1701,7 +1728,7 @@ const (
 	// ShootControlPlaneHealthy is a constant for a condition type indicating the health of core control plane components.
 	ShootControlPlaneHealthy ConditionType = "ControlPlaneHealthy"
 	// ShootObservabilityComponentsHealthy is a constant for a condition type indicating the health of observability components.
-	ShootObservabilityComponentsHealthy ConditionType = "ObservabilityComponentsHealthy"
+	ShootObservabilityComponentsHealthy ConditionType = v1beta1constants.ObservabilityComponentsHealthy
 	// ShootEveryNodeReady is a constant for a condition type indicating the node health.
 	ShootEveryNodeReady ConditionType = "EveryNodeReady"
 	// ShootSystemComponentsHealthy is a constant for a condition type indicating the system components health.

@@ -1,16 +1,6 @@
-// Copyright 2021 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package gardener
 
@@ -19,18 +9,21 @@ import (
 	"errors"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
+	"github.com/gardener/gardener/pkg/controllerutils"
 	"github.com/gardener/gardener/pkg/utils"
+	secretsutils "github.com/gardener/gardener/pkg/utils/secrets"
 )
 
 var (
 	// NoControlPlaneSecretsReq is a label selector requirement to select non-control plane secrets.
-	NoControlPlaneSecretsReq = utils.MustNewRequirement(constants.GardenRole, selection.NotIn, constants.ControlPlaneSecretRoles...)
+	NoControlPlaneSecretsReq = utils.MustNewRequirement(v1beta1constants.GardenRole, selection.NotIn, v1beta1constants.ControlPlaneSecretRoles...)
 	// UncontrolledSecretSelector is a selector for objects which are managed by operators/users and not created by
 	// Gardener controllers.
 	UncontrolledSecretSelector = client.MatchingLabelsSelector{Selector: labels.NewSelector().Add(NoControlPlaneSecretsReq)}
@@ -49,4 +42,32 @@ func FetchKubeconfigFromSecret(ctx context.Context, c client.Client, key client.
 	}
 
 	return kubeconfig, nil
+}
+
+// LabelPurposeGlobalMonitoringSecret is a constant for the value of the purpose label for replicated global monitoring
+// secrets.
+const LabelPurposeGlobalMonitoringSecret = "global-monitoring-secret-replica"
+
+// ReplicateGlobalMonitoringSecret replicates the global monitoring secret into the given namespace and prefixes it with
+// the given prefix.
+func ReplicateGlobalMonitoringSecret(ctx context.Context, c client.Client, prefix, namespace string, globalMonitoringSecret *corev1.Secret) (*corev1.Secret, error) {
+	globalMonitoringSecretReplica := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: prefix + globalMonitoringSecret.Name, Namespace: namespace}}
+	_, err := controllerutils.GetAndCreateOrMergePatch(ctx, c, globalMonitoringSecretReplica, func() error {
+		metav1.SetMetaDataLabel(&globalMonitoringSecretReplica.ObjectMeta, v1beta1constants.GardenerPurpose, LabelPurposeGlobalMonitoringSecret)
+
+		globalMonitoringSecretReplica.Type = globalMonitoringSecret.Type
+		globalMonitoringSecretReplica.Data = globalMonitoringSecret.Data
+		globalMonitoringSecretReplica.Immutable = globalMonitoringSecret.Immutable
+
+		if _, ok := globalMonitoringSecretReplica.Data[secretsutils.DataKeyAuth]; !ok {
+			credentials, err := utils.CreateBcryptCredentials(globalMonitoringSecret.Data[secretsutils.DataKeyUserName], globalMonitoringSecret.Data[secretsutils.DataKeyPassword])
+			if err != nil {
+				return err
+			}
+			globalMonitoringSecretReplica.Data[secretsutils.DataKeyAuth] = credentials
+		}
+
+		return nil
+	})
+	return globalMonitoringSecretReplica, err
 }

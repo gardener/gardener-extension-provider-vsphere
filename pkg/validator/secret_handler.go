@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"net/http"
 
+	secretutil "github.com/gardener/gardener-extension-provider-vsphere/pkg/utils/secret"
 	"github.com/gardener/gardener/extensions/pkg/util"
-	secretutil "github.com/gardener/gardener/extensions/pkg/util/secret"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"

@@ -1,20 +1,12 @@
-// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package controller
 
 import (
+	"k8s.io/apimachinery/pkg/util/sets"
+
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/gardener/gardener/pkg/chartrenderer"
 )
@@ -33,20 +25,38 @@ func (f ChartRendererFactoryFunc) NewChartRendererForShoot(version string) (char
 	return f(version)
 }
 
-// GetPodNetwork returns the pod network CIDR of the given Shoot.
-func GetPodNetwork(cluster *Cluster) string {
+// GetPodNetwork returns the pod network CIDRs of the given Shoot.
+func GetPodNetwork(cluster *Cluster) []string {
+	var pods []string
 	if cluster.Shoot.Spec.Networking != nil && cluster.Shoot.Spec.Networking.Pods != nil {
-		return *cluster.Shoot.Spec.Networking.Pods
+		pods = append(pods, *cluster.Shoot.Spec.Networking.Pods)
 	}
-	return ""
+	if cluster.Shoot.Status.Networking != nil {
+		existing := sets.New(pods...)
+		for _, p := range cluster.Shoot.Status.Networking.Pods {
+			if !existing.Has(p) {
+				pods = append(pods, p)
+			}
+		}
+	}
+	return pods
 }
 
-// GetServiceNetwork returns the service network CIDR of the given Shoot.
-func GetServiceNetwork(cluster *Cluster) string {
+// GetServiceNetwork returns the service network CIDRs of the given Shoot.
+func GetServiceNetwork(cluster *Cluster) []string {
+	var services []string
 	if cluster.Shoot.Spec.Networking != nil && cluster.Shoot.Spec.Networking.Services != nil {
-		return *cluster.Shoot.Spec.Networking.Services
+		services = append(services, *cluster.Shoot.Spec.Networking.Services)
 	}
-	return ""
+	if cluster.Shoot.Status.Networking != nil {
+		existing := sets.New(services...)
+		for _, s := range cluster.Shoot.Status.Networking.Services {
+			if !existing.Has(s) {
+				services = append(services, s)
+			}
+		}
+	}
+	return services
 }
 
 // IsHibernationEnabled returns true if the shoot is marked for hibernation, or false otherwise.

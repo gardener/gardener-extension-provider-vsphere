@@ -1,16 +1,6 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package kubernetes
 
@@ -91,48 +81,6 @@ func SetAnnotationAndUpdate(ctx context.Context, c client.Client, obj client.Obj
 		return c.Patch(ctx, obj, client.MergeFrom(objCopy))
 	}
 	return nil
-}
-
-func nameAndNamespace(namespaceOrName string, nameOpt ...string) (namespace, name string) {
-	if len(nameOpt) > 1 {
-		panic(fmt.Sprintf("more than name/namespace for key specified: %s/%v", namespaceOrName, nameOpt))
-	}
-	if len(nameOpt) == 0 {
-		name = namespaceOrName
-		return
-	}
-	namespace = namespaceOrName
-	name = nameOpt[0]
-	return
-}
-
-// Key creates a new client.ObjectKey from the given parameters.
-// There are only two ways to call this function:
-//   - If only namespaceOrName is set, then a client.ObjectKey with name set to namespaceOrName is returned.
-//   - If namespaceOrName and one nameOpt is given, then a client.ObjectKey with namespace set to namespaceOrName
-//     and name set to nameOpt[0] is returned.
-//
-// For all other cases, this method panics.
-func Key(namespaceOrName string, nameOpt ...string) client.ObjectKey {
-	namespace, name := nameAndNamespace(namespaceOrName, nameOpt...)
-	return client.ObjectKey{Namespace: namespace, Name: name}
-}
-
-// ObjectMeta creates a new metav1.ObjectMeta from the given parameters.
-// There are only two ways to call this function:
-//   - If only namespaceOrName is set, then a metav1.ObjectMeta with name set to namespaceOrName is returned.
-//   - If namespaceOrName and one nameOpt is given, then a metav1.ObjectMeta with namespace set to namespaceOrName
-//     and name set to nameOpt[0] is returned.
-//
-// For all other cases, this method panics.
-func ObjectMeta(namespaceOrName string, nameOpt ...string) metav1.ObjectMeta {
-	namespace, name := nameAndNamespace(namespaceOrName, nameOpt...)
-	return metav1.ObjectMeta{Namespace: namespace, Name: name}
-}
-
-// ObjectMetaFromKey returns an ObjectMeta with the namespace and name set to the values from the key.
-func ObjectMetaFromKey(key client.ObjectKey) metav1.ObjectMeta {
-	return ObjectMeta(key.Namespace, key.Name)
 }
 
 // ObjectKeyFromSecretRef returns an ObjectKey for the given SecretReference.
@@ -297,6 +245,7 @@ func MapStringBoolToCommandLineParameter(m map[string]bool, param string) string
 	for k := range m {
 		keys = append(keys, k)
 	}
+
 	slices.Sort(keys)
 
 	out := param
@@ -690,7 +639,7 @@ func ClientCertificateFromRESTConfig(restConfig *rest.Config) (*tls.Certificate,
 	}
 
 	if len(cert.Certificate) < 1 {
-		return nil, fmt.Errorf("the X509 certificate is invalid, no cert/key data found")
+		return nil, errors.New("the X509 certificate is invalid, no cert/key data found")
 	}
 
 	certs, err := x509.ParseCertificates(cert.Certificate[0])
@@ -699,7 +648,7 @@ func ClientCertificateFromRESTConfig(restConfig *rest.Config) (*tls.Certificate,
 	}
 
 	if len(certs) < 1 {
-		return nil, fmt.Errorf("the X509 certificate bundle does not contain exactly one certificate")
+		return nil, errors.New("the X509 certificate bundle does not contain exactly one certificate")
 	}
 
 	cert.Leaf = certs[0]

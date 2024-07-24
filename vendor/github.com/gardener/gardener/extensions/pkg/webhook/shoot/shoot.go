@@ -1,16 +1,6 @@
-// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package shoot
 
@@ -44,6 +34,8 @@ type Args struct {
 	Mutator extensionswebhook.Mutator
 	// MutatorWithShootClient is a mutator to be used by the admission handler. It needs the shoot client.
 	MutatorWithShootClient extensionswebhook.MutatorWithShootClient
+	// ObjectSelector is the object selector of the underlying webhook.
+	ObjectSelector *metav1.LabelSelector
 	// FailurePolicy is the failure policy for the webhook (defaults to Ignore).
 	FailurePolicy *admissionregistrationv1.FailurePolicyType
 }
@@ -57,7 +49,8 @@ func New(mgr manager.Manager, args Args) (*extensionswebhook.Webhook, error) {
 		Types:             args.Types,
 		Path:              WebhookName,
 		Target:            extensionswebhook.TargetShoot,
-		NamespaceSelector: buildSelector(),
+		NamespaceSelector: buildNamespaceSelector(),
+		ObjectSelector:    args.ObjectSelector,
 		FailurePolicy:     args.FailurePolicy,
 	}
 
@@ -84,8 +77,8 @@ func New(mgr manager.Manager, args Args) (*extensionswebhook.Webhook, error) {
 	return nil, fmt.Errorf("neither mutator nor mutator with shoot client is set")
 }
 
-// buildSelector creates and returns a LabelSelector for the given webhook kind and provider.
-func buildSelector() *metav1.LabelSelector {
+// buildNamespaceSelector creates and returns a LabelSelector for the given webhook kind and provider.
+func buildNamespaceSelector() *metav1.LabelSelector {
 	// Create and return LabelSelector
 	return &metav1.LabelSelector{
 		MatchExpressions: []metav1.LabelSelectorRequirement{

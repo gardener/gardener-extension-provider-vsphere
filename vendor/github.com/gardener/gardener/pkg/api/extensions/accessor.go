@@ -1,16 +1,6 @@
-// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package extensions
 
@@ -59,7 +49,7 @@ type unstructuredStatusAccessor struct {
 	*unstructured.Unstructured
 }
 
-func nestedString(obj map[string]interface{}, fields ...string) string {
+func nestedString(obj map[string]any, fields ...string) string {
 	v, ok, err := unstructured.NestedString(obj, fields...)
 	if err != nil || !ok {
 		return ""
@@ -67,7 +57,7 @@ func nestedString(obj map[string]interface{}, fields ...string) string {
 	return v
 }
 
-func nestedInt64(obj map[string]interface{}, fields ...string) int64 {
+func nestedInt64(obj map[string]any, fields ...string) int64 {
 	v, ok, err := unstructured.NestedInt64(obj, fields...)
 	if err != nil || !ok {
 		return 0
@@ -75,7 +65,7 @@ func nestedInt64(obj map[string]interface{}, fields ...string) int64 {
 	return v
 }
 
-func nestedStringReference(obj map[string]interface{}, fields ...string) *string {
+func nestedStringReference(obj map[string]any, fields ...string) *string {
 	v, ok, err := unstructured.NestedString(obj, fields...)
 	if err != nil || !ok {
 		return nil
@@ -84,13 +74,13 @@ func nestedStringReference(obj map[string]interface{}, fields ...string) *string
 	return &v
 }
 
-func nestedRawExtension(obj map[string]interface{}, fields ...string) *runtime.RawExtension {
+func nestedRawExtension(obj map[string]any, fields ...string) *runtime.RawExtension {
 	val, ok, err := unstructured.NestedFieldNoCopy(obj, fields...)
 	if err != nil || !ok {
 		return nil
 	}
 
-	data, ok := val.(map[string]interface{})
+	data, ok := val.(map[string]any)
 	if !ok {
 		return nil
 	}
@@ -141,7 +131,7 @@ func (u unstructuredStatusAccessor) GetLastOperation() *gardencorev1beta1.LastOp
 	}
 
 	lastOperation := &gardencorev1beta1.LastOperation{}
-	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(val.(map[string]interface{}), lastOperation); err != nil {
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(val.(map[string]any), lastOperation); err != nil {
 		return nil
 	}
 	return lastOperation
@@ -167,7 +157,7 @@ func (u unstructuredStatusAccessor) GetLastError() *gardencorev1beta1.LastError 
 	}
 
 	lastError := &gardencorev1beta1.LastError{}
-	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(val.(map[string]interface{}), lastError); err != nil {
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(val.(map[string]any), lastError); err != nil {
 		return nil
 	}
 	return lastError
@@ -204,7 +194,7 @@ func (u unstructuredStatusAccessor) GetState() *runtime.RawExtension {
 		return nil
 	}
 	raw := &runtime.RawExtension{}
-	err = runtime.DefaultUnstructuredConverter.FromUnstructured(val.(map[string]interface{}), raw)
+	err = runtime.DefaultUnstructuredConverter.FromUnstructured(val.(map[string]any), raw)
 	if err != nil {
 		return nil
 	}
@@ -229,10 +219,11 @@ func (u unstructuredStatusAccessor) GetConditions() []gardencorev1beta1.Conditio
 	if err != nil || !ok {
 		return nil
 	}
+
 	var conditions []gardencorev1beta1.Condition
-	interfaceConditionSlice := val.([]interface{})
+	interfaceConditionSlice := val.([]any)
 	for _, interfaceCondition := range interfaceConditionSlice {
-		unstructuredCondition := interfaceCondition.(map[string]interface{})
+		unstructuredCondition := interfaceCondition.(map[string]any)
 		condition := &gardencorev1beta1.Condition{}
 		if err := runtime.DefaultUnstructuredConverter.FromUnstructured(unstructuredCondition, condition); err != nil {
 			return nil
@@ -244,7 +235,7 @@ func (u unstructuredStatusAccessor) GetConditions() []gardencorev1beta1.Conditio
 
 // SetConditions implements Status.
 func (u unstructuredStatusAccessor) SetConditions(conditions []gardencorev1beta1.Condition) {
-	var interfaceSlice = make([]interface{}, len(conditions))
+	var interfaceSlice = make([]any, len(conditions))
 	for i, d := range conditions {
 		unstrc, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&d)
 		if err != nil {
@@ -265,9 +256,9 @@ func (u unstructuredStatusAccessor) GetResources() []gardencorev1beta1.NamedReso
 		return nil
 	}
 	var resources []gardencorev1beta1.NamedResourceReference
-	interfaceResourceSlice := val.([]interface{})
+	interfaceResourceSlice := val.([]any)
 	for _, interfaceResource := range interfaceResourceSlice {
-		unstructuredResource := interfaceResource.(map[string]interface{})
+		unstructuredResource := interfaceResource.(map[string]any)
 		resource := &gardencorev1beta1.NamedResourceReference{}
 		if err := runtime.DefaultUnstructuredConverter.FromUnstructured(unstructuredResource, resource); err != nil {
 			return nil
@@ -279,7 +270,7 @@ func (u unstructuredStatusAccessor) GetResources() []gardencorev1beta1.NamedReso
 
 // SetResources implements Status.
 func (u unstructuredStatusAccessor) SetResources(namedResourceReference []gardencorev1beta1.NamedResourceReference) {
-	var interfaceSlice = make([]interface{}, len(namedResourceReference))
+	var interfaceSlice = make([]any, len(namedResourceReference))
 	for i, d := range namedResourceReference {
 		unstrc, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&d)
 		if err != nil {

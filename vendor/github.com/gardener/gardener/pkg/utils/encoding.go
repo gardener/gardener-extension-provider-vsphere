@@ -1,22 +1,11 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package utils
 
 import (
 	"crypto/rsa"
-	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
@@ -25,6 +14,8 @@ import (
 	"errors"
 	"slices"
 	"strconv"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // EncodeBase64 takes a byte slice and returns the Base64-encoded string.
@@ -115,35 +106,21 @@ func DecodeCertificateRequest(data []byte) (*x509.CertificateRequest, error) {
 	return x509.ParseCertificateRequest(block.Bytes)
 }
 
-// SHA1 takes a byte slice and returns the sha1-hashed byte slice.
-func SHA1(in []byte) []byte {
-	s := sha1.New()
-	_, _ = s.Write(in)
-	return s.Sum(nil)
-}
-
 // SHA256 takes a byte slice and returns the sha256-hashed byte slice.
 func SHA256(in []byte) []byte {
 	h := sha256.Sum256(in)
 	return h[:]
 }
 
-// EncodeSHA1 takes a byte slice and returns the sha1-hashed string (base64-encoded).
-func EncodeSHA1(in []byte) string {
-	return EncodeBase64(SHA1(in))
-}
-
-// CreateSHA1Secret takes a username and a password and returns a sha1-schemed credentials pair as bytes.
-func CreateSHA1Secret(username, password []byte) []byte {
-	credentials := append(username, ":{SHA}"...)
-	credentials = append(credentials, EncodeSHA1(password)...)
-	return credentials
-}
-
-// ComputeSHA1Hex computes the hexadecimal representation of the SHA1 hash of the given input byte
-// slice <in>, converts it to a string and returns it (length of returned string is 40 characters).
-func ComputeSHA1Hex(in []byte) string {
-	return hex.EncodeToString(SHA1(in))
+// CreateBcryptCredentials takes a username and a password and returns a bcrypt-schemed credentials pair as bytes.
+func CreateBcryptCredentials(username, password []byte) ([]byte, error) {
+	bcryptPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+	credentials := append(username, ":"...)
+	credentials = append(credentials, bcryptPassword...)
+	return credentials, nil
 }
 
 // ComputeSHA256Hex computes the hexadecimal representation of the SHA256 hash of the given input byte
@@ -152,13 +129,15 @@ func ComputeSHA256Hex(in []byte) string {
 	return hex.EncodeToString(SHA256(in))
 }
 
-// HashForMap creates a hash value for a map of type map[string]interface{} and returns it.
-func HashForMap(m map[string]interface{}) string {
+// HashForMap creates a hash value for a map of type map[string]any and returns it.
+func HashForMap(m map[string]any) string {
 	var hash string
 	keys := make([]string, 0, len(m))
+
 	for k := range m {
 		keys = append(keys, k)
 	}
+
 	slices.Sort(keys)
 
 	for _, k := range keys {
@@ -173,9 +152,9 @@ func HashForMap(m map[string]interface{}) string {
 			for _, val := range v {
 				hash += ComputeSHA256Hex([]byte(val))
 			}
-		case map[string]interface{}:
+		case map[string]any:
 			hash += HashForMap(v)
-		case []map[string]interface{}:
+		case []map[string]any:
 			for _, val := range v {
 				hash += HashForMap(val)
 			}

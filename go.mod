@@ -10,8 +10,8 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gardener/etcd-druid v0.22.2
-	github.com/gardener/gardener v1.90.0
-	github.com/gardener/machine-controller-manager v0.52.0
+	github.com/gardener/gardener v1.99.1
+	github.com/gardener/machine-controller-manager v0.53.0
 	github.com/go-logr/logr v1.4.2
 	github.com/google/uuid v1.6.0
 	github.com/metal-stack/go-ipam v1.14.3
@@ -31,17 +31,17 @@ require (
 	golang.org/x/tools v0.23.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.30.3
-	k8s.io/apiextensions-apiserver v0.29.2
+	k8s.io/apiextensions-apiserver v0.29.6
 	k8s.io/apimachinery v0.31.0-beta.0
 	k8s.io/autoscaler/vertical-pod-autoscaler v1.1.2
 	k8s.io/client-go v0.30.3
 	k8s.io/cloud-provider-vsphere v1.26.1-0.20230503224600-862eeed8229c
-	k8s.io/code-generator v0.29.2
+	k8s.io/code-generator v0.29.6
 	k8s.io/component-base v0.30.3
 	k8s.io/klog v1.0.0
 	k8s.io/kubelet v0.30.3
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
-	sigs.k8s.io/controller-runtime v0.17.2
+	sigs.k8s.io/controller-runtime v0.17.5
 	sigs.k8s.io/controller-tools v0.14.0
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -51,6 +51,7 @@ require (
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
+	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/antihax/optional v1.0.0 // indirect
 	github.com/avast/retry-go/v4 v4.6.0 // indirect
 	github.com/beevik/etree v1.4.1 // indirect
@@ -68,6 +69,7 @@ require (
 	github.com/fluent/fluent-operator/v2 v2.9.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
+	github.com/gardener/cert-management v0.15.0 // indirect
 	github.com/gardener/hvpa-controller/api v0.15.0 // indirect
 	github.com/gibson042/canonicaljson-go v1.0.3 // indirect
 	github.com/go-logr/zapr v1.3.0 // indirect
@@ -91,7 +93,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
-	github.com/imdario/mergo v0.3.15 // indirect
+	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/ironcore-dev/vgopath v0.1.4 // indirect
 	github.com/jmoiron/sqlx v1.4.0 // indirect
@@ -112,7 +114,7 @@ require (
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
-	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.72.0 // indirect
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.74.0 // indirect
 	github.com/prometheus/client_golang v1.19.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
@@ -154,17 +156,19 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	helm.sh/helm/v3 v3.14.2 // indirect
+	helm.sh/helm/v3 v3.14.4 // indirect
 	istio.io/api v1.22.3 // indirect
 	istio.io/client-go v1.22.3 // indirect
 	k8s.io/apiserver v0.30.3 // indirect
 	k8s.io/cloud-provider v0.30.3 // indirect
+	k8s.io/cluster-bootstrap v0.29.6 // indirect
+	k8s.io/component-helpers v0.30.3 // indirect
 	k8s.io/gengo v0.0.0-20240404160639-a0386bf69313 // indirect
 	k8s.io/gengo/v2 v2.0.0-20240228010128-51d4e06bde70 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
-	k8s.io/kube-aggregator v0.29.2 // indirect
+	k8s.io/kube-aggregator v0.29.6 // indirect
 	k8s.io/kube-openapi v0.0.0-20240709000822-3c01b740850f // indirect
-	k8s.io/metrics v0.29.2 // indirect
+	k8s.io/metrics v0.29.6 // indirect
 	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20240717190548-1ed345090869 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect

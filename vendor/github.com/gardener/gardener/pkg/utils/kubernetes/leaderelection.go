@@ -1,16 +1,6 @@
-// Copyright 2020 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package kubernetes
 
@@ -26,25 +16,25 @@ import (
 )
 
 // ReadLeaderElectionRecord returns the leader election record for a given lock type and a namespace/name combination.
-func ReadLeaderElectionRecord(ctx context.Context, client client.Client, lock, namespace, name string) (*resourcelock.LeaderElectionRecord, error) {
+func ReadLeaderElectionRecord(ctx context.Context, c client.Client, lock, namespace, name string) (*resourcelock.LeaderElectionRecord, error) {
 	switch lock {
 	case "endpoints":
 		endpoint := &corev1.Endpoints{}
-		if err := client.Get(ctx, Key(namespace, name), endpoint); err != nil {
+		if err := c.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, endpoint); err != nil {
 			return nil, err
 		}
 		return leaderElectionRecordFromAnnotations(endpoint.Annotations)
 
 	case "configmaps":
 		configmap := &corev1.ConfigMap{}
-		if err := client.Get(ctx, Key(namespace, name), configmap); err != nil {
+		if err := c.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, configmap); err != nil {
 			return nil, err
 		}
 		return leaderElectionRecordFromAnnotations(configmap.Annotations)
 
 	case resourcelock.LeasesResourceLock:
 		lease := &coordinationv1.Lease{}
-		if err := client.Get(ctx, Key(namespace, name), lease); err != nil {
+		if err := c.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, lease); err != nil {
 			return nil, err
 		}
 		return resourcelock.LeaseSpecToLeaderElectionRecord(&lease.Spec), nil

@@ -1,16 +1,6 @@
-// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package v1alpha1
 
@@ -173,6 +163,9 @@ type GardenletControllerConfiguration struct {
 	// ControllerInstallationRequired defines the configuration of the ControllerInstallationRequired controller.
 	// +optional
 	ControllerInstallationRequired *ControllerInstallationRequiredControllerConfiguration `json:"controllerInstallationRequired,omitempty"`
+	// Gardenlet defines the configuration of the Gardenlet controller.
+	// +optional
+	Gardenlet *GardenletObjectControllerConfiguration `json:"gardenlet,omitempty"`
 	// Seed defines the configuration of the Seed controller.
 	// +optional
 	Seed *SeedControllerConfiguration `json:"seed,omitempty"`
@@ -197,6 +190,9 @@ type GardenletControllerConfiguration struct {
 	// TokenRequestorControllerConfiguration defines the configuration of the TokenRequestor controller.
 	// +optional
 	TokenRequestor *TokenRequestorControllerConfiguration `json:"tokenRequestor,omitempty"`
+	// VPAEvictionRequirements defines the configuration of the VPAEvictionRequirements controller.
+	// +optional
+	VPAEvictionRequirements *VPAEvictionRequirementsControllerConfiguration `json:"vpaEvictionRequirements,omitempty"`
 }
 
 // BackupBucketControllerConfiguration defines the configuration of the BackupBucket
@@ -397,6 +393,13 @@ type NetworkPolicyControllerConfiguration struct {
 	AdditionalNamespaceSelectors []metav1.LabelSelector `json:"additionalNamespaceSelectors,omitempty"`
 }
 
+// GardenletObjectControllerConfiguration defines the configuration of the Gardenlet controller.
+type GardenletObjectControllerConfiguration struct {
+	// SyncPeriod is the duration how often the existing resources are reconciled.
+	// +optional
+	SyncPeriod *metav1.Duration `json:"syncPeriod,omitempty"`
+}
+
 // ManagedSeedControllerConfiguration defines the configuration of the ManagedSeed controller.
 type ManagedSeedControllerConfiguration struct {
 	// ConcurrentSyncs is the number of workers used for the controller to work on
@@ -422,6 +425,13 @@ type ManagedSeedControllerConfiguration struct {
 
 // TokenRequestorControllerConfiguration defines the configuration of the TokenRequestor controller.
 type TokenRequestorControllerConfiguration struct {
+	// ConcurrentSyncs is the number of workers used for the controller to work on events.
+	// +optional
+	ConcurrentSyncs *int `json:"concurrentSyncs,omitempty"`
+}
+
+// VPAEvictionRequirementsControllerConfiguration defines the configuration of the VPAEvictionRequirements controller.
+type VPAEvictionRequirementsControllerConfiguration struct {
 	// ConcurrentSyncs is the number of workers used for the controller to work on events.
 	// +optional
 	ConcurrentSyncs *int `json:"concurrentSyncs,omitempty"`
@@ -663,9 +673,6 @@ type RemoteWriteMonitoringConfig struct {
 	// Keep contains a list of metrics that will be remote written
 	// +optional
 	Keep []string `json:"keep,omitempty"`
-	// QueueConfig contains the queue_config for prometheus remote write.
-	// +optional
-	QueueConfig *string `json:"queueConfig,omitempty"`
 }
 
 const (

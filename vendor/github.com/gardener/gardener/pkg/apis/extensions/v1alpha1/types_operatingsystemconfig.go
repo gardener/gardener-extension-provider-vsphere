@@ -1,16 +1,6 @@
-// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package v1alpha1
 
@@ -81,16 +71,9 @@ type OperatingSystemConfigSpec struct {
 	DefaultSpec `json:",inline"`
 	// Purpose describes how the result of this OperatingSystemConfig is used by Gardener. Either it
 	// gets sent to the `Worker` extension controller to bootstrap a VM, or it is downloaded by the
-	// cloud-config-downloader script already running on a bootstrapped VM.
+	// gardener-node-agent already running on a bootstrapped VM.
 	// This field is immutable.
 	Purpose OperatingSystemConfigPurpose `json:"purpose"`
-	// ReloadConfigFilePath is the path to the generated operating system configuration. If set, controllers
-	// are asked to use it when determining the .status.command of this resource. For example, if for CoreOS
-	// the reload-path might be "/var/lib/config"; then the controller shall set .status.command to
-	// "/usr/bin/coreos-cloudinit --from-file=/var/lib/config".
-	// TODO(rfranzke): Deprecate this field once UseGardenerNodeAgent feature gate is promoted to GA.
-	// +optional
-	ReloadConfigFilePath *string `json:"reloadConfigFilePath,omitempty"`
 	// Units is a list of unit for the operating system configuration (usually, a systemd unit).
 	// +patchMergeKey=name
 	// +patchStrategy=merge
@@ -218,22 +201,6 @@ type OperatingSystemConfigStatus struct {
 	// config spec. It contains a reference to a secret as the result may contain confidential data.
 	// +optional
 	CloudConfig *CloudConfig `json:"cloudConfig,omitempty"`
-	// Command is the command whose execution renews/reloads the cloud config on an existing VM, e.g.
-	// "/usr/bin/reload-cloud-config -from-file=<path>". The <path> is optionally provided by Gardener
-	// in the .spec.reloadConfigFilePath field.
-	// TODO(rfranzke): Deprecate this field once UseGardenerNodeAgent feature gate is promoted to GA.
-	// +optional
-	Command *string `json:"command,omitempty"`
-	// Units is a list of systemd unit names that are part of the generated Cloud Config and shall be
-	// restarted when a new version has been downloaded.
-	// TODO(rfranzke): Deprecate this field once UseGardenerNodeAgent feature gate is promoted to GA.
-	// +optional
-	Units []string `json:"units,omitempty"`
-	// Files is a list of file paths that are part of the generated Cloud Config and shall be
-	// written to the host's file system.
-	// TODO(rfranzke): Deprecate this field once UseGardenerNodeAgent feature gate is promoted to GA.
-	// +optional
-	Files []string `json:"files,omitempty"`
 }
 
 // CloudConfig contains the generated output for the given operating system
@@ -251,14 +218,14 @@ const (
 	// new VM.
 	OperatingSystemConfigPurposeProvision OperatingSystemConfigPurpose = "provision"
 	// OperatingSystemConfigPurposeReconcile describes that the operating system configuration is executed on an already
-	// provisioned VM by the cloud-config-downloader script.
+	// provisioned VM by the gardener-node-agent.
 	OperatingSystemConfigPurposeReconcile OperatingSystemConfigPurpose = "reconcile"
 
 	// OperatingSystemConfigDefaultFilePermission is the default value for a permission of a file.
 	OperatingSystemConfigDefaultFilePermission int32 = 0644
 	// OperatingSystemConfigSecretDataKey is a constant for the key in a secret's `.data` field containing the
 	// results of a computed cloud config.
-	OperatingSystemConfigSecretDataKey = "cloud_config"
+	OperatingSystemConfigSecretDataKey = "cloud_config" // #nosec G101 -- No credential.
 )
 
 // CRIConfig contains configurations of the CRI library.

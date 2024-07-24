@@ -1,21 +1,12 @@
-// Copyright 2023 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package cache
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"sync/atomic"
@@ -91,7 +82,7 @@ func NewSingleObject(
 
 func (s *singleObject) Start(ctx context.Context) error {
 	if s.parentCtx != nil {
-		return fmt.Errorf("the Start method cannot be called multiple times")
+		return errors.New("the Start method cannot be called multiple times")
 	}
 
 	logger := s.log.WithName("garbage-collector").WithValues("interval", s.garbageCollectionInterval, "maxIdleTime", s.maxIdleTime)
@@ -182,6 +173,7 @@ func (s *singleObject) getOrCreateCache(key client.ObjectKey) (cache.Cache, erro
 		log.V(1).Info("Cache not found, creating it")
 
 		var err error
+
 		cache, err = s.createAndStartCache(log, key)
 		if err != nil {
 			return nil, err
@@ -233,7 +225,7 @@ func (s *singleObject) createAndStartCache(log logr.Logger, key client.ObjectKey
 	log.V(1).Info("Waiting for cache to be synced")
 	if !cache.WaitForCacheSync(waitForSyncCtx) {
 		cancel()
-		return nil, fmt.Errorf("failed waiting for cache to be synced")
+		return nil, errors.New("failed waiting for cache to be synced")
 	}
 
 	// The controller-runtime starts informers (which start the real WATCH on the API servers) only lazily with the
@@ -266,9 +258,9 @@ func (s *singleObject) WaitForCacheSync(ctx context.Context) bool {
 }
 
 func (s *singleObject) List(_ context.Context, _ client.ObjectList, _ ...client.ListOption) error {
-	return fmt.Errorf("the List operation is not supported by singleObject cache")
+	return errors.New("the List operation is not supported by singleObject cache")
 }
 
 func (s *singleObject) GetInformerForKind(_ context.Context, _ schema.GroupVersionKind, _ ...cache.InformerGetOption) (cache.Informer, error) {
-	return nil, fmt.Errorf("the GetInformerForKind operation is not supported by singleObject cache")
+	return nil, errors.New("the GetInformerForKind operation is not supported by singleObject cache")
 }

@@ -1,16 +1,6 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package secrets
 
@@ -24,11 +14,11 @@ import (
 
 // ControlPlaneSecretDataKeyCertificatePEM returns the data key inside a Secret of type ControlPlane whose value
 // contains the certificate PEM.
-func ControlPlaneSecretDataKeyCertificatePEM(name string) string { return fmt.Sprintf("%s.crt", name) }
+func ControlPlaneSecretDataKeyCertificatePEM(name string) string { return name + ".crt" }
 
 // ControlPlaneSecretDataKeyPrivateKey returns the data key inside a Secret of type ControlPlane whose value
 // contains the private key PEM.
-func ControlPlaneSecretDataKeyPrivateKey(name string) string { return fmt.Sprintf("%s.key", name) }
+func ControlPlaneSecretDataKeyPrivateKey(name string) string { return name + ".key" }
 
 // ControlPlaneSecretConfig is a struct which inherits from CertificateSecretConfig and is extended with a couple of additional
 // properties. A control plane secret will always contain a server/client certificate and optionally a kubeconfig.

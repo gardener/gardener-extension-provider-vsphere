@@ -1,16 +1,6 @@
-// Copyright 2021 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package containerd
 
@@ -65,7 +55,7 @@ func (initializer) Config(ctx components.Context) ([]extensionsv1alpha1.Unit, []
 	)
 
 	var script bytes.Buffer
-	if err := tplInitializer.Execute(&script, map[string]interface{}{
+	if err := tplInitializer.Execute(&script, map[string]any{
 		"binaryPath":          extensionsv1alpha1.ContainerDRuntimeContainersBinFolder,
 		"pauseContainerImage": ctx.Images[imagevector.ImageNamePauseContainer],
 	}); err != nil {
@@ -90,7 +80,7 @@ ExecStart=` + pathScript),
 		[]extensionsv1alpha1.File{
 			{
 				Path:        pathScript,
-				Permissions: ptr.To(int32(744)),
+				Permissions: ptr.To[int32](744),
 				Content: extensionsv1alpha1.FileContent{
 					Inline: &extensionsv1alpha1.FileContentInline{
 						Encoding: "b64",
@@ -100,7 +90,7 @@ ExecStart=` + pathScript),
 			},
 			{
 				Path:        "/etc/systemd/system/containerd.service.d/10-require-containerd-initializer.conf",
-				Permissions: ptr.To(int32(0644)),
+				Permissions: ptr.To[int32](0644),
 				Content: extensionsv1alpha1.FileContent{
 					Inline: &extensionsv1alpha1.FileContentInline{
 						Data: `[Unit]

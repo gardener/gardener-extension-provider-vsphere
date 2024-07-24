@@ -1,16 +1,6 @@
-// Copyright 2021 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package gardener
 
@@ -28,6 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 	clientcmdv1 "k8s.io/client-go/tools/clientcmd/api/v1"
@@ -170,7 +161,7 @@ func GetShootNameFromOwnerReferences(objectMeta metav1.Object) string {
 }
 
 // NodeLabelsForWorkerPool returns a combined map of all user-specified and gardener-managed node labels.
-func NodeLabelsForWorkerPool(workerPool gardencorev1beta1.Worker, nodeLocalDNSEnabled bool) map[string]string {
+func NodeLabelsForWorkerPool(workerPool gardencorev1beta1.Worker, nodeLocalDNSEnabled bool, gardenerNodeAgentSecretName string) map[string]string {
 	// copy worker pool labels map
 	labels := utils.MergeStringMaps(workerPool.Labels)
 	if labels == nil {
@@ -188,6 +179,7 @@ func NodeLabelsForWorkerPool(workerPool gardencorev1beta1.Worker, nodeLocalDNSEn
 	// worker pool name labels
 	labels[v1beta1constants.LabelWorkerPool] = workerPool.Name
 	labels[v1beta1constants.LabelWorkerPoolDeprecated] = workerPool.Name
+	labels[v1beta1constants.LabelWorkerPoolGardenerNodeAgentSecretName] = gardenerNodeAgentSecretName
 
 	// add CRI labels selected by the RuntimeClass
 	if workerPool.CRI != nil {
@@ -277,6 +269,13 @@ func IsShootProjectInternalSecret(secretName string) (string, bool) {
 	}
 
 	return "", false
+}
+
+// ComputeManagedShootIssuerSecretName returns the name that should be used for
+// storing the service account public keys of a shoot's kube-apiserver
+// in the gardener-system-shoot-issuer namespace in the Garden cluster.
+func ComputeManagedShootIssuerSecretName(projectName string, shootUID types.UID) string {
+	return projectName + "--" + string(shootUID)
 }
 
 // IsShootProjectConfigMap checks if the given name matches the name of a shoot-related project config map. If no, it returns
@@ -460,7 +459,7 @@ func injectGenericKubeconfig(obj runtime.Object, genericKubeconfigName, accessSe
 			Name: volumeName,
 			VolumeSource: corev1.VolumeSource{
 				Projected: &corev1.ProjectedVolumeSource{
-					DefaultMode: ptr.To(int32(420)),
+					DefaultMode: ptr.To[int32](420),
 					Sources: []corev1.VolumeProjection{
 						{
 							Secret: &corev1.SecretProjection{
@@ -606,7 +605,7 @@ func ConstructExternalDomain(ctx context.Context, c client.Reader, shoot *garden
 	case primaryProvider != nil:
 		if primaryProvider.SecretName != nil {
 			secret := &corev1.Secret{}
-			if err := c.Get(ctx, kubernetesutils.Key(shoot.Namespace, *primaryProvider.SecretName), secret); err != nil {
+			if err := c.Get(ctx, client.ObjectKey{Namespace: shoot.Namespace, Name: *primaryProvider.SecretName}, secret); err != nil {
 				return nil, fmt.Errorf("could not get dns provider secret %q: %+v", *shoot.Spec.DNS.Providers[0].SecretName, err)
 			}
 			externalDomain.SecretData = secret.Data

@@ -1,16 +1,6 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 // Package flow provides utilities to construct a directed acyclic computational graph
 // that is then executed and monitored with maximum parallelism.
@@ -92,6 +82,7 @@ func (n *node) addTargets(taskIDs ...TaskID) {
 		n.targetIDs = NewTaskIDs(TaskIDSlice(taskIDs))
 		return
 	}
+
 	n.targetIDs.Insert(TaskIDSlice(taskIDs))
 }
 
@@ -213,6 +204,7 @@ func (e *execution) runNode(ctx context.Context, id TaskID) {
 	if node.skip {
 		log.V(1).Info("Skipped")
 		e.stats.Skipped.Insert(id)
+
 		go func() {
 			e.done <- &nodeResult{TaskID: id, Error: nil, skipped: true}
 		}()
@@ -223,10 +215,13 @@ func (e *execution) runNode(ctx context.Context, id TaskID) {
 	if e.errorContext != nil {
 		e.errorContext.AddErrorID(string(id))
 	}
+
 	e.stats.Pending.Delete(id)
 	e.stats.Running.Insert(id)
+
 	go func() {
 		start := time.Now().UTC()
+
 		log.V(1).Info("Started")
 		err := node.fn(ctx)
 		end := time.Now().UTC()
@@ -297,6 +292,7 @@ func (e *execution) run(ctx context.Context) error {
 			e.runNode(ctx, name)
 		}
 	}
+
 	e.reportProgress(ctx)
 
 	for e.stats.Running.Len() > 0 || e.stats.Skipped.Len() > 0 {
@@ -320,6 +316,7 @@ func (e *execution) run(ctx context.Context) error {
 				}
 			}
 		}
+
 		e.reportProgress(ctx)
 	}
 

@@ -1,16 +1,6 @@
-// Copyright 2023 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file.
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package kubernetes
 
@@ -20,6 +10,12 @@ import versionutils "github.com/gardener/gardener/pkg/utils/version"
 var APIGroupControllerMap = map[string]map[string]versionutils.VersionRange{
 	"internal/v1alpha1": {
 		"storage-version-gc": {},
+	},
+	"admissionregistration/v1beta1": {
+		"validatingadmissionpolicy-status-controller": {AddedInVersion: "1.28", RemovedInVersion: "1.30"},
+	},
+	"admissionregistration/v1": {
+		"validatingadmissionpolicy-status-controller": {AddedInVersion: "1.30"},
 	},
 	"apps/v1": {
 		"daemonset":   {},
@@ -67,6 +63,9 @@ var APIGroupControllerMap = map[string]map[string]versionutils.VersionRange{
 	"extensions/v1beta1": {
 		"disruption": {},
 	},
+	"networking/v1alpha1": {
+		"service-cidr-controller": {AddedInVersion: "1.29"},
+	},
 	"policy/v1": {
 		"disruption": {},
 	},
@@ -76,9 +75,13 @@ var APIGroupControllerMap = map[string]map[string]versionutils.VersionRange{
 	"resource/v1alpha2": {
 		"resource-claim-controller": {AddedInVersion: "1.27"},
 	},
+	"storagemigration/v1alpha1": {
+		"storage-version-migrator-controller": {AddedInVersion: "1.30"},
+	},
 	"v1": {
 		"attachdetach":                         {},
 		"bootstrapsigner":                      {},
+		"cloud-node":                           {},
 		"cloud-node-lifecycle":                 {},
 		"cronjob":                              {},
 		"csrapproving":                         {},
@@ -90,7 +93,7 @@ var APIGroupControllerMap = map[string]map[string]versionutils.VersionRange{
 		"endpointslice":                        {},
 		"endpointslicemirroring":               {},
 		"ephemeral-volume":                     {},
-		"garbagecollector":                     {},
+		"garbagecollector":                     {RemovedInVersion: "1.30"},
 		"horizontalpodautoscaling":             {},
 		"job":                                  {},
 		"legacy-service-account-token-cleaner": {AddedInVersion: "1.28"},
@@ -108,10 +111,11 @@ var APIGroupControllerMap = map[string]map[string]versionutils.VersionRange{
 		"root-ca-cert-publisher":               {},
 		"route":                                {},
 		"service":                              {},
-		"service-cidr":                         {AddedInVersion: "1.29"},
+		"service-cidr-controller":              {AddedInVersion: "1.29"},
 		"serviceaccount":                       {},
 		"serviceaccount-token":                 {},
 		"statefulset":                          {},
+		"taint-eviction-controller":            {AddedInVersion: "1.29"},
 		"tokencleaner":                         {},
 		"ttl":                                  {},
 		"ttl-after-finished":                   {},

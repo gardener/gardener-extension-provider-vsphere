@@ -1,16 +1,6 @@
-// Copyright 2020 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package framework
 
@@ -18,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"reflect"
 	"slices"
@@ -31,6 +22,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -38,6 +30,7 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	resourcesv1alpha1 "github.com/gardener/gardener/pkg/apis/resources/v1alpha1"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
+	"github.com/gardener/gardener/pkg/component/extensions/operatingsystemconfig"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	"github.com/gardener/gardener/test/utils/access"
 )
@@ -321,7 +314,7 @@ func (t *ShootMigrationTest) compareElementsAfterMigration() error {
 		if !reflect.DeepEqual(secret.Data, t.ComparisonElementsAfterMigration.SecretsMap[name].Data) {
 			errorMsg += fmt.Sprintf("Secret %s/%s did not have it's data persisted.\n", secret.Namespace, secret.Name)
 		}
-		if !reflect.DeepEqual(secret.Labels, t.ComparisonElementsAfterMigration.SecretsMap[name].Labels) {
+		if !maps.Equal(secret.Labels, t.ComparisonElementsAfterMigration.SecretsMap[name].Labels) {
 			errorMsg += fmt.Sprintf("Secret %s/%s did not have it's labels persisted: labels before migration: %v, labels after migration: %v\n",
 				secret.Namespace,
 				secret.Name,
@@ -436,6 +429,16 @@ func (t *ShootMigrationTest) checkForOrphanedNonNamespacedResources(ctx context.
 		return fmt.Errorf("the following object(s) still exists in the source seed %v", leakedObjects)
 	}
 	return nil
+}
+
+// MarkOSCSecret marks the operating system config pool hashes secret to verify that it is correctly migrated
+func (t ShootMigrationTest) MarkOSCSecret(ctx context.Context) error {
+	secret := &corev1.Secret{}
+	if err := t.SourceSeedClient.Client().Get(ctx, types.NamespacedName{Namespace: t.SeedShootNamespace, Name: operatingsystemconfig.WorkerPoolHashesSecretName}, secret); err != nil {
+		return err
+	}
+	metav1.SetMetaDataLabel(&secret.ObjectMeta, "gardener.cloud/custom-test-annotation", "test")
+	return t.SourceSeedClient.Client().Update(ctx, secret)
 }
 
 // CreateSecretAndServiceAccount creates test secret and service account

@@ -1,16 +1,6 @@
-// Copyright 2020 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package managedresources
 
@@ -189,6 +179,17 @@ func CreateForSeed(ctx context.Context, client client.Client, namespace, name st
 	return deployManagedResource(ctx, secret, managedResource)
 }
 
+// CreateForSeedWithLabels deploys a ManagedResource CR for the seed's gardener-resource-manager and allows providing
+// additional labels.
+func CreateForSeedWithLabels(ctx context.Context, client client.Client, namespace, name string, keepObjects bool, labels map[string]string, data map[string][]byte) error {
+	var (
+		secretName, secret = NewSecret(client, namespace, name, data, true)
+		managedResource    = NewForSeed(client, namespace, name, keepObjects).WithSecretRef(secretName).WithLabels(labels)
+	)
+
+	return deployManagedResource(ctx, secret, managedResource)
+}
+
 // CreateForShoot deploys a ManagedResource CR for the shoot's gardener-resource-manager.
 // The origin is used to identify the creator of the managed resource. Gardener acts on resources
 // with "origin=gardener" label. External callers (extension controllers or other components)
@@ -197,6 +198,19 @@ func CreateForShoot(ctx context.Context, client client.Client, namespace, name, 
 	var (
 		secretName, secret = NewSecret(client, namespace, name, data, true)
 		managedResource    = NewForShoot(client, namespace, name, origin, keepObjects).WithSecretRef(secretName)
+	)
+
+	return deployManagedResource(ctx, secret, managedResource)
+}
+
+// CreateForShootWithLabels deploys a ManagedResource CR for the shoot's gardener-resource-manager. The origin is used
+// to identify the creator of the managed resource. Gardener acts on resources with "origin=gardener" label. External
+// callers (extension controllers or other components) of this function should provide their own unique origin value.
+// This function allows providing additional labels.
+func CreateForShootWithLabels(ctx context.Context, client client.Client, namespace, name, origin string, keepObjects bool, labels map[string]string, data map[string][]byte) error {
+	var (
+		secretName, secret = NewSecret(client, namespace, name, data, true)
+		managedResource    = NewForShoot(client, namespace, name, origin, keepObjects).WithSecretRef(secretName).WithLabels(labels)
 	)
 
 	return deployManagedResource(ctx, secret, managedResource)
@@ -285,7 +299,7 @@ func WaitUntilHealthyAndNotProgressing(ctx context.Context, client client.Client
 	return waitUntilHealthy(ctx, client, namespace, name, true)
 }
 
-func waitUntilHealthy(ctx context.Context, client client.Client, namespace, name string, andNotProgressing bool) error {
+func waitUntilHealthy(ctx context.Context, c client.Client, namespace, name string, andNotProgressing bool) error {
 	obj := &resourcesv1alpha1.ManagedResource{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -294,7 +308,7 @@ func waitUntilHealthy(ctx context.Context, client client.Client, namespace, name
 	}
 
 	return retry.Until(ctx, IntervalWait, func(ctx context.Context) (done bool, err error) {
-		if err := client.Get(ctx, kubernetesutils.Key(namespace, name), obj); err != nil {
+		if err := c.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, obj); err != nil {
 			return retry.SevereError(err)
 		}
 
@@ -373,7 +387,7 @@ func SetKeepObjects(ctx context.Context, c client.Writer, namespace, name string
 
 // RenderChartAndCreate renders a chart and creates a ManagedResource for the gardener-resource-manager
 // out of the results.
-func RenderChartAndCreate(ctx context.Context, namespace string, name string, secretNameWithPrefix bool, client client.Client, chartRenderer chartrenderer.Interface, chart chart.Interface, values map[string]interface{}, imageVector imagevector.ImageVector, chartNamespace string, version string, withNoCleanupLabel bool, forceOverwriteAnnotations bool) error {
+func RenderChartAndCreate(ctx context.Context, namespace string, name string, secretNameWithPrefix bool, client client.Client, chartRenderer chartrenderer.Interface, chart chart.Interface, values map[string]any, imageVector imagevector.ImageVector, chartNamespace string, version string, withNoCleanupLabel bool, forceOverwriteAnnotations bool) error {
 	chartName, data, err := chart.Render(chartRenderer, chartNamespace, imageVector, version, version, values)
 	if err != nil {
 		return fmt.Errorf("could not render chart: %w", err)

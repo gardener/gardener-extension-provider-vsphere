@@ -1,20 +1,11 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package helper
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strconv"
@@ -209,7 +200,7 @@ func parseManagedSeedAPIServerAutoscaler(settings map[string]string) (*ManagedSe
 		return nil, nil
 	}
 	if !ok2 {
-		return nil, fmt.Errorf("apiSrvMaxReplicas has to be specified for ManagedSeed API server autoscaler")
+		return nil, errors.New("apiSrvMaxReplicas has to be specified for ManagedSeed API server autoscaler")
 	}
 
 	var apiServerAutoscaler ManagedSeedAPIServerAutoscaler
@@ -219,6 +210,7 @@ func parseManagedSeedAPIServerAutoscaler(settings map[string]string) (*ManagedSe
 		if err != nil {
 			return nil, err
 		}
+
 		apiServerAutoscaler.MinReplicas = &minReplicas
 	}
 
@@ -226,6 +218,7 @@ func parseManagedSeedAPIServerAutoscaler(settings map[string]string) (*ManagedSe
 	if err != nil {
 		return nil, err
 	}
+
 	apiServerAutoscaler.MaxReplicas = maxReplicas
 
 	return &apiServerAutoscaler, nil
@@ -270,6 +263,7 @@ func setDefaults_ManagedSeedAPIServer(apiServer *ManagedSeedAPIServer) {
 			MaxReplicas: 3,
 		}
 	}
+
 	setDefaults_ManagedSeedAPIServerAutoscaler(apiServer.Autoscaler)
 }
 
@@ -700,11 +694,13 @@ func getVersionForMachineImageForceUpdate(versions []gardencorev1beta1.Expirable
 	}
 
 	skippedNextMajorMinor := false
+
 	if foundVersion {
 		parse, err := semver.NewVersion(qualifyingVersion.Version)
 		if err != nil {
 			return false, "", err
 		}
+
 		skippedNextMajorMinor = getMajorOrMinor(*parse) > nextMinorOrMajorVersion
 	}
 
@@ -731,8 +727,10 @@ func getVersionForMachineImageForceUpdate(versions []gardencorev1beta1.Expirable
 // A version qualifies if its classification is not preview and the optional predicate does not filter out the version.
 // If the predicate returns true, the version is not considered for the latest qualifying version.
 func GetLatestQualifyingVersion(versions []gardencorev1beta1.ExpirableVersion, predicate ...VersionPredicate) (qualifyingVersionFound bool, latest *gardencorev1beta1.ExpirableVersion, err error) {
-	latestSemanticVersion := &semver.Version{}
-	var latestVersion *gardencorev1beta1.ExpirableVersion
+	var (
+		latestSemanticVersion = &semver.Version{}
+		latestVersion         *gardencorev1beta1.ExpirableVersion
+	)
 OUTER:
 	for _, v := range versions {
 		if v.Classification != nil && *v.Classification == gardencorev1beta1.ClassificationPreview {
@@ -1028,6 +1026,7 @@ func BackupBucketIsErroneous(bb *gardencorev1beta1.BackupBucket) (bool, string) 
 	if bb == nil {
 		return false, ""
 	}
+
 	lastErr := bb.Status.LastError
 	if lastErr == nil {
 		return false, ""
@@ -1163,6 +1162,15 @@ func CalculateEffectiveKubernetesVersion(controlPlaneVersion *semver.Version, wo
 	return controlPlaneVersion, nil
 }
 
+// CalculateEffectiveKubeletConfiguration returns the worker group specific kubelet configuration if available.
+// Otherwise the shoot kubelet configuration is returned
+func CalculateEffectiveKubeletConfiguration(shootKubelet *gardencorev1beta1.KubeletConfig, workerKubernetes *gardencorev1beta1.WorkerKubernetes) *gardencorev1beta1.KubeletConfig {
+	if workerKubernetes != nil && workerKubernetes.Kubelet != nil {
+		return workerKubernetes.Kubelet
+	}
+	return shootKubelet
+}
+
 // GetSecretBindingTypes returns the SecretBinding provider types.
 func GetSecretBindingTypes(secretBinding *gardencorev1beta1.SecretBinding) []string {
 	return strings.Split(secretBinding.Provider.Type, ",")
@@ -1214,12 +1222,6 @@ func IsCoreDNSAutoscalingModeUsed(systemComponents *gardencorev1beta1.SystemComp
 	}
 
 	return systemComponents.CoreDNS.Autoscaling.Mode == autoscalingMode
-}
-
-// IsCoreDNSRewritingEnabled indicates whether automatic query rewriting in CoreDNS is enabled or not.
-func IsCoreDNSRewritingEnabled(featureGate bool, annotations map[string]string) bool {
-	_, disabled := annotations[v1beta1constants.AnnotationCoreDNSRewritingDisabled]
-	return featureGate && !disabled
 }
 
 // IsNodeLocalDNSEnabled indicates whether the node local DNS cache is enabled or not.
@@ -1534,4 +1536,9 @@ func ConvertShootList(list []gardencorev1beta1.Shoot) []*gardencorev1beta1.Shoot
 		result = append(result, &list[i])
 	}
 	return result
+}
+
+// HasManagedIssuer checks if the shoot has managed issuer enabled.
+func HasManagedIssuer(shoot *gardencorev1beta1.Shoot) bool {
+	return shoot.GetAnnotations()[v1beta1constants.AnnotationAuthenticationIssuer] == v1beta1constants.AnnotationAuthenticationIssuerManaged
 }

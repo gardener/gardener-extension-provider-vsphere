@@ -1,16 +1,6 @@
-// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package v1alpha1
 
@@ -135,6 +125,10 @@ type WorkerPool struct {
 	Minimum int32 `json:"minimum"`
 	// Name is the name of this worker pool.
 	Name string `json:"name"`
+	// NodeAgentSecretName is uniquely identifying selected aspects of the OperatingSystemConfig. If it changes, then the
+	// worker pool must be rolled.
+	// +optional
+	NodeAgentSecretName *string `json:"nodeAgentSecretName,omitempty"`
 	// ProviderConfig is a provider specific configuration for the worker pool.
 	// +kubebuilder:validation:XPreserveUnknownFields
 	// +kubebuilder:pruning:PreserveUnknownFields
@@ -142,7 +136,16 @@ type WorkerPool struct {
 	ProviderConfig *runtime.RawExtension `json:"providerConfig,omitempty"`
 	// UserData is a base64-encoded string that contains the data that is sent to the provider's APIs
 	// when a new machine/VM that is part of this worker pool shall be spawned.
-	UserData []byte `json:"userData"`
+	// Either this or UserDataSecretRef must be provided.
+	// Deprecated: This field will be removed in future release.
+	// TODO(rfranzke): Remove this field after v1.100 has been released.
+	// +optional
+	UserData []byte `json:"userData,omitempty"`
+	// UserDataSecretRef references a Secret and a data key containing the data that is sent to the provider's APIs when
+	// a new machine/VM that is part of this worker pool shall be spawned.
+	// Either this or UserData must be provided.
+	// +optional
+	UserDataSecretRef *corev1.SecretKeySelector `json:"userDataSecretRef,omitempty"`
 	// Volume contains information about the root disks that should be used for this worker pool.
 	// +optional
 	Volume *Volume `json:"volume,omitempty"`

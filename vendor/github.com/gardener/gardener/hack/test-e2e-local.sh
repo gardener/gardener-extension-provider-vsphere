@@ -1,22 +1,19 @@
 #!/usr/bin/env bash
-# Copyright 2023 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file.
+# SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0
 
 
 set -o errexit
 set -o nounset
 set -o pipefail
+
+TYPE="default"
+if [[ "$1" == "operator" ]] || [[ "$1" == "operator-seed" ]]; then
+  TYPE="$1"
+  # shift that "operator" flag is removed from ginkgo cli parameters
+  shift
+fi
 
 echo "> E2E Tests"
 
@@ -34,8 +31,32 @@ if [ -n "${CI:-}" -a -n "${ARTIFACTS:-}" ]; then
   fi
 fi
 
+local_address="127.0.0.1"
+if [[ "${IPFAMILY:-}" == "ipv6" ]]; then
+  local_address="::1"
+fi
+local_address_operator="127.0.0.3"
+if [[ "${IPFAMILY:-}" == "ipv6" ]]; then
+  local_address_operator="::3"
+fi
+
+# If we are running the gardener-operator tests then we have to make the virtual garden domains accessible.
+if [[ "$TYPE" == "operator" ]] || [[ "$TYPE" == "operator-seed" ]]; then
+  if [ -n "${CI:-}" -a -n "${ARTIFACTS:-}" ]; then
+    printf "\n$local_address_operator api.virtual-garden.local.gardener.cloud\n" >>/etc/hosts
+    printf "\n$local_address_operator plutono-garden.ingress.runtime-garden.local.gardener.cloud\n" >>/etc/hosts
+  else
+    if ! grep -q -x "$local_address_operator api.virtual-garden.local.gardener.cloud" /etc/hosts; then
+      printf "Hostname for the virtual garden cluster is missing in /etc/hosts. To access the virtual garden cluster and run e2e tests, you need to extend your /etc/hosts file.\nPlease refer to https://github.com/gardener/gardener/blob/master/docs/deployment/getting_started_locally.md#accessing-the-shoot-cluster\n\n"
+      exit 1
+    fi
+    if ! grep -q -x "$local_address_operator plutono-garden.ingress.runtime-garden.local.gardener.cloud" /etc/hosts; then
+      printf "Hostname for the plutono is missing in /etc/hosts. To access the plutono and run e2e tests, you need to extend your /etc/hosts file.\nPlease refer to https://github.com/gardener/gardener/blob/master/docs/deployment/getting_started_locally.md#accessing-the-shoot-cluster\n\n"
+      exit 1
+    fi
+  fi
 # If we are not running the gardener-operator tests then we have to make the shoot domains accessible.
-if [[ "$1" != "operator" ]]; then
+else
   seed_name="local"
   if [[ "${SHOOT_FAILURE_TOLERANCE_TYPE:-}" == "node" ]]; then
     seed_name="local-ha-single-zone"
@@ -79,11 +100,11 @@ if [[ "$1" != "operator" ]]; then
         # The e2e-upd-zone test uses the in-cluster coredns for name resolution and can therefore resolve the api endpoint.
         continue
       fi
-      printf "\n127.0.0.1 api.%s.external.local.gardener.cloud\n127.0.0.1 api.%s.internal.local.gardener.cloud\n" $shoot $shoot >>/etc/hosts
+      printf "\n$local_address api.%s.external.local.gardener.cloud\n$local_address api.%s.internal.local.gardener.cloud\n" $shoot $shoot >>/etc/hosts
     done
-    printf "\n127.0.0.1 gu-local--e2e-rotate.ingress.$seed_name.seed.local.gardener.cloud\n" >>/etc/hosts
-    printf "\n127.0.0.1 gu-local--e2e-rotate-wl.ingress.$seed_name.seed.local.gardener.cloud\n" >>/etc/hosts
-    printf "\n127.0.0.1 api.e2e-managedseed.garden.external.local.gardener.cloud\n127.0.0.1 api.e2e-managedseed.garden.internal.local.gardener.cloud\n" >>/etc/hosts
+    printf "\n$local_address gu-local--e2e-rotate.ingress.$seed_name.seed.local.gardener.cloud\n" >>/etc/hosts
+    printf "\n$local_address gu-local--e2e-rotate-wl.ingress.$seed_name.seed.local.gardener.cloud\n" >>/etc/hosts
+    printf "\n$local_address api.e2e-managedseed.garden.external.local.gardener.cloud\n$local_address api.e2e-managedseed.garden.internal.local.gardener.cloud\n" >>/etc/hosts
   else
     missing_entries=()
 
@@ -93,8 +114,8 @@ if [[ "$1" != "operator" ]]; then
         continue
       fi
       for ip in internal external; do
-        if ! grep -q -x "127.0.0.1 api.$shoot.$ip.local.gardener.cloud" /etc/hosts; then
-          missing_entries+=("127.0.0.1 api.$shoot.$ip.local.gardener.cloud")
+        if ! grep -q -x "$local_address api.$shoot.$ip.local.gardener.cloud" /etc/hosts; then
+          missing_entries+=("$local_address api.$shoot.$ip.local.gardener.cloud")
         fi
       done
     done
@@ -108,21 +129,21 @@ if [[ "$1" != "operator" ]]; then
       exit 1
     fi
   fi
-# If we are running the gardener-operator tests then we have to make the virtual garden domains accessible.
-else
+fi
+
+# If we are running the gardener-operator-seed tests then we have to make e2e-managedseed apiserver domain accessible and finally create the garden.
+if [[ "$TYPE" == "operator-seed" ]]; then
   if [ -n "${CI:-}" -a -n "${ARTIFACTS:-}" ]; then
-    printf "\n127.0.0.1 api.virtual-garden.local.gardener.cloud\n" >>/etc/hosts
-    printf "\n127.0.0.1 plutono-garden.ingress.runtime-garden.local.gardener.cloud\n" >>/etc/hosts
+    printf "\n$local_address api.e2e-managedseed.garden.external.local.gardener.cloud\n$local_address api.e2e-managedseed.garden.internal.local.gardener.cloud\n" >>/etc/hosts
   else
-    if ! grep -q -x "127.0.0.1 api.virtual-garden.local.gardener.cloud" /etc/hosts; then
-      printf "Hostname for the virtual garden cluster is missing in /etc/hosts. To access the virtual garden cluster and run e2e tests, you need to extend your /etc/hosts file.\nPlease refer to https://github.com/gardener/gardener/blob/master/docs/deployment/getting_started_locally.md#accessing-the-shoot-cluster\n\n"
-      exit 1
-    fi
-    if ! grep -q -x "127.0.0.1 plutono-garden.ingress.runtime-garden.local.gardener.cloud" /etc/hosts; then
-      printf "Hostname for the plutono is missing in /etc/hosts. To access the plutono and run e2e tests, you need to extend your /etc/hosts file.\nPlease refer to https://github.com/gardener/gardener/blob/master/docs/deployment/getting_started_locally.md#accessing-the-shoot-cluster\n\n"
+    if ! grep -q -x "$local_address api.e2e-managedseed.garden.external.local.gardener.cloud" /etc/hosts; then
+      printf "Hostname for the e2e-managedseed kube-apiserver is missing in /etc/hosts. To access the e2e-managedseed kube-apiserver and run e2e tests, you need to extend your /etc/hosts file.\nPlease refer to https://github.com/gardener/gardener/blob/master/docs/deployment/getting_started_locally.md#accessing-the-shoot-cluster\n\n"
       exit 1
     fi
   fi
+  # /etc/hosts must be updated before garden can be created
+  echo "> Deploying Garden and Soil"
+  make operator-seed-up
 fi
 
 GO111MODULE=on ginkgo run --timeout=1h $ginkgo_flags --v --show-node-events "$@"

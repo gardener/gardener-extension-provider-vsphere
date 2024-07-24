@@ -1,23 +1,14 @@
 #!/usr/bin/env bash
-# Copyright 2023 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file.
+# SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0
 
 
 set -o errexit
 set -o nounset
 set -o pipefail
 
+WITH_LPP_RESIZE_SUPPORT=${WITH_LPP_RESIZE_SUPPORT:-false}
 REGISTRY_CACHE=${CI:-false}
 CLUSTER_NAME=""
 PATH_CLUSTER_VALUES=""
@@ -51,6 +42,10 @@ parse_flags() {
       ;;
     --multi-zonal)
       MULTI_ZONAL=true
+      ;;
+    --with-lpp-resize-support)
+      shift
+      WITH_LPP_RESIZE_SUPPORT="${1}"
       ;;
     esac
 
@@ -90,6 +85,7 @@ setup_kind_network() {
 }
 
 setup_loopback_device() {
+  LOOPBACK_IP_ADDRESSES=$1
   if ! command -v ip &>/dev/null; then
     if [[ "$OSTYPE" == "darwin"* ]]; then
       echo "'ip' command not found. Please install 'ip' command, refer https://github.com/gardener/gardener/blob/master/docs/development/local_setup.md#installing-iproute2" 1>&2
@@ -99,10 +95,6 @@ setup_loopback_device() {
     return
   fi
   LOOPBACK_DEVICE=$(ip address | grep LOOPBACK | sed "s/^[0-9]\+: //g" | awk '{print $1}' | sed "s/:$//g")
-  LOOPBACK_IP_ADDRESSES=(127.0.0.10 127.0.0.11 127.0.0.12)
-  if [[ "$IPFAMILY" == "ipv6" ]] || [[ "$IPFAMILY" == "dual" ]]; then
-    LOOPBACK_IP_ADDRESSES+=(::10 ::11 ::12)
-  fi
   echo "Checking loopback device ${LOOPBACK_DEVICE}..."
   for address in "${LOOPBACK_IP_ADDRESSES[@]}"; do
     if ip address show dev ${LOOPBACK_DEVICE} | grep -q $address; then
@@ -167,6 +159,101 @@ check_registry_cache_availability() {
   done
 }
 
+# The default StorageClass which comes with `kind' is configured to use
+# rancher.io/local-path (see [1]) provisioner, which defaults to `hostPath'
+# volume (see [2]).  However, `hostPath' does not expose any metrics via
+# kubelet, while `local' (see [3]) does. On the other hand `kind' does not
+# expose any mechanism for configuring the StorageClass it comes with (see [4]).
+#
+# This function annotates the default StorageClass with `defaultVolumeType: local',
+# so that we can later scrape the various `kubelet_volume_stats_*' metrics
+# exposed by kubelet (see [5]).
+#
+# References:
+#
+# [1]: https://github.com/rancher/local-path-provisioner
+# [2]: https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
+# [3]: https://kubernetes.io/docs/concepts/storage/volumes/#local
+# [4]: https://github.com/kubernetes-sigs/kind/blob/main/pkg/cluster/internal/create/actions/installstorage/storage.go
+# [5]: https://kubernetes.io/docs/reference/instrumentation/metrics/
+setup_kind_sc_default_volume_type() {
+  echo "Configuring default StorageClass for kind cluster ..."
+  kubectl annotate storageclass standard defaultVolumeType=local
+}
+
+# The rancher.io/local-path provisioner at the moment does not support volume
+# resizing (see [1]). There is an open PR, which is scheduled for the next
+# release around May, 2024 (see [2]). Until [2] is merged we will use a custom
+# local-path provisioner with support for volume resizing.
+#
+# This function should be called after setting up the containerd registries on
+# the kind nodes.
+#
+# References:
+#
+# [1]: https://github.com/rancher/local-path-provisioner
+# [2]: https://github.com/rancher/local-path-provisioner/pull/350
+#
+# TODO(dnaeon): remove this once we have [2] merged into upstream
+setup_kind_with_lpp_resize_support() {
+  if [ "${WITH_LPP_RESIZE_SUPPORT}" != "true" ]; then
+    return
+  fi
+
+  echo "Configuring kind local-path provisioner with volume resize support ..."
+
+  # First configure allowVolumeExpansion on the default StorageClass
+  kubectl patch storageclass standard --patch '{"allowVolumeExpansion": true}'
+
+  # Apply the latest manifests and use our own image
+  local _image="ghcr.io/ialidzhikov/local-path-provisioner:feature-external-resizer-c0c1c13"
+  local _lpp_repo="https://github.com/marjus45/local-path-provisioner"
+  local _lpp_branch="feature-external-resizer"
+  local _timeout="90"
+
+  kustomize build "${_lpp_repo}/deploy/?ref=${_lpp_branch}&timeout=${_timeout}" | \
+    sed -e "s|image: rancher/local-path-provisioner:master-head|image: ${_image}|g" | \
+    kubectl apply -f -
+
+  # The default manifests from rancher/local-path come with another
+  # StorageClass, which we don't need, so make sure to remove it.
+  kubectl delete --ignore-not-found=true storageclass local-path
+}
+
+check_shell_dependencies() {
+  errors=()
+
+  if ! sed --version >/dev/null 2>&1; then
+    errors+=("Current sed version does not support --version flag. Please ensure GNU sed is installed.")
+  fi
+
+  if tar --version 2>&1 | grep -q "bsdtar"; then
+    errors+=("BSD tar detected. Please ensure GNU tar is installed.")
+  fi
+
+  if grep --version 2>&1 | grep -q "BSD grep"; then
+    errors+=("BSD grep detected. Please ensure GNU grep is installed.")
+  fi
+
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    if ! date --version >/dev/null 2>&1; then
+      errors+=("Current date version does not support --version flag. Please ensure coreutils are installed.")
+    fi
+
+    if gzip --version 2>&1 | grep -q "Apple"; then
+      errors+=("Apple built-in gzip utility detected. Please ensure GNU gzip is installed.")
+    fi
+  fi
+
+  if [ "${#errors[@]}" -gt 0 ]; then
+    printf 'Error: Required shell dependencies not met. Please refer to https://github.com/gardener/gardener/blob/master/docs/development/local_setup.md#macos-only-install-gnu-core-utilities:\n'
+    printf '    - %s\n' "${errors[@]}"
+    exit 1
+  fi
+}
+
+check_shell_dependencies
+
 parse_flags "$@"
 
 mkdir -m 0755 -p \
@@ -174,7 +261,17 @@ mkdir -m 0755 -p \
   "$(dirname "$0")/../dev/local-registry"
 
 if [[ "$MULTI_ZONAL" == "true" ]]; then
-  setup_loopback_device
+  LOOPBACK_IP_ADDRESSES=(127.0.0.10 127.0.0.11 127.0.0.12)
+  if [[ "$IPFAMILY" == "ipv6" ]] || [[ "$IPFAMILY" == "dual" ]]; then
+    LOOPBACK_IP_ADDRESSES+=(::10 ::11 ::12)
+  fi
+  setup_loopback_device "${LOOPBACK_IP_ADDRESSES[@]}"
+elif [[ "$CLUSTER_NAME" == "gardener-operator-local" ]]; then
+  LOOPBACK_IP_ADDRESSES=(127.0.0.3)
+  if [[ "$IPFAMILY" == "ipv6" ]] || [[ "$IPFAMILY" == "dual" ]]; then
+    LOOPBACK_IP_ADDRESSES+=(::3)
+  fi
+  setup_loopback_device "${LOOPBACK_IP_ADDRESSES[@]}"
 fi
 
 setup_kind_network
@@ -190,11 +287,12 @@ if [[ "$IPFAMILY" == "ipv6" ]] && [[ "$MULTI_ZONAL" == "true" ]]; then
   ADDITIONAL_ARGS="$ADDITIONAL_ARGS --set gardener.seed.istio.listenAddresses={::1,::10,::11,::12}"
 fi
 
-# Adjust version of kindest/node image according to the latest supported Kubernetes version in Gardener
 kind create cluster \
   --name "$CLUSTER_NAME" \
-  --image "kindest/node:v1.29.2" \
   --config <(helm template $CHART --values "$PATH_CLUSTER_VALUES" $ADDITIONAL_ARGS --set "gardener.repositoryRoot"=$(dirname "$0")/..)
+
+# Configure the default StorageClass in the kind cluster
+setup_kind_sc_default_volume_type
 
 # adjust Kind's CRI default OCI runtime spec for new containers to include the cgroup namespace
 # this is required for nesting kubelets on cgroupsv2, as the kindest-node entrypoint script assumes an existing cgroupns when the host kernel uses cgroupsv2
@@ -286,6 +384,9 @@ kubectl -n kube-system get configmap coredns -ojson | \
   sed '0,/ready.*$/s//&'"\n\
     hosts {\n\
       $garden_cluster_ip garden.local.gardener.cloud\n\
+      $garden_cluster_ip gardener.virtual-garden.local.gardener.cloud\n\
+      $garden_cluster_ip api.virtual-garden.local.gardener.cloud\n\
+      $garden_cluster_ip dashboard.ingress.runtime-garden.local.gardener.cloud\n\
       fallthrough\n\
     }\
 "'/' | \
@@ -309,6 +410,7 @@ kubectl apply -k "$(dirname "$0")/../example/gardener-local/calico/$IPFAMILY" --
 kubectl apply -k "$(dirname "$0")/../example/gardener-local/metrics-server"   --server-side
 
 setup_containerd_registry_mirrors
+setup_kind_with_lpp_resize_support
 
 kubectl get nodes -l node-role.kubernetes.io/control-plane -o name |\
   cut -d/ -f2 |\
@@ -334,3 +436,27 @@ if [ $felix_config_found -eq 0 ]; then
   echo "Error: FelixConfiguration 'default' not found or patch failed after $max_retries attempts."
   exit 1
 fi
+
+# Auto approve Kubelet Serving Certificate Signing Requests: https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-certs/#kubelet-serving-certs
+# such that the Kubelet in the KinD cluster uses a certificate signed by the cluster's CA: 'kubernetes'
+# instead of a self-signed certificate generated by the Kubelet itself.
+# The CSR is created with some delay, so for each node, wait for the CSR to be created.
+# There can be multiple CSRs for a node, so approve all of them.
+echo "Approving Kubelet Serving Certificate Signing Requests..."
+for node in $(kubectl get nodes -o jsonpath='{.items[*].metadata.name}'); do
+  max_retries=600
+  for ((i = 0; i < max_retries; i++)); do
+    csr_names=$(kubectl get csr -o json | jq -r --arg node "$node" '
+      .items[] | select(.status=={} and
+                        .spec.signerName == "kubernetes.io/kubelet-serving" and
+                        .spec.username == "system:node:"+$node) | .metadata.name')
+    if [ -n "$csr_names" ]; then
+      for csr_name in $csr_names; do
+        kubectl certificate approve "$csr_name"
+      done
+      break
+    fi
+    sleep 1
+  done
+done
+echo "Kubelet Serving Certificate Signing Requests approved."

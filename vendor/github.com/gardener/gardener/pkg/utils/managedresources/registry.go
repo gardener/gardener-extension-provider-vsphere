@@ -1,20 +1,11 @@
-// Copyright 2020 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package managedresources
 
 import (
+	"bytes"
 	"cmp"
 	"encoding/json"
 	"fmt"
@@ -22,6 +13,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/andybalholm/brotli"
+	"golang.org/x/exp/maps"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -31,6 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
+	resourcesv1alpha1 "github.com/gardener/gardener/pkg/apis/resources/v1alpha1"
 	forkedyaml "github.com/gardener/gardener/third_party/gopkg.in/yaml.v2"
 )
 
@@ -115,7 +109,7 @@ func (r *Registry) Add(objs ...client.Object) error {
 		// or the issue is resolved upstream in yaml.v2
 		// Please see https://github.com/go-yaml/yaml/pull/736
 		if r.isYAMLSerializer {
-			var anyObj interface{}
+			var anyObj any
 			if err := forkedyaml.Unmarshal(serializationYAML, &anyObj); err != nil {
 				return err
 			}
@@ -136,18 +130,50 @@ func (r *Registry) Add(objs ...client.Object) error {
 	return nil
 }
 
-// AddSerialized adds the provided serialized YAML for the registry. The provided filename will be used as key.
+// AddSerialized adds the provided serialized YAML for the registry.
+// The provided filename is required and determines the internal sorting order.
 func (r *Registry) AddSerialized(filename string, serializationYAML []byte) {
 	r.nameToObject[filename] = &object{serialization: serializationYAML}
 }
 
-// SerializedObjects returns a map whose keys are filenames and whose values are serialized objects.
-func (r *Registry) SerializedObjects() map[string][]byte {
-	out := make(map[string][]byte, len(r.nameToObject))
-	for name, object := range r.nameToObject {
-		out[name] = object.serialization
+// SerializedObjects returns a map which can be used as secret data of a managed resource.
+// The map holds a single key `data.yaml.br` with a value containing all objects,
+// concatenated and compressed by the Brotli algorithm.
+func (r *Registry) SerializedObjects() (map[string][]byte, error) {
+	objectKeys := maps.Keys(r.nameToObject)
+	slices.Sort(objectKeys)
+
+	var (
+		buf bytes.Buffer
+		w   = brotli.NewWriter(&buf)
+	)
+
+	for i, objectKey := range objectKeys {
+		if _, err := w.Write(r.nameToObject[objectKey].serialization); err != nil {
+			return nil, err
+		}
+
+		// Some manifests don't end with a new line, add it here.
+		if !bytes.HasSuffix(r.nameToObject[objectKey].serialization, []byte("\n")) {
+			if _, err := w.Write([]byte("\n")); err != nil {
+				return nil, err
+			}
+		}
+		// Add separator for manifests at the end, before next manifest.
+		if !bytes.HasSuffix(r.nameToObject[objectKey].serialization, []byte("---\n")) && i < len(objectKeys)-1 {
+			if _, err := w.Write([]byte("---\n")); err != nil {
+				return nil, err
+			}
+		}
 	}
-	return out
+
+	if err := w.Close(); err != nil {
+		return nil, err
+	}
+
+	return map[string][]byte{
+		resourcesv1alpha1.CompressedDataKey: buf.Bytes(),
+	}, nil
 }
 
 // AddAllAndSerialize calls Add() for all the given objects before calling SerializedObjects().
@@ -155,14 +181,17 @@ func (r *Registry) AddAllAndSerialize(objects ...client.Object) (map[string][]by
 	if err := r.Add(objects...); err != nil {
 		return nil, err
 	}
-	return r.SerializedObjects(), nil
+	return r.SerializedObjects()
 }
 
-// RegisteredObjects returns a map whose keys are filenames and whose values are objects.
-func (r *Registry) RegisteredObjects() map[string]client.Object {
-	out := make(map[string]client.Object, len(r.nameToObject))
-	for name, object := range r.nameToObject {
-		out[name] = object.obj
+// RegisteredObjects returns a slice of registered objects.
+func (r *Registry) RegisteredObjects() []client.Object {
+	objectKeys := maps.Keys(r.nameToObject)
+	slices.Sort(objectKeys)
+
+	out := make([]client.Object, 0, len(r.nameToObject))
+	for _, objectKey := range objectKeys {
+		out = append(out, r.nameToObject[objectKey].obj)
 	}
 	return out
 }
@@ -184,7 +213,7 @@ func (r *Registry) objectName(obj client.Object) (string, error) {
 
 	return fmt.Sprintf(
 		"%s__%s__%s",
-		strings.ToLower(gvk.Kind),
+		strings.ToLower(gvk.String()),
 		obj.GetNamespace(),
 		strings.Replace(obj.GetName(), ":", "_", -1),
 	), nil

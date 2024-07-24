@@ -1,16 +1,6 @@
-// Copyright 2021 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package gardener
 
@@ -27,9 +17,6 @@ import (
 )
 
 const (
-	// ConfirmationDeletion is an annotation on a Shoot and Project resources whose value must be set to "true" in order to
-	// allow deleting the resource (if the annotation is not set any DELETE request will be denied).
-	ConfirmationDeletion = "confirmation.gardener.cloud/deletion"
 	// DeletionProtected is a label on CustomResourceDefinitions indicating that the deletion is protected, i.e.
 	// it must be confirmed with the `confirmation.gardener.cloud/deletion=true` annotation before a `DELETE` call
 	// is accepted.
@@ -46,7 +33,7 @@ func CheckIfDeletionIsConfirmed(obj client.Object) error {
 		return confirmationAnnotationRequiredError()
 	}
 
-	value := annotations[ConfirmationDeletion]
+	value := annotations[v1beta1constants.ConfirmationDeletion]
 	if confirmed, err := strconv.ParseBool(value); err != nil || !confirmed {
 		return confirmationAnnotationRequiredError()
 	}
@@ -57,11 +44,11 @@ func CheckIfDeletionIsConfirmed(obj client.Object) error {
 // request.
 func ConfirmDeletion(ctx context.Context, w client.Writer, obj client.Object) error {
 	patch := client.MergeFrom(obj.DeepCopyObject().(client.Object))
-	kubernetesutils.SetMetaDataAnnotation(obj, ConfirmationDeletion, "true")
+	kubernetesutils.SetMetaDataAnnotation(obj, v1beta1constants.ConfirmationDeletion, "true")
 	kubernetesutils.SetMetaDataAnnotation(obj, v1beta1constants.GardenerTimestamp, TimeNow().UTC().Format(time.RFC3339Nano))
 	return w.Patch(ctx, obj, patch)
 }
 
 func confirmationAnnotationRequiredError() error {
-	return fmt.Errorf("must have a %q annotation to delete", ConfirmationDeletion)
+	return fmt.Errorf("must have a %q annotation to delete", v1beta1constants.ConfirmationDeletion)
 }

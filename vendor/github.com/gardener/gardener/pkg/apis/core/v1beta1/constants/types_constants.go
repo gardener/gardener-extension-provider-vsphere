@@ -1,16 +1,6 @@
-// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package constants
 
@@ -35,7 +25,7 @@ const (
 	SecretNameCAETCD = "ca-etcd"
 	// SecretNameCAETCDPeer is a constant for the name of a Kubernetes secret object that contains the CA
 	// certificate of the etcd peer network of a shoot cluster.
-	SecretNameCAETCDPeer = "ca-etcd-peer"
+	SecretNameCAETCDPeer = "ca-etcd-peer" // #nosec G101 -- No credential.
 	// SecretNameCAFrontProxy is a constant for the name of a Kubernetes secret object that contains the CA
 	// certificate of the kube-aggregator a shoot cluster.
 	SecretNameCAFrontProxy = "ca-front-proxy"
@@ -44,7 +34,7 @@ const (
 	SecretNameCAKubelet = "ca-kubelet"
 	// SecretNameCAMetricsServer is a constant for the name of a Kubernetes secret object that contains the CA
 	// certificate of the metrics-server of a shoot cluster.
-	SecretNameCAMetricsServer = "ca-metrics-server"
+	SecretNameCAMetricsServer = "ca-metrics-server" // #nosec G101 -- No credential.
 	// SecretNameCAVPN is a constant for the name of a Kubernetes secret object that contains the CA
 	// certificate of the VPN components of a shoot cluster.
 	SecretNameCAVPN = "ca-vpn"
@@ -57,22 +47,22 @@ const (
 	SecretNameCloudProvider = "cloudprovider"
 	// SecretNameSSHKeyPair is a constant for the name of a Kubernetes secret object that contains the SSH key pair
 	// (public and private key) that can be used to SSH into the shoot nodes.
-	SecretNameSSHKeyPair = "ssh-keypair"
+	SecretNameSSHKeyPair = "ssh-keypair" // #nosec G101 -- No credential.
 	// SecretNameServiceAccountKey is a constant for the name of a Kubernetes secret object that contains a
 	// PEM-encoded private RSA or ECDSA key used by the Kube Controller Manager to sign service account tokens.
 	SecretNameServiceAccountKey = "service-account-key"
 	// SecretNameObservabilityIngress is a constant for the name of a Kubernetes secret object that contains the ingress
 	// credentials for observability components.
-	SecretNameObservabilityIngress = "observability-ingress"
+	SecretNameObservabilityIngress = "observability-ingress" // #nosec G101 -- No credential.
 	// SecretNameObservabilityIngressUsers is a constant for the name of a Kubernetes secret object that contains the
 	// user's ingress credentials for observability components.
-	SecretNameObservabilityIngressUsers = "observability-ingress-users"
+	SecretNameObservabilityIngressUsers = "observability-ingress-users" // #nosec G101 -- No credential.
 	// SecretNameETCDEncryptionKey is a constant for the name of a Kubernetes secret object that contains the key
 	// for encryption data in ETCD.
-	SecretNameETCDEncryptionKey = "kube-apiserver-etcd-encryption-key"
+	SecretNameETCDEncryptionKey = "kube-apiserver-etcd-encryption-key" // #nosec G101 -- No credential.
 	// SecretNamePrefixETCDEncryptionConfiguration is a constant for the name prefix of a Kubernetes secret object that
 	// contains the configuration for encryption data in ETCD.
-	SecretNamePrefixETCDEncryptionConfiguration = "kube-apiserver-etcd-encryption-configuration"
+	SecretNamePrefixETCDEncryptionConfiguration = "kube-apiserver-etcd-encryption-configuration" // #nosec G101 -- No credential.
 	// SecretNameGardenerETCDEncryptionKey is a constant for the name of a Kubernetes secret object that contains the
 	// key for encryption data in ETCD for gardener-apiserver.
 	SecretNameGardenerETCDEncryptionKey = "gardener-apiserver-etcd-encryption-key"
@@ -196,9 +186,6 @@ const (
 	// StatefulSetNameVali is a constant for the name of a Kubernetes stateful set object that contains
 	// the vali pod.
 	StatefulSetNameVali = "vali"
-	// StatefulSetNamePrometheus is a constant for the name of a Kubernetes stateful set object that contains
-	// the prometheus pod.
-	StatefulSetNamePrometheus = "prometheus"
 
 	// GardenerPurpose is a constant for the key in a label describing the purpose of the respective object.
 	GardenerPurpose = "gardener.cloud/purpose"
@@ -265,8 +252,6 @@ const (
 	GardenRoleMonitoring = "monitoring"
 	// GardenRoleOptionalAddon is the value of the GardenRole key indicating type 'optional-addon'.
 	GardenRoleOptionalAddon = "optional-addon"
-	// GardenRoleCloudConfig is the value of the GardenRole key indicating type 'cloud-config'.
-	GardenRoleCloudConfig = "cloud-config"
 	// GardenRoleOperatingSystemConfig is the value of the GardenRole key indicating type 'operating-system-config'.
 	GardenRoleOperatingSystemConfig = "operating-system-config"
 	// GardenRoleKubeconfig is the value of the GardenRole key indicating type 'kubeconfig'.
@@ -281,8 +266,6 @@ const (
 	GardenRoleDefaultDomain = "default-domain"
 	// GardenRoleInternalDomain is the value of the GardenRole key indicating type 'internal-domain'.
 	GardenRoleInternalDomain = "internal-domain"
-	// GardenRoleOpenVPNDiffieHellman is the value of the GardenRole key indicating type 'openvpn-diffie-hellman'.
-	GardenRoleOpenVPNDiffieHellman = "openvpn-diffie-hellman"
 	// GardenRoleGlobalMonitoring is the value of the GardenRole key indicating type 'global-monitoring'
 	GardenRoleGlobalMonitoring = "global-monitoring"
 	// GardenRoleGlobalShootRemoteWriteMonitoring is the value of the GardenRole key indicating type 'global-shoot-remote-write-monitoring'
@@ -296,6 +279,8 @@ const (
 	GardenRoleControlPlaneWildcardCert = "controlplane-cert"
 	// GardenRoleExposureClassHandler is the value of the GardenRole key indicating type 'exposureclass-handler'.
 	GardenRoleExposureClassHandler = "exposureclass-handler"
+	// GardenRoleShootServiceAccountIssuer is the value of the GardenRole key indicating type 'shoot-service-account-issuer'.
+	GardenRoleShootServiceAccountIssuer = "shoot-service-account-issuer"
 
 	// ShootUID is an annotation key for the shoot namespace in the seed cluster,
 	// which value will be the value of `shoot.status.uid`
@@ -366,13 +351,13 @@ const (
 	// OperationRotateCredentialsStart is a constant for an annotation indicating that the rotation of all credentials
 	// shall be started. This includes CAs, certificates, kubeconfigs, SSH keypairs, observability credentials, and
 	// ServiceAccount signing key.
-	OperationRotateCredentialsStart = "rotate-credentials-start"
+	OperationRotateCredentialsStart = "rotate-credentials-start" // #nosec G101 -- No credential.
 	// OperationRotateCredentialsComplete is a constant for an annotation indicating that the rotation of the
 	// credentials shall be completed.
-	OperationRotateCredentialsComplete = "rotate-credentials-complete"
+	OperationRotateCredentialsComplete = "rotate-credentials-complete" // #nosec G101 -- No credential.
 	// ShootOperationRotateKubeconfigCredentials is a constant for an annotation on a Shoot indicating that the
 	// credentialscontained in the kubeconfig that is handed out to the user shall be rotated.
-	ShootOperationRotateKubeconfigCredentials = "rotate-kubeconfig-credentials"
+	ShootOperationRotateKubeconfigCredentials = "rotate-kubeconfig-credentials" // #nosec G101 -- No credential.
 	// ShootOperationRotateSSHKeypair is a constant for an annotation on a Shoot indicating that the SSH keypair for the
 	// shoot nodes shall be rotated.
 	ShootOperationRotateSSHKeypair = "rotate-ssh-keypair"
@@ -385,7 +370,7 @@ const (
 	// OperationRotateObservabilityCredentials is a constant for an annotation indicating that the
 	// credentials for the observability stack secret shall be rotated. Note that this only affects the user credentials
 	// since the operator credentials are rotated automatically each `30d`.
-	OperationRotateObservabilityCredentials = "rotate-observability-credentials"
+	OperationRotateObservabilityCredentials = "rotate-observability-credentials" // #nosec G101 -- No credential.
 	// OperationRotateServiceAccountKeyStart is a constant for an annotation on a Shoot indicating that the
 	// rotation of the service account signing key shall be started.
 	OperationRotateServiceAccountKeyStart = "rotate-serviceaccount-key-start"
@@ -400,10 +385,16 @@ const (
 	OperationRotateETCDEncryptionKeyComplete = "rotate-etcd-encryption-key-complete"
 	// SeedOperationRenewGardenAccessSecrets is a constant for an annotation on a Seed indicating that the
 	// all garden access secrets on the seed shall be renewed.
-	SeedOperationRenewGardenAccessSecrets = "renew-garden-access-secrets"
+	SeedOperationRenewGardenAccessSecrets = "renew-garden-access-secrets" // #nosec G101 -- No credential.
 	// KubeconfigSecretOperationRenew is a constant for an annotation on the secret in a Seed containing the garden
 	// cluster kubeconfig of a gardenlet indicating that it should be renewed.
 	KubeconfigSecretOperationRenew = "renew"
+
+	// ConfirmationDeletion is an annotation on a Shoot, Project, and ShootState resources whose value must be set to
+	// "true" in order to allow deleting the resource (if the annotation is not set any DELETE request will be denied).
+	ConfirmationDeletion = "confirmation.gardener.cloud/deletion"
+	// DeletionConfirmedBy is an annotation on a resource whose value is the subject which confirmed the deletion.
+	DeletionConfirmedBy = "deletion.gardener.cloud/confirmed-by"
 
 	// SeedResourceManagerClass is the resource-class managed by the Gardener-Resource-Manager
 	// instance in the garden namespace on the seeds.
@@ -422,19 +413,35 @@ const (
 	// LabelExtensionPrefix is used to prefix extension specific labels.
 	LabelExtensionPrefix = "extensions.gardener.cloud/"
 	// LabelExtensionConfiguration is used to identify the provider's configuration which will be added to Gardener configuration
+	// Deprecated: This field will be removed in a future version. Migrate to the new approach, for more details see
+	// https://github.com/gardener/gardener/blob/master/docs/extensions/logging-and-monitoring.md.
+	// TODO(rfranzke): Remove this constant after v1.100 has been released.
 	LabelExtensionConfiguration = LabelExtensionPrefix + "configuration"
 	// LabelLogging is a constant for a label for logging stack configurations
 	LabelLogging = "logging"
 	// LabelMonitoring is a constant for a label for monitoring stack configurations
 	LabelMonitoring = "monitoring"
+	// LabelPrefixMonitoringDashboard is the prefix of a label key on ConfigMaps for indicating that the data contains a
+	// dashboard.
+	LabelPrefixMonitoringDashboard = "dashboard.monitoring.gardener.cloud/"
 	// LabelKeyCustomLoggingResource is the key of the label which is used from the operator to select the CustomResources which will be imported in the FluentBit configuration.
 	// TODO(nickytd): the label key has to be migrated to "fluentbit.gardener.cloud/type".
 	LabelKeyCustomLoggingResource = "fluentbit.gardener/type"
 	// LabelValueCustomLoggingResource is the value of the label which is used from the operator to select the CustomResources which will be imported in the FluentBit configuration.
 	LabelValueCustomLoggingResource = "seed"
+	// LabelSeedNetwork is used to specify whether the seed is reachable from the garden cluster.
+	LabelSeedNetwork = "seed.gardener.cloud/network"
+	// LabelSeedNetworkPrivate is used to specify that the seed is in private networks and not reachable from the garden
+	// cluster.
+	LabelSeedNetworkPrivate = "private"
+	// LabelKeyAggregateToProjectMember is a constant for a label on ClusterRoles that are aggregated to the project
+	// member ClusterRole.
+	LabelKeyAggregateToProjectMember = "rbac.gardener.cloud/aggregate-to-project-member"
 
 	// LabelSecretBindingReference is used to identify secrets which are referred by a SecretBinding (not necessarily in the same namespace).
 	LabelSecretBindingReference = "reference.gardener.cloud/secretbinding"
+	// LabelCredentialsBindingReference is used to identify credentials which are referred by a CredentialsBinding (not necessarily in the same namespace).
+	LabelCredentialsBindingReference = "reference.gardener.cloud/credentialsbinding"
 	// LabelPrefixSeedName is the prefix for the label key describing the name of a seed, e.g. seed.gardener.cloud/my-seed=true.
 	LabelPrefixSeedName = "seed.gardener.cloud/"
 
@@ -450,6 +457,9 @@ const (
 	LabelExtensionOperatingSystemConfigTypePrefix = "operatingsystemconfig.extensions.gardener.cloud/"
 	// LabelExtensionContainerRuntimeTypePrefix is used to prefix extension label for ContainerRuntime types.
 	LabelExtensionContainerRuntimeTypePrefix = "containerruntime.extensions.gardener.cloud/"
+
+	// LabelExtensionProviderMutatedByControlplaneWebhook is used to specify extension provider controlplane webhook targets
+	LabelExtensionProviderMutatedByControlplaneWebhook = LabelExtensionProviderTypePrefix + "mutated-by-controlplane-webhook"
 
 	// LabelNetworkPolicyToBlockedCIDRs allows Egress from pods labeled with 'networking.gardener.cloud/to-blocked-cidrs=allowed'.
 	LabelNetworkPolicyToBlockedCIDRs = "networking.gardener.cloud/to-blocked-cidrs"
@@ -471,8 +481,6 @@ const (
 	// LabelNetworkPolicyToRuntimeAPIServer allows Egress from pods labeled with 'networking.gardener.cloud/to-runtime-apiserver=allowed' to runtime Kubernetes
 	// API Server.
 	LabelNetworkPolicyToRuntimeAPIServer = "networking.gardener.cloud/to-runtime-apiserver"
-	// LabelNetworkPolicyToShootNetworks allows Egress from pods labeled with 'networking.gardener.cloud/to-shoot-networks=allowed' to IPv4 blocks belonging to the Shoot network.
-	LabelNetworkPolicyToShootNetworks = "networking.gardener.cloud/to-shoot-networks"
 	// LabelNetworkPolicyFromPrometheus allows Ingress from Prometheus to pods labeled with 'networking.gardener.cloud/from-prometheus=allowed' and ports
 	// named 'metrics' in the PodSpecification.
 	// Deprecated: This label is deprecated and will be removed in a future version. Components in shoot namespaces
@@ -493,6 +501,10 @@ const (
 	// which should be scraped by Prometheus.
 	// See https://github.com/gardener/gardener/blob/master/docs/concepts/resource-manager.md#overwriting-the-pod-selector-label.
 	LabelNetworkPolicyScrapeTargets = "all-scrape-targets"
+	// LabelNetworkPolicyGardenScrapeTargets is a constant for pod selector label which can be used on Services for
+	// garden system components or extensions which should be scraped by Prometheus.
+	// See https://github.com/gardener/gardener/blob/master/docs/concepts/resource-manager.md#overwriting-the-pod-selector-label.
+	LabelNetworkPolicyGardenScrapeTargets = "all-garden-scrape-targets"
 	// LabelNetworkPolicySeedScrapeTargets is a constant for pod selector label which can be used on Services for
 	// seed system components or extensions which should be scraped by Prometheus.
 	// See https://github.com/gardener/gardener/blob/master/docs/concepts/resource-manager.md#overwriting-the-pod-selector-label.
@@ -523,6 +535,9 @@ const (
 	// cluster which can be used to describe that this ClusterRole contains custom permissions for extensions.
 	LabelAuthorizationCustomExtensionsPermissions = "authorization.gardener.cloud/custom-extensions-permissions"
 
+	// LabelObservabilityApplication is a constant for a label key set to all observability applications in gardener exposing a public endpoint.
+	LabelObservabilityApplication = "observability.gardener.cloud/app"
+
 	// LabelApp is a constant for a label key.
 	LabelApp = "app"
 	// LabelRole is a constant for a label key.
@@ -542,12 +557,42 @@ const (
 	// LabelExtensionProjectRole is a constant for a label value for extension project roles
 	LabelExtensionProjectRole = "extension-project-role"
 
+	// LabelShootNamespace is a constant for a label key that indicates a relationship to a shoot in the specified namespace.
+	LabelShootNamespace = "shoot.gardener.cloud/namespace"
+	// LabelShootName is a constant for a label key that indicates a relationship to a shoot with the specified name.
+	LabelShootName = "shoot.gardener.cloud/name"
+
+	// LabelPublicKeys is a constant for a label key that indicates that a resource contains public keys.
+	LabelPublicKeys = "authentication.gardener.cloud/public-keys"
+	// LabelPublicKeysServiceAccount is a constant for a label value that indicates that a resource contains service account public keys.
+	LabelPublicKeysServiceAccount = "serviceaccount"
+
 	// LabelExposureClassHandlerName is the label key for exposure class handler names.
 	LabelExposureClassHandlerName = "handler.exposureclass.gardener.cloud/name"
 
 	// LabelNodeLocalDNS is a constant for a label key, which the provider extensions set on the nodes.
 	// The value can be true or false.
 	LabelNodeLocalDNS = "networking.gardener.cloud/node-local-dns-enabled"
+
+	// LabelVPAEvictionRequirementsController is a constant for a label indicating that a VPA resource is under control
+	// of the VPAEvictionRequirementsController.
+	LabelVPAEvictionRequirementsController = "autoscaling.gardener.cloud/eviction-requirements"
+	// EvictionRequirementManagedByController is a constant to be used as a value for the label LabelVPAEvictionRequirementsController
+	// to indicate that the vpa-eviction-requirements-controller manages all EvictionRequirements on a VPA object.
+	EvictionRequirementManagedByController = "managed-by-controller"
+
+	// AnnotationVPAEvictionRequirementDownscaleRestriction is a constant for an annotation key on a VPA object indicating that
+	// the VPAEvictionRequirementsController should add an EvictionRestriction that prevents downscaling.
+	// Possible values are "in-maintenance-window-only" and "never", available as constants below.
+	AnnotationVPAEvictionRequirementDownscaleRestriction = "eviction-requirements.autoscaling.gardener.cloud/downscale-restriction"
+	// EvictionRequirementInMaintenanceWindowOnly is a constant to be used as a value for the annotation AnnotationVPAEvictionRequirementDownscaleRestriction,
+	// indicating that downscaling should be restricted to the Shoot's maintenance window.
+	EvictionRequirementInMaintenanceWindowOnly = "in-maintenance-window-only"
+	// EvictionRequirementNever is a constant to be used as a value for the annotation AnnotationVPAEvictionRequirementDownscaleRestriction,
+	// indicating that downscaling should never be allowed.
+	EvictionRequirementNever = "never"
+	// AnnotationShootMaintenanceWindow is a constant for an annotation key used on VPA objects to hold the Shoot's maintenance window start and end.
+	AnnotationShootMaintenanceWindow = "shoot.gardener.cloud/maintenance-window"
 
 	// GardenNamespace is the namespace in which the configuration and secrets for
 	// the Gardener controller manager will be stored (e.g., secrets for the Seed clusters).
@@ -608,22 +653,22 @@ const (
 	// Kubernetes resources' step. Concretely, after the specified seconds, all the finalizers of the affected resources
 	// are forcefully removed.
 	AnnotationShootCleanupKubernetesResourcesFinalizeGracePeriodSeconds = "shoot.gardener.cloud/cleanup-kubernetes-resources-finalize-grace-period-seconds"
-	// AnnotationShootInfrastructureCleanupWaitPeriodSeconds is a key for an annotation on a Shoot
-	// resource that declares the wait period in seconds for infrastructure resources cleanup. Concretely,
-	// Gardener will wait for the specified time after the Infrastructure extension object has been deleted to allow
-	// controllers to gracefully cleanup everything (default behaviour is 300s).
-	AnnotationShootInfrastructureCleanupWaitPeriodSeconds = "shoot.gardener.cloud/infrastructure-cleanup-wait-period-seconds"
 	// AnnotationShootCloudConfigExecutionMaxDelaySeconds is a key for an annotation on a Shoot resource that declares
 	// the maximum delay in seconds when potentially updated cloud-config user data is executed on the worker nodes.
-	// Concretely, the cloud-config-downloader/gardener-node-agent systemd service running on all worker nodes will wait
+	// Concretely, the gardener-node-agent systemd service running on all worker nodes will wait
 	// for a random duration based on the configured value before executing the user data (default value is 300) plus an
 	// additional offset of 30s. If set to 0 then no random delay will be applied and the minimum delay (30s) applies.
 	// Any value above 1800 is ignored (in this case the default value is used).
 	// Note that changing this value only applies to new nodes. Existing nodes which already computed their individual
 	// delays will not recompute it.
 	AnnotationShootCloudConfigExecutionMaxDelaySeconds = "shoot.gardener.cloud/cloud-config-execution-max-delay-seconds"
-	// AnnotationCoreDNSRewritingDisabled disables core dns query rewriting even if the corresponding feature gate is enabled.
-	AnnotationCoreDNSRewritingDisabled = "alpha.featuregates.shoot.gardener.cloud/core-dns-rewriting-disabled"
+
+	// AnnotationAuthenticationIssuer is the key for an annotation applied to a Shoot which specifies
+	// if the shoot's issuer is managed by Gardener.
+	AnnotationAuthenticationIssuer = "authentication.gardener.cloud/issuer"
+	// AnnotationAuthenticationIssuerManaged is the value for [AnnotationAuthenticationIssuer] annotation that indicates that
+	// a shoot's issuer should be managed by Gardener.
+	AnnotationAuthenticationIssuerManaged = "managed"
 
 	// AnnotationPodSecurityEnforce is a constant for an annotation on `ControllerRegistration`s and `ControllerInstallation`s. When set the
 	// `extension` namespace is created with "pod-security.kubernetes.io/enforce" label set to AnnotationPodSecurityEnforce's value.
@@ -648,18 +693,36 @@ const (
 	// FluentBitConfigMapParser is a constant for the Fluent Bit ConfigMap's section regarding Parsers for common container types
 	FluentBitConfigMapParser = "parsers.conf"
 	// PrometheusConfigMapAlertingRules is a constant for the Prometheus alerting rules tag in provider-specific monitoring configuration
+	// Deprecated: This field will be removed in a future version. Migrate to the new approach, for more details see
+	// https://github.com/gardener/gardener/blob/master/docs/extensions/logging-and-monitoring.md#plutono-dashboards.
+	// TODO(rfranzke): Remove this constant after v1.100 has been released.
 	PrometheusConfigMapAlertingRules = "alerting_rules"
 	// PrometheusConfigMapScrapeConfig is a constant for the Prometheus scrape config tag in provider-specific monitoring configuration
+	// Deprecated: This field will be removed in a future version. Migrate to the new approach, for more details see
+	// https://github.com/gardener/gardener/blob/master/docs/extensions/logging-and-monitoring.md#plutono-dashboards.
+	// TODO(rfranzke): Remove this constant after v1.100 has been released.
 	PrometheusConfigMapScrapeConfig = "scrape_config"
 	// PlutonoConfigMapUserDashboard is a constant for the Plutono user dashboard tag in provider-specific monitoring configuration
+	// Deprecated: This field will be removed in a future version. Migrate to the new approach, for more details see
+	// https://github.com/gardener/gardener/blob/master/docs/extensions/logging-and-monitoring.md#plutono-dashboards.
+	// TODO(rfranzke): Remove this constant after v1.100 has been released.
 	PlutonoConfigMapUserDashboard = "dashboard_users"
 	// PlutonoConfigMapOperatorDashboard is a constant for the Plutono operator dashboard tag in provider-specific monitoring configuration
+	// Deprecated: This field will be removed in a future version. Migrate to the new approach, for more details see
+	// https://github.com/gardener/gardener/blob/master/docs/extensions/logging-and-monitoring.md#plutono-dashboards.
+	// TODO(rfranzke): Remove this constant after v1.100 has been released.
 	PlutonoConfigMapOperatorDashboard = "dashboard_operators"
 
 	// LabelControllerRegistrationName is the key of a label on extension namespaces that indicates the controller registration name.
 	LabelControllerRegistrationName = "controllerregistration.core.gardener.cloud/name"
 	// LabelPodMaintenanceRestart is a constant for a label that describes that a pod should be restarted during maintenance.
 	LabelPodMaintenanceRestart = "maintenance.gardener.cloud/restart"
+	// LabelCareConditionType is a key for a label on a ManagedResource indicating to which condition type its status
+	// should be aggregated.
+	LabelCareConditionType = "care.gardener.cloud/condition-type"
+	// ObservabilityComponentsHealthy is a constant for a condition type indicating the health of observability components.
+	ObservabilityComponentsHealthy = "ObservabilityComponentsHealthy"
+
 	// LabelWorkerPool is a constant for a label that indicates the worker pool the node belongs to
 	LabelWorkerPool = "worker.gardener.cloud/pool"
 	// LabelWorkerKubernetesVersion is a constant for a label that indicates the Kubernetes version used for the worker pool nodes.
@@ -668,6 +731,8 @@ const (
 	LabelWorkerPoolDeprecated = "worker.garden.sapcloud.io/group"
 	// LabelWorkerPoolSystemComponents is a constant that indicates whether the worker pool should host system components
 	LabelWorkerPoolSystemComponents = "worker.gardener.cloud/system-components"
+	// LabelWorkerPoolGardenerNodeAgentSecretName is the name of the secret used by the gardener node agent
+	LabelWorkerPoolGardenerNodeAgentSecretName = "worker.gardener.cloud/gardener-node-agent-secret-name"
 
 	// EventResourceReferenced indicates that the resource deletion is in waiting mode because the resource is still
 	// being referenced by at least one other resource (e.g. a SecretBinding is still referenced by a Shoot)
@@ -703,6 +768,9 @@ const (
 	// ShootGroupViewers is a constant for a group name in shoot clusters whose users get read-only privileges (except
 	// for core/v1.Secrets).
 	ShootGroupViewers = "gardener.cloud:system:viewers"
+	// ClusterRoleNameGardenerAdministrators is the name of a cluster role in the garden cluster defining privileges
+	// for administrators.
+	ClusterRoleNameGardenerAdministrators = "gardener.cloud:system:administrators"
 
 	// ProjectName is the key of a label on namespaces whose value holds the project name.
 	ProjectName = "project.gardener.cloud/name"
@@ -754,8 +822,21 @@ const (
 
 	// IngressTLSCertificateValidity is the default validity for ingress TLS certificates.
 	IngressTLSCertificateValidity = 730 * 24 * time.Hour // ~2 years, see https://support.apple.com/en-us/HT210176
+	// IngressDomainPrefixPrometheusAggregate is the prefix of a domain exposing prometheus-aggregate in seed clusters.
+	IngressDomainPrefixPrometheusAggregate = "p-seed"
+
 	// VPNTunnel dictates that VPN is used as a tunnel between seed and shoot networks.
 	VPNTunnel string = "vpn-shoot"
+
+	// AdvertisedAddressExternal is a constant that represents the name of the external kube-apiserver address.
+	AdvertisedAddressExternal = "external"
+	// AdvertisedAddressInternal is a constant that represents the name of the internal kube-apiserver address.
+	AdvertisedAddressInternal = "internal"
+	// AdvertisedAddressUnmanaged is a constant that represents the name of the unmanaged kube-apiserver address.
+	AdvertisedAddressUnmanaged = "unmanaged"
+	// AdvertisedAddressServiceAccountIssuer is a constant that represents the name of the address
+	// that is used as a service account issuer for the kube-apiserver.
+	AdvertisedAddressServiceAccountIssuer = "service-account-issuer"
 )
 
 var (
@@ -853,6 +934,10 @@ const (
 	// AnnotationPrefixWaitForCSINode is the annotation key for csi-driver-node pods, indicating they use the driver
 	// specified in the value.
 	AnnotationPrefixWaitForCSINode = "node.gardener.cloud/wait-for-csi-node-"
+	// AnnotationNodeAgentReconciliationDelay is the annotation key for specifying how long the gardener-node-agent
+	// should wait with reconciliation of the operating system config (to prevent too many node-agents from restarting
+	// kubelet or other critical units at the same time).
+	AnnotationNodeAgentReconciliationDelay = "node-agent.gardener.cloud/reconciliation-delay"
 
 	// GardenPurposeMachineClass is a constant for the 'machineclass' value in a label.
 	GardenPurposeMachineClass = "machineclass"

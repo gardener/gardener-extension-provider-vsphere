@@ -1,21 +1,10 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package v1alpha1
 
 import (
-	"fmt"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -96,6 +85,7 @@ func SetDefaults_ServerConfiguration(obj *ServerConfiguration) {
 // SetDefaults_ExposureClassHandler sets defaults for the configuration for an exposure class handler.
 func SetDefaults_ExposureClassHandler(obj []ExposureClassHandler) {
 	var defaultSVCName = v1beta1constants.DefaultSNIIngressServiceName
+
 	for i, handler := range obj {
 		if obj[i].SNI == nil {
 			obj[i].SNI = &SNI{Ingress: &SNIIngress{}}
@@ -104,7 +94,7 @@ func SetDefaults_ExposureClassHandler(obj []ExposureClassHandler) {
 			obj[i].SNI.Ingress = &SNIIngress{}
 		}
 		if obj[i].SNI.Ingress.Namespace == nil {
-			namespaceName := fmt.Sprintf("istio-ingress-handler-%s", handler.Name)
+			namespaceName := "istio-ingress-handler-" + handler.Name
 			obj[i].SNI.Ingress.Namespace = &namespaceName
 		}
 		if obj[i].SNI.Ingress.ServiceName == nil {
@@ -129,10 +119,10 @@ func SetDefaults_GardenClientConnection(obj *GardenClientConnection) {
 // SetDefaults_KubeconfigValidity sets defaults for the controller objects.
 func SetDefaults_KubeconfigValidity(obj *KubeconfigValidity) {
 	if obj.AutoRotationJitterPercentageMin == nil {
-		obj.AutoRotationJitterPercentageMin = ptr.To(int32(70))
+		obj.AutoRotationJitterPercentageMin = ptr.To[int32](70)
 	}
 	if obj.AutoRotationJitterPercentageMax == nil {
-		obj.AutoRotationJitterPercentageMax = ptr.To(int32(90))
+		obj.AutoRotationJitterPercentageMax = ptr.To[int32](90)
 	}
 }
 
@@ -155,6 +145,9 @@ func SetDefaults_GardenletControllerConfiguration(obj *GardenletControllerConfig
 	}
 	if obj.ControllerInstallationRequired == nil {
 		obj.ControllerInstallationRequired = &ControllerInstallationRequiredControllerConfiguration{}
+	}
+	if obj.Gardenlet == nil {
+		obj.Gardenlet = &GardenletObjectControllerConfiguration{}
 	}
 	if obj.Seed == nil {
 		obj.Seed = &SeedControllerConfiguration{}
@@ -179,6 +172,9 @@ func SetDefaults_GardenletControllerConfiguration(obj *GardenletControllerConfig
 	}
 	if obj.TokenRequestor == nil {
 		obj.TokenRequestor = &TokenRequestorControllerConfiguration{}
+	}
+	if obj.VPAEvictionRequirements == nil {
+		obj.VPAEvictionRequirements = &VPAEvictionRequirementsControllerConfiguration{}
 	}
 }
 
@@ -285,6 +281,13 @@ func SetDefaults_ControllerInstallationRequiredControllerConfiguration(obj *Cont
 	}
 }
 
+// SetDefaults_GardenletObjectControllerConfiguration sets defaults for the gardenlet controller.
+func SetDefaults_GardenletObjectControllerConfiguration(obj *GardenletObjectControllerConfiguration) {
+	if obj.SyncPeriod == nil {
+		obj.SyncPeriod = &metav1.Duration{Duration: 1 * time.Hour}
+	}
+}
+
 // SetDefaults_SeedControllerConfiguration sets defaults for the seed controller.
 func SetDefaults_SeedControllerConfiguration(obj *SeedControllerConfiguration) {
 	if obj.SyncPeriod == nil {
@@ -293,11 +296,11 @@ func SetDefaults_SeedControllerConfiguration(obj *SeedControllerConfiguration) {
 	}
 
 	if obj.LeaseResyncSeconds == nil {
-		obj.LeaseResyncSeconds = ptr.To(int32(2))
+		obj.LeaseResyncSeconds = ptr.To[int32](2)
 	}
 
 	if obj.LeaseResyncMissThreshold == nil {
-		obj.LeaseResyncMissThreshold = ptr.To(int32(10))
+		obj.LeaseResyncMissThreshold = ptr.To[int32](10)
 	}
 }
 
@@ -337,7 +340,7 @@ func SetDefaults_ShootControllerConfiguration(obj *ShootControllerConfiguration)
 	}
 
 	if obj.DNSEntryTTLSeconds == nil {
-		obj.DNSEntryTTLSeconds = ptr.To(int64(120))
+		obj.DNSEntryTTLSeconds = ptr.To[int64](120)
 	}
 }
 
@@ -419,6 +422,13 @@ func SetDefaults_TokenRequestorControllerConfiguration(obj *TokenRequestorContro
 	}
 }
 
+// SetDefaults_VPAEvictionRequirementsControllerConfiguration sets defaults for the VPAEvictionRequirements controller.
+func SetDefaults_VPAEvictionRequirementsControllerConfiguration(obj *VPAEvictionRequirementsControllerConfiguration) {
+	if obj.ConcurrentSyncs == nil {
+		obj.ConcurrentSyncs = ptr.To(5)
+	}
+}
+
 // SetDefaults_SNI sets defaults for SNI.
 func SetDefaults_SNI(obj *SNI) {
 	if obj.Ingress == nil {
@@ -490,27 +500,27 @@ func SetDefaults_ETCDConfig(obj *ETCDConfig) {
 // SetDefaults_ETCDController sets defaults for the ETCD controller.
 func SetDefaults_ETCDController(obj *ETCDController) {
 	if obj.Workers == nil {
-		obj.Workers = ptr.To(int64(50))
+		obj.Workers = ptr.To[int64](50)
 	}
 }
 
 // SetDefaults_CustodianController sets defaults for the ETCD custodian controller.
 func SetDefaults_CustodianController(obj *CustodianController) {
 	if obj.Workers == nil {
-		obj.Workers = ptr.To(int64(10))
+		obj.Workers = ptr.To[int64](10)
 	}
 }
 
 // SetDefaults_BackupCompactionController sets defaults for the ETCD backup compaction controller.
 func SetDefaults_BackupCompactionController(obj *BackupCompactionController) {
 	if obj.Workers == nil {
-		obj.Workers = ptr.To(int64(3))
+		obj.Workers = ptr.To[int64](3)
 	}
 	if obj.EnableBackupCompaction == nil {
 		obj.EnableBackupCompaction = ptr.To(false)
 	}
 	if obj.EventsThreshold == nil {
-		obj.EventsThreshold = ptr.To(int64(1000000))
+		obj.EventsThreshold = ptr.To[int64](1000000)
 	}
 	if obj.MetricsScrapeWaitDuration == nil {
 		obj.MetricsScrapeWaitDuration = &metav1.Duration{Duration: 60 * time.Second}

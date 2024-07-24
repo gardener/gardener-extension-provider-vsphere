@@ -19,6 +19,8 @@ const (
 	ImageNameApiserverProxySidecar = "apiserver-proxy-sidecar"
 	// ImageNameBlackboxExporter is a constant for an image in the image vector with name 'blackbox-exporter'.
 	ImageNameBlackboxExporter = "blackbox-exporter"
+	// ImageNameCertManagement is a constant for an image in the image vector with name 'cert-management'.
+	ImageNameCertManagement = "cert-management"
 	// ImageNameClusterAutoscaler is a constant for an image in the image vector with name 'cluster-autoscaler'.
 	ImageNameClusterAutoscaler = "cluster-autoscaler"
 	// ImageNameClusterProportionalAutoscaler is a constant for an image in the image vector with name 'cluster-proportional-autoscaler'.
@@ -27,6 +29,8 @@ const (
 	ImageNameConfigmapReloader = "configmap-reloader"
 	// ImageNameCoredns is a constant for an image in the image vector with name 'coredns'.
 	ImageNameCoredns = "coredns"
+	// ImageNameCortex is a constant for an image in the image vector with name 'cortex'.
+	ImageNameCortex = "cortex"
 	// ImageNameDependencyWatchdog is a constant for an image in the image vector with name 'dependency-watchdog'.
 	ImageNameDependencyWatchdog = "dependency-watchdog"
 	// ImageNameEtcdDruid is a constant for an image in the image vector with name 'etcd-druid'.
@@ -47,6 +51,10 @@ const (
 	ImageNameGardenerApiserver = "gardener-apiserver"
 	// ImageNameGardenerControllerManager is a constant for an image in the image vector with name 'gardener-controller-manager'.
 	ImageNameGardenerControllerManager = "gardener-controller-manager"
+	// ImageNameGardenerDashboard is a constant for an image in the image vector with name 'gardener-dashboard'.
+	ImageNameGardenerDashboard = "gardener-dashboard"
+	// ImageNameGardenerDiscoveryServer is a constant for an image in the image vector with name 'gardener-discovery-server'.
+	ImageNameGardenerDiscoveryServer = "gardener-discovery-server"
 	// ImageNameGardenerMetricsExporter is a constant for an image in the image vector with name 'gardener-metrics-exporter'.
 	ImageNameGardenerMetricsExporter = "gardener-metrics-exporter"
 	// ImageNameGardenerNodeAgent is a constant for an image in the image vector with name 'gardener-node-agent'.
@@ -99,12 +107,16 @@ const (
 	ImageNamePauseContainer = "pause-container"
 	// ImageNamePlutono is a constant for an image in the image vector with name 'plutono'.
 	ImageNamePlutono = "plutono"
+	// ImageNamePlutonoDashboardRefresher is a constant for an image in the image vector with name 'plutono-dashboard-refresher'.
+	ImageNamePlutonoDashboardRefresher = "plutono-dashboard-refresher"
 	// ImageNamePrometheus is a constant for an image in the image vector with name 'prometheus'.
 	ImageNamePrometheus = "prometheus"
 	// ImageNamePrometheusOperator is a constant for an image in the image vector with name 'prometheus-operator'.
 	ImageNamePrometheusOperator = "prometheus-operator"
 	// ImageNameTelegraf is a constant for an image in the image vector with name 'telegraf'.
 	ImageNameTelegraf = "telegraf"
+	// ImageNameTerminalControllerManager is a constant for an image in the image vector with name 'terminal-controller-manager'.
+	ImageNameTerminalControllerManager = "terminal-controller-manager"
 	// ImageNameTune2fs is a constant for an image in the image vector with name 'tune2fs'.
 	ImageNameTune2fs = "tune2fs"
 	// ImageNameVali is a constant for an image in the image vector with name 'vali'.

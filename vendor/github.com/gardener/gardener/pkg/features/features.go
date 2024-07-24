@@ -1,16 +1,6 @@
-// Copyright 2021 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package features
 
@@ -37,6 +27,12 @@ const (
 	// alpha: v0.32.0
 	HVPAForShootedSeed featuregate.Feature = "HVPAForShootedSeed"
 
+	// VPAForETCD enables using plain VPA for etcd-main and etcd-events, even if HVPA is enabled for the other components.
+	// owner @voelzmo
+	// alpha: v1.94.0
+	// beta: v1.97.0
+	VPAForETCD featuregate.Feature = "VPAForETCD"
+
 	// DefaultSeccompProfile defaults the seccomp profile for Gardener managed workload in the seed to RuntimeDefault.
 	// owner: @dimityrmirchev
 	// alpha: v1.54.0
@@ -44,8 +40,10 @@ const (
 
 	// CoreDNSQueryRewriting enables automatic DNS query rewriting in shoot cluster's CoreDNS to shortcut name resolution of
 	// fully qualified in-cluster and out-of-cluster names, which follow a user-defined pattern.
-	// owner: @ScheererJ @DockToFuture
+	// owner: @ScheererJ @DockToFuture @axel7born
 	// alpha: v1.55.0
+	// beta: v1.96.0
+	// GA: v1.97.0
 	CoreDNSQueryRewriting featuregate.Feature = "CoreDNSQueryRewriting"
 
 	// IPv6SingleStack allows creating shoot clusters with IPv6 single-stack networking (GEP-21).
@@ -56,39 +54,52 @@ const (
 	// MutableShootSpecNetworkingNodes allows updating the field `spec.networking.nodes`.
 	// owner: @axel7born @ScheererJ @DockToFuture @kon-angelo
 	// alpha: v1.64.0
+	// beta: v1.96.0
+	// GA: v1.97.0
 	MutableShootSpecNetworkingNodes featuregate.Feature = "MutableShootSpecNetworkingNodes"
 
 	// ShootForceDeletion allows force deletion of Shoots.
 	// See https://github.com/gardener/gardener/blob/master/docs/usage/shoot_operations.md#shoot-force-deletion for more details.
 	// owner: @acumino @ary1992 @shafeeqes
 	// alpha: v1.81.0
+	// beta: v1.91.0
 	ShootForceDeletion featuregate.Feature = "ShootForceDeletion"
 
-	// MachineControllerManagerDeployment enables Gardener to take over the deployment of the
-	// machine-controller-manager. If enabled, all registered provider extensions must support injecting the
-	// provider-specific MCM provider sidecar container into the deployment via the `controlplane` webhook.
-	// owner: @rfranzke @JensAc @mreiger
-	// alpha: v1.73.0
-	// beta: v1.81.0
-	// GA: v1.82.0
-	// TODO(scheererj): Do not remove this feature gate before v1.90 to give extensions enough time to adopt v1.83.
-	// Otherwise, extensions might end up believing they need to manage MCM again when the feature gate is removed.
-	MachineControllerManagerDeployment featuregate.Feature = "MachineControllerManagerDeployment"
-
-	// APIServerFastRollout enables fast rollouts for Shoot kube-apiservers on the given Seed.
-	// When enabled, maxSurge for Shoot kube-apiserver deployments is set to 100%.
-	// owner: @oliver-goetz
-	// beta: v1.82.0
-	// GA: v1.90.0
-	APIServerFastRollout featuregate.Feature = "APIServerFastRollout"
-
-	// UseGardenerNodeAgent enables the `gardener-node-agent` instead of the `cloud-config-downloader` for shoot worker
+	// UseNamespacedCloudProfile enables the usage of the NamespacedCloudProfile API object
 	// nodes.
-	// owner: @rfranzke @oliver-goetz
-	// alpha: v1.82.0
-	// beta: v1.89.0
-	// GA: v1.90.0
-	UseGardenerNodeAgent featuregate.Feature = "UseGardenerNodeAgent"
+	// owner: @timuthy @benedictweis
+	// alpha: v1.92.0
+	UseNamespacedCloudProfile featuregate.Feature = "UseNamespacedCloudProfile"
+
+	// ShootManagedIssuer enables the shoot managed issuer functionality described in GEP 24.
+	// If enabled it will force gardenlet to fail if shoot service account hostname is not configured.
+	// owner: @dimityrmirchev
+	// alpha: v1.93.0
+	ShootManagedIssuer featuregate.Feature = "ShootManagedIssuer"
+
+	// VPAAndHPAForAPIServer an autoscaling mechanism for kube-apiserver of shoot or virtual garden clusters, and the gardener-apiserver.
+	// They are scaled simultaneously by VPA and HPA on the same metric (CPU and memory usage).
+	// The pod-trashing cycle between VPA and HPA scaling on the same metric is avoided
+	// by configuring the HPA to scale on average usage (not on average utilization) and
+	// by picking the target average utilization values in sync with VPA's allowed maximums.
+	// The feature gate takes precedence over the `HVPA` feature gate when they are both enabled.
+	// owner: @ialidzhikov
+	// alpha: v1.95.0
+	VPAAndHPAForAPIServer featuregate.Feature = "VPAAndHPAForAPIServer"
+
+	// ShootCredentialsBinding enables the usage of the CredentialsBindingName API in shoot spec.
+	// owner: @vpnachev @dimityrmirchev
+	// alpha: v1.98.0
+	ShootCredentialsBinding featuregate.Feature = "ShootCredentialsBinding"
+
+	// NewWorkerPoolHash enables a new calculation method for the worker pool hash. The new
+	// calculation supports rolling worker pools if `kubeReserved`, `evicitonHard` or `cpuManagerPolicy`
+	// in the `kubelet` configuration are changed. All provider extensions must be upgraded
+	// to support this feature first. Shoot configurations should be updated first to no longer
+	// use the `systemReserved` field in the `kubelet` configuration.
+	// owner: @MichaelEischer
+	// alpha: v1.98.0
+	NewWorkerPoolHash featuregate.Feature = "NewWorkerPoolHash"
 )
 
 // DefaultFeatureGate is the central feature gate map used by all gardener components.
@@ -116,16 +127,19 @@ var DefaultFeatureGate = utilfeature.DefaultMutableFeatureGate
 
 // AllFeatureGates is the list of all feature gates.
 var AllFeatureGates = map[featuregate.Feature]featuregate.FeatureSpec{
-	HVPA:                               {Default: false, PreRelease: featuregate.Alpha},
-	HVPAForShootedSeed:                 {Default: false, PreRelease: featuregate.Alpha},
-	DefaultSeccompProfile:              {Default: false, PreRelease: featuregate.Alpha},
-	CoreDNSQueryRewriting:              {Default: false, PreRelease: featuregate.Alpha},
-	IPv6SingleStack:                    {Default: false, PreRelease: featuregate.Alpha},
-	MutableShootSpecNetworkingNodes:    {Default: false, PreRelease: featuregate.Alpha},
-	ShootForceDeletion:                 {Default: false, PreRelease: featuregate.Alpha},
-	MachineControllerManagerDeployment: {Default: true, PreRelease: featuregate.GA, LockToDefault: true},
-	APIServerFastRollout:               {Default: true, PreRelease: featuregate.GA, LockToDefault: true},
-	UseGardenerNodeAgent:               {Default: true, PreRelease: featuregate.GA, LockToDefault: true},
+	HVPA:                            {Default: false, PreRelease: featuregate.Alpha},
+	HVPAForShootedSeed:              {Default: false, PreRelease: featuregate.Alpha},
+	VPAForETCD:                      {Default: true, PreRelease: featuregate.Beta},
+	DefaultSeccompProfile:           {Default: false, PreRelease: featuregate.Alpha},
+	CoreDNSQueryRewriting:           {Default: true, PreRelease: featuregate.GA, LockToDefault: true},
+	IPv6SingleStack:                 {Default: false, PreRelease: featuregate.Alpha},
+	MutableShootSpecNetworkingNodes: {Default: true, PreRelease: featuregate.GA, LockToDefault: true},
+	ShootManagedIssuer:              {Default: false, PreRelease: featuregate.Alpha},
+	ShootForceDeletion:              {Default: true, PreRelease: featuregate.Beta},
+	UseNamespacedCloudProfile:       {Default: false, PreRelease: featuregate.Alpha},
+	VPAAndHPAForAPIServer:           {Default: false, PreRelease: featuregate.Alpha},
+	ShootCredentialsBinding:         {Default: false, PreRelease: featuregate.Alpha},
+	NewWorkerPoolHash:               {Default: false, PreRelease: featuregate.Alpha},
 }
 
 // GetFeatures returns a feature gate map with the respective specifications. Non-existing feature gates are ignored.

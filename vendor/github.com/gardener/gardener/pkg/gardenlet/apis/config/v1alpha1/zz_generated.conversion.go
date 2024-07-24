@@ -201,6 +201,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*GardenletObjectControllerConfiguration)(nil), (*config.GardenletObjectControllerConfiguration)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_GardenletObjectControllerConfiguration_To_config_GardenletObjectControllerConfiguration(a.(*GardenletObjectControllerConfiguration), b.(*config.GardenletObjectControllerConfiguration), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*config.GardenletObjectControllerConfiguration)(nil), (*GardenletObjectControllerConfiguration)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_config_GardenletObjectControllerConfiguration_To_v1alpha1_GardenletObjectControllerConfiguration(a.(*config.GardenletObjectControllerConfiguration), b.(*GardenletObjectControllerConfiguration), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*KubeconfigValidity)(nil), (*config.KubeconfigValidity)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1alpha1_KubeconfigValidity_To_config_KubeconfigValidity(a.(*KubeconfigValidity), b.(*config.KubeconfigValidity), scope)
 	}); err != nil {
@@ -458,6 +468,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*config.TokenRequestorControllerConfiguration)(nil), (*TokenRequestorControllerConfiguration)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_config_TokenRequestorControllerConfiguration_To_v1alpha1_TokenRequestorControllerConfiguration(a.(*config.TokenRequestorControllerConfiguration), b.(*TokenRequestorControllerConfiguration), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*VPAEvictionRequirementsControllerConfiguration)(nil), (*config.VPAEvictionRequirementsControllerConfiguration)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_VPAEvictionRequirementsControllerConfiguration_To_config_VPAEvictionRequirementsControllerConfiguration(a.(*VPAEvictionRequirementsControllerConfiguration), b.(*config.VPAEvictionRequirementsControllerConfiguration), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*config.VPAEvictionRequirementsControllerConfiguration)(nil), (*VPAEvictionRequirementsControllerConfiguration)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_config_VPAEvictionRequirementsControllerConfiguration_To_v1alpha1_VPAEvictionRequirementsControllerConfiguration(a.(*config.VPAEvictionRequirementsControllerConfiguration), b.(*VPAEvictionRequirementsControllerConfiguration), scope)
 	}); err != nil {
 		return err
 	}
@@ -995,6 +1015,7 @@ func autoConvert_v1alpha1_GardenletControllerConfiguration_To_config_GardenletCo
 	out.ControllerInstallation = (*config.ControllerInstallationControllerConfiguration)(unsafe.Pointer(in.ControllerInstallation))
 	out.ControllerInstallationCare = (*config.ControllerInstallationCareControllerConfiguration)(unsafe.Pointer(in.ControllerInstallationCare))
 	out.ControllerInstallationRequired = (*config.ControllerInstallationRequiredControllerConfiguration)(unsafe.Pointer(in.ControllerInstallationRequired))
+	out.Gardenlet = (*config.GardenletObjectControllerConfiguration)(unsafe.Pointer(in.Gardenlet))
 	out.Seed = (*config.SeedControllerConfiguration)(unsafe.Pointer(in.Seed))
 	out.SeedCare = (*config.SeedCareControllerConfiguration)(unsafe.Pointer(in.SeedCare))
 	out.Shoot = (*config.ShootControllerConfiguration)(unsafe.Pointer(in.Shoot))
@@ -1003,6 +1024,7 @@ func autoConvert_v1alpha1_GardenletControllerConfiguration_To_config_GardenletCo
 	out.NetworkPolicy = (*config.NetworkPolicyControllerConfiguration)(unsafe.Pointer(in.NetworkPolicy))
 	out.ManagedSeed = (*config.ManagedSeedControllerConfiguration)(unsafe.Pointer(in.ManagedSeed))
 	out.TokenRequestor = (*config.TokenRequestorControllerConfiguration)(unsafe.Pointer(in.TokenRequestor))
+	out.VPAEvictionRequirements = (*config.VPAEvictionRequirementsControllerConfiguration)(unsafe.Pointer(in.VPAEvictionRequirements))
 	return nil
 }
 
@@ -1018,6 +1040,7 @@ func autoConvert_config_GardenletControllerConfiguration_To_v1alpha1_GardenletCo
 	out.ControllerInstallation = (*ControllerInstallationControllerConfiguration)(unsafe.Pointer(in.ControllerInstallation))
 	out.ControllerInstallationCare = (*ControllerInstallationCareControllerConfiguration)(unsafe.Pointer(in.ControllerInstallationCare))
 	out.ControllerInstallationRequired = (*ControllerInstallationRequiredControllerConfiguration)(unsafe.Pointer(in.ControllerInstallationRequired))
+	out.Gardenlet = (*GardenletObjectControllerConfiguration)(unsafe.Pointer(in.Gardenlet))
 	out.Seed = (*SeedControllerConfiguration)(unsafe.Pointer(in.Seed))
 	out.SeedCare = (*SeedCareControllerConfiguration)(unsafe.Pointer(in.SeedCare))
 	out.Shoot = (*ShootControllerConfiguration)(unsafe.Pointer(in.Shoot))
@@ -1026,12 +1049,33 @@ func autoConvert_config_GardenletControllerConfiguration_To_v1alpha1_GardenletCo
 	out.NetworkPolicy = (*NetworkPolicyControllerConfiguration)(unsafe.Pointer(in.NetworkPolicy))
 	out.ManagedSeed = (*ManagedSeedControllerConfiguration)(unsafe.Pointer(in.ManagedSeed))
 	out.TokenRequestor = (*TokenRequestorControllerConfiguration)(unsafe.Pointer(in.TokenRequestor))
+	out.VPAEvictionRequirements = (*VPAEvictionRequirementsControllerConfiguration)(unsafe.Pointer(in.VPAEvictionRequirements))
 	return nil
 }
 
 // Convert_config_GardenletControllerConfiguration_To_v1alpha1_GardenletControllerConfiguration is an autogenerated conversion function.
 func Convert_config_GardenletControllerConfiguration_To_v1alpha1_GardenletControllerConfiguration(in *config.GardenletControllerConfiguration, out *GardenletControllerConfiguration, s conversion.Scope) error {
 	return autoConvert_config_GardenletControllerConfiguration_To_v1alpha1_GardenletControllerConfiguration(in, out, s)
+}
+
+func autoConvert_v1alpha1_GardenletObjectControllerConfiguration_To_config_GardenletObjectControllerConfiguration(in *GardenletObjectControllerConfiguration, out *config.GardenletObjectControllerConfiguration, s conversion.Scope) error {
+	out.SyncPeriod = (*v1.Duration)(unsafe.Pointer(in.SyncPeriod))
+	return nil
+}
+
+// Convert_v1alpha1_GardenletObjectControllerConfiguration_To_config_GardenletObjectControllerConfiguration is an autogenerated conversion function.
+func Convert_v1alpha1_GardenletObjectControllerConfiguration_To_config_GardenletObjectControllerConfiguration(in *GardenletObjectControllerConfiguration, out *config.GardenletObjectControllerConfiguration, s conversion.Scope) error {
+	return autoConvert_v1alpha1_GardenletObjectControllerConfiguration_To_config_GardenletObjectControllerConfiguration(in, out, s)
+}
+
+func autoConvert_config_GardenletObjectControllerConfiguration_To_v1alpha1_GardenletObjectControllerConfiguration(in *config.GardenletObjectControllerConfiguration, out *GardenletObjectControllerConfiguration, s conversion.Scope) error {
+	out.SyncPeriod = (*v1.Duration)(unsafe.Pointer(in.SyncPeriod))
+	return nil
+}
+
+// Convert_config_GardenletObjectControllerConfiguration_To_v1alpha1_GardenletObjectControllerConfiguration is an autogenerated conversion function.
+func Convert_config_GardenletObjectControllerConfiguration_To_v1alpha1_GardenletObjectControllerConfiguration(in *config.GardenletObjectControllerConfiguration, out *GardenletObjectControllerConfiguration, s conversion.Scope) error {
+	return autoConvert_config_GardenletObjectControllerConfiguration_To_v1alpha1_GardenletObjectControllerConfiguration(in, out, s)
 }
 
 func autoConvert_v1alpha1_KubeconfigValidity_To_config_KubeconfigValidity(in *KubeconfigValidity, out *config.KubeconfigValidity, s conversion.Scope) error {
@@ -1199,7 +1243,6 @@ func Convert_config_NodeToleration_To_v1alpha1_NodeToleration(in *config.NodeTol
 func autoConvert_v1alpha1_RemoteWriteMonitoringConfig_To_config_RemoteWriteMonitoringConfig(in *RemoteWriteMonitoringConfig, out *config.RemoteWriteMonitoringConfig, s conversion.Scope) error {
 	out.URL = in.URL
 	out.Keep = *(*[]string)(unsafe.Pointer(&in.Keep))
-	out.QueueConfig = (*string)(unsafe.Pointer(in.QueueConfig))
 	return nil
 }
 
@@ -1211,7 +1254,6 @@ func Convert_v1alpha1_RemoteWriteMonitoringConfig_To_config_RemoteWriteMonitorin
 func autoConvert_config_RemoteWriteMonitoringConfig_To_v1alpha1_RemoteWriteMonitoringConfig(in *config.RemoteWriteMonitoringConfig, out *RemoteWriteMonitoringConfig, s conversion.Scope) error {
 	out.URL = in.URL
 	out.Keep = *(*[]string)(unsafe.Pointer(&in.Keep))
-	out.QueueConfig = (*string)(unsafe.Pointer(in.QueueConfig))
 	return nil
 }
 
@@ -1638,6 +1680,26 @@ func autoConvert_config_TokenRequestorControllerConfiguration_To_v1alpha1_TokenR
 // Convert_config_TokenRequestorControllerConfiguration_To_v1alpha1_TokenRequestorControllerConfiguration is an autogenerated conversion function.
 func Convert_config_TokenRequestorControllerConfiguration_To_v1alpha1_TokenRequestorControllerConfiguration(in *config.TokenRequestorControllerConfiguration, out *TokenRequestorControllerConfiguration, s conversion.Scope) error {
 	return autoConvert_config_TokenRequestorControllerConfiguration_To_v1alpha1_TokenRequestorControllerConfiguration(in, out, s)
+}
+
+func autoConvert_v1alpha1_VPAEvictionRequirementsControllerConfiguration_To_config_VPAEvictionRequirementsControllerConfiguration(in *VPAEvictionRequirementsControllerConfiguration, out *config.VPAEvictionRequirementsControllerConfiguration, s conversion.Scope) error {
+	out.ConcurrentSyncs = (*int)(unsafe.Pointer(in.ConcurrentSyncs))
+	return nil
+}
+
+// Convert_v1alpha1_VPAEvictionRequirementsControllerConfiguration_To_config_VPAEvictionRequirementsControllerConfiguration is an autogenerated conversion function.
+func Convert_v1alpha1_VPAEvictionRequirementsControllerConfiguration_To_config_VPAEvictionRequirementsControllerConfiguration(in *VPAEvictionRequirementsControllerConfiguration, out *config.VPAEvictionRequirementsControllerConfiguration, s conversion.Scope) error {
+	return autoConvert_v1alpha1_VPAEvictionRequirementsControllerConfiguration_To_config_VPAEvictionRequirementsControllerConfiguration(in, out, s)
+}
+
+func autoConvert_config_VPAEvictionRequirementsControllerConfiguration_To_v1alpha1_VPAEvictionRequirementsControllerConfiguration(in *config.VPAEvictionRequirementsControllerConfiguration, out *VPAEvictionRequirementsControllerConfiguration, s conversion.Scope) error {
+	out.ConcurrentSyncs = (*int)(unsafe.Pointer(in.ConcurrentSyncs))
+	return nil
+}
+
+// Convert_config_VPAEvictionRequirementsControllerConfiguration_To_v1alpha1_VPAEvictionRequirementsControllerConfiguration is an autogenerated conversion function.
+func Convert_config_VPAEvictionRequirementsControllerConfiguration_To_v1alpha1_VPAEvictionRequirementsControllerConfiguration(in *config.VPAEvictionRequirementsControllerConfiguration, out *VPAEvictionRequirementsControllerConfiguration, s conversion.Scope) error {
+	return autoConvert_config_VPAEvictionRequirementsControllerConfiguration_To_v1alpha1_VPAEvictionRequirementsControllerConfiguration(in, out, s)
 }
 
 func autoConvert_v1alpha1_Vali_To_config_Vali(in *Vali, out *config.Vali, s conversion.Scope) error {

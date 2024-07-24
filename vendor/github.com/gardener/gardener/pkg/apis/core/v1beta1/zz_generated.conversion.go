@@ -15,6 +15,7 @@ import (
 	core "github.com/gardener/gardener/pkg/apis/core"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	resource "k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	conversion "k8s.io/apimachinery/pkg/conversion"
@@ -250,6 +251,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*CloudProfileReference)(nil), (*core.CloudProfileReference)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_CloudProfileReference_To_core_CloudProfileReference(a.(*CloudProfileReference), b.(*core.CloudProfileReference), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*core.CloudProfileReference)(nil), (*CloudProfileReference)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_core_CloudProfileReference_To_v1beta1_CloudProfileReference(a.(*core.CloudProfileReference), b.(*CloudProfileReference), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*CloudProfileSpec)(nil), (*core.CloudProfileSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta1_CloudProfileSpec_To_core_CloudProfileSpec(a.(*CloudProfileSpec), b.(*core.CloudProfileSpec), scope)
 	}); err != nil {
@@ -307,16 +318,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*core.ControlPlane)(nil), (*ControlPlane)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_core_ControlPlane_To_v1beta1_ControlPlane(a.(*core.ControlPlane), b.(*ControlPlane), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*ControllerDeployment)(nil), (*core.ControllerDeployment)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1beta1_ControllerDeployment_To_core_ControllerDeployment(a.(*ControllerDeployment), b.(*core.ControllerDeployment), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*core.ControllerDeployment)(nil), (*ControllerDeployment)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_core_ControllerDeployment_To_v1beta1_ControllerDeployment(a.(*core.ControllerDeployment), b.(*ControllerDeployment), scope)
 	}); err != nil {
 		return err
 	}
@@ -507,6 +508,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*core.DeploymentRef)(nil), (*DeploymentRef)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_core_DeploymentRef_To_v1beta1_DeploymentRef(a.(*core.DeploymentRef), b.(*DeploymentRef), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*DualApprovalForDeletion)(nil), (*core.DualApprovalForDeletion)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_DualApprovalForDeletion_To_core_DualApprovalForDeletion(a.(*DualApprovalForDeletion), b.(*core.DualApprovalForDeletion), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*core.DualApprovalForDeletion)(nil), (*DualApprovalForDeletion)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_core_DualApprovalForDeletion_To_v1beta1_DualApprovalForDeletion(a.(*core.DualApprovalForDeletion), b.(*DualApprovalForDeletion), scope)
 	}); err != nil {
 		return err
 	}
@@ -855,6 +866,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*LoadBalancerServicesProxyProtocol)(nil), (*core.LoadBalancerServicesProxyProtocol)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_LoadBalancerServicesProxyProtocol_To_core_LoadBalancerServicesProxyProtocol(a.(*LoadBalancerServicesProxyProtocol), b.(*core.LoadBalancerServicesProxyProtocol), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*core.LoadBalancerServicesProxyProtocol)(nil), (*LoadBalancerServicesProxyProtocol)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_core_LoadBalancerServicesProxyProtocol_To_v1beta1_LoadBalancerServicesProxyProtocol(a.(*core.LoadBalancerServicesProxyProtocol), b.(*LoadBalancerServicesProxyProtocol), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*Machine)(nil), (*core.Machine)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta1_Machine_To_core_Machine(a.(*Machine), b.(*core.Machine), scope)
 	}); err != nil {
@@ -975,6 +996,46 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*NamespacedCloudProfile)(nil), (*core.NamespacedCloudProfile)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_NamespacedCloudProfile_To_core_NamespacedCloudProfile(a.(*NamespacedCloudProfile), b.(*core.NamespacedCloudProfile), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*core.NamespacedCloudProfile)(nil), (*NamespacedCloudProfile)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_core_NamespacedCloudProfile_To_v1beta1_NamespacedCloudProfile(a.(*core.NamespacedCloudProfile), b.(*NamespacedCloudProfile), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*NamespacedCloudProfileList)(nil), (*core.NamespacedCloudProfileList)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_NamespacedCloudProfileList_To_core_NamespacedCloudProfileList(a.(*NamespacedCloudProfileList), b.(*core.NamespacedCloudProfileList), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*core.NamespacedCloudProfileList)(nil), (*NamespacedCloudProfileList)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_core_NamespacedCloudProfileList_To_v1beta1_NamespacedCloudProfileList(a.(*core.NamespacedCloudProfileList), b.(*NamespacedCloudProfileList), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*NamespacedCloudProfileSpec)(nil), (*core.NamespacedCloudProfileSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_NamespacedCloudProfileSpec_To_core_NamespacedCloudProfileSpec(a.(*NamespacedCloudProfileSpec), b.(*core.NamespacedCloudProfileSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*core.NamespacedCloudProfileSpec)(nil), (*NamespacedCloudProfileSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_core_NamespacedCloudProfileSpec_To_v1beta1_NamespacedCloudProfileSpec(a.(*core.NamespacedCloudProfileSpec), b.(*NamespacedCloudProfileSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*NamespacedCloudProfileStatus)(nil), (*core.NamespacedCloudProfileStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_NamespacedCloudProfileStatus_To_core_NamespacedCloudProfileStatus(a.(*NamespacedCloudProfileStatus), b.(*core.NamespacedCloudProfileStatus), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*core.NamespacedCloudProfileStatus)(nil), (*NamespacedCloudProfileStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_core_NamespacedCloudProfileStatus_To_v1beta1_NamespacedCloudProfileStatus(a.(*core.NamespacedCloudProfileStatus), b.(*NamespacedCloudProfileStatus), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*Networking)(nil), (*core.Networking)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta1_Networking_To_core_Networking(a.(*Networking), b.(*core.Networking), scope)
 	}); err != nil {
@@ -982,6 +1043,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*core.Networking)(nil), (*Networking)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_core_Networking_To_v1beta1_Networking(a.(*core.Networking), b.(*Networking), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*NetworkingStatus)(nil), (*core.NetworkingStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_NetworkingStatus_To_core_NetworkingStatus(a.(*NetworkingStatus), b.(*core.NetworkingStatus), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*core.NetworkingStatus)(nil), (*NetworkingStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_core_NetworkingStatus_To_v1beta1_NetworkingStatus(a.(*core.NetworkingStatus), b.(*NetworkingStatus), scope)
 	}); err != nil {
 		return err
 	}
@@ -1002,6 +1073,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*core.NodeLocalDNS)(nil), (*NodeLocalDNS)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_core_NodeLocalDNS_To_v1beta1_NodeLocalDNS(a.(*core.NodeLocalDNS), b.(*NodeLocalDNS), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*OCIRepository)(nil), (*core.OCIRepository)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_OCIRepository_To_core_OCIRepository(a.(*OCIRepository), b.(*core.OCIRepository), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*core.OCIRepository)(nil), (*OCIRepository)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_core_OCIRepository_To_v1beta1_OCIRepository(a.(*core.OCIRepository), b.(*OCIRepository), scope)
 	}); err != nil {
 		return err
 	}
@@ -1705,6 +1786,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddConversionFunc((*core.ControllerDeployment)(nil), (*ControllerDeployment)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_core_ControllerDeployment_To_v1beta1_ControllerDeployment(a.(*core.ControllerDeployment), b.(*ControllerDeployment), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddConversionFunc((*core.HelmControllerDeployment)(nil), (*HelmControllerDeployment)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_core_HelmControllerDeployment_To_v1beta1_HelmControllerDeployment(a.(*core.HelmControllerDeployment), b.(*HelmControllerDeployment), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddConversionFunc((*core.ProjectMember)(nil), (*ProjectMember)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_core_ProjectMember_To_v1beta1_ProjectMember(a.(*core.ProjectMember), b.(*ProjectMember), scope)
 	}); err != nil {
@@ -1712,6 +1803,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddConversionFunc((*core.ProjectSpec)(nil), (*ProjectSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_core_ProjectSpec_To_v1beta1_ProjectSpec(a.(*core.ProjectSpec), b.(*ProjectSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddConversionFunc((*ControllerDeployment)(nil), (*core.ControllerDeployment)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_ControllerDeployment_To_core_ControllerDeployment(a.(*ControllerDeployment), b.(*core.ControllerDeployment), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddConversionFunc((*HelmControllerDeployment)(nil), (*core.HelmControllerDeployment)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_HelmControllerDeployment_To_core_HelmControllerDeployment(a.(*HelmControllerDeployment), b.(*core.HelmControllerDeployment), scope)
 	}); err != nil {
 		return err
 	}
@@ -2183,9 +2284,9 @@ func Convert_v1beta1_CARotation_To_core_CARotation(in *CARotation, out *core.CAR
 
 func autoConvert_core_CARotation_To_v1beta1_CARotation(in *core.CARotation, out *CARotation, s conversion.Scope) error {
 	out.Phase = CredentialsRotationPhase(in.Phase)
+	out.LastCompletionTime = (*metav1.Time)(unsafe.Pointer(in.LastCompletionTime))
 	out.LastInitiationTime = (*metav1.Time)(unsafe.Pointer(in.LastInitiationTime))
 	out.LastInitiationFinishedTime = (*metav1.Time)(unsafe.Pointer(in.LastInitiationFinishedTime))
-	out.LastCompletionTime = (*metav1.Time)(unsafe.Pointer(in.LastCompletionTime))
 	out.LastCompletionTriggeredTime = (*metav1.Time)(unsafe.Pointer(in.LastCompletionTriggeredTime))
 	return nil
 }
@@ -2263,6 +2364,28 @@ func autoConvert_core_CloudProfileList_To_v1beta1_CloudProfileList(in *core.Clou
 // Convert_core_CloudProfileList_To_v1beta1_CloudProfileList is an autogenerated conversion function.
 func Convert_core_CloudProfileList_To_v1beta1_CloudProfileList(in *core.CloudProfileList, out *CloudProfileList, s conversion.Scope) error {
 	return autoConvert_core_CloudProfileList_To_v1beta1_CloudProfileList(in, out, s)
+}
+
+func autoConvert_v1beta1_CloudProfileReference_To_core_CloudProfileReference(in *CloudProfileReference, out *core.CloudProfileReference, s conversion.Scope) error {
+	out.Kind = in.Kind
+	out.Name = in.Name
+	return nil
+}
+
+// Convert_v1beta1_CloudProfileReference_To_core_CloudProfileReference is an autogenerated conversion function.
+func Convert_v1beta1_CloudProfileReference_To_core_CloudProfileReference(in *CloudProfileReference, out *core.CloudProfileReference, s conversion.Scope) error {
+	return autoConvert_v1beta1_CloudProfileReference_To_core_CloudProfileReference(in, out, s)
+}
+
+func autoConvert_core_CloudProfileReference_To_v1beta1_CloudProfileReference(in *core.CloudProfileReference, out *CloudProfileReference, s conversion.Scope) error {
+	out.Kind = in.Kind
+	out.Name = in.Name
+	return nil
+}
+
+// Convert_core_CloudProfileReference_To_v1beta1_CloudProfileReference is an autogenerated conversion function.
+func Convert_core_CloudProfileReference_To_v1beta1_CloudProfileReference(in *core.CloudProfileReference, out *CloudProfileReference, s conversion.Scope) error {
+	return autoConvert_core_CloudProfileReference_To_v1beta1_CloudProfileReference(in, out, s)
 }
 
 func autoConvert_v1beta1_CloudProfileSpec_To_core_CloudProfileSpec(in *CloudProfileSpec, out *core.CloudProfileSpec, s conversion.Scope) error {
@@ -2462,23 +2585,14 @@ func autoConvert_v1beta1_ControllerDeployment_To_core_ControllerDeployment(in *C
 	return nil
 }
 
-// Convert_v1beta1_ControllerDeployment_To_core_ControllerDeployment is an autogenerated conversion function.
-func Convert_v1beta1_ControllerDeployment_To_core_ControllerDeployment(in *ControllerDeployment, out *core.ControllerDeployment, s conversion.Scope) error {
-	return autoConvert_v1beta1_ControllerDeployment_To_core_ControllerDeployment(in, out, s)
-}
-
 func autoConvert_core_ControllerDeployment_To_v1beta1_ControllerDeployment(in *core.ControllerDeployment, out *ControllerDeployment, s conversion.Scope) error {
 	out.ObjectMeta = in.ObjectMeta
 	out.Type = in.Type
 	if err := runtime.Convert_runtime_Object_To_runtime_RawExtension(&in.ProviderConfig, &out.ProviderConfig, s); err != nil {
 		return err
 	}
+	// WARNING: in.Helm requires manual conversion: does not exist in peer-type
 	return nil
-}
-
-// Convert_core_ControllerDeployment_To_v1beta1_ControllerDeployment is an autogenerated conversion function.
-func Convert_core_ControllerDeployment_To_v1beta1_ControllerDeployment(in *core.ControllerDeployment, out *ControllerDeployment, s conversion.Scope) error {
-	return autoConvert_core_ControllerDeployment_To_v1beta1_ControllerDeployment(in, out, s)
 }
 
 func autoConvert_v1beta1_ControllerDeploymentList_To_core_ControllerDeploymentList(in *ControllerDeploymentList, out *core.ControllerDeploymentList, s conversion.Scope) error {
@@ -2953,6 +3067,30 @@ func Convert_core_DeploymentRef_To_v1beta1_DeploymentRef(in *core.DeploymentRef,
 	return autoConvert_core_DeploymentRef_To_v1beta1_DeploymentRef(in, out, s)
 }
 
+func autoConvert_v1beta1_DualApprovalForDeletion_To_core_DualApprovalForDeletion(in *DualApprovalForDeletion, out *core.DualApprovalForDeletion, s conversion.Scope) error {
+	out.Resource = in.Resource
+	out.Selector = in.Selector
+	out.IncludeServiceAccounts = (*bool)(unsafe.Pointer(in.IncludeServiceAccounts))
+	return nil
+}
+
+// Convert_v1beta1_DualApprovalForDeletion_To_core_DualApprovalForDeletion is an autogenerated conversion function.
+func Convert_v1beta1_DualApprovalForDeletion_To_core_DualApprovalForDeletion(in *DualApprovalForDeletion, out *core.DualApprovalForDeletion, s conversion.Scope) error {
+	return autoConvert_v1beta1_DualApprovalForDeletion_To_core_DualApprovalForDeletion(in, out, s)
+}
+
+func autoConvert_core_DualApprovalForDeletion_To_v1beta1_DualApprovalForDeletion(in *core.DualApprovalForDeletion, out *DualApprovalForDeletion, s conversion.Scope) error {
+	out.Resource = in.Resource
+	out.Selector = in.Selector
+	out.IncludeServiceAccounts = (*bool)(unsafe.Pointer(in.IncludeServiceAccounts))
+	return nil
+}
+
+// Convert_core_DualApprovalForDeletion_To_v1beta1_DualApprovalForDeletion is an autogenerated conversion function.
+func Convert_core_DualApprovalForDeletion_To_v1beta1_DualApprovalForDeletion(in *core.DualApprovalForDeletion, out *DualApprovalForDeletion, s conversion.Scope) error {
+	return autoConvert_core_DualApprovalForDeletion_To_v1beta1_DualApprovalForDeletion(in, out, s)
+}
+
 func autoConvert_v1beta1_ETCDEncryptionKeyRotation_To_core_ETCDEncryptionKeyRotation(in *ETCDEncryptionKeyRotation, out *core.ETCDEncryptionKeyRotation, s conversion.Scope) error {
 	out.Phase = core.CredentialsRotationPhase(in.Phase)
 	out.LastCompletionTime = (*metav1.Time)(unsafe.Pointer(in.LastCompletionTime))
@@ -2969,9 +3107,9 @@ func Convert_v1beta1_ETCDEncryptionKeyRotation_To_core_ETCDEncryptionKeyRotation
 
 func autoConvert_core_ETCDEncryptionKeyRotation_To_v1beta1_ETCDEncryptionKeyRotation(in *core.ETCDEncryptionKeyRotation, out *ETCDEncryptionKeyRotation, s conversion.Scope) error {
 	out.Phase = CredentialsRotationPhase(in.Phase)
+	out.LastCompletionTime = (*metav1.Time)(unsafe.Pointer(in.LastCompletionTime))
 	out.LastInitiationTime = (*metav1.Time)(unsafe.Pointer(in.LastInitiationTime))
 	out.LastInitiationFinishedTime = (*metav1.Time)(unsafe.Pointer(in.LastInitiationFinishedTime))
-	out.LastCompletionTime = (*metav1.Time)(unsafe.Pointer(in.LastCompletionTime))
 	out.LastCompletionTriggeredTime = (*metav1.Time)(unsafe.Pointer(in.LastCompletionTriggeredTime))
 	return nil
 }
@@ -3213,6 +3351,20 @@ func autoConvert_core_GardenerResourceData_To_v1beta1_GardenerResourceData(in *c
 // Convert_core_GardenerResourceData_To_v1beta1_GardenerResourceData is an autogenerated conversion function.
 func Convert_core_GardenerResourceData_To_v1beta1_GardenerResourceData(in *core.GardenerResourceData, out *GardenerResourceData, s conversion.Scope) error {
 	return autoConvert_core_GardenerResourceData_To_v1beta1_GardenerResourceData(in, out, s)
+}
+
+func autoConvert_v1beta1_HelmControllerDeployment_To_core_HelmControllerDeployment(in *HelmControllerDeployment, out *core.HelmControllerDeployment, s conversion.Scope) error {
+	// WARNING: in.Chart requires manual conversion: does not exist in peer-type
+	out.Values = (*apiextensionsv1.JSON)(unsafe.Pointer(in.Values))
+	out.OCIRepository = (*core.OCIRepository)(unsafe.Pointer(in.OCIRepository))
+	return nil
+}
+
+func autoConvert_core_HelmControllerDeployment_To_v1beta1_HelmControllerDeployment(in *core.HelmControllerDeployment, out *HelmControllerDeployment, s conversion.Scope) error {
+	// WARNING: in.RawChart requires manual conversion: does not exist in peer-type
+	out.Values = (*apiextensionsv1.JSON)(unsafe.Pointer(in.Values))
+	out.OCIRepository = (*OCIRepository)(unsafe.Pointer(in.OCIRepository))
+	return nil
 }
 
 func autoConvert_v1beta1_Hibernation_To_core_Hibernation(in *Hibernation, out *core.Hibernation, s conversion.Scope) error {
@@ -3768,7 +3920,6 @@ func Convert_core_KubeletConfigReserved_To_v1beta1_KubeletConfigReserved(in *cor
 }
 
 func autoConvert_v1beta1_Kubernetes_To_core_Kubernetes(in *Kubernetes, out *core.Kubernetes, s conversion.Scope) error {
-	out.AllowPrivilegedContainers = (*bool)(unsafe.Pointer(in.AllowPrivilegedContainers))
 	out.ClusterAutoscaler = (*core.ClusterAutoscaler)(unsafe.Pointer(in.ClusterAutoscaler))
 	if in.KubeAPIServer != nil {
 		in, out := &in.KubeAPIServer, &out.KubeAPIServer
@@ -3803,7 +3954,6 @@ func Convert_v1beta1_Kubernetes_To_core_Kubernetes(in *Kubernetes, out *core.Kub
 }
 
 func autoConvert_core_Kubernetes_To_v1beta1_Kubernetes(in *core.Kubernetes, out *Kubernetes, s conversion.Scope) error {
-	out.AllowPrivilegedContainers = (*bool)(unsafe.Pointer(in.AllowPrivilegedContainers))
 	out.ClusterAutoscaler = (*ClusterAutoscaler)(unsafe.Pointer(in.ClusterAutoscaler))
 	if in.KubeAPIServer != nil {
 		in, out := &in.KubeAPIServer, &out.KubeAPIServer
@@ -3981,6 +4131,26 @@ func autoConvert_core_LastOperation_To_v1beta1_LastOperation(in *core.LastOperat
 // Convert_core_LastOperation_To_v1beta1_LastOperation is an autogenerated conversion function.
 func Convert_core_LastOperation_To_v1beta1_LastOperation(in *core.LastOperation, out *LastOperation, s conversion.Scope) error {
 	return autoConvert_core_LastOperation_To_v1beta1_LastOperation(in, out, s)
+}
+
+func autoConvert_v1beta1_LoadBalancerServicesProxyProtocol_To_core_LoadBalancerServicesProxyProtocol(in *LoadBalancerServicesProxyProtocol, out *core.LoadBalancerServicesProxyProtocol, s conversion.Scope) error {
+	out.Allowed = in.Allowed
+	return nil
+}
+
+// Convert_v1beta1_LoadBalancerServicesProxyProtocol_To_core_LoadBalancerServicesProxyProtocol is an autogenerated conversion function.
+func Convert_v1beta1_LoadBalancerServicesProxyProtocol_To_core_LoadBalancerServicesProxyProtocol(in *LoadBalancerServicesProxyProtocol, out *core.LoadBalancerServicesProxyProtocol, s conversion.Scope) error {
+	return autoConvert_v1beta1_LoadBalancerServicesProxyProtocol_To_core_LoadBalancerServicesProxyProtocol(in, out, s)
+}
+
+func autoConvert_core_LoadBalancerServicesProxyProtocol_To_v1beta1_LoadBalancerServicesProxyProtocol(in *core.LoadBalancerServicesProxyProtocol, out *LoadBalancerServicesProxyProtocol, s conversion.Scope) error {
+	out.Allowed = in.Allowed
+	return nil
+}
+
+// Convert_core_LoadBalancerServicesProxyProtocol_To_v1beta1_LoadBalancerServicesProxyProtocol is an autogenerated conversion function.
+func Convert_core_LoadBalancerServicesProxyProtocol_To_v1beta1_LoadBalancerServicesProxyProtocol(in *core.LoadBalancerServicesProxyProtocol, out *LoadBalancerServicesProxyProtocol, s conversion.Scope) error {
+	return autoConvert_core_LoadBalancerServicesProxyProtocol_To_v1beta1_LoadBalancerServicesProxyProtocol(in, out, s)
 }
 
 func autoConvert_v1beta1_Machine_To_core_Machine(in *Machine, out *core.Machine, s conversion.Scope) error {
@@ -4293,6 +4463,122 @@ func Convert_core_NamedResourceReference_To_v1beta1_NamedResourceReference(in *c
 	return autoConvert_core_NamedResourceReference_To_v1beta1_NamedResourceReference(in, out, s)
 }
 
+func autoConvert_v1beta1_NamespacedCloudProfile_To_core_NamespacedCloudProfile(in *NamespacedCloudProfile, out *core.NamespacedCloudProfile, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_v1beta1_NamespacedCloudProfileSpec_To_core_NamespacedCloudProfileSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	if err := Convert_v1beta1_NamespacedCloudProfileStatus_To_core_NamespacedCloudProfileStatus(&in.Status, &out.Status, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_v1beta1_NamespacedCloudProfile_To_core_NamespacedCloudProfile is an autogenerated conversion function.
+func Convert_v1beta1_NamespacedCloudProfile_To_core_NamespacedCloudProfile(in *NamespacedCloudProfile, out *core.NamespacedCloudProfile, s conversion.Scope) error {
+	return autoConvert_v1beta1_NamespacedCloudProfile_To_core_NamespacedCloudProfile(in, out, s)
+}
+
+func autoConvert_core_NamespacedCloudProfile_To_v1beta1_NamespacedCloudProfile(in *core.NamespacedCloudProfile, out *NamespacedCloudProfile, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_core_NamespacedCloudProfileSpec_To_v1beta1_NamespacedCloudProfileSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	if err := Convert_core_NamespacedCloudProfileStatus_To_v1beta1_NamespacedCloudProfileStatus(&in.Status, &out.Status, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_core_NamespacedCloudProfile_To_v1beta1_NamespacedCloudProfile is an autogenerated conversion function.
+func Convert_core_NamespacedCloudProfile_To_v1beta1_NamespacedCloudProfile(in *core.NamespacedCloudProfile, out *NamespacedCloudProfile, s conversion.Scope) error {
+	return autoConvert_core_NamespacedCloudProfile_To_v1beta1_NamespacedCloudProfile(in, out, s)
+}
+
+func autoConvert_v1beta1_NamespacedCloudProfileList_To_core_NamespacedCloudProfileList(in *NamespacedCloudProfileList, out *core.NamespacedCloudProfileList, s conversion.Scope) error {
+	out.ListMeta = in.ListMeta
+	out.Items = *(*[]core.NamespacedCloudProfile)(unsafe.Pointer(&in.Items))
+	return nil
+}
+
+// Convert_v1beta1_NamespacedCloudProfileList_To_core_NamespacedCloudProfileList is an autogenerated conversion function.
+func Convert_v1beta1_NamespacedCloudProfileList_To_core_NamespacedCloudProfileList(in *NamespacedCloudProfileList, out *core.NamespacedCloudProfileList, s conversion.Scope) error {
+	return autoConvert_v1beta1_NamespacedCloudProfileList_To_core_NamespacedCloudProfileList(in, out, s)
+}
+
+func autoConvert_core_NamespacedCloudProfileList_To_v1beta1_NamespacedCloudProfileList(in *core.NamespacedCloudProfileList, out *NamespacedCloudProfileList, s conversion.Scope) error {
+	out.ListMeta = in.ListMeta
+	out.Items = *(*[]NamespacedCloudProfile)(unsafe.Pointer(&in.Items))
+	return nil
+}
+
+// Convert_core_NamespacedCloudProfileList_To_v1beta1_NamespacedCloudProfileList is an autogenerated conversion function.
+func Convert_core_NamespacedCloudProfileList_To_v1beta1_NamespacedCloudProfileList(in *core.NamespacedCloudProfileList, out *NamespacedCloudProfileList, s conversion.Scope) error {
+	return autoConvert_core_NamespacedCloudProfileList_To_v1beta1_NamespacedCloudProfileList(in, out, s)
+}
+
+func autoConvert_v1beta1_NamespacedCloudProfileSpec_To_core_NamespacedCloudProfileSpec(in *NamespacedCloudProfileSpec, out *core.NamespacedCloudProfileSpec, s conversion.Scope) error {
+	out.CABundle = (*string)(unsafe.Pointer(in.CABundle))
+	out.Kubernetes = (*core.KubernetesSettings)(unsafe.Pointer(in.Kubernetes))
+	out.MachineImages = *(*[]core.MachineImage)(unsafe.Pointer(&in.MachineImages))
+	out.MachineTypes = *(*[]core.MachineType)(unsafe.Pointer(&in.MachineTypes))
+	out.Regions = *(*[]core.Region)(unsafe.Pointer(&in.Regions))
+	out.VolumeTypes = *(*[]core.VolumeType)(unsafe.Pointer(&in.VolumeTypes))
+	if err := Convert_v1beta1_CloudProfileReference_To_core_CloudProfileReference(&in.Parent, &out.Parent, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_v1beta1_NamespacedCloudProfileSpec_To_core_NamespacedCloudProfileSpec is an autogenerated conversion function.
+func Convert_v1beta1_NamespacedCloudProfileSpec_To_core_NamespacedCloudProfileSpec(in *NamespacedCloudProfileSpec, out *core.NamespacedCloudProfileSpec, s conversion.Scope) error {
+	return autoConvert_v1beta1_NamespacedCloudProfileSpec_To_core_NamespacedCloudProfileSpec(in, out, s)
+}
+
+func autoConvert_core_NamespacedCloudProfileSpec_To_v1beta1_NamespacedCloudProfileSpec(in *core.NamespacedCloudProfileSpec, out *NamespacedCloudProfileSpec, s conversion.Scope) error {
+	out.CABundle = (*string)(unsafe.Pointer(in.CABundle))
+	out.Kubernetes = (*KubernetesSettings)(unsafe.Pointer(in.Kubernetes))
+	out.MachineImages = *(*[]MachineImage)(unsafe.Pointer(&in.MachineImages))
+	out.MachineTypes = *(*[]MachineType)(unsafe.Pointer(&in.MachineTypes))
+	out.Regions = *(*[]Region)(unsafe.Pointer(&in.Regions))
+	out.VolumeTypes = *(*[]VolumeType)(unsafe.Pointer(&in.VolumeTypes))
+	if err := Convert_core_CloudProfileReference_To_v1beta1_CloudProfileReference(&in.Parent, &out.Parent, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_core_NamespacedCloudProfileSpec_To_v1beta1_NamespacedCloudProfileSpec is an autogenerated conversion function.
+func Convert_core_NamespacedCloudProfileSpec_To_v1beta1_NamespacedCloudProfileSpec(in *core.NamespacedCloudProfileSpec, out *NamespacedCloudProfileSpec, s conversion.Scope) error {
+	return autoConvert_core_NamespacedCloudProfileSpec_To_v1beta1_NamespacedCloudProfileSpec(in, out, s)
+}
+
+func autoConvert_v1beta1_NamespacedCloudProfileStatus_To_core_NamespacedCloudProfileStatus(in *NamespacedCloudProfileStatus, out *core.NamespacedCloudProfileStatus, s conversion.Scope) error {
+	if err := Convert_v1beta1_CloudProfileSpec_To_core_CloudProfileSpec(&in.CloudProfileSpec, &out.CloudProfileSpec, s); err != nil {
+		return err
+	}
+	out.ObservedGeneration = in.ObservedGeneration
+	return nil
+}
+
+// Convert_v1beta1_NamespacedCloudProfileStatus_To_core_NamespacedCloudProfileStatus is an autogenerated conversion function.
+func Convert_v1beta1_NamespacedCloudProfileStatus_To_core_NamespacedCloudProfileStatus(in *NamespacedCloudProfileStatus, out *core.NamespacedCloudProfileStatus, s conversion.Scope) error {
+	return autoConvert_v1beta1_NamespacedCloudProfileStatus_To_core_NamespacedCloudProfileStatus(in, out, s)
+}
+
+func autoConvert_core_NamespacedCloudProfileStatus_To_v1beta1_NamespacedCloudProfileStatus(in *core.NamespacedCloudProfileStatus, out *NamespacedCloudProfileStatus, s conversion.Scope) error {
+	if err := Convert_core_CloudProfileSpec_To_v1beta1_CloudProfileSpec(&in.CloudProfileSpec, &out.CloudProfileSpec, s); err != nil {
+		return err
+	}
+	out.ObservedGeneration = in.ObservedGeneration
+	return nil
+}
+
+// Convert_core_NamespacedCloudProfileStatus_To_v1beta1_NamespacedCloudProfileStatus is an autogenerated conversion function.
+func Convert_core_NamespacedCloudProfileStatus_To_v1beta1_NamespacedCloudProfileStatus(in *core.NamespacedCloudProfileStatus, out *NamespacedCloudProfileStatus, s conversion.Scope) error {
+	return autoConvert_core_NamespacedCloudProfileStatus_To_v1beta1_NamespacedCloudProfileStatus(in, out, s)
+}
+
 func autoConvert_v1beta1_Networking_To_core_Networking(in *Networking, out *core.Networking, s conversion.Scope) error {
 	out.Type = (*string)(unsafe.Pointer(in.Type))
 	out.ProviderConfig = (*runtime.RawExtension)(unsafe.Pointer(in.ProviderConfig))
@@ -4321,6 +4607,30 @@ func autoConvert_core_Networking_To_v1beta1_Networking(in *core.Networking, out 
 // Convert_core_Networking_To_v1beta1_Networking is an autogenerated conversion function.
 func Convert_core_Networking_To_v1beta1_Networking(in *core.Networking, out *Networking, s conversion.Scope) error {
 	return autoConvert_core_Networking_To_v1beta1_Networking(in, out, s)
+}
+
+func autoConvert_v1beta1_NetworkingStatus_To_core_NetworkingStatus(in *NetworkingStatus, out *core.NetworkingStatus, s conversion.Scope) error {
+	out.Pods = *(*[]string)(unsafe.Pointer(&in.Pods))
+	out.Nodes = *(*[]string)(unsafe.Pointer(&in.Nodes))
+	out.Services = *(*[]string)(unsafe.Pointer(&in.Services))
+	return nil
+}
+
+// Convert_v1beta1_NetworkingStatus_To_core_NetworkingStatus is an autogenerated conversion function.
+func Convert_v1beta1_NetworkingStatus_To_core_NetworkingStatus(in *NetworkingStatus, out *core.NetworkingStatus, s conversion.Scope) error {
+	return autoConvert_v1beta1_NetworkingStatus_To_core_NetworkingStatus(in, out, s)
+}
+
+func autoConvert_core_NetworkingStatus_To_v1beta1_NetworkingStatus(in *core.NetworkingStatus, out *NetworkingStatus, s conversion.Scope) error {
+	out.Pods = *(*[]string)(unsafe.Pointer(&in.Pods))
+	out.Nodes = *(*[]string)(unsafe.Pointer(&in.Nodes))
+	out.Services = *(*[]string)(unsafe.Pointer(&in.Services))
+	return nil
+}
+
+// Convert_core_NetworkingStatus_To_v1beta1_NetworkingStatus is an autogenerated conversion function.
+func Convert_core_NetworkingStatus_To_v1beta1_NetworkingStatus(in *core.NetworkingStatus, out *NetworkingStatus, s conversion.Scope) error {
+	return autoConvert_core_NetworkingStatus_To_v1beta1_NetworkingStatus(in, out, s)
 }
 
 func autoConvert_v1beta1_NginxIngress_To_core_NginxIngress(in *NginxIngress, out *core.NginxIngress, s conversion.Scope) error {
@@ -4377,6 +4687,32 @@ func autoConvert_core_NodeLocalDNS_To_v1beta1_NodeLocalDNS(in *core.NodeLocalDNS
 // Convert_core_NodeLocalDNS_To_v1beta1_NodeLocalDNS is an autogenerated conversion function.
 func Convert_core_NodeLocalDNS_To_v1beta1_NodeLocalDNS(in *core.NodeLocalDNS, out *NodeLocalDNS, s conversion.Scope) error {
 	return autoConvert_core_NodeLocalDNS_To_v1beta1_NodeLocalDNS(in, out, s)
+}
+
+func autoConvert_v1beta1_OCIRepository_To_core_OCIRepository(in *OCIRepository, out *core.OCIRepository, s conversion.Scope) error {
+	out.Ref = (*string)(unsafe.Pointer(in.Ref))
+	out.Repository = (*string)(unsafe.Pointer(in.Repository))
+	out.Tag = (*string)(unsafe.Pointer(in.Tag))
+	out.Digest = (*string)(unsafe.Pointer(in.Digest))
+	return nil
+}
+
+// Convert_v1beta1_OCIRepository_To_core_OCIRepository is an autogenerated conversion function.
+func Convert_v1beta1_OCIRepository_To_core_OCIRepository(in *OCIRepository, out *core.OCIRepository, s conversion.Scope) error {
+	return autoConvert_v1beta1_OCIRepository_To_core_OCIRepository(in, out, s)
+}
+
+func autoConvert_core_OCIRepository_To_v1beta1_OCIRepository(in *core.OCIRepository, out *OCIRepository, s conversion.Scope) error {
+	out.Ref = (*string)(unsafe.Pointer(in.Ref))
+	out.Repository = (*string)(unsafe.Pointer(in.Repository))
+	out.Tag = (*string)(unsafe.Pointer(in.Tag))
+	out.Digest = (*string)(unsafe.Pointer(in.Digest))
+	return nil
+}
+
+// Convert_core_OCIRepository_To_v1beta1_OCIRepository is an autogenerated conversion function.
+func Convert_core_OCIRepository_To_v1beta1_OCIRepository(in *core.OCIRepository, out *OCIRepository, s conversion.Scope) error {
+	return autoConvert_core_OCIRepository_To_v1beta1_OCIRepository(in, out, s)
 }
 
 func autoConvert_v1beta1_OIDCConfig_To_core_OIDCConfig(in *OIDCConfig, out *core.OIDCConfig, s conversion.Scope) error {
@@ -4566,6 +4902,7 @@ func autoConvert_v1beta1_ProjectSpec_To_core_ProjectSpec(in *ProjectSpec, out *c
 	}
 	out.Namespace = (*string)(unsafe.Pointer(in.Namespace))
 	out.Tolerations = (*core.ProjectTolerations)(unsafe.Pointer(in.Tolerations))
+	out.DualApprovalForDeletion = *(*[]core.DualApprovalForDeletion)(unsafe.Pointer(&in.DualApprovalForDeletion))
 	return nil
 }
 
@@ -4587,6 +4924,7 @@ func autoConvert_core_ProjectSpec_To_v1beta1_ProjectSpec(in *core.ProjectSpec, o
 	}
 	out.Namespace = (*string)(unsafe.Pointer(in.Namespace))
 	out.Tolerations = (*ProjectTolerations)(unsafe.Pointer(in.Tolerations))
+	out.DualApprovalForDeletion = *(*[]DualApprovalForDeletion)(unsafe.Pointer(&in.DualApprovalForDeletion))
 	return nil
 }
 
@@ -5250,6 +5588,7 @@ func autoConvert_v1beta1_SeedSettingLoadBalancerServices_To_core_SeedSettingLoad
 	out.Annotations = *(*map[string]string)(unsafe.Pointer(&in.Annotations))
 	out.ExternalTrafficPolicy = (*v1.ServiceExternalTrafficPolicy)(unsafe.Pointer(in.ExternalTrafficPolicy))
 	out.Zones = *(*[]core.SeedSettingLoadBalancerServicesZones)(unsafe.Pointer(&in.Zones))
+	out.ProxyProtocol = (*core.LoadBalancerServicesProxyProtocol)(unsafe.Pointer(in.ProxyProtocol))
 	return nil
 }
 
@@ -5262,6 +5601,7 @@ func autoConvert_core_SeedSettingLoadBalancerServices_To_v1beta1_SeedSettingLoad
 	out.Annotations = *(*map[string]string)(unsafe.Pointer(&in.Annotations))
 	out.ExternalTrafficPolicy = (*v1.ServiceExternalTrafficPolicy)(unsafe.Pointer(in.ExternalTrafficPolicy))
 	out.Zones = *(*[]SeedSettingLoadBalancerServicesZones)(unsafe.Pointer(&in.Zones))
+	out.ProxyProtocol = (*LoadBalancerServicesProxyProtocol)(unsafe.Pointer(in.ProxyProtocol))
 	return nil
 }
 
@@ -5274,6 +5614,7 @@ func autoConvert_v1beta1_SeedSettingLoadBalancerServicesZones_To_core_SeedSettin
 	out.Name = in.Name
 	out.Annotations = *(*map[string]string)(unsafe.Pointer(&in.Annotations))
 	out.ExternalTrafficPolicy = (*v1.ServiceExternalTrafficPolicy)(unsafe.Pointer(in.ExternalTrafficPolicy))
+	out.ProxyProtocol = (*core.LoadBalancerServicesProxyProtocol)(unsafe.Pointer(in.ProxyProtocol))
 	return nil
 }
 
@@ -5286,6 +5627,7 @@ func autoConvert_core_SeedSettingLoadBalancerServicesZones_To_v1beta1_SeedSettin
 	out.Name = in.Name
 	out.Annotations = *(*map[string]string)(unsafe.Pointer(&in.Annotations))
 	out.ExternalTrafficPolicy = (*v1.ServiceExternalTrafficPolicy)(unsafe.Pointer(in.ExternalTrafficPolicy))
+	out.ProxyProtocol = (*LoadBalancerServicesProxyProtocol)(unsafe.Pointer(in.ProxyProtocol))
 	return nil
 }
 
@@ -5600,9 +5942,9 @@ func Convert_v1beta1_ServiceAccountKeyRotation_To_core_ServiceAccountKeyRotation
 
 func autoConvert_core_ServiceAccountKeyRotation_To_v1beta1_ServiceAccountKeyRotation(in *core.ServiceAccountKeyRotation, out *ServiceAccountKeyRotation, s conversion.Scope) error {
 	out.Phase = CredentialsRotationPhase(in.Phase)
+	out.LastCompletionTime = (*metav1.Time)(unsafe.Pointer(in.LastCompletionTime))
 	out.LastInitiationTime = (*metav1.Time)(unsafe.Pointer(in.LastInitiationTime))
 	out.LastInitiationFinishedTime = (*metav1.Time)(unsafe.Pointer(in.LastInitiationFinishedTime))
-	out.LastCompletionTime = (*metav1.Time)(unsafe.Pointer(in.LastCompletionTime))
 	out.LastCompletionTriggeredTime = (*metav1.Time)(unsafe.Pointer(in.LastCompletionTriggeredTime))
 	return nil
 }
@@ -5878,6 +6220,8 @@ func autoConvert_v1beta1_ShootSpec_To_core_ShootSpec(in *ShootSpec, out *core.Sh
 	out.SystemComponents = (*core.SystemComponents)(unsafe.Pointer(in.SystemComponents))
 	out.ControlPlane = (*core.ControlPlane)(unsafe.Pointer(in.ControlPlane))
 	out.SchedulerName = (*string)(unsafe.Pointer(in.SchedulerName))
+	out.CloudProfile = (*core.CloudProfileReference)(unsafe.Pointer(in.CloudProfile))
+	out.CredentialsBindingName = (*string)(unsafe.Pointer(in.CredentialsBindingName))
 	return nil
 }
 
@@ -5912,6 +6256,8 @@ func autoConvert_core_ShootSpec_To_v1beta1_ShootSpec(in *core.ShootSpec, out *Sh
 	out.SystemComponents = (*SystemComponents)(unsafe.Pointer(in.SystemComponents))
 	out.ControlPlane = (*ControlPlane)(unsafe.Pointer(in.ControlPlane))
 	out.SchedulerName = (*string)(unsafe.Pointer(in.SchedulerName))
+	out.CloudProfile = (*CloudProfileReference)(unsafe.Pointer(in.CloudProfile))
+	out.CredentialsBindingName = (*string)(unsafe.Pointer(in.CredentialsBindingName))
 	return nil
 }
 
@@ -6013,6 +6359,7 @@ func autoConvert_v1beta1_ShootStatus_To_core_ShootStatus(in *ShootStatus, out *c
 	out.LastHibernationTriggerTime = (*metav1.Time)(unsafe.Pointer(in.LastHibernationTriggerTime))
 	out.LastMaintenance = (*core.LastMaintenance)(unsafe.Pointer(in.LastMaintenance))
 	out.EncryptedResources = *(*[]string)(unsafe.Pointer(&in.EncryptedResources))
+	out.Networking = (*core.NetworkingStatus)(unsafe.Pointer(in.Networking))
 	return nil
 }
 
@@ -6042,6 +6389,7 @@ func autoConvert_core_ShootStatus_To_v1beta1_ShootStatus(in *core.ShootStatus, o
 	out.Credentials = (*ShootCredentials)(unsafe.Pointer(in.Credentials))
 	out.LastMaintenance = (*LastMaintenance)(unsafe.Pointer(in.LastMaintenance))
 	out.EncryptedResources = *(*[]string)(unsafe.Pointer(&in.EncryptedResources))
+	out.Networking = (*NetworkingStatus)(unsafe.Pointer(in.Networking))
 	return nil
 }
 

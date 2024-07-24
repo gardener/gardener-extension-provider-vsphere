@@ -1,16 +1,6 @@
-// Copyright 2020 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package framework
 
@@ -283,12 +273,12 @@ func DeleteAndWaitForResource(ctx context.Context, k8sClient kubernetes.Interfac
 }
 
 // ScaleDeployment scales a deployment and waits until it is scaled
-func ScaleDeployment(ctx context.Context, client client.Client, desiredReplicas *int32, name, namespace string) (*int32, error) {
+func ScaleDeployment(ctx context.Context, c client.Client, desiredReplicas *int32, name, namespace string) (*int32, error) {
 	if desiredReplicas == nil {
 		return nil, nil
 	}
 
-	replicas, err := GetDeploymentReplicas(ctx, client, namespace, name)
+	replicas, err := GetDeploymentReplicas(ctx, c, namespace, name)
 	if apierrors.IsNotFound(err) {
 		return nil, nil
 	}
@@ -300,22 +290,22 @@ func ScaleDeployment(ctx context.Context, client client.Client, desiredReplicas 
 	}
 
 	// scale the deployment
-	if err := kubernetes.ScaleDeployment(ctx, client, kubernetesutils.Key(namespace, name), *desiredReplicas); err != nil {
+	if err := kubernetes.ScaleDeployment(ctx, c, client.ObjectKey{Namespace: namespace, Name: name}, *desiredReplicas); err != nil {
 		return nil, fmt.Errorf("failed to scale the replica count of deployment %q: '%w'", name, err)
 	}
 
 	// wait until scaled
-	if err := WaitUntilDeploymentScaled(ctx, client, namespace, name, *desiredReplicas); err != nil {
+	if err := WaitUntilDeploymentScaled(ctx, c, namespace, name, *desiredReplicas); err != nil {
 		return nil, fmt.Errorf("failed to wait until deployment %q is scaled: '%w'", name, err)
 	}
 	return replicas, nil
 }
 
 // WaitUntilDeploymentScaled waits until the deployment has the desired replica count in the status
-func WaitUntilDeploymentScaled(ctx context.Context, client client.Client, namespace, name string, desiredReplicas int32) error {
+func WaitUntilDeploymentScaled(ctx context.Context, c client.Client, namespace, name string, desiredReplicas int32) error {
 	return retry.Until(ctx, 5*time.Second, func(ctx context.Context) (done bool, err error) {
 		deployment := &appsv1.Deployment{}
-		if err := client.Get(ctx, kubernetesutils.Key(namespace, name), deployment); err != nil {
+		if err := c.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, deployment); err != nil {
 			return retry.SevereError(err)
 		}
 		if deployment.Spec.Replicas == nil || *deployment.Spec.Replicas != desiredReplicas {
@@ -331,9 +321,9 @@ func WaitUntilDeploymentScaled(ctx context.Context, client client.Client, namesp
 }
 
 // GetDeploymentReplicas gets the spec.Replicas count from a deployment
-func GetDeploymentReplicas(ctx context.Context, client client.Client, namespace, name string) (*int32, error) {
+func GetDeploymentReplicas(ctx context.Context, c client.Client, namespace, name string) (*int32, error) {
 	deployment := &appsv1.Deployment{}
-	if err := client.Get(ctx, kubernetesutils.Key(namespace, name), deployment); err != nil {
+	if err := c.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, deployment); err != nil {
 		return nil, err
 	}
 	replicas := deployment.Spec.Replicas
@@ -387,7 +377,7 @@ func DownloadKubeconfig(ctx context.Context, client kubernetes.Interface, namesp
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(downloadPath, []byte(kubeconfig), 0755)
+	err = os.WriteFile(downloadPath, []byte(kubeconfig), 0600)
 	if err != nil {
 		return err
 	}
@@ -404,7 +394,7 @@ func DownloadAdminKubeconfigForShoot(ctx context.Context, client kubernetes.Inte
 		return err
 	}
 
-	err = os.WriteFile(downloadPath, kubeconfig, 0755)
+	err = os.WriteFile(downloadPath, kubeconfig, 0600)
 	if err != nil {
 		return err
 	}
@@ -455,7 +445,7 @@ func CreateTokenForServiceAccount(ctx context.Context, k8sClient kubernetes.Inte
 
 // NewClientFromServiceAccount returns a kubernetes client for a service account.
 func NewClientFromServiceAccount(ctx context.Context, k8sClient kubernetes.Interface, serviceAccount *corev1.ServiceAccount) (kubernetes.Interface, error) {
-	token, err := CreateTokenForServiceAccount(ctx, k8sClient, serviceAccount, ptr.To(int64(3600)))
+	token, err := CreateTokenForServiceAccount(ctx, k8sClient, serviceAccount, ptr.To[int64](3600))
 	if err != nil {
 		return nil, err
 	}

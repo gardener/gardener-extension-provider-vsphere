@@ -1,16 +1,6 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package core
 
@@ -246,6 +236,9 @@ type SeedSettingLoadBalancerServices struct {
 	// Zones controls settings, which are specific to the single-zone load balancers in a multi-zonal setup.
 	// Can be empty for single-zone seeds. Each specified zone has to relate to one of the zones in seed.spec.provider.zones.
 	Zones []SeedSettingLoadBalancerServicesZones
+	// ProxyProtocol controls whether ProxyProtocol is (optionally) allowed for the load balancer services.
+	// Defaults to nil, which is equivalent to not allowing ProxyProtocol.
+	ProxyProtocol *LoadBalancerServicesProxyProtocol
 }
 
 // SeedSettingLoadBalancerServicesZones controls settings, which are specific to the single-zone load balancers in a
@@ -259,6 +252,19 @@ type SeedSettingLoadBalancerServicesZones struct {
 	// receive on one of the service's "externally-facing" addresses.
 	// Defaults to "Cluster".
 	ExternalTrafficPolicy *corev1.ServiceExternalTrafficPolicyType
+	// ProxyProtocol controls whether ProxyProtocol is (optionally) allowed for the load balancer services.
+	// Defaults to nil, which is equivalent to not allowing ProxyProtocol.
+	ProxyProtocol *LoadBalancerServicesProxyProtocol
+}
+
+// LoadBalancerServicesProxyProtocol controls whether ProxyProtocol is (optionally) allowed for the load balancer services.
+type LoadBalancerServicesProxyProtocol struct {
+	// Allowed controls whether the ProxyProtocol is optionally allowed for the load balancer services.
+	// This should only be enabled if the load balancer services are already using ProxyProtocol or will be reconfigured to use it soon.
+	// Until the load balancers are configured with ProxyProtocol, enabling this setting may allow clients to spoof their source IP addresses.
+	// The option allows a migration from non-ProxyProtocol to ProxyProtocol without downtime (depending on the infrastructure).
+	// Defaults to false.
+	Allowed bool
 }
 
 // SeedSettingVerticalPodAutoscaler controls certain settings for the vertical pod autoscaler components deployed in the

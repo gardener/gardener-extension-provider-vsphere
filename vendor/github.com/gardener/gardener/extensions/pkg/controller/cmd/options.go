@@ -1,16 +1,6 @@
-// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package cmd
 
@@ -73,10 +63,6 @@ const (
 
 	// GardenerVersionFlag is the name of the command line flag containing the Gardener version.
 	GardenerVersionFlag = "gardener-version"
-	// GardenletUsesGardenerNodeAgentFlag is the name of the command line flag specifying whether gardenlet's feature gate
-	// 'UseGardenerNodeAgent' is activated.
-	// TODO(rfranzke): Remove this flag when the UseGardenerNodeAgent feature gate is promoted to GA.
-	GardenletUsesGardenerNodeAgentFlag = "gardenlet-uses-gardener-node-agent"
 
 	// LogLevelFlag is the name of the command line flag containing the log level.
 	LogLevelFlag = "log-level"
@@ -87,7 +73,7 @@ const (
 
 // LeaderElectionNameID returns a leader election ID for the given name.
 func LeaderElectionNameID(name string) string {
-	return fmt.Sprintf("%s-leader-election", name)
+	return name + "-leader-election"
 }
 
 // Flagger adds flags to a given FlagSet.
@@ -474,8 +460,6 @@ type SwitchConfig struct {
 type GeneralOptions struct {
 	// GardenerVersion is the version of the Gardener.
 	GardenerVersion string
-	// GardenletUsesGardenerNodeAgent specifies whether gardenlet's feature gate 'UseGardenerNodeAgent' is activated.
-	GardenletUsesGardenerNodeAgent bool
 
 	config *GeneralConfig
 }
@@ -484,13 +468,11 @@ type GeneralOptions struct {
 type GeneralConfig struct {
 	// GardenerVersion is the version of the Gardener.
 	GardenerVersion string
-	// GardenletUsesGardenerNodeAgent specifies whether gardenlet's feature gate 'UseGardenerNodeAgent' is activated.
-	GardenletUsesGardenerNodeAgent bool
 }
 
 // Complete implements Complete.
 func (r *GeneralOptions) Complete() error {
-	r.config = &GeneralConfig{r.GardenerVersion, r.GardenletUsesGardenerNodeAgent}
+	r.config = &GeneralConfig{r.GardenerVersion}
 	return nil
 }
 
@@ -502,5 +484,4 @@ func (r *GeneralOptions) Completed() *GeneralConfig {
 // AddFlags implements Flagger.AddFlags.
 func (r *GeneralOptions) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&r.GardenerVersion, GardenerVersionFlag, "", "Version of the gardenlet.")
-	fs.BoolVar(&r.GardenletUsesGardenerNodeAgent, GardenletUsesGardenerNodeAgentFlag, false, "Specifies whether gardenlet's feature gate 'UseGardenerNodeAgent' is activated.")
 }

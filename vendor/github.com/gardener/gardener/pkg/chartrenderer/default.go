@@ -1,16 +1,6 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package chartrenderer
 
@@ -76,7 +66,7 @@ func NewWithServerVersion(serverVersion *version.Info) Interface {
 
 // RenderArchive loads the chart from the given location <chartPath> and calls the renderRelease() function
 // to convert it into a ChartRelease object.
-func (r *chartRenderer) RenderArchive(archive []byte, releaseName, namespace string, values interface{}) (*RenderedChart, error) {
+func (r *chartRenderer) RenderArchive(archive []byte, releaseName, namespace string, values any) (*RenderedChart, error) {
 	chart, err := helmloader.LoadArchive(bytes.NewReader(archive))
 	if err != nil {
 		return nil, fmt.Errorf("can't load chart from archive: %s", err)
@@ -86,7 +76,7 @@ func (r *chartRenderer) RenderArchive(archive []byte, releaseName, namespace str
 
 // RenderEmbeddedFS loads the chart from the given embed.FS and calls the renderRelease() function
 // to convert it into a ChartRelease object.
-func (r *chartRenderer) RenderEmbeddedFS(embeddedFS embed.FS, chartPath, releaseName, namespace string, values interface{}) (*RenderedChart, error) {
+func (r *chartRenderer) RenderEmbeddedFS(embeddedFS embed.FS, chartPath, releaseName, namespace string, values any) (*RenderedChart, error) {
 	chart, err := loadEmbeddedFS(embeddedFS, chartPath)
 	if err != nil {
 		return nil, fmt.Errorf("can't load chart %q from embedded file system: %w", chartPath, err)
@@ -94,11 +84,12 @@ func (r *chartRenderer) RenderEmbeddedFS(embeddedFS embed.FS, chartPath, release
 	return r.renderRelease(chart, releaseName, namespace, values)
 }
 
-func (r *chartRenderer) renderRelease(chart *helmchart.Chart, releaseName, namespace string, values interface{}) (*RenderedChart, error) {
+func (r *chartRenderer) renderRelease(chart *helmchart.Chart, releaseName, namespace string, values any) (*RenderedChart, error) {
 	parsedValues, err := json.Marshal(values)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse values for chart %s: %w", chart.Metadata.Name, err)
 	}
+
 	valuesCopy, err := chartutil.ReadValues(parsedValues)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read values for chart %s: %w", chart.Metadata.Name, err)
@@ -166,6 +157,7 @@ func (c *RenderedChart) Manifest() []byte {
 // and values as the content of the corresponding file.
 func (c *RenderedChart) Files() map[string]map[string]string {
 	var files = make(map[string]map[string]string)
+
 	for _, manifest := range c.Manifests {
 		resourceName := getResourceName(manifest)
 		if resourceName == "" {
@@ -184,12 +176,14 @@ func (c *RenderedChart) Files() map[string]map[string]string {
 // FileContent returns explicitly the content of the provided <filename>.
 func (c *RenderedChart) FileContent(filename string) string {
 	var fileContent strings.Builder
+
 	for _, mf := range c.Manifests {
 		if mf.Name == fmt.Sprintf("%s/templates/%s", c.ChartName, filename) {
 			if fileContent.String() != "" {
 				// Add "---" to separate different resources
 				fileContent.WriteString("\n---\n")
 			}
+
 			fileContent.WriteString(mf.Content)
 		}
 	}
@@ -233,6 +227,7 @@ func loadEmbeddedFS(embeddedFS embed.FS, chartPath string) (*helmchart.Chart, er
 		if err != nil {
 			return nil, err
 		}
+
 		rules = r
 	}
 

@@ -1,18 +1,8 @@
 #!/usr/bin/env bash
 #
-# Copyright 2023 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+# SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0
 
 set -e
 
@@ -58,18 +48,32 @@ skaffold_yaml="$(cat "$repo_root/$skaffold_file")"
 path_current_skaffold_dependencies="${out_dir}/current-$skaffold_file-deps-$binary_name.txt"
 path_actual_dependencies="${out_dir}/actual-$skaffold_file-deps-$binary_name.txt"
 
+is_custom_artifact="$(echo "$skaffold_yaml" | yq eval "select(.metadata.name == \"$skaffold_config_name\") | .build.artifacts[] | select(.image == \"local-skaffold/$binary_name\") | has(\"custom\")" -)"
+yq_dependencies_selector=".ko.dependencies"
+if [[ "$is_custom_artifact" == true ]]; then
+  yq_dependencies_selector=".custom.dependencies"
+fi
+
 echo "$skaffold_yaml" |\
-  yq eval "select(.metadata.name == \"$skaffold_config_name\") | .build.artifacts[] | select(.ko.main == \"./cmd/$binary_name\") | .ko.dependencies.paths[]?" - |\
+  yq eval "select(.metadata.name == \"$skaffold_config_name\") | .build.artifacts[] | select(.image == \"local-skaffold/$binary_name\") | $yq_dependencies_selector.paths[]?" - |\
   sort -f |\
   uniq > "$path_current_skaffold_dependencies"
 
+echo "cmd/$binary_name" > "$path_actual_dependencies"
 module_name=$(go list -m)
 module_prefix="$module_name/"
 go list -f '{{ join .Deps "\n" }}' "./cmd/$binary_name" |\
   grep "$module_prefix" |\
   sed "s@$module_prefix@@g" |\
   sort -f |\
-  uniq > "$path_actual_dependencies"
+  uniq >> "$path_actual_dependencies"
+
+# read dependencies into array and add prefix "./"
+read -r -a go_dependencies <<< "$(sed -e "s@^@./@" "$path_actual_dependencies" | tr '\n' ' ')"
+# the EmbedPatterns are relative to the module, so we prepend the ImportPath
+go list -json "${go_dependencies[@]}" |\
+  yq eval -p=json -N ".ImportPath as \$p | .EmbedPatterns[]? |= \$p+\"/\"+. | .EmbedPatterns[]?" |\
+  sed "s@$module_prefix@@g" >> "$path_actual_dependencies"
 
 # always add VERSION file
 echo "VERSION" >> "$path_actual_dependencies"
@@ -78,9 +82,8 @@ if [[ -d "$repo_root/vendor" ]]; then
   echo "vendor" >> "$path_actual_dependencies"
 fi
 
-# sort dependencies
-sort -fo "$path_current_skaffold_dependencies"{,}
-sort -fo "$path_actual_dependencies"{,}
+# sort dependencies and ensure uniqueness
+sort -u -fo "$path_actual_dependencies"{,}
 
 case "$operation" in
   check)
@@ -103,7 +106,8 @@ case "$operation" in
   update)
     echo -n ">> Updating dependencies in Skaffold config '$skaffold_config_name' for '$binary_name' in '$skaffold_file'..."
 
-    yq eval -i "select(.metadata.name == \"$skaffold_config_name\") |= .build.artifacts[] |= select(.ko.main == \"./cmd/$binary_name\") |= .ko.dependencies.paths |= [$(cat "$path_actual_dependencies" | sed -e 's/^/"/' -e 's/$/"/' | tr '\n' ',' | sed 's/,$//')]" "$skaffold_file"
+    actual_dependencies="$(cat "$path_actual_dependencies" | sed -e 's/^/"/' -e 's/$/"/' | tr '\n' ',' | sed 's/,$//')"
+    yq eval -i "select(.metadata.name == \"$skaffold_config_name\") |= .build.artifacts[] |= select(.image == \"local-skaffold/$binary_name\") |= $yq_dependencies_selector.paths |= [$actual_dependencies]" "$skaffold_file"
 
     if ! diff="$(diff "$path_current_skaffold_dependencies" "$path_actual_dependencies")"; then
       echo

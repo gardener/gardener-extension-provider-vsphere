@@ -1,16 +1,6 @@
-// Copyright 2020 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package unstructured
 
@@ -30,10 +20,10 @@ import (
 var systemMetadataFields = []string{"ownerReferences", "uid", "resourceVersion", "generation", "creationTimestamp", "deletionTimestamp", "deletionGracePeriodSeconds", "managedFields"}
 
 // GetObjectByRef returns the object with the given reference and namespace using the given client.
-// The full content of the object is returned as map[string]interface{}, except for system metadata fields.
+// The full content of the object is returned as map[string]any, except for system metadata fields.
 // This function can be combined with runtime.DefaultUnstructuredConverter.FromUnstructured to get the object content
 // as runtime.RawExtension.
-func GetObjectByRef(ctx context.Context, c client.Client, ref *autoscalingv1.CrossVersionObjectReference, namespace string) (map[string]interface{}, error) {
+func GetObjectByRef(ctx context.Context, c client.Client, ref *autoscalingv1.CrossVersionObjectReference, namespace string) (map[string]any, error) {
 	gvk, err := gvkFromCrossVersionObjectReference(ref)
 	if err != nil {
 		return nil, err
@@ -42,10 +32,10 @@ func GetObjectByRef(ctx context.Context, c client.Client, ref *autoscalingv1.Cro
 }
 
 // GetObject returns the object with the given GVK, name, and namespace as a map using the given client.
-// The full content of the object is returned as map[string]interface{}, except for system metadata fields.
+// The full content of the object is returned as map[string]any, except for system metadata fields.
 // This function can be combined with runtime.DefaultUnstructuredConverter.FromUnstructured to get the object content
 // as runtime.RawExtension.
-func GetObject(ctx context.Context, c client.Client, gvk schema.GroupVersionKind, name, namespace string) (map[string]interface{}, error) {
+func GetObject(ctx context.Context, c client.Client, gvk schema.GroupVersionKind, name, namespace string) (map[string]any, error) {
 	// Initialize the object
 	key := client.ObjectKey{Namespace: namespace, Name: name}
 	obj := &unstructured.Unstructured{}
@@ -67,7 +57,7 @@ func GetObject(ctx context.Context, c client.Client, gvk schema.GroupVersionKind
 // The object is created or patched with the given content, except for system metadata fields.
 // This function can be combined with runtime.DefaultUnstructuredConverter.ToUnstructured to create or update an object
 // from runtime.RawExtension.
-func CreateOrPatchObjectByRef(ctx context.Context, c client.Client, ref *autoscalingv1.CrossVersionObjectReference, namespace string, content map[string]interface{}) error {
+func CreateOrPatchObjectByRef(ctx context.Context, c client.Client, ref *autoscalingv1.CrossVersionObjectReference, namespace string, content map[string]any) error {
 	gvk, err := gvkFromCrossVersionObjectReference(ref)
 	if err != nil {
 		return err
@@ -79,7 +69,7 @@ func CreateOrPatchObjectByRef(ctx context.Context, c client.Client, ref *autosca
 // The object is created or patched with the given content, except for system metadata fields, namespace, and name.
 // This function can be combined with runtime.DefaultUnstructuredConverter.ToUnstructured to create or update an object
 // from runtime.RawExtension.
-func CreateOrPatchObject(ctx context.Context, c client.Client, gvk schema.GroupVersionKind, name, namespace string, content map[string]interface{}) error {
+func CreateOrPatchObject(ctx context.Context, c client.Client, gvk schema.GroupVersionKind, name, namespace string, content map[string]any) error {
 	// Initialize the object
 	obj := &unstructured.Unstructured{}
 	obj.SetGroupVersionKind(gvk)
@@ -131,11 +121,11 @@ func gvkFromCrossVersionObjectReference(ref *autoscalingv1.CrossVersionObjectRef
 	}, nil
 }
 
-func mergeObjectContents(dest, src map[string]interface{}) map[string]interface{} {
+func mergeObjectContents(dest, src map[string]any) map[string]any {
 	// Merge metadata
-	srcMetadata, srcMetadataOK := src["metadata"].(map[string]interface{})
+	srcMetadata, srcMetadataOK := src["metadata"].(map[string]any)
 	if srcMetadataOK {
-		destMetadata, destMetadataOK := dest["metadata"].(map[string]interface{})
+		destMetadata, destMetadataOK := dest["metadata"].(map[string]any)
 		if destMetadataOK {
 			dest["metadata"] = utils.MergeMaps(destMetadata, srcMetadata)
 		} else {
@@ -157,15 +147,15 @@ func mergeObjectContents(dest, src map[string]interface{}) map[string]interface{
 }
 
 // FilterMetadata filters metadata from the provided unstructured object content.
-func FilterMetadata(content map[string]interface{}, fields ...string) map[string]interface{} {
+func FilterMetadata(content map[string]any, fields ...string) map[string]any {
 	// Copy content to result
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	for key, value := range content {
 		result[key] = value
 	}
 
 	// Delete specified fields from result
-	if metadata, ok := result["metadata"].(map[string]interface{}); ok {
+	if metadata, ok := result["metadata"].(map[string]any); ok {
 		for _, field := range fields {
 			delete(metadata, field)
 		}

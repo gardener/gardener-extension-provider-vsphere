@@ -1,16 +1,6 @@
-// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file.
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package framework
 
@@ -30,7 +20,6 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	seedmanagementv1alpha1 "github.com/gardener/gardener/pkg/apis/seedmanagement/v1alpha1"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
-	gardenerutils "github.com/gardener/gardener/pkg/utils/gardener"
 	kubernetesutils "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/kubernetes/health"
 	"github.com/gardener/gardener/pkg/utils/retry"
@@ -57,7 +46,7 @@ func (f *GardenerFramework) GetSeed(ctx context.Context, seedName string) (*gard
 	}
 
 	managedSeed := &seedmanagementv1alpha1.ManagedSeed{}
-	if err := f.GardenClient.Client().Get(ctx, kubernetesutils.Key(v1beta1constants.GardenNamespace, seed.Name), managedSeed); err != nil {
+	if err := f.GardenClient.Client().Get(ctx, client.ObjectKey{Namespace: v1beta1constants.GardenNamespace, Name: seed.Name}, managedSeed); err != nil {
 		if apierrors.IsNotFound(err) {
 			f.Logger.Info("Seed is not a ManagedSeed, checking seed secret")
 
@@ -92,7 +81,7 @@ func (f *GardenerFramework) GetSeed(ctx context.Context, seedName string) (*gard
 	}
 
 	shoot := &gardencorev1beta1.Shoot{}
-	if err := f.GardenClient.Client().Get(ctx, kubernetesutils.Key(v1beta1constants.GardenNamespace, managedSeed.Spec.Shoot.Name), shoot); err != nil {
+	if err := f.GardenClient.Client().Get(ctx, client.ObjectKey{Namespace: v1beta1constants.GardenNamespace, Name: managedSeed.Spec.Shoot.Name}, shoot); err != nil {
 		return seed, nil, fmt.Errorf("failed to get Shoot %s for ManagedSeed, %s: %w", managedSeed.Spec.Shoot.Name, client.ObjectKeyFromObject(managedSeed), err)
 	}
 
@@ -114,7 +103,7 @@ func (f *GardenerFramework) GetSeed(ctx context.Context, seedName string) (*gard
 
 // GetShoot gets the test shoot
 func (f *GardenerFramework) GetShoot(ctx context.Context, shoot *gardencorev1beta1.Shoot) error {
-	return f.GardenClient.Client().Get(ctx, kubernetesutils.Key(shoot.Namespace, shoot.Name), shoot)
+	return f.GardenClient.Client().Get(ctx, client.ObjectKey{Namespace: shoot.Namespace, Name: shoot.Name}, shoot)
 }
 
 // GetShootProject returns the project of a shoot
@@ -227,16 +216,13 @@ func (f *GardenerFramework) ForceDeleteShootAndWaitForDeletion(ctx context.Conte
 		return err
 	}
 
-	// TODO(acumino): Remove this once prometheus is moved to golang component based deployment.
+	// TODO(rfranzke): Remove this after v1.97 has been released.
 	{
-		ingress := &networkingv1.Ingress{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "prometheus",
-				Namespace: shoot.Status.TechnicalID,
-			},
-		}
-		if err := client.IgnoreNotFound(seedClient.Delete(ctx, ingress)); err != nil {
-			return fmt.Errorf("error deleting ingress %s: %w", client.ObjectKeyFromObject(ingress), err)
+		if err := kubernetesutils.DeleteObjects(ctx, seedClient,
+			&networkingv1.Ingress{ObjectMeta: metav1.ObjectMeta{Name: "prometheus", Namespace: shoot.Status.TechnicalID}},
+			&networkingv1.Ingress{ObjectMeta: metav1.ObjectMeta{Name: "prometheus-shoot", Namespace: shoot.Status.TechnicalID}},
+		); err != nil {
+			return fmt.Errorf("error deleting Prometheus ingress: %w", err)
 		}
 	}
 
@@ -281,7 +267,7 @@ func (f *GardenerFramework) DeleteShoot(ctx context.Context, shoot *gardencorev1
 	err := retry.UntilTimeout(ctx, 20*time.Second, 5*time.Minute, func(ctx context.Context) (done bool, err error) {
 		// First we annotate the shoot to be deleted.
 		err = f.AnnotateShoot(ctx, shoot, map[string]string{
-			gardenerutils.ConfirmationDeletion: "true",
+			v1beta1constants.ConfirmationDeletion: "true",
 		})
 		if err != nil {
 			return retry.MinorError(err)

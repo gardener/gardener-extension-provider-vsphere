@@ -1,16 +1,6 @@
-// Copyright 2022 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package manager
 
@@ -61,6 +51,10 @@ const (
 	// data is valid. In case the data contains a certificate it is the time part of the certificate's 'not after'
 	// field.
 	LabelKeyValidUntilTime = "valid-until-time"
+	// LabelKeyRenewAfterValidityPercentage is a constant for a key of a label on a certificate secret describing the
+	// percentage of the validity when the certificate should be renewed. The effective check for renewal is after the
+	// given percentage of validity or 10d before the end of validity. If not specified the default percentage is 80.
+	LabelKeyRenewAfterValidityPercentage = "renew-after-validity-percentage"
 	// LabelKeyUseDataForName is a constant for a key of a label on a Secret describing that its data should be used
 	// instead of generating a fresh secret with the same name.
 	LabelKeyUseDataForName = "secrets-manager-use-data-for-name"
@@ -215,9 +209,18 @@ func (m *manager) mustAutoRenewSecret(secret corev1.Secret) (bool, error) {
 		return false, err
 	}
 
+	renewAfterValidityPercentage := 80
+	if secret.Labels[LabelKeyRenewAfterValidityPercentage] != "" {
+		value, err := strconv.Atoi(secret.Labels[LabelKeyRenewAfterValidityPercentage])
+		if err != nil {
+			return false, err
+		}
+		renewAfterValidityPercentage = value
+	}
+
 	var (
 		validity    = validUntilUnix - issuedAtUnix
-		renewAtUnix = issuedAtUnix + validity*80/100
+		renewAtUnix = issuedAtUnix + validity*int64(renewAfterValidityPercentage)/100
 		renewAt     = time.Unix(renewAtUnix, 0).UTC()
 		validUntil  = time.Unix(validUntilUnix, 0).UTC()
 		now         = m.clock.Now().UTC()

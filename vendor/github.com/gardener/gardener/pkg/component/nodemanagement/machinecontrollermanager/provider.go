@@ -1,16 +1,6 @@
-// Copyright 2023 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package machinecontrollermanager
 
@@ -24,17 +14,20 @@ import (
 	gardenerutils "github.com/gardener/gardener/pkg/utils/gardener"
 )
 
+const (
+	portProviderMetrics     = 10259
+	portNameProviderMetrics = "providermetrics"
+)
+
 // ProviderSidecarContainer returns a corev1.Container object which can be injected into the machine-controller-manager
 // deployment managed by the gardenlet. This function can be used in provider-specific control plane webhook
 // implementations when the standard sidecar container is required.
 func ProviderSidecarContainer(namespace, providerName, image string) corev1.Container {
-	const metricsPort = 10259
 	return corev1.Container{
 		Name:            providerSidecarContainerName(providerName),
 		Image:           image,
 		ImagePullPolicy: corev1.PullIfNotPresent,
-		Command: []string{
-			"./machine-controller",
+		Args: []string{
 			"--control-kubeconfig=inClusterConfig",
 			"--machine-creation-timeout=20m",
 			"--machine-drain-timeout=2h",
@@ -43,7 +36,7 @@ func ProviderSidecarContainer(namespace, providerName, image string) corev1.Cont
 			"--machine-safety-apiserver-statuscheck-period=1m",
 			"--machine-safety-orphan-vms-period=30m",
 			"--namespace=" + namespace,
-			"--port=" + strconv.Itoa(metricsPort),
+			"--port=" + strconv.Itoa(portProviderMetrics),
 			"--target-kubeconfig=" + gardenerutils.PathGenericKubeconfig,
 			"--v=3",
 		},
@@ -51,7 +44,7 @@ func ProviderSidecarContainer(namespace, providerName, image string) corev1.Cont
 			ProbeHandler: corev1.ProbeHandler{
 				HTTPGet: &corev1.HTTPGetAction{
 					Path:   "/healthz",
-					Port:   intstr.FromInt32(metricsPort),
+					Port:   intstr.FromInt32(portProviderMetrics),
 					Scheme: corev1.URISchemeHTTP,
 				},
 			},
@@ -61,6 +54,11 @@ func ProviderSidecarContainer(namespace, providerName, image string) corev1.Cont
 			SuccessThreshold:    1,
 			FailureThreshold:    3,
 		},
+		Ports: []corev1.ContainerPort{{
+			Name:          portNameProviderMetrics,
+			ContainerPort: portProviderMetrics,
+			Protocol:      corev1.ProtocolTCP,
+		}},
 		VolumeMounts: []corev1.VolumeMount{{
 			Name:      "kubeconfig",
 			MountPath: gardenerutils.VolumeMountPathGenericKubeconfig,

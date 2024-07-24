@@ -1,16 +1,6 @@
-// Copyright 2020 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package genericmutator
 
@@ -24,7 +14,6 @@ import (
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	vpaautoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 	"k8s.io/utils/ptr"
@@ -46,9 +35,6 @@ import (
 // Ensurer ensures that various standard Kubernetes control plane objects conform to the provider requirements.
 // If they don't initially, they are mutated accordingly.
 type Ensurer interface {
-	// EnsureKubeAPIServerService ensures that the kube-apiserver service conforms to the provider requirements.
-	// "old" might be "nil" and must always be checked.
-	EnsureKubeAPIServerService(ctx context.Context, gctx extensionscontextwebhook.GardenContext, new, old *corev1.Service) error
 	// EnsureKubeAPIServerDeployment ensures that the kube-apiserver deployment conforms to the provider requirements.
 	// "old" might be "nil" and must always be checked.
 	EnsureKubeAPIServerDeployment(ctx context.Context, gctx extensionscontextwebhook.GardenContext, new, old *appsv1.Deployment) error
@@ -136,21 +122,6 @@ func (m *mutator) Mutate(ctx context.Context, new, old client.Object) error {
 	gctx := extensionscontextwebhook.NewGardenContext(m.client, new)
 
 	switch x := new.(type) {
-	case *corev1.Service:
-		switch x.Name {
-		case v1beta1constants.DeploymentNameKubeAPIServer:
-			var oldSvc *corev1.Service
-			if old != nil {
-				var ok bool
-				oldSvc, ok = old.(*corev1.Service)
-				if !ok {
-					return errors.New("could not cast old object to corev1.Service")
-				}
-			}
-
-			extensionswebhook.LogMutation(m.logger, x.Kind, x.Namespace, x.Name)
-			return m.ensurer.EnsureKubeAPIServerService(ctx, gctx, x, oldSvc)
-		}
 	case *appsv1.Deployment:
 		var oldDep *appsv1.Deployment
 		if old != nil {
@@ -190,6 +161,7 @@ func (m *mutator) Mutate(ctx context.Context, new, old client.Object) error {
 				return errors.New("could not cast old object to vpaautoscalingv1.VerticalPodAutoscaler")
 			}
 		}
+
 		switch x.Name {
 		case machinecontrollermanager.VPAName:
 			extensionswebhook.LogMutation(m.logger, x.Kind, x.Namespace, x.Name)
@@ -481,7 +453,7 @@ func (m *mutator) ensureKubeletCloudProviderConfig(ctx context.Context, gctx ext
 	// Ensure the cloud provider config file is part of the OperatingSystemConfig
 	osc.Spec.Files = extensionswebhook.EnsureFileWithPath(osc.Spec.Files, extensionsv1alpha1.File{
 		Path:        CloudProviderConfigPath,
-		Permissions: ptr.To(int32(0644)),
+		Permissions: ptr.To[int32](0644),
 		Content: extensionsv1alpha1.FileContent{
 			Inline: fci,
 		},

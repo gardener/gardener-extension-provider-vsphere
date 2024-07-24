@@ -1,16 +1,6 @@
-// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package chart
 
@@ -32,10 +22,10 @@ import (
 type Interface interface {
 	// Apply applies this chart in the given namespace using the given ChartApplier. Before applying the chart,
 	// it collects its values, injecting images and merging the given values as needed.
-	Apply(context.Context, kubernetesclient.ChartApplier, string, imagevector.ImageVector, string, string, map[string]interface{}) error
+	Apply(context.Context, kubernetesclient.ChartApplier, string, imagevector.ImageVector, string, string, map[string]any) error
 	// Render renders this chart in the given namespace using the given chartRenderer. Before rendering the chart,
 	// it collects its values, injecting images and merging the given values as needed.
-	Render(chartrenderer.Interface, string, imagevector.ImageVector, string, string, map[string]interface{}) (string, []byte, error)
+	Render(chartrenderer.Interface, string, imagevector.ImageVector, string, string, map[string]any) (string, []byte, error)
 	// Delete deletes this chart's objects from the given namespace.
 	Delete(context.Context, client.Client, string) error
 }
@@ -64,7 +54,7 @@ func (c *Chart) Apply(
 	namespace string,
 	imageVector imagevector.ImageVector,
 	runtimeVersion, targetVersion string,
-	additionalValues map[string]interface{},
+	additionalValues map[string]any,
 ) error {
 	// Get values with injected images
 	values, err := c.injectImages(imageVector, runtimeVersion, targetVersion)
@@ -87,7 +77,7 @@ func (c *Chart) Render(
 	namespace string,
 	imageVector imagevector.ImageVector,
 	runtimeVersion, targetVersion string,
-	additionalValues map[string]interface{},
+	additionalValues map[string]any,
 ) (
 	string,
 	[]byte,
@@ -114,11 +104,11 @@ func (c *Chart) injectImages(
 	imageVector imagevector.ImageVector,
 	runtimeVersion, targetVersion string,
 ) (
-	map[string]interface{},
+	map[string]any,
 	error,
 ) {
 	// Inject images
-	values := make(map[string]interface{})
+	values := make(map[string]any)
 	var err error
 	if len(c.Images) > 0 {
 		values, err = InjectImages(values, imageVector, c.Images, imagevector.RuntimeVersion(runtimeVersion), imagevector.TargetVersion(targetVersion))
@@ -180,7 +170,7 @@ func objectKey(namespace, name string) client.ObjectKey {
 
 // InjectImages finds the images with the given names and opts, makes a shallow copy of the given
 // Values and injects a name to image string mapping at the `images` key of that map and returns it.
-func InjectImages(values map[string]interface{}, v imagevector.ImageVector, names []string, opts ...imagevector.FindOptionFunc) (map[string]interface{}, error) {
+func InjectImages(values map[string]any, v imagevector.ImageVector, names []string, opts ...imagevector.FindOptionFunc) (map[string]any, error) {
 	images, err := imagevector.FindImages(v, names, opts...)
 	if err != nil {
 		return nil, err

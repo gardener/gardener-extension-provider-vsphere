@@ -1,16 +1,6 @@
-// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package genericactuator
 
@@ -56,12 +46,6 @@ func (a *genericActuator) Reconcile(ctx context.Context, log logr.Logger, worker
 		return fmt.Errorf("pre worker reconciliation hook failed: %w", err)
 	}
 
-	// Get the list of all existing machine deployments.
-	existingMachineDeployments := &machinev1alpha1.MachineDeploymentList{}
-	if err := a.seedClient.List(ctx, existingMachineDeployments, client.InNamespace(worker.Namespace)); err != nil {
-		return err
-	}
-
 	// Generate the desired machine deployments.
 	log.Info("Generating machine deployments")
 	wantedMachineDeployments, err := workerDelegate.GenerateMachineDeployments(ctx)
@@ -91,9 +75,10 @@ func (a *genericActuator) Reconcile(ctx context.Context, log logr.Logger, worker
 		return fmt.Errorf("failed to update the machine image status: %w", err)
 	}
 
-	existingMachineDeploymentNames := sets.Set[string]{}
-	for _, deployment := range existingMachineDeployments.Items {
-		existingMachineDeploymentNames.Insert(deployment.Name)
+	// Get the list of all existing machine deployments.
+	existingMachineDeployments := &machinev1alpha1.MachineDeploymentList{}
+	if err := a.seedClient.List(ctx, existingMachineDeployments, client.InNamespace(worker.Namespace)); err != nil {
+		return err
 	}
 
 	// Generate machine deployment configuration based on previously computed list of deployments and deploy them.
@@ -107,7 +92,7 @@ func (a *genericActuator) Reconcile(ctx context.Context, log logr.Logger, worker
 	}
 
 	// Wait until all generated machine deployments are healthy/available.
-	if err := a.waitUntilWantedMachineDeploymentsAvailable(ctx, log, cluster, worker, existingMachineDeploymentNames, existingMachineClassNames, wantedMachineDeployments); err != nil {
+	if err := a.waitUntilWantedMachineDeploymentsAvailable(ctx, log, cluster, worker, existingMachineDeployments, existingMachineClassNames, wantedMachineDeployments); err != nil {
 		// check if the machine-controller-manager is stuck
 		isStuck, msg, err2 := a.IsMachineControllerStuck(ctx, worker)
 		if err2 != nil {
@@ -290,7 +275,7 @@ func deployMachineDeployments(
 					},
 				},
 			}
-
+			log.Info("Deploying machine deployment", "machineDeploymentName", machineDeployment.Name, "replicas", machineDeployment.Spec.Replicas)
 			return nil
 		}); err != nil {
 			return err
@@ -302,7 +287,12 @@ func deployMachineDeployments(
 
 // waitUntilWantedMachineDeploymentsAvailable waits until all the desired <machineDeployments> were marked as healthy /
 // available by the machine-controller-manager. It polls the status every 5 seconds.
-func (a *genericActuator) waitUntilWantedMachineDeploymentsAvailable(ctx context.Context, log logr.Logger, cluster *extensionscontroller.Cluster, worker *extensionsv1alpha1.Worker, alreadyExistingMachineDeploymentNames sets.Set[string], alreadyExistingMachineClassNames sets.Set[string], wantedMachineDeployments extensionsworkercontroller.MachineDeployments) error {
+func (a *genericActuator) waitUntilWantedMachineDeploymentsAvailable(ctx context.Context, log logr.Logger, cluster *extensionscontroller.Cluster, worker *extensionsv1alpha1.Worker, existingMachineDeployments *machinev1alpha1.MachineDeploymentList, alreadyExistingMachineClassNames sets.Set[string], wantedMachineDeployments extensionsworkercontroller.MachineDeployments) error {
+	alreadyExistingMachineDeploymentNames := sets.Set[string]{}
+	for _, deployment := range existingMachineDeployments.Items {
+		alreadyExistingMachineDeploymentNames.Insert(deployment.Name)
+	}
+
 	log.Info("Waiting until wanted machine deployments are available")
 
 	return retryutils.UntilTimeout(ctx, 5*time.Second, 5*time.Minute, func(ctx context.Context) (bool, error) {

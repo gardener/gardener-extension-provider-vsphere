@@ -1,21 +1,12 @@
-// Copyright 2020 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 //nolint:revive
 package v1beta1
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"k8s.io/apimachinery/pkg/conversion"
@@ -122,6 +113,7 @@ func Convert_v1beta1_InternalSecret_To_core_InternalSecret(in *InternalSecret, o
 		if out.Data == nil {
 			out.Data = make(map[string][]byte, len(in.StringData))
 		}
+
 		for k, v := range in.StringData {
 			out.Data[k] = []byte(v)
 		}
@@ -241,10 +233,85 @@ func Convert_core_ProjectMember_To_v1beta1_ProjectMember(in *core.ProjectMember,
 
 func removeRoleFromRoles(roles []string, role string) []string {
 	var newRoles []string
+
 	for _, r := range roles {
 		if r != role {
 			newRoles = append(newRoles, r)
 		}
 	}
 	return newRoles
+}
+
+func Convert_v1beta1_ControllerDeployment_To_core_ControllerDeployment(in *ControllerDeployment, out *core.ControllerDeployment, s conversion.Scope) error {
+	if err := autoConvert_v1beta1_ControllerDeployment_To_core_ControllerDeployment(in, out, s); err != nil {
+		return err
+	}
+
+	customType := false
+	switch in.Type {
+	case ControllerDeploymentTypeHelm:
+		helmDeployment := &HelmControllerDeployment{}
+		if len(in.ProviderConfig.Raw) > 0 {
+			if err := json.Unmarshal(in.ProviderConfig.Raw, helmDeployment); err != nil {
+				return err
+			}
+		}
+
+		out.Helm = &core.HelmControllerDeployment{}
+		if err := Convert_v1beta1_HelmControllerDeployment_To_core_HelmControllerDeployment(helmDeployment, out.Helm, s); err != nil {
+			return err
+		}
+	default:
+		customType = true
+	}
+
+	if !customType {
+		// type and providerConfig are only used for custom types
+		// built-in types are represented in the respective substructures
+		out.Type = ""
+		out.ProviderConfig = nil
+	}
+
+	return nil
+}
+
+func Convert_core_ControllerDeployment_To_v1beta1_ControllerDeployment(in *core.ControllerDeployment, out *ControllerDeployment, s conversion.Scope) error {
+	if err := autoConvert_core_ControllerDeployment_To_v1beta1_ControllerDeployment(in, out, s); err != nil {
+		return err
+	}
+
+	if in.Helm != nil {
+		out.Type = ControllerDeploymentTypeHelm
+
+		helmDeployment := &HelmControllerDeployment{}
+		if err := Convert_core_HelmControllerDeployment_To_v1beta1_HelmControllerDeployment(in.Helm, helmDeployment, s); err != nil {
+			return err
+		}
+
+		var err error
+		out.ProviderConfig.Raw, err = json.Marshal(helmDeployment)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func Convert_v1beta1_HelmControllerDeployment_To_core_HelmControllerDeployment(in *HelmControllerDeployment, out *core.HelmControllerDeployment, s conversion.Scope) error {
+	if err := autoConvert_v1beta1_HelmControllerDeployment_To_core_HelmControllerDeployment(in, out, s); err != nil {
+		return err
+	}
+
+	out.RawChart = in.Chart
+	return nil
+}
+
+func Convert_core_HelmControllerDeployment_To_v1beta1_HelmControllerDeployment(in *core.HelmControllerDeployment, out *HelmControllerDeployment, s conversion.Scope) error {
+	if err := autoConvert_core_HelmControllerDeployment_To_v1beta1_HelmControllerDeployment(in, out, s); err != nil {
+		return err
+	}
+
+	out.Chart = in.RawChart
+	return nil
 }

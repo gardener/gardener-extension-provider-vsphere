@@ -1,16 +1,6 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package framework
 
@@ -52,7 +42,7 @@ func checkAssignable(src, dst reflect.Value) error {
 	return nil
 }
 
-func dereference(v interface{}) interface{} {
+func dereference(v any) any {
 	dstValue := reflect.ValueOf(v)
 	Must(checkPtr(dstValue))
 
@@ -60,7 +50,7 @@ func dereference(v interface{}) interface{} {
 }
 
 // RevertableSet sets the element of dst to src and returns a function that can revert back to the original values.
-func RevertableSet(dst, src interface{}) (revert func()) {
+func RevertableSet(dst, src any) (revert func()) {
 	tmp := dereference(dst)
 	Set(dst, src)
 	return func() { Set(dst, tmp) }
@@ -69,7 +59,7 @@ func RevertableSet(dst, src interface{}) (revert func()) {
 // Set sets the pointer dst to the value of src.
 //
 // dst has to be a pointer, src has to be assignable to the element type of dst.
-func Set(dst, src interface{}) {
+func Set(dst, src any) {
 	dstValue := reflect.ValueOf(dst)
 	Must(checkPtr(dstValue))
 
@@ -119,7 +109,7 @@ func FileExists(kc string) bool {
 
 // ReadObject loads the contents of file and decodes it as an object.
 func ReadObject(file string, into apimachineryRuntime.Object) error {
-	data, err := os.ReadFile(file)
+	data, err := os.ReadFile(file) // #nosec: G304 -- Test only.
 	if err != nil {
 		return err
 	}
@@ -130,7 +120,7 @@ func ReadObject(file string, into apimachineryRuntime.Object) error {
 
 // ParseFileAsProviderConfig parses a file as a ProviderConfig
 func ParseFileAsProviderConfig(filepath string) (*apimachineryRuntime.RawExtension, error) {
-	data, err := os.ReadFile(filepath)
+	data, err := os.ReadFile(filepath) // #nosec: G304 -- Test only.
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +135,7 @@ func ParseFileAsProviderConfig(filepath string) (*apimachineryRuntime.RawExtensi
 
 // ParseFileAsWorkers parses a file as a Worker configuration
 func ParseFileAsWorkers(filepath string) ([]gardencorev1beta1.Worker, error) {
-	data, err := os.ReadFile(filepath)
+	data, err := os.ReadFile(filepath) // #nosec: G304 -- Test only.
 	if err != nil {
 		return nil, err
 	}

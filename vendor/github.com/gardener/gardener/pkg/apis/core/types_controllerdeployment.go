@@ -1,20 +1,13 @@
-// Copyright 2021 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package core
 
 import (
+	"strings"
+
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -29,9 +22,19 @@ type ControllerDeployment struct {
 	// Standard object metadata.
 	metav1.ObjectMeta
 	// Type is the deployment type.
+	// This field correlates with the Type field in the v1beta1 API version.
+	// It is only set if a custom type (other than helm) is configured in the v1beta1 API version and the object is
+	// converted to the internal version. If the helm type is used in v1beta1, the Helm section will be set in the
+	// internal API version instead of this field. In the v1 API version, the value is represented using an annotation.
 	Type string
 	// ProviderConfig contains type-specific configuration. It contains assets that deploy the controller.
+	// This field correlates with the ProviderConfig field in the v1beta1 API version.
+	// It is only set if a custom type (other than helm) is configured in the v1beta1 API version and the object is
+	// converted to the internal version. If the helm type is used in v1beta1, the Helm section will be set in the
+	// internal API version instead of this field. In the v1 API version, the value is represented using an annotation.
 	ProviderConfig runtime.Object
+	// Helm configures that an extension controller is deployed using helm.
+	Helm *HelmControllerDeployment
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -43,4 +46,43 @@ type ControllerDeploymentList struct {
 	metav1.ListMeta
 	// Items is the list of ControllerDeployments.
 	Items []ControllerDeployment
+}
+
+// HelmControllerDeployment configures how an extension controller is deployed using helm.
+type HelmControllerDeployment struct {
+	// RawChart is the base64-encoded, gzip'ed, tar'ed extension controller chart.
+	RawChart []byte
+	// Values are the chart values.
+	Values *apiextensionsv1.JSON
+	// OCIRepository defines where to pull the chart.
+	OCIRepository *OCIRepository
+}
+
+// OCIRepository configures where to pull an OCI Artifact, that could contain for example a Helm Chart.
+type OCIRepository struct {
+	// Ref is the full artifact Ref and takes precedence over all other fields.
+	Ref *string
+	// Repository is a reference to an OCI artifact repository.
+	Repository *string
+	// Tag is the image tag to pull.
+	Tag *string
+	// Digest of the image to pull, takes precedence over tag.
+	// The value should be in the format 'sha256:<HASH>'.
+	Digest *string
+}
+
+// GetURL returns the fully-qualified OCIRepository URL of the artifact.
+func (o *OCIRepository) GetURL() string {
+	var ref string
+
+	switch {
+	case o.Ref != nil:
+		ref = *o.Ref
+	case o.Digest != nil:
+		// when digest is set we ignore the tag
+		ref = *o.Repository + "@" + *o.Digest
+	case o.Tag != nil:
+		ref = *o.Repository + ":" + *o.Tag
+	}
+	return strings.TrimPrefix(ref, "oci://")
 }

@@ -18,9 +18,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gardener/gardener-extension-provider-vsphere/pkg/utils/index"
 	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/extensions/pkg/util"
-	"github.com/gardener/gardener/extensions/pkg/util/index"
 	"github.com/gardener/gardener/pkg/apis/core/install"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"

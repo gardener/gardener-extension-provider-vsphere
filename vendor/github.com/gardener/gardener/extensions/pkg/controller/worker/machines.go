@@ -1,20 +1,11 @@
-// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://wwr.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package worker
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"regexp"
@@ -22,7 +13,9 @@ import (
 
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/util"
@@ -100,7 +93,15 @@ func (m MachineDeployments) HasSecret(secretName string) bool {
 }
 
 // WorkerPoolHash returns a hash value for a given worker pool and a given cluster resource.
-func WorkerPoolHash(pool extensionsv1alpha1.WorkerPool, cluster *extensionscontroller.Cluster, additionalData ...string) (string, error) {
+func WorkerPoolHash(pool extensionsv1alpha1.WorkerPool, cluster *extensionscontroller.Cluster, additionalDataV1 []string, additionalDataV2 []string) (string, error) {
+	if pool.NodeAgentSecretName != nil {
+		return WorkerPoolHashV2(*pool.NodeAgentSecretName, additionalDataV2...)
+	}
+	return WorkerPoolHashV1(pool, cluster, additionalDataV1...)
+}
+
+// WorkerPoolHashV1 returns a hash value for a given worker pool and a given cluster resource.
+func WorkerPoolHashV1(pool extensionsv1alpha1.WorkerPool, cluster *extensionscontroller.Cluster, additionalData ...string) (string, error) {
 	kubernetesVersion := cluster.Shoot.Spec.Kubernetes.Version
 	if pool.KubernetesVersion != nil {
 		kubernetesVersion = *pool.KubernetesVersion
@@ -150,6 +151,20 @@ func WorkerPoolHash(pool extensionsv1alpha1.WorkerPool, cluster *extensionscontr
 	if helper.IsNodeLocalDNSEnabled(cluster.Shoot.Spec.SystemComponents) {
 		data = append(data, "node-local-dns")
 	}
+
+	var result string
+	for _, v := range data {
+		result += utils.ComputeSHA256Hex([]byte(v))
+	}
+
+	return utils.ComputeSHA256Hex([]byte(result))[:5], nil
+}
+
+// WorkerPoolHashV2 returns a hash value for a given nodeAgentSecretName and additional data.
+func WorkerPoolHashV2(nodeAgentSecretName string, additionalData ...string) (string, error) {
+	data := []string{nodeAgentSecretName}
+
+	data = append(data, additionalData...)
 
 	var result string
 	for _, v := range data {
@@ -232,4 +247,23 @@ func ErrorMachineImageNotFound(name, version string, opt ...string) error {
 		ext += "/" + o
 	}
 	return fmt.Errorf("could not find machine image for %s/%s%s neither in cloud profile nor in worker status", name, version, ext)
+}
+
+// FetchUserData fetches the user data for a worker pool.
+func FetchUserData(ctx context.Context, c client.Client, namespace string, pool extensionsv1alpha1.WorkerPool) ([]byte, error) {
+	if pool.UserDataSecretRef != nil {
+		secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: pool.UserDataSecretRef.Name, Namespace: namespace}}
+		if err := c.Get(ctx, client.ObjectKeyFromObject(secret), secret); err != nil {
+			return nil, fmt.Errorf("failed fetching user data secret %s referenced in worker pool %s: %w", pool.UserDataSecretRef.Name, pool.Name, err)
+		}
+
+		userData, ok := secret.Data[pool.UserDataSecretRef.Key]
+		if !ok || len(userData) == 0 {
+			return nil, fmt.Errorf("user data secret %s for worker pool %s has no %s field or it's empty", pool.UserDataSecretRef.Name, pool.Name, pool.UserDataSecretRef.Key)
+		}
+
+		return userData, nil
+	}
+
+	return pool.UserData, nil
 }

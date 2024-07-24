@@ -1,16 +1,6 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package core
 
@@ -66,6 +56,8 @@ type ProjectSpec struct {
 	Namespace *string
 	// Tolerations contains the default tolerations and a list for allowed taints on seed clusters.
 	Tolerations *ProjectTolerations
+	// DualApprovalForDeletion contains configuration for the dual approval concept for resource deletion.
+	DualApprovalForDeletion []DualApprovalForDeletion
 }
 
 // ProjectStatus holds the most recently observed status of the project.
@@ -107,6 +99,16 @@ type Toleration struct {
 	Key string
 	// Value is the toleration value corresponding to the toleration key.
 	Value *string
+}
+
+// DualApprovalForDeletion contains configuration for the dual approval concept for resource deletion.
+type DualApprovalForDeletion struct {
+	// Resource is the name of the resource this applies to.
+	Resource string
+	// Selector is the label selector for the resources.
+	Selector metav1.LabelSelector
+	// IncludeServiceAccounts specifies whether the concept also applies when deletion is triggered by ServiceAccounts.
+	IncludeServiceAccounts *bool
 }
 
 const (

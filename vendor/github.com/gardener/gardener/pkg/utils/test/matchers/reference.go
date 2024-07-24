@@ -1,16 +1,6 @@
-// Copyright 2023 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package matchers
 
@@ -21,23 +11,23 @@ import (
 )
 
 type referenceMatcher struct {
-	expected interface{}
+	expected any
 }
 
-func (r *referenceMatcher) Match(actual interface{}) (success bool, err error) {
-	return func(expected, actual interface{}) bool {
+func (r *referenceMatcher) Match(actual any) (success bool, err error) {
+	return func(expected, actual any) bool {
 		return reflect.ValueOf(expected).Pointer() == reflect.ValueOf(actual).Pointer()
 	}(r.expected, actual), nil
 }
 
-func (r *referenceMatcher) FailureMessage(actual interface{}) (message string) {
+func (r *referenceMatcher) FailureMessage(actual any) (message string) {
 	return r.failureMessage(actual, "")
 }
 
-func (r *referenceMatcher) NegatedFailureMessage(actual interface{}) (message string) {
+func (r *referenceMatcher) NegatedFailureMessage(actual any) (message string) {
 	return r.failureMessage(actual, " not")
 }
 
-func (r *referenceMatcher) failureMessage(actual interface{}, messagePrefix string) (message string) {
+func (r *referenceMatcher) failureMessage(actual any, messagePrefix string) (message string) {
 	return format.Message(actual, "to"+messagePrefix+" share reference with the compared object")
 }

@@ -1,16 +1,6 @@
-// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package core
 
@@ -89,6 +79,7 @@ type ShootSpec struct {
 	Region string
 	// SecretBindingName is the name of the a SecretBinding that has a reference to the provider secret.
 	// The credentials inside the provider secret will be used to create the shoot in the respective account.
+	// The field is mutually exclusive with CredentialsBindingName.
 	// This field is immutable.
 	SecretBindingName *string
 	// SeedName is the name of the seed cluster that runs the control plane of the Shoot.
@@ -110,6 +101,12 @@ type ShootSpec struct {
 	// If not specified, the default scheduler takes over.
 	// This field is immutable.
 	SchedulerName *string
+	// CloudProfile is a reference to a CloudProfile or a NamespacedCloudProfile.
+	CloudProfile *CloudProfileReference
+	// CredentialsBindingName is the name of the a CredentialsBinding that has a reference to the provider credentials.
+	// The credentials will be used to create the shoot in the respective account. The field is mutually exclusive with SecretBindingName.
+	// This field is immutable.
+	CredentialsBindingName *string
 }
 
 // GetProviderType gets the type of the provider.
@@ -151,7 +148,8 @@ type ShootStatus struct {
 	UID types.UID
 	// ClusterIdentity is the identity of the Shoot cluster. This field is immutable.
 	ClusterIdentity *string
-	// List of addresses on which the Kube API server can be reached.
+	// List of addresses that are relevant to the shoot.
+	// These include the Kube API server address and also the service account issuer.
 	AdvertisedAddresses []ShootAdvertisedAddress
 	// MigrationStartTime is the time when a migration to a different seed was initiated.
 	MigrationStartTime *metav1.Time
@@ -163,6 +161,8 @@ type ShootStatus struct {
 	// Secrets are encrypted by default and are not part of the list.
 	// See https://github.com/gardener/gardener/blob/master/docs/usage/etcd_encryption_config.md for more details.
 	EncryptedResources []string
+	// Networking contains information about cluster networking such as CIDRs.
+	Networking *NetworkingStatus
 }
 
 // LastMaintenance holds information about a maintenance operation on the Shoot.
@@ -175,6 +175,16 @@ type LastMaintenance struct {
 	State LastOperationState
 	// FailureReason holds the information about the last maintenance operation failure reason.
 	FailureReason *string
+}
+
+// NetworkingStatus contains information about cluster networking such as CIDRs.
+type NetworkingStatus struct {
+	// Pods are the CIDRs of the pod network.
+	Pods []string
+	// Nodes are the CIDRs of the node network.
+	Nodes []string
+	// Services are the CIDRs of the service network.
+	Services []string
 }
 
 // ShootCredentials contains information about the shoot credentials.
@@ -203,14 +213,14 @@ type ShootCredentialsRotation struct {
 type CARotation struct {
 	// Phase describes the phase of the certificate authority credential rotation.
 	Phase CredentialsRotationPhase
+	// LastCompletionTime is the most recent time when the certificate authority credential rotation was successfully
+	// completed.
+	LastCompletionTime *metav1.Time
 	// LastInitiationTime is the most recent time when the certificate authority credential rotation was initiated.
 	LastInitiationTime *metav1.Time
 	// LastInitiationFinishedTime is the recent time when the certificate authority credential rotation initiation was
 	// completed.
 	LastInitiationFinishedTime *metav1.Time
-	// LastCompletionTime is the most recent time when the certificate authority credential rotation was successfully
-	// completed.
-	LastCompletionTime *metav1.Time
 	// LastCompletionTriggeredTime is the recent time when the certificate authority credential rotation completion was
 	// triggered.
 	LastCompletionTriggeredTime *metav1.Time
@@ -244,14 +254,14 @@ type ObservabilityRotation struct {
 type ServiceAccountKeyRotation struct {
 	// Phase describes the phase of the service account key credential rotation.
 	Phase CredentialsRotationPhase
+	// LastCompletionTime is the most recent time when the service account key credential rotation was successfully
+	// completed.
+	LastCompletionTime *metav1.Time
 	// LastInitiationTime is the most recent time when the service account key credential rotation was initiated.
 	LastInitiationTime *metav1.Time
 	// LastInitiationFinishedTime is the recent time when the certificate authority credential rotation initiation was
 	// completed.
 	LastInitiationFinishedTime *metav1.Time
-	// LastCompletionTime is the most recent time when the service account key credential rotation was successfully
-	// completed.
-	LastCompletionTime *metav1.Time
 	// LastCompletionTriggeredTime is the recent time when the certificate authority credential rotation completion was
 	// triggered.
 	LastCompletionTriggeredTime *metav1.Time
@@ -261,14 +271,14 @@ type ServiceAccountKeyRotation struct {
 type ETCDEncryptionKeyRotation struct {
 	// Phase describes the phase of the ETCD encryption key credential rotation.
 	Phase CredentialsRotationPhase
+	// LastCompletionTime is the most recent time when the ETCD encryption key credential rotation was successfully
+	// completed.
+	LastCompletionTime *metav1.Time
 	// LastInitiationTime is the most recent time when the ETCD encryption key credential rotation was initiated.
 	LastInitiationTime *metav1.Time
 	// LastInitiationFinishedTime is the recent time when the certificate authority credential rotation initiation was
 	// completed.
 	LastInitiationFinishedTime *metav1.Time
-	// LastCompletionTime is the most recent time when the ETCD encryption key credential rotation was successfully
-	// completed.
-	LastCompletionTime *metav1.Time
 	// LastCompletionTriggeredTime is the recent time when the certificate authority credential rotation completion was
 	// triggered.
 	LastCompletionTriggeredTime *metav1.Time
@@ -350,17 +360,22 @@ type DNS struct {
 	Domain *string
 	// Providers is a list of DNS providers that shall be enabled for this shoot cluster. Only relevant if
 	// not a default domain is used.
+	// Deprecated: Configuring multiple DNS providers is deprecated and will be forbidden in a future release.
+	// Please use the DNS extension provider config (e.g. shoot-dns-service) for additional providers.
 	Providers []DNSProvider
 }
 
+// TODO(timuthy): Rework the 'DNSProvider' struct and deprecated fields in the scope of https://github.com/gardener/gardener/issues/9176.
+
 // DNSProvider contains information about a DNS provider.
 type DNSProvider struct {
-	// TODO(timuthy): Remove this field in the scope of https://github.com/gardener/gardener/issues/9176.
-
 	// Domains contains information about which domains shall be included/excluded for this provider.
 	// Deprecated: This field is deprecated and will be removed in a future release.
+	// Please use the DNS extension provider config (e.g. shoot-dns-service) for additional configuration.
 	Domains *DNSIncludeExclude
 	// Primary indicates that this DNSProvider is used for shoot related domains.
+	// Deprecated: This field is deprecated and will be removed in a future release.
+	// Please use the DNS extension provider config (e.g. shoot-dns-service) for additional and non-primary providers.
 	Primary *bool
 	// SecretName is a name of a secret containing credentials for the stated domain and the
 	// provider. When not specified, the Gardener will use the cloud provider credentials referenced
@@ -370,10 +385,9 @@ type DNSProvider struct {
 	// Type is the DNS provider type for the Shoot. Only relevant if not the default domain is used for
 	// this shoot.
 	Type *string
-	// TODO(timuthy): Remove this field in the scope of https://github.com/gardener/gardener/issues/9176.
-
 	// Zones contains information about which hosted zones shall be included/excluded for this provider.
 	// Deprecated: This field is deprecated and will be removed in a future release.
+	// Please use the DNS extension provider config (e.g. shoot-dns-service) for additional configuration.
 	Zones *DNSIncludeExclude
 }
 
@@ -429,10 +443,6 @@ type HibernationSchedule struct {
 
 // Kubernetes contains the version and configuration variables for the Shoot control plane.
 type Kubernetes struct {
-	// AllowPrivilegedContainers indicates whether privileged containers are allowed in the Shoot.
-	//
-	// Deprecated: This field is deprecated and will be removed in a future version.
-	AllowPrivilegedContainers *bool
 	// ClusterAutoscaler contains the configuration flags for the Kubernetes cluster autoscaler.
 	ClusterAutoscaler *ClusterAutoscaler
 	// KubeAPIServer contains configuration settings for the kube-apiserver.
@@ -876,6 +886,9 @@ type KubeletConfig struct {
 	KubeReserved *KubeletConfigReserved
 	// SystemReserved is the configuration for resources reserved for system processes not managed by kubernetes (e.g. journald).
 	// When updating these values, be aware that cgroup resizes may not succeed on active worker nodes. Look for the NodeAllocatableEnforced event to determine if the configuration was applied.
+	// Deprecated: Separately configuring resource reservations for system processes is deprecated in Gardener and will be removed soon.
+	// Please merge existing resource reservations into the kubeReserved field.
+	// TODO(MichaelEischer): Drop this field after v1.113 has been released.
 	SystemReserved *KubeletConfigReserved
 	// ImageGCHighThresholdPercent describes the percent of the disk usage which triggers image garbage collection.
 	ImageGCHighThresholdPercent *int32
@@ -965,11 +978,15 @@ type KubeletConfigReserved struct {
 type SwapBehavior string
 
 const (
+	// NoSwap is a constant for the kubelet's swap behavior restricting Kubernetes workloads to not use swap.
+	// Only available for Kubernetes versions >= v1.30.
+	NoSwap SwapBehavior = "NoSwap"
 	// LimitedSwap is a constant for the kubelet's swap behavior limitting the amount of swap usable for Kubernetes workloads. Workloads on the node not managed by Kubernetes can still swap.
 	// - cgroupsv1 host: Kubernetes workloads can use any combination of memory and swap, up to the pod's memory limit
 	// - cgroupsv2 host: swap is managed independently from memory. Kubernetes workloads cannot use swap memory.
 	LimitedSwap SwapBehavior = "LimitedSwap"
 	// UnlimitedSwap is a constant for the kubelet's swap behavior enabling Kubernetes workloads to use as much swap memory as required, up to the system limit (not limited by pod or container memory limits).
+	// Only available for Kubernetes versions < v1.30.
 	UnlimitedSwap SwapBehavior = "UnlimitedSwap"
 )
 
@@ -990,7 +1007,7 @@ type Networking struct {
 	// Pods is the CIDR of the pod network. This field is immutable.
 	Pods *string
 	// Nodes is the CIDR of the entire node network.
-	// This field is immutable if the feature gate MutableShootSpecNetworkingNodes is disabled.
+	// This field is mutable.
 	Nodes *string
 	// Services is the CIDR of the service network. This field is immutable.
 	Services *string

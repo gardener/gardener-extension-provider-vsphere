@@ -1,16 +1,6 @@
-# Copyright 2021 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+# SPDX-FileCopyrightText: 2024 SAP SE or an SAP affiliate company and Gardener contributors
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0
 
 # This make file is supposed to be included in the top-level make file.
 # It can be reused by repos vendoring g/g to have some common make recipes for building and installing development
@@ -28,13 +18,16 @@ else
 TOOLS_PKG_PATH             := $(shell go list -tags tools -f '{{ .Dir }}' github.com/gardener/gardener/hack/tools 2>/dev/null)
 endif
 
-TOOLS_BIN_DIR              := $(TOOLS_DIR)/bin
+SYSTEM_NAME                := $(shell uname -s | tr '[:upper:]' '[:lower:]')
+SYSTEM_ARCH                := $(shell uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+TOOLS_BIN_DIR              := $(TOOLS_DIR)/bin/$(SYSTEM_NAME)-$(SYSTEM_ARCH)
 CONTROLLER_GEN             := $(TOOLS_BIN_DIR)/controller-gen
 GEN_CRD_API_REFERENCE_DOCS := $(TOOLS_BIN_DIR)/gen-crd-api-reference-docs
 GINKGO                     := $(TOOLS_BIN_DIR)/ginkgo
 GOIMPORTS                  := $(TOOLS_BIN_DIR)/goimports
 GOIMPORTSREVISER           := $(TOOLS_BIN_DIR)/goimports-reviser
 GOLANGCI_LINT              := $(TOOLS_BIN_DIR)/golangci-lint
+GOSEC                      := $(TOOLS_BIN_DIR)/gosec
 GO_ADD_LICENSE             := $(TOOLS_BIN_DIR)/addlicense
 GO_APIDIFF                 := $(TOOLS_BIN_DIR)/go-apidiff
 GO_VULN_CHECK              := $(TOOLS_BIN_DIR)/govulncheck
@@ -42,7 +35,9 @@ GO_TO_PROTOBUF             := $(TOOLS_BIN_DIR)/go-to-protobuf
 HELM                       := $(TOOLS_BIN_DIR)/helm
 IMPORT_BOSS                := $(TOOLS_BIN_DIR)/import-boss
 KIND                       := $(TOOLS_BIN_DIR)/kind
+KO                         := $(TOOLS_BIN_DIR)/ko
 KUBECTL                    := $(TOOLS_BIN_DIR)/kubectl
+KUSTOMIZE                  := $(TOOLS_BIN_DIR)/kustomize
 LOGCHECK                   := $(TOOLS_BIN_DIR)/logcheck.so # plugin binary
 MOCKGEN                    := $(TOOLS_BIN_DIR)/mockgen
 OPENAPI_GEN                := $(TOOLS_BIN_DIR)/openapi-gen
@@ -57,30 +52,36 @@ VGOPATH                    := $(TOOLS_BIN_DIR)/vgopath
 
 # default tool versions
 # renovate: datasource=github-releases depName=golangci/golangci-lint
-GOLANGCI_LINT_VERSION ?= v1.56.2
+GOLANGCI_LINT_VERSION ?= v1.59.1
+# renovate: datasource=github-releases depName=securego/gosec
+GOSEC_VERSION ?= v2.20.0
 # renovate: datasource=github-releases depName=joelanford/go-apidiff
 GO_APIDIFF_VERSION ?= v0.8.2
 # renovate: datasource=github-releases depName=google/addlicense
 GO_ADD_LICENSE_VERSION ?= v1.1.1
 # renovate: datasource=github-releases depName=incu6us/goimports-reviser
-GOIMPORTSREVISER_VERSION ?= v3.6.4
+GOIMPORTSREVISER_VERSION ?= v3.6.5
 GO_VULN_CHECK_VERSION ?= latest
 # renovate: datasource=github-releases depName=helm/helm
-HELM_VERSION ?= v3.14.2
+HELM_VERSION ?= v3.15.2
 # renovate: datasource=github-releases depName=kubernetes-sigs/kind
-KIND_VERSION ?= v0.22.0
+KIND_VERSION ?= v0.23.0
+# renovate: datasource=github-releases depName=ko-build/ko
+KO_VERSION ?= v0.15.4
 # renovate: datasource=github-releases depName=kubernetes/kubernetes
-KUBECTL_VERSION ?= v1.29.2
+KUBECTL_VERSION ?= v1.30.2
+# renovate: datasource=github-releases depName=kubernetes-sigs/kustomize
+KUSTOMIZE_VERSION ?= v5.3.0
 # renovate: datasource=github-releases depName=prometheus/prometheus
-PROMTOOL_VERSION ?= 2.50.1
+PROMTOOL_VERSION ?= 2.53.0
 # renovate: datasource=github-releases depName=protocolbuffers/protobuf
-PROTOC_VERSION ?= 25.3
+PROTOC_VERSION ?= v27.2
 # renovate: datasource=github-releases depName=GoogleContainerTools/skaffold
-SKAFFOLD_VERSION ?= v2.10.1
+SKAFFOLD_VERSION ?= v2.13.0
 # renovate: datasource=github-releases depName=mikefarah/yq
-YQ_VERSION ?= v4.41.1
+YQ_VERSION ?= v4.44.2
 # renovate: datasource=github-releases depName=ironcore-dev/vgopath
-VGOPATH_VERSION ?= v0.1.4
+VGOPATH_VERSION ?= v0.1.5
 
 # tool versions from go.mod
 CONTROLLER_GEN_VERSION ?= $(call version_gomod,sigs.k8s.io/controller-tools)
@@ -119,6 +120,7 @@ version_gomod = $(shell go list -mod=mod -f '{{ .Version }}' -m $(1))
 # This way, we can generically determine, which version was installed without calling each and every binary explicitly.
 $(TOOLS_BIN_DIR)/.version_%:
 	@version_file=$@; rm -f $${version_file%_*}*
+	@mkdir -p $(TOOLS_BIN_DIR)
 	@touch $@
 
 .PHONY: clean-tools-bin
@@ -133,7 +135,7 @@ ifeq ($(shell if [ -d $(TOOLS_BIN_SOURCE_DIR) ]; then echo "found"; fi),found)
 endif
 
 .PHONY: create-tools-bin
-create-tools-bin: $(CONTROLLER_GEN) $(GEN_CRD_API_REFERENCE_DOCS) $(GINKGO) $(GOIMPORTS) $(GOIMPORTSREVISER) $(GO_ADD_LICENSE) $(GO_APIDIFF) $(GO_VULN_CHECK) $(GO_TO_PROTOBUF) $(HELM) $(IMPORT_BOSS) $(KIND) $(KUBECTL) $(MOCKGEN) $(OPENAPI_GEN) $(PROMTOOL) $(PROTOC) $(PROTOC_GEN_GOGO) $(SETUP_ENVTEST) $(SKAFFOLD) $(YQ) $(VGOPATH)
+create-tools-bin: $(CONTROLLER_GEN) $(GEN_CRD_API_REFERENCE_DOCS) $(GINKGO) $(GOIMPORTS) $(GOIMPORTSREVISER) $(GOSEC) $(GO_ADD_LICENSE) $(GO_APIDIFF) $(GO_VULN_CHECK) $(GO_TO_PROTOBUF) $(HELM) $(IMPORT_BOSS) $(KIND) $(KUBECTL) $(MOCKGEN) $(OPENAPI_GEN) $(PROMTOOL) $(PROTOC) $(PROTOC_GEN_GOGO) $(SETUP_ENVTEST) $(SKAFFOLD) $(YQ) $(VGOPATH) $(KUSTOMIZE)
 
 #########################################
 # Tools                                 #
@@ -159,6 +161,9 @@ $(GOLANGCI_LINT): $(call tool_version_file,$(GOLANGCI_LINT),$(GOLANGCI_LINT_VERS
 	@# see https://github.com/golangci/golangci-lint/issues/1276
 	GOBIN=$(abspath $(TOOLS_BIN_DIR)) CGO_ENABLED=1 go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 
+$(GOSEC): $(call tool_version_file,$(GOSEC),$(GOSEC_VERSION))
+	@GOSEC_VERSION=$(GOSEC_VERSION) $(TOOLS_PKG_PATH)/install-gosec.sh
+
 $(GO_ADD_LICENSE):  $(call tool_version_file,$(GO_ADD_LICENSE),$(GO_ADD_LICENSE_VERSION))
 	GOBIN=$(abspath $(TOOLS_BIN_DIR)) go install github.com/google/addlicense@$(GO_ADD_LICENSE_VERSION)
 
@@ -178,19 +183,28 @@ $(IMPORT_BOSS): $(call tool_version_file,$(IMPORT_BOSS),$(CODE_GENERATOR_VERSION
 	go build -o $(IMPORT_BOSS) k8s.io/code-generator/cmd/import-boss
 
 $(KIND): $(call tool_version_file,$(KIND),$(KIND_VERSION))
-	curl -L -o $(KIND) https://kind.sigs.k8s.io/dl/$(KIND_VERSION)/kind-$(shell uname -s | tr '[:upper:]' '[:lower:]')-$(shell uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+	curl -L -o $(KIND) https://kind.sigs.k8s.io/dl/$(KIND_VERSION)/kind-$(SYSTEM_NAME)-$(SYSTEM_ARCH)
 	chmod +x $(KIND)
 
+$(KO): $(call tool_version_file,$(KO),$(KO_VERSION))
+	GOBIN=$(abspath $(TOOLS_BIN_DIR)) go install github.com/google/ko@$(KO_VERSION)
+
 $(KUBECTL): $(call tool_version_file,$(KUBECTL),$(KUBECTL_VERSION))
-	curl -Lo $(KUBECTL) https://dl.k8s.io/release/$(KUBECTL_VERSION)/bin/$(shell uname -s | tr '[:upper:]' '[:lower:]')/$(shell uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')/kubectl
+	curl -Lo $(KUBECTL) https://dl.k8s.io/release/$(KUBECTL_VERSION)/bin/$(SYSTEM_NAME)/$(SYSTEM_ARCH)/kubectl
 	chmod +x $(KUBECTL)
+
+$(KUSTOMIZE): $(call tool_version_file,$(KUSTOMIZE),$(KUSTOMIZE_VERSION))
+	curl -L -o - \
+		https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F$(KUSTOMIZE_VERSION)/kustomize_$(KUSTOMIZE_VERSION)_$(SYSTEM_NAME)_$(SYSTEM_ARCH).tar.gz | \
+	tar zxvf - -C $(abspath $(TOOLS_BIN_DIR))
+	touch $(KUSTOMIZE) && chmod +x $(KUSTOMIZE)
 
 ifeq ($(strip $(shell go list -m 2>/dev/null)),github.com/gardener/gardener)
 $(LOGCHECK): $(TOOLS_PKG_PATH)/logcheck/go.* $(shell find $(TOOLS_PKG_PATH)/logcheck -type f -name '*.go')
-	cd $(TOOLS_PKG_PATH)/logcheck; CGO_ENABLED=1 go build -o $(abspath $(LOGCHECK)) -buildmode=plugin ./plugin
+	cd $(TOOLS_PKG_PATH)/logcheck;GOTOOLCHAIN=auto CGO_ENABLED=1 go build -o $(abspath $(LOGCHECK)) -buildmode=plugin ./plugin
 else
 $(LOGCHECK): go.mod
-	CGO_ENABLED=1 go build -o $(LOGCHECK) -buildmode=plugin github.com/gardener/gardener/hack/tools/logcheck/plugin
+	GOTOOLCHAIN=auto CGO_ENABLED=1 go build -o $(LOGCHECK) -buildmode=plugin github.com/gardener/gardener/hack/tools/logcheck/plugin
 endif
 
 $(MOCKGEN): $(call tool_version_file,$(MOCKGEN),$(MOCKGEN_VERSION))
@@ -220,11 +234,11 @@ $(SETUP_ENVTEST): $(call tool_version_file,$(SETUP_ENVTEST),$(CONTROLLER_RUNTIME
 	go build -o $(SETUP_ENVTEST) sigs.k8s.io/controller-runtime/tools/setup-envtest
 
 $(SKAFFOLD): $(call tool_version_file,$(SKAFFOLD),$(SKAFFOLD_VERSION))
-	curl -Lo $(SKAFFOLD) https://storage.googleapis.com/skaffold/releases/$(SKAFFOLD_VERSION)/skaffold-$(shell uname -s | tr '[:upper:]' '[:lower:]')-$(shell uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+	curl -Lo $(SKAFFOLD) https://storage.googleapis.com/skaffold/releases/$(SKAFFOLD_VERSION)/skaffold-$(SYSTEM_NAME)-$(SYSTEM_ARCH)
 	chmod +x $(SKAFFOLD)
 
 $(YQ): $(call tool_version_file,$(YQ),$(YQ_VERSION))
-	curl -L -o $(YQ) https://github.com/mikefarah/yq/releases/download/$(YQ_VERSION)/yq_$(shell uname -s | tr '[:upper:]' '[:lower:]')_$(shell uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+	curl -L -o $(YQ) https://github.com/mikefarah/yq/releases/download/$(YQ_VERSION)/yq_$(SYSTEM_NAME)_$(SYSTEM_ARCH)
 	chmod +x $(YQ)
 
 $(VGOPATH): $(call tool_version_file,$(VGOPATH),$(VGOPATH_VERSION))
