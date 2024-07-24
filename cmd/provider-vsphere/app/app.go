@@ -46,7 +46,6 @@ import (
 	vsphereworker "github.com/gardener/gardener-extension-provider-vsphere/pkg/controller/worker"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 	providervsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
-	controlplanewebhook "github.com/gardener/gardener-extension-provider-vsphere/pkg/webhook/controlplane"
 	vspherecontrolplaneexposure "github.com/gardener/gardener-extension-provider-vsphere/pkg/webhook/controlplaneexposure"
 )
 
@@ -178,12 +177,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			reconcileOpts.Completed().Apply(&vsphereworker.DefaultAddOptions.IgnoreOperationAnnotation)
 			workerCtrlOpts.Completed().Apply(&vsphereworker.DefaultAddOptions.Controller)
 
-			// TODO(rfranzke): Remove the GardenletManagesMCM fields as soon as the general options no longer support the
-			//  GardenletManagesMCM field.
-			controlplanewebhook.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
-			healthcheck.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
-
-			atomicShootWebhookConfig, err := webhookOptions.Completed().AddToManager(ctx, mgr)
+			atomicShootWebhookConfig, err := webhookOptions.Completed().AddToManager(ctx, mgr, nil)
 			if err != nil {
 				return fmt.Errorf("could not add webhooks to manager: %w", err)
 			}

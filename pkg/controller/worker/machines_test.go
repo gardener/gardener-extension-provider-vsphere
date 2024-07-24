@@ -84,24 +84,6 @@ var _ = Describe("Machines", func() {
 			workerDelegate, _ = NewWorkerDelegate(nil, scheme, nil, "", nil, nil)
 		})
 
-		Describe("#MachineClassKind", func() {
-			It("should return the correct kind of the machine class", func() {
-				Expect(workerDelegate.MachineClassKind()).To(Equal("MachineClass"))
-			})
-		})
-
-		Describe("#MachineClass", func() {
-			It("should return the correct type for the machine class", func() {
-				Expect(workerDelegate.MachineClass()).To(Equal(&machinev1alpha1.MachineClass{}))
-			})
-		})
-
-		Describe("#MachineClassList", func() {
-			It("should return the correct type for the machine class list", func() {
-				Expect(workerDelegate.MachineClassList()).To(Equal(&machinev1alpha1.MachineClassList{}))
-			})
-		})
-
 		Describe("#GenerateMachineDeployments, #DeployMachineClasses", func() {
 			var (
 				namespace        string
@@ -356,7 +338,7 @@ var _ = Describe("Machines", func() {
 
 				chartApplier.
 					EXPECT().
-					Apply(
+					ApplyFromEmbeddedFS(
 						context.TODO(),
 						filepath.Join(vsphere.InternalChartsPath, "machineclass"),
 						namespace,

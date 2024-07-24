@@ -18,7 +18,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/coreos/go-systemd/v22/unit"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	gcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
@@ -45,14 +45,14 @@ import (
 	apisvsphere "github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/apis/vsphere/helper"
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
+	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 )
 
 // NewEnsurer creates a new controlplane ensurer.
-func NewEnsurer(mgr manager.Manager, logger logr.Logger, gardenletManagesMCM bool) genericmutator.Ensurer {
+func NewEnsurer(mgr manager.Manager, logger logr.Logger) genericmutator.Ensurer {
 	return &ensurer{
-		client:              mgr.GetClient(),
-		logger:              logger.WithName("vsphere-controlplane-ensurer"),
-		gardenletManagesMCM: gardenletManagesMCM,
+		client: mgr.GetClient(),
+		logger: logger.WithName("vsphere-controlplane-ensurer"),
 	}
 }
 
@@ -294,9 +294,9 @@ echo '{"insecure-registries":["@@"]}' | jq -s '.[0] * .[1]' ${DOCKER_CONF}.org -
 // EnsureAdditionalUnits ensures that additional required system units are added.
 func (e *ensurer) EnsureAdditionalUnits(ctx context.Context, gctx gcontext.GardenContext, new, _ *[]extensionsv1alpha1.Unit) error {
 	var (
-		command           = "start"
-		trueVar           = true
-		customUnitContent = `[Unit]
+		command           v1alpha1.UnitCommand = "start"
+		trueVar                                = true
+		customUnitContent                      = `[Unit]
 Description=Extend dockerd configuration file
 Before=dockerd.service
 [Install]

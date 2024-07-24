@@ -47,8 +47,6 @@ var (
 			},
 		},
 	}
-	// GardenletManagesMCM specifies whether the machine-controller-manager is managed by gardenlet.
-	GardenletManagesMCM bool
 )
 
 // RegisterHealthChecks registers health checks for each extension resource
@@ -81,14 +79,6 @@ func RegisterHealthChecks(ctx context.Context, mgr manager.Manager, opts healthc
 		}}
 		workerConditionTypesToRemove = sets.New(gardencorev1beta1.ShootControlPlaneHealthy)
 	)
-
-	if !GardenletManagesMCM {
-		workerHealthChecks = append(workerHealthChecks, healthcheck.ConditionTypeToHealthCheck{
-			ConditionType: string(gardencorev1beta1.ShootControlPlaneHealthy),
-			HealthCheck:   general.NewSeedDeploymentHealthChecker(vsphere.MachineControllerManagerName),
-		})
-		workerConditionTypesToRemove = workerConditionTypesToRemove.Delete(gardencorev1beta1.ShootControlPlaneHealthy)
-	}
 
 	return healthcheck.DefaultRegistration(
 		ctx,
