@@ -16,18 +16,20 @@ package helper
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 
 	"github.com/gardener/gardener/pkg/apis/core"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 )
 
 // GetConditionIndex returns the index of the condition with the given <conditionType> out of the list of <conditions>.
@@ -104,7 +106,6 @@ func DetermineLatestMachineImageVersion(versions []core.MachineImageVersion, fil
 // DetermineLatestExpirableVersion determines the latest expirable version and the latest non-deprecated version from a slice of ExpirableVersions.
 // When filterPreviewVersions is set, versions with classification preview are not considered.
 func DetermineLatestExpirableVersion(versions []core.ExpirableVersion, filterPreviewVersions bool) (core.ExpirableVersion, core.ExpirableVersion, error) {
-
 	var (
 		latestSemVerVersion              *semver.Version
 		latestNonDeprecatedSemVerVersion *semver.Version
@@ -233,6 +234,21 @@ func ShootUsesUnmanagedDNS(shoot *core.Shoot) bool {
 	return len(shoot.Spec.DNS.Providers) > 0 && shoot.Spec.DNS.Providers[0].Type != nil && *shoot.Spec.DNS.Providers[0].Type == core.DNSUnmanaged
 }
 
+// ShootNeedsForceDeletion determines whether a Shoot should be force deleted or not.
+func ShootNeedsForceDeletion(shoot *core.Shoot) bool {
+	if shoot == nil {
+		return false
+	}
+
+	value, ok := shoot.Annotations[v1beta1constants.AnnotationConfirmationForceDeletion]
+	if !ok {
+		return false
+	}
+
+	forceDelete, _ := strconv.ParseBool(value)
+	return forceDelete
+}
+
 // FindPrimaryDNSProvider finds the primary provider among the given `providers`.
 // It returns the first provider if multiple candidates are found.
 func FindPrimaryDNSProvider(providers []core.DNSProvider) *core.DNSProvider {
@@ -332,7 +348,7 @@ func GetShootAuditPolicyConfigMapRef(apiServerConfig *core.KubeAPIServerConfig) 
 
 // HibernationIsEnabled checks if the given shoot's desired state is hibernated.
 func HibernationIsEnabled(shoot *core.Shoot) bool {
-	return shoot.Spec.Hibernation != nil && pointer.BoolDeref(shoot.Spec.Hibernation.Enabled, false)
+	return shoot.Spec.Hibernation != nil && ptr.Deref(shoot.Spec.Hibernation.Enabled, false)
 }
 
 // IsShootInHibernation checks if the given shoot is in hibernation or is waking up.
@@ -347,6 +363,16 @@ func IsShootInHibernation(shoot *core.Shoot) bool {
 // SystemComponentsAllowed checks if the given worker allows system components to be scheduled onto it
 func SystemComponentsAllowed(worker *core.Worker) bool {
 	return worker.SystemComponents == nil || worker.SystemComponents.Allow
+}
+
+// GetResourceByName returns the NamedResourceReference with the given name in the given slice, or nil if not found.
+func GetResourceByName(resources []core.NamedResourceReference, name string) *core.NamedResourceReference {
+	for _, resource := range resources {
+		if resource.Name == name {
+			return &resource
+		}
+	}
+	return nil
 }
 
 // KubernetesDashboardEnabled returns true if the kubernetes-dashboard addon is enabled in the Shoot manifest.
@@ -431,8 +457,8 @@ func CalculateSeedUsage(shootList []*core.Shoot) map[string]int {
 
 	for _, shoot := range shootList {
 		var (
-			specSeed   = pointer.StringDeref(shoot.Spec.SeedName, "")
-			statusSeed = pointer.StringDeref(shoot.Status.SeedName, "")
+			specSeed   = ptr.Deref(shoot.Spec.SeedName, "")
+			statusSeed = ptr.Deref(shoot.Status.SeedName, "")
 		)
 
 		if specSeed != "" {
@@ -458,20 +484,6 @@ func CalculateEffectiveKubernetesVersion(controlPlaneVersion *semver.Version, wo
 // GetSecretBindingTypes returns the SecretBinding provider types.
 func GetSecretBindingTypes(secretBinding *core.SecretBinding) []string {
 	return strings.Split(secretBinding.Provider.Type, ",")
-}
-
-// SecretBindingHasType checks if the given SecretBinding has the given provider type.
-func SecretBindingHasType(secretBinding *core.SecretBinding, providerType string) bool {
-	if secretBinding.Provider == nil {
-		return false
-	}
-
-	types := GetSecretBindingTypes(secretBinding)
-	if len(types) == 0 {
-		return false
-	}
-
-	return sets.New(types...).Has(providerType)
 }
 
 // GetAllZonesFromShoot returns the set of all availability zones defined in the worker pools of the Shoot specification.
@@ -510,34 +522,4 @@ func DeterminePrimaryIPFamily(ipFamilies []core.IPFamily) core.IPFamily {
 		return core.IPFamilyIPv4
 	}
 	return ipFamilies[0]
-}
-
-// KubeAPIServerFeatureGateEnabled returns whether the given feature gate is enabled for the kube-apiserver for the given Shoot spec.
-func KubeAPIServerFeatureGateEnabled(shoot *core.Shoot, featureGate string) bool {
-	kubeAPIServer := shoot.Spec.Kubernetes.KubeAPIServer
-	if kubeAPIServer != nil && kubeAPIServer.FeatureGates != nil {
-		return kubeAPIServer.FeatureGates[featureGate]
-	}
-
-	return false
-}
-
-// KubeControllerManagerFeatureGateEnabled returns whether the given feature gate is enabled for the kube-controller-manager for the given Shoot spec.
-func KubeControllerManagerFeatureGateEnabled(shoot *core.Shoot, featureGate string) bool {
-	kubeControllerManager := shoot.Spec.Kubernetes.KubeControllerManager
-	if kubeControllerManager != nil && kubeControllerManager.FeatureGates != nil {
-		return kubeControllerManager.FeatureGates[featureGate]
-	}
-
-	return false
-}
-
-// KubeProxyFeatureGateEnabled returns whether the given feature gate is enabled for the kube-proxy for the given Shoot spec.
-func KubeProxyFeatureGateEnabled(shoot *core.Shoot, featureGate string) bool {
-	kubeProxy := shoot.Spec.Kubernetes.KubeProxy
-	if kubeProxy != nil && kubeProxy.FeatureGates != nil {
-		return kubeProxy.FeatureGates[featureGate]
-	}
-
-	return false
 }

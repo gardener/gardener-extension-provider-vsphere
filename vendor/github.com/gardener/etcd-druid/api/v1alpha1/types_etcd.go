@@ -178,6 +178,13 @@ type BackupSpec struct {
 	// DeltaSnapshotMemoryLimit defines the memory limit after which delta snapshots will be taken
 	// +optional
 	DeltaSnapshotMemoryLimit *resource.Quantity `json:"deltaSnapshotMemoryLimit,omitempty"`
+	// DeltaSnapshotRetentionPeriod defines the duration for which delta snapshots will be retained, excluding the latest snapshot set.
+	// The value should be a string formatted as a duration (e.g., '1s', '2m', '3h', '4d')
+	// +kubebuilder:validation:Type=string
+	// +kubebuilder:validation:Pattern="^([0-9][0-9]*([.][0-9]+)?(s|m|h|d))+$"
+	// +optional
+	DeltaSnapshotRetentionPeriod *metav1.Duration `json:"deltaSnapshotRetentionPeriod,omitempty"`
+
 	// SnapshotCompression defines the specification for compression of Snapshots.
 	// +optional
 	SnapshotCompression *CompressionSpec `json:"compression,omitempty"`
@@ -437,7 +444,16 @@ func (e *Etcd) GetConfigmapName() string {
 
 // GetCompactionJobName returns the compaction job name for the Etcd.
 func (e *Etcd) GetCompactionJobName() string {
-	return fmt.Sprintf("%s-compact-job", string(e.UID[:6]))
+	return fmt.Sprintf("%s-compactor", e.Name)
+}
+
+// GetAllPodNames returns the names of all pods for the Etcd.
+func (e *Etcd) GetAllPodNames(replicas int32) []string {
+	podNames := make([]string, 0, replicas)
+	for i := 0; i < int(replicas); i++ {
+		podNames = append(podNames, e.GetOrdinalPodName(i))
+	}
+	return podNames
 }
 
 // GetOrdinalPodName returns the Etcd pod name based on the ordinal.
@@ -453,6 +469,15 @@ func (e *Etcd) GetDeltaSnapshotLeaseName() string {
 // GetFullSnapshotLeaseName returns the name of the full snapshot lease for the Etcd.
 func (e *Etcd) GetFullSnapshotLeaseName() string {
 	return fmt.Sprintf("%s-full-snap", e.Name)
+}
+
+// GetMemberLeaseNames returns the name of member leases for the Etcd.
+func (e *Etcd) GetMemberLeaseNames() []string {
+	leaseNames := make([]string, 0, e.Spec.Replicas)
+	for i := 0; i < int(e.Spec.Replicas); i++ {
+		leaseNames = append(leaseNames, fmt.Sprintf("%s-%d", e.Name, i))
+	}
+	return leaseNames
 }
 
 // GetDefaultLabels returns the default labels for etcd.

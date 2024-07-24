@@ -26,27 +26,37 @@ Library Example usage:
 package main
 
 import (
+    "context"
     "fmt"
     "time"
+
     goipam "github.com/metal-stack/go-ipam"
 )
 
 func main() {
-    // create a ipamer with in memory storage
-    ipam := goipam.New()
-
-
+    // The background context
     bgCtx := context.Background()
-    // Optional with Namespace
-    ctx := goipam.NewContextWithNamespace(bgCtx, "tenant-a")
 
+    // Create a ipamer with in memory storage
+    ipam := goipam.New(bgCtx)
+
+    // Optionally, we can pass around a context for a given namespace
+    namespace := "tenant-a"
+    err := ipam.CreateNamespace(bgCtx, namespace)
+    if err != nil {
+        panic(err)
+    }
+    ctx := goipam.NewContextWithNamespace(bgCtx, namespace)
     ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
     defer cancel()
+
+    // Create a prefix to manage some IPs
     prefix, err := ipam.NewPrefix(ctx, "192.168.0.0/24")
     if err != nil {
         panic(err)
     }
 
+    // Acquire and release an IP with this prefix
     ip, err := ipam.AcquireIP(ctx, prefix.Cidr)
     if err != nil {
         panic(err)
@@ -64,11 +74,13 @@ func main() {
     if err != nil {
         panic(err)
     }
+
     cp1, err := ipam.AcquireChildPrefix(ctx, prefix.Cidr, 64)
     if err != nil {
         panic(err)
     }
     fmt.Printf("got Prefix: %s\n", cp1)
+
     cp2, err := ipam.AcquireChildPrefix(ctx, prefix.Cidr, 72)
     if err != nil {
         panic(err)
@@ -121,7 +133,7 @@ func main() {
     if err != nil {
         panic(err)
     }
-    fmt.Println("Prefix:%q created", result.Msg.Prefix.Cidr)
+    fmt.Println("Prefix:%q created", result.Msg.GetPrefix().GetCidr())
 }
 ```
 
@@ -131,6 +143,34 @@ There is also a `cli` provided in the container which can be used to make calls 
 
 ```bash
 docker run -it --rm --entrypoint /cli ghcr.io/metal-stack/go-ipam
+```
+
+## Docker Compose example
+
+Ensure you have docker with compose support installed. Then execute the following command:
+
+```bash
+docker compose up -d
+
+# check if up and running
+docker compose ps
+
+NAME                 IMAGE             COMMAND                  SERVICE    CREATED          STATUS                    PORTS
+go-ipam-ipam-1       go-ipam           "/server postgres"       ipam       14 seconds ago   Up 13 seconds (healthy)   0.0.0.0:9090->9090/tcp, :::9090->9090/tcp
+go-ipam-postgres-1   postgres:alpine   "docker-entrypoint.s…"   postgres   8 minutes ago    Up 13 seconds             5432/tcp
+
+
+# Then execute the cli to create prefixes and acquire ips
+
+docker compose exec ipam /cli prefix create --cidr 192.168.0.0/16
+prefix:"192.168.0.0/16" created
+
+docker compose exec ipam /cli ip acquire --prefix  192.168.0.0/16
+ip:"192.168.0.1" acquired
+
+# Queries can also made against the Rest api like so:
+
+curl -v -X POST -d '{}' -H 'Content-Type: application/json' localhost:9090/api.v1.IpamService/ListPrefixes
 ```
 
 ## Supported Databases & Performance
@@ -149,14 +189,14 @@ docker run -it --rm --entrypoint /cli ghcr.io/metal-stack/go-ipam
 The benchmarks above were performed using:
 
 * cpu: Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
-* postgres:15-alpine
+* postgres:16-alpine
 * cockroach:v23.1.0
 * redis:7.2-alpine
 * keydb:alpine_x86_64_v6.3.1
 * etcd:v3.5.9
-* mongodb:7.0.0-jammy
+* mongodb:7
 
-### Database Version Compatability
+### Database Version Compatibility
 
 | Database    | Details                                                                                                                   |
 |-------------|---------------------------------------------------------------------------------------------------------------------------|

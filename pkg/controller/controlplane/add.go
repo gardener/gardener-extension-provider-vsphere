@@ -59,7 +59,7 @@ type AddOptions struct {
 // The opts.Reconciler is being set with a newly instantiated actuator.
 func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddOptions) error {
 	webhookServer := mgr.GetWebhookServer()
-	defaultServer, ok := webhookServer.(*webhook.DefaultServer)
+	_, ok := webhookServer.(*webhook.DefaultServer)
 	if !ok {
 		return fmt.Errorf("expected *webhook.DefaultServer, got %T", webhookServer)
 	}
@@ -68,7 +68,7 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 		secretConfigsFunc, shootAccessSecretsFunc, nil, nil,
 		configChart, controlPlaneChart, controlPlaneShootChart, controlPlaneShootCRDsChart, storageClassChart, nil,
 		NewValuesProvider(mgr, logger, opts.GardenId), extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
-		charts.ImageVector(), "", opts.ShootWebhookConfig, opts.WebhookServerNamespace, defaultServer.Options.Port)
+		charts.ImageVector(), "", opts.ShootWebhookConfig, opts.WebhookServerNamespace)
 	if err != nil {
 		return err
 	}

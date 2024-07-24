@@ -23,6 +23,9 @@ type Elasticsearch struct {
 	// This option defines such path on the fluent-bit side.
 	// It simply adds a path prefix in the indexing HTTP POST URI.
 	Path string `json:"path,omitempty"`
+	// Set payload compression mechanism. Option available is 'gzip'
+	// +kubebuilder:validation:Enum=gzip
+	Compress string `json:"compress,omitempty"`
 	// Specify the buffer size used to read the response from the Elasticsearch HTTP service.
 	// This option is useful for debugging purposes where is required to read full responses,
 	// note that response size grows depending of the number of records inserted.
@@ -82,6 +85,8 @@ type Elasticsearch struct {
 	GenerateID *bool `json:"generateID,omitempty"`
 	// If set, _id will be the value of the key from incoming record and Generate_ID option is ignored.
 	IdKey string `json:"idKey,omitempty"`
+	// Operation to use to write in bulk requests.
+	WriteOperation string `json:"writeOperation,omitempty"`
 	// When enabled, replace field name dots with underscore, required by Elasticsearch 2.0-2.3.
 	ReplaceDots *bool `json:"replaceDots,omitempty"`
 	// When enabled print the elasticsearch API calls to stdout (for diag only)
@@ -95,6 +100,8 @@ type Elasticsearch struct {
 	// When enabled, mapping types is removed and Type option is ignored. Types are deprecated in APIs in v7.0. This options is for v7.0 or later.
 	SuppressTypeName string `json:"suppressTypeName,omitempty"`
 	*plugins.TLS     `json:"tls,omitempty"`
+	// Limit the maximum number of Chunks in the filesystem for the current output logical destination.
+	TotalLimitSize string `json:"totalLimitSize,omitempty"`
 }
 
 // Name implement Section() method
@@ -113,6 +120,9 @@ func (es *Elasticsearch) Params(sl plugins.SecretLoader) (*params.KVs, error) {
 	}
 	if es.Path != "" {
 		kvs.Insert("Path", es.Path)
+	}
+	if es.Compress != "" {
+		kvs.Insert("Compress", es.Compress)
 	}
 	if es.BufferSize != "" {
 		kvs.Insert("Buffer_Size", es.BufferSize)
@@ -191,6 +201,9 @@ func (es *Elasticsearch) Params(sl plugins.SecretLoader) (*params.KVs, error) {
 	if es.IdKey != "" {
 		kvs.Insert("ID_KEY", es.IdKey)
 	}
+	if es.WriteOperation != "" {
+		kvs.Insert("Write_Operation", es.WriteOperation)
+	}
 	if es.ReplaceDots != nil {
 		kvs.Insert("Replace_Dots", fmt.Sprint(*es.ReplaceDots))
 	}
@@ -215,6 +228,9 @@ func (es *Elasticsearch) Params(sl plugins.SecretLoader) (*params.KVs, error) {
 			return nil, err
 		}
 		kvs.Merge(tls)
+	}
+	if es.TotalLimitSize != "" {
+		kvs.Insert("storage.total_limit_size", es.TotalLimitSize)
 	}
 	return kvs, nil
 }

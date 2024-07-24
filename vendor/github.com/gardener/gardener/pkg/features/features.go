@@ -58,41 +58,37 @@ const (
 	// alpha: v1.64.0
 	MutableShootSpecNetworkingNodes featuregate.Feature = "MutableShootSpecNetworkingNodes"
 
-	// WorkerlessShoots allows creation of Shoot clusters with no worker pools.
+	// ShootForceDeletion allows force deletion of Shoots.
+	// See https://github.com/gardener/gardener/blob/master/docs/usage/shoot_operations.md#shoot-force-deletion for more details.
 	// owner: @acumino @ary1992 @shafeeqes
-	// alpha: v1.70.0
-	// beta: v1.79.0
-	WorkerlessShoots featuregate.Feature = "WorkerlessShoots"
+	// alpha: v1.81.0
+	ShootForceDeletion featuregate.Feature = "ShootForceDeletion"
 
 	// MachineControllerManagerDeployment enables Gardener to take over the deployment of the
 	// machine-controller-manager. If enabled, all registered provider extensions must support injecting the
 	// provider-specific MCM provider sidecar container into the deployment via the `controlplane` webhook.
 	// owner: @rfranzke @JensAc @mreiger
 	// alpha: v1.73.0
+	// beta: v1.81.0
+	// GA: v1.82.0
+	// TODO(scheererj): Do not remove this feature gate before v1.90 to give extensions enough time to adopt v1.83.
+	// Otherwise, extensions might end up believing they need to manage MCM again when the feature gate is removed.
 	MachineControllerManagerDeployment featuregate.Feature = "MachineControllerManagerDeployment"
 
-	// DisableScalingClassesForShoots disables assigning a ScalingClass to Shoots based on their maximum Node count
-	// All Shoot kube-apiservers will get the same initial resource requests for CPU and memory instead of making this
-	// depend on the ScalingClass
-	// owner: @voelzmo, @andrerun
-	// alpha: v1.73.0
-	// beta: v1.79.0
-	DisableScalingClassesForShoots featuregate.Feature = "DisableScalingClassesForShoots"
+	// APIServerFastRollout enables fast rollouts for Shoot kube-apiservers on the given Seed.
+	// When enabled, maxSurge for Shoot kube-apiserver deployments is set to 100%.
+	// owner: @oliver-goetz
+	// beta: v1.82.0
+	// GA: v1.90.0
+	APIServerFastRollout featuregate.Feature = "APIServerFastRollout"
 
-	// ContainerdRegistryHostsDir enables registry configuration in containerd based on the hosts directory pattern.
-	// The hosts directory pattern is the new way of configuring registries/mirrors in containerd.
-	// Ref https://github.com/containerd/containerd/blob/main/docs/hosts.md.
-	// When this feature gate is enabled, gardenlet adds the following config to containerd's config.toml:
-	//
-	// [plugins."io.containerd.grpc.v1.cri".registry] # gardener-managed
-	//   config_path = "/etc/containerd/certs.d"
-	//
-	// This config allows registries to be configured by creating new hosts.toml files under the predefined
-	// /etc/containerd/certs.d directory.
-	//
-	// owner: @ialidzhikov, @dimitar-kostadinov
-	// alpha: v1.77.0
-	ContainerdRegistryHostsDir featuregate.Feature = "ContainerdRegistryHostsDir"
+	// UseGardenerNodeAgent enables the `gardener-node-agent` instead of the `cloud-config-downloader` for shoot worker
+	// nodes.
+	// owner: @rfranzke @oliver-goetz
+	// alpha: v1.82.0
+	// beta: v1.89.0
+	// GA: v1.90.0
+	UseGardenerNodeAgent featuregate.Feature = "UseGardenerNodeAgent"
 )
 
 // DefaultFeatureGate is the central feature gate map used by all gardener components.
@@ -126,10 +122,10 @@ var AllFeatureGates = map[featuregate.Feature]featuregate.FeatureSpec{
 	CoreDNSQueryRewriting:              {Default: false, PreRelease: featuregate.Alpha},
 	IPv6SingleStack:                    {Default: false, PreRelease: featuregate.Alpha},
 	MutableShootSpecNetworkingNodes:    {Default: false, PreRelease: featuregate.Alpha},
-	WorkerlessShoots:                   {Default: true, PreRelease: featuregate.Beta},
-	MachineControllerManagerDeployment: {Default: false, PreRelease: featuregate.Alpha},
-	DisableScalingClassesForShoots:     {Default: true, PreRelease: featuregate.Beta},
-	ContainerdRegistryHostsDir:         {Default: false, PreRelease: featuregate.Alpha},
+	ShootForceDeletion:                 {Default: false, PreRelease: featuregate.Alpha},
+	MachineControllerManagerDeployment: {Default: true, PreRelease: featuregate.GA, LockToDefault: true},
+	APIServerFastRollout:               {Default: true, PreRelease: featuregate.GA, LockToDefault: true},
+	UseGardenerNodeAgent:               {Default: true, PreRelease: featuregate.GA, LockToDefault: true},
 }
 
 // GetFeatures returns a feature gate map with the respective specifications. Non-existing feature gates are ignored.

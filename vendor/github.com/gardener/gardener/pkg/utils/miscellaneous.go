@@ -22,22 +22,9 @@ import (
 	"strings"
 	"time"
 
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
-
-// ValueExists returns true or false, depending on whether the given string <value>
-// is part of the given []string list <list>.
-func ValueExists(value string, list []string) bool {
-	for _, v := range list {
-		if v == value {
-			return true
-		}
-	}
-	return false
-}
 
 // MergeMaps takes two maps <a>, <b> and merges them. If <b> defines a value with a key
 // already existing in the <a> map, the <a> value for that key will be overwritten.
@@ -135,33 +122,9 @@ func IDForKeyWithOptionalValue(key string, value *string) string {
 	return key + v
 }
 
-// QuantityPtr returns a Quantity pointer to its argument.
-func QuantityPtr(q resource.Quantity) *resource.Quantity {
-	return &q
-}
-
-// ProtocolPtr returns a corev1.Protocol pointer to its argument.
-func ProtocolPtr(protocol corev1.Protocol) *corev1.Protocol {
-	return &protocol
-}
-
-// TimePtr returns a time.Time pointer to its argument.
-func TimePtr(t time.Time) *time.Time {
-	return &t
-}
-
-// TimePtrDeref dereferences the time.Time ptr and returns it if not nil, or else
-// returns def.
-func TimePtrDeref(ptr *time.Time, def time.Time) time.Time {
-	if ptr != nil {
-		return *ptr
-	}
-	return def
-}
-
-// IntStrPtrFromInt returns an intstr.IntOrString pointer to its argument.
-func IntStrPtrFromInt(port int) *intstr.IntOrString {
-	v := intstr.FromInt(port)
+// IntStrPtrFromInt32 returns an intstr.IntOrString pointer to its argument.
+func IntStrPtrFromInt32(port int32) *intstr.IntOrString {
+	v := intstr.FromInt32(port)
 	return &v
 }
 
@@ -210,6 +173,19 @@ func FilterEntriesByPrefix(prefix string, entries []string) []string {
 		if strings.HasPrefix(entry, prefix) {
 			result = append(result, entry)
 		}
+	}
+	return result
+}
+
+// FilterEntriesByFilterFn returns a list of entries which passes the filter function.
+func FilterEntriesByFilterFn(entries []string, filterFn func(entry string) bool) []string {
+	var result []string
+	for _, entry := range entries {
+		if filterFn != nil && !filterFn(entry) {
+			continue
+		}
+
+		result = append(result, entry)
 	}
 	return result
 }

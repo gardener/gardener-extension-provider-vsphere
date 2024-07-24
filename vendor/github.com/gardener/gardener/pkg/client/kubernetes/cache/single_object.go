@@ -28,10 +28,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
 	"k8s.io/utils/clock"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/gardener/gardener/pkg/utils"
 )
 
 var _ cache.Cache = &singleObject{}
@@ -113,7 +112,7 @@ func (s *singleObject) Start(ctx context.Context) error {
 				log                = logger.WithValues(
 					"key", key,
 					"now", now,
-					"lastAccessTime", utils.TimePtrDeref(lastAccessTime, time.Time{}),
+					"lastAccessTime", ptr.Deref(lastAccessTime, time.Time{}),
 				)
 			)
 
@@ -147,6 +146,14 @@ func (s *singleObject) GetInformer(ctx context.Context, obj client.Object, opts 
 		return nil, err
 	}
 	return cache.GetInformer(ctx, obj, opts...)
+}
+
+func (s *singleObject) RemoveInformer(ctx context.Context, obj client.Object) error {
+	cache, err := s.getOrCreateCache(client.ObjectKeyFromObject(obj))
+	if err != nil {
+		return err
+	}
+	return cache.RemoveInformer(ctx, obj)
 }
 
 func (s *singleObject) IndexField(ctx context.Context, obj client.Object, field string, extractValue client.IndexerFunc) error {

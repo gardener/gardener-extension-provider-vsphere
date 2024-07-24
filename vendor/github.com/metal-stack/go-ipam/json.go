@@ -7,13 +7,13 @@ import (
 
 type prefixJSON struct {
 	Prefix
-	Namespace              string
-	AvailableChildPrefixes map[string]bool // available child prefixes of this prefix
+	Namespace              string          `json:"Namespace"`
+	AvailableChildPrefixes map[string]bool `json:"AvailableChildPrefixes"` // available child prefixes of this prefix
 	// TODO remove this in the next release
-	ChildPrefixLength int             // the length of the child prefixes. Legacy to migrate existing prefixes stored in the db to set the IsParent on reads.
-	IsParent          bool            // set to true if there are child prefixes
-	IPs               map[string]bool // The ips contained in this prefix
-	Version           int64           // Version is used for optimistic locking
+	ChildPrefixLength int             `json:"ChildPrefixLength"` // the length of the child prefixes. Legacy to migrate existing prefixes stored in the db to set the IsParent on reads.
+	IsParent          bool            `json:"IsParent"`          // set to true if there are child prefixes
+	IPs               map[string]bool `json:"IPs"`               // The ips contained in this prefix
+	Version           int64           `json:"Version"`           // Version is used for optimistic locking
 }
 
 func (p prefixJSON) toPrefix() Prefix {
@@ -49,7 +49,7 @@ func (p Prefix) toPrefixJSON() prefixJSON {
 }
 
 func (p Prefix) toJSON() ([]byte, error) {
-	pj, err := json.Marshal(p.toPrefixJSON())
+	pj, err := json.Marshal(p.toPrefixJSON()) // nolint:musttag
 	if err != nil {
 		return nil, fmt.Errorf("unable to marshal prefix:%w", err)
 	}
@@ -70,7 +70,7 @@ func (ps Prefixes) toJSON() ([]byte, error) {
 
 func fromJSON(js []byte) (Prefix, error) {
 	var pre prefixJSON
-	err := json.Unmarshal(js, &pre)
+	err := json.Unmarshal(js, &pre) // nolint:musttag
 	if err != nil {
 		return Prefix{}, fmt.Errorf("unable to unmarshal prefix:%w", err)
 	}

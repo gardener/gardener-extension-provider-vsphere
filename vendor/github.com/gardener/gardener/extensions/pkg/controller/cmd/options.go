@@ -25,7 +25,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	controllerconfig "sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -73,9 +73,10 @@ const (
 
 	// GardenerVersionFlag is the name of the command line flag containing the Gardener version.
 	GardenerVersionFlag = "gardener-version"
-	// GardenletManagesMCMFlag is the name of the command line flag containing the Gardener version.
-	// TODO(rfranzke): Remove this flag when the MachineControllerManagerDeployment feature gate is promoted to GA.
-	GardenletManagesMCMFlag = "gardenlet-manages-mcm"
+	// GardenletUsesGardenerNodeAgentFlag is the name of the command line flag specifying whether gardenlet's feature gate
+	// 'UseGardenerNodeAgent' is activated.
+	// TODO(rfranzke): Remove this flag when the UseGardenerNodeAgent feature gate is promoted to GA.
+	GardenletUsesGardenerNodeAgentFlag = "gardenlet-uses-gardener-node-agent"
 
 	// LogLevelFlag is the name of the command line flag containing the log level.
 	LogLevelFlag = "log-level"
@@ -273,7 +274,7 @@ func (c *ManagerConfig) Apply(opts *manager.Options) {
 	opts.Metrics = metricsserver.Options{BindAddress: c.MetricsBindAddress}
 	opts.HealthProbeBindAddress = c.HealthBindAddress
 	opts.Logger = c.Logger
-	opts.Controller = controllerconfig.Controller{RecoverPanic: pointer.Bool(true)}
+	opts.Controller = controllerconfig.Controller{RecoverPanic: ptr.To(true)}
 	opts.WebhookServer = webhook.NewServer(webhook.Options{
 		Host:    c.WebhookServerHost,
 		Port:    c.WebhookServerPort,
@@ -473,8 +474,8 @@ type SwitchConfig struct {
 type GeneralOptions struct {
 	// GardenerVersion is the version of the Gardener.
 	GardenerVersion string
-	// GardenletManagesMCM specifies whether gardenlet manages the machine-controller-manager.
-	GardenletManagesMCM bool
+	// GardenletUsesGardenerNodeAgent specifies whether gardenlet's feature gate 'UseGardenerNodeAgent' is activated.
+	GardenletUsesGardenerNodeAgent bool
 
 	config *GeneralConfig
 }
@@ -483,13 +484,13 @@ type GeneralOptions struct {
 type GeneralConfig struct {
 	// GardenerVersion is the version of the Gardener.
 	GardenerVersion string
-	// GardenletManagesMCM specifies whether gardenlet manages the machine-controller-manager.
-	GardenletManagesMCM bool
+	// GardenletUsesGardenerNodeAgent specifies whether gardenlet's feature gate 'UseGardenerNodeAgent' is activated.
+	GardenletUsesGardenerNodeAgent bool
 }
 
 // Complete implements Complete.
 func (r *GeneralOptions) Complete() error {
-	r.config = &GeneralConfig{r.GardenerVersion, r.GardenletManagesMCM}
+	r.config = &GeneralConfig{r.GardenerVersion, r.GardenletUsesGardenerNodeAgent}
 	return nil
 }
 
@@ -501,5 +502,5 @@ func (r *GeneralOptions) Completed() *GeneralConfig {
 // AddFlags implements Flagger.AddFlags.
 func (r *GeneralOptions) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&r.GardenerVersion, GardenerVersionFlag, "", "Version of the gardenlet.")
-	fs.BoolVar(&r.GardenletManagesMCM, GardenletManagesMCMFlag, false, "Specifies whether gardenlet manages the machine-controller-manager.")
+	fs.BoolVar(&r.GardenletUsesGardenerNodeAgent, GardenletUsesGardenerNodeAgentFlag, false, "Specifies whether gardenlet's feature gate 'UseGardenerNodeAgent' is activated.")
 }

@@ -17,11 +17,11 @@ limitations under the License.
 package v1alpha2
 
 import (
+	"slices"
+
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/fluent/fluent-operator/v2/pkg/utils"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -77,6 +77,8 @@ type CollectorSpec struct {
 	Ports []corev1.ContainerPort `json:"ports,omitempty"`
 	// Service represents configurations on the fluent-bit service.
 	Service CollectorService `json:"service,omitempty"`
+	// SchedulerName represents the desired scheduler for the Fluentbit collector pods
+	SchedulerName string `json:"schedulerName,omitempty"`
 }
 
 // CollectorService defines the service of the FluentBit
@@ -118,7 +120,7 @@ const CollectorFinalizerName = "collector.fluent.io"
 
 // HasFinalizer returns true if the item has the specified finalizer
 func (co *Collector) HasFinalizer(finalizerName string) bool {
-	return utils.ContainString(co.ObjectMeta.Finalizers, finalizerName)
+	return slices.Contains(co.ObjectMeta.Finalizers, finalizerName)
 }
 
 // AddFinalizer adds the specified finalizer
@@ -128,7 +130,7 @@ func (co *Collector) AddFinalizer(finalizerName string) {
 
 // RemoveFinalizer removes the specified finalizer
 func (co *Collector) RemoveFinalizer(finalizerName string) {
-	co.ObjectMeta.Finalizers = utils.RemoveString(co.ObjectMeta.Finalizers, finalizerName)
+	co.ObjectMeta.Finalizers = slices.DeleteFunc(co.ObjectMeta.Finalizers, func(s string) bool { return s == finalizerName })
 }
 
 // +kubebuilder:object:root=true

@@ -43,6 +43,10 @@ type OutputSpec struct {
 	// A user friendly alias name for this output plugin.
 	// Used in metrics for distinction of each configured output.
 	Alias string `json:"alias,omitempty"`
+	// Set the plugin's logging verbosity level. Allowed values are: off, error, warn, info, debug and trace, Defaults to the SERVICE section's Log_Level
+	// +kubebuilder:validation:Enum:=off;error;warning;info;debug;trace
+	LogLevel string `json:"logLevel,omitempty"`
+
 	// AzureBlob defines AzureBlob Output Configuration
 	AzureBlob *output.AzureBlob `json:"azureBlob,omitempty"`
 	// AzureLogAnalytics defines AzureLogAnalytics Output Configuration
@@ -72,10 +76,14 @@ type OutputSpec struct {
 	Loki *output.Loki `json:"loki,omitempty"`
 	// Syslog defines Syslog Output configuration.
 	Syslog *output.Syslog `json:"syslog,omitempty"`
+	// InfluxDB defines InfluxDB Output configuration.
+	InfluxDB *output.InfluxDB `json:"influxDB,omitempty"`
 	// DataDog defines DataDog Output configuration.
 	DataDog *output.DataDog `json:"datadog,omitempty"`
 	// Firehose defines Firehose Output configuration.
-	Fireose *output.Firehose `json:"firehose,omitempty"`
+	Firehose *output.Firehose `json:"firehose,omitempty"`
+	// Kinesis defines Kinesis Output configuration.
+	Kinesis *output.Kinesis `json:"kinesis,omitempty"`
 	// Stackdriver defines Stackdriver Output Configuration
 	Stackdriver *output.Stackdriver `json:"stackdriver,omitempty"`
 	// Splunk defines Splunk Output Configuration
@@ -84,8 +92,15 @@ type OutputSpec struct {
 	OpenSearch *output.OpenSearch `json:"opensearch,omitempty"`
 	// OpenTelemetry defines OpenTelemetry Output configuration.
 	OpenTelemetry *output.OpenTelemetry `json:"opentelemetry,omitempty"`
+	// PrometheusExporter_types defines Prometheus exporter configuration to expose metrics from Fluent Bit.
+	PrometheusExporter *output.PrometheusExporter `json:"prometheusExporter,omitempty"`
 	// PrometheusRemoteWrite_types defines Prometheus Remote Write configuration.
 	PrometheusRemoteWrite *output.PrometheusRemoteWrite `json:"prometheusRemoteWrite,omitempty"`
+	// S3 defines S3 Output configuration.
+	S3 *output.S3 `json:"s3,omitempty"`
+	// Gelf defines GELF Output configuration.
+	Gelf *output.Gelf `json:"gelf,omitempty"`
+
 	// CustomPlugin defines Custom Output configuration.
 	CustomPlugin *custom.CustomPlugin `json:"customPlugin,omitempty"`
 }
@@ -138,6 +153,9 @@ func (list ClusterOutputList) Load(sl plugins.SecretLoader) (string, error) {
 			}
 			if item.Spec.Match != "" {
 				buf.WriteString(fmt.Sprintf("    Match    %s\n", item.Spec.Match))
+			}
+			if item.Spec.LogLevel != "" {
+				buf.WriteString(fmt.Sprintf("    Log_Level    %s\n", item.Spec.LogLevel))
 			}
 			if item.Spec.MatchRegex != "" {
 				buf.WriteString(fmt.Sprintf("    Match_Regex    %s\n", item.Spec.MatchRegex))

@@ -39,15 +39,13 @@ AVAILABLE_CODEGEN_OPTIONS=(
   "shootdnsrewriting_groups"
   "provider_local_groups"
   "extensions_config_groups"
+  "nodeagent_groups"
 )
 
-# Friendly reminder if workspace location is not in $GOPATH
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-if [ "${SCRIPT_DIR}" != "$(realpath $GOPATH)/src/github.com/gardener/gardener/hack" ]; then
-  echo "'hack/update-codegen.sh' script does not work correctly if your workspace is outside GOPATH"
-  echo "Please check https://github.com/gardener/gardener/blob/master/docs/development/local_setup.md#get-the-sources"
-  exit 1
-fi
+# setup virtual GOPATH
+source $(dirname $0)/vgopath-setup.sh
+
+CODE_GEN_DIR=$(go list -m -f '{{.Dir}}' k8s.io/code-generator)
 
 # We need to explicitly pass GO111MODULE=off to k8s.io/code-generator as it is significantly slower otherwise,
 # see https://github.com/kubernetes/code-generator/issues/100.
@@ -86,7 +84,7 @@ parse_flags() {
 core_groups() {
   echo "Generating API groups for pkg/apis/core"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     deepcopy,defaulter,client,lister,informer \
     github.com/gardener/gardener/pkg/client/core \
     github.com/gardener/gardener/pkg/apis \
@@ -94,7 +92,7 @@ core_groups() {
     "core:v1beta1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     conversion \
     github.com/gardener/gardener/pkg/client/core \
     github.com/gardener/gardener/pkg/apis \
@@ -109,9 +107,10 @@ export -f core_groups
 extensions_groups() {
   echo "Generating API groups for pkg/apis/extensions"
 
-  bash "${PROJECT_ROOT}"/hack/generate-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     "deepcopy" \
     github.com/gardener/gardener/pkg/apis \
+    "" \
     github.com/gardener/gardener/pkg/apis \
     "extensions:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
@@ -123,9 +122,10 @@ export -f extensions_groups
 resources_groups() {
   echo "Generating API groups for pkg/apis/resources"
 
-  bash "${PROJECT_ROOT}"/hack/generate-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     deepcopy \
     github.com/gardener/gardener/pkg/apis \
+    "" \
     github.com/gardener/gardener/pkg/apis \
     "resources:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
@@ -137,9 +137,10 @@ export -f resources_groups
 operator_groups() {
   echo "Generating API groups for pkg/apis/operator"
 
-  bash "${PROJECT_ROOT}"/hack/generate-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     deepcopy \
     github.com/gardener/gardener/pkg/apis \
+    "" \
     github.com/gardener/gardener/pkg/apis \
     "operator:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
@@ -151,14 +152,15 @@ export -f operator_groups
 seedmanagement_groups() {
   echo "Generating API groups for pkg/apis/seedmanagement"
 
-  bash "${PROJECT_ROOT}"/hack/generate-groups.sh \
-    "all" \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
+    client,deepcopy,informer,lister \
     github.com/gardener/gardener/pkg/client/seedmanagement \
+    "" \
     github.com/gardener/gardener/pkg/apis \
     "seedmanagement:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     "deepcopy,defaulter,conversion" \
     github.com/gardener/gardener/pkg/client/seedmanagement \
     github.com/gardener/gardener/pkg/apis \
@@ -173,14 +175,15 @@ export -f seedmanagement_groups
 settings_groups() {
   echo "Generating API groups for pkg/apis/settings"
 
-  bash "${PROJECT_ROOT}"/hack/generate-groups.sh \
-    "all" \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
+    client,deepcopy,informer,lister \
     github.com/gardener/gardener/pkg/client/settings \
+    "" \
     github.com/gardener/gardener/pkg/apis \
     "settings:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     "deepcopy,defaulter,conversion" \
     github.com/gardener/gardener/pkg/client/settings \
     github.com/gardener/gardener/pkg/apis \
@@ -195,7 +198,7 @@ export -f settings_groups
 operations_groups() {
   echo "Generating API groups for pkg/apis/operations"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     deepcopy,defaulter \
     github.com/gardener/gardener/pkg/apis \
     github.com/gardener/gardener/pkg/apis \
@@ -203,7 +206,7 @@ operations_groups() {
     "operations:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     conversion \
     github.com/gardener/gardener/pkg/client/operations \
     github.com/gardener/gardener/pkg/apis \
@@ -218,14 +221,15 @@ export -f operations_groups
 authentication_groups() {
   echo "Generating API groups for pkg/apis/authentication"
 
-  bash "${PROJECT_ROOT}"/hack/generate-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     deepcopy,defaulter \
     github.com/gardener/gardener/pkg/client/authentication \
+    "" \
     github.com/gardener/gardener/pkg/apis \
     "authentication:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     deepcopy,defaulter,conversion \
     github.com/gardener/gardener/pkg/client/authentication \
     github.com/gardener/gardener/pkg/apis \
@@ -240,7 +244,7 @@ export -f authentication_groups
 operatorconfig_groups() {
   echo "Generating API groups for pkg/operator/apis/config"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     deepcopy,defaulter \
     github.com/gardener/gardener/pkg/client/componentconfig \
     github.com/gardener/gardener/pkg/operator/apis \
@@ -248,7 +252,7 @@ operatorconfig_groups() {
     "config:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     conversion \
     github.com/gardener/gardener/pkg/client/componentconfig \
     github.com/gardener/gardener/pkg/operator/apis \
@@ -264,7 +268,7 @@ export -f operatorconfig_groups
 controllermanager_groups() {
   echo "Generating API groups for pkg/controllermanager/apis/config"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     deepcopy,defaulter \
     github.com/gardener/gardener/pkg/client/componentconfig \
     github.com/gardener/gardener/pkg/controllermanager/apis \
@@ -272,7 +276,7 @@ controllermanager_groups() {
     "config:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     conversion \
     github.com/gardener/gardener/pkg/client/componentconfig \
     github.com/gardener/gardener/pkg/controllermanager/apis \
@@ -288,7 +292,7 @@ export -f controllermanager_groups
 admissioncontroller_groups() {
   echo "Generating API groups for pkg/admissioncontroller/apis/config"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     deepcopy,defaulter \
     github.com/gardener/gardener/pkg/client/admissioncontrollerconfig \
     github.com/gardener/gardener/pkg/admissioncontroller/apis \
@@ -296,7 +300,7 @@ admissioncontroller_groups() {
     "config:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     conversion \
     github.com/gardener/gardener/pkg/client/admissioncontrollerconfig \
     github.com/gardener/gardener/pkg/admissioncontroller/apis \
@@ -312,7 +316,7 @@ export -f admissioncontroller_groups
 scheduler_groups() {
   echo "Generating API groups for pkg/scheduler/apis/config"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     deepcopy,defaulter \
     github.com/gardener/gardener/pkg/scheduler/client \
     github.com/gardener/gardener/pkg/scheduler/apis \
@@ -320,7 +324,7 @@ scheduler_groups() {
     "config:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     conversion \
     github.com/gardener/gardener/pkg/scheduler/client \
     github.com/gardener/gardener/pkg/scheduler/apis \
@@ -336,7 +340,7 @@ export -f scheduler_groups
 gardenlet_groups() {
   echo "Generating API groups for pkg/gardenlet/apis/config"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     deepcopy,defaulter \
     github.com/gardener/gardener/pkg/client/componentconfig \
     github.com/gardener/gardener/pkg/gardenlet/apis \
@@ -344,7 +348,7 @@ gardenlet_groups() {
     "config:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     conversion \
     github.com/gardener/gardener/pkg/client/componentconfig \
     github.com/gardener/gardener/pkg/gardenlet/apis \
@@ -360,7 +364,7 @@ export -f gardenlet_groups
 resourcemanager_groups() {
   echo "Generating API groups for pkg/resourcemanager/apis/config"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     deepcopy,defaulter \
     github.com/gardener/gardener/pkg/client/componentconfig \
     github.com/gardener/gardener/pkg/resourcemanager/apis \
@@ -368,7 +372,7 @@ resourcemanager_groups() {
     "config:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     conversion \
     github.com/gardener/gardener/pkg/client/componentconfig \
     github.com/gardener/gardener/pkg/resourcemanager/apis \
@@ -379,12 +383,36 @@ resourcemanager_groups() {
 }
 export -f resourcemanager_groups
 
+# Componentconfig for node-agent
+
+nodeagent_groups() {
+  echo "Generating API groups for pkg/nodeagent/apis/config"
+
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
+    deepcopy,defaulter \
+    github.com/gardener/gardener/pkg/client/componentconfig \
+    github.com/gardener/gardener/pkg/nodeagent/apis \
+    github.com/gardener/gardener/pkg/nodeagent/apis \
+    "config:v1alpha1" \
+    -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
+
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
+    conversion \
+    github.com/gardener/gardener/pkg/client/componentconfig \
+    github.com/gardener/gardener/pkg/nodeagent/apis \
+    github.com/gardener/gardener/pkg/nodeagent/apis \
+    "config:v1alpha1" \
+    --extra-peer-dirs=github.com/gardener/gardener/pkg/nodeagent/apis/config,github.com/gardener/gardener/pkg/nodeagent/apis/config/v1alpha1,k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime,k8s.io/component-base/config,k8s.io/component-base/config/v1alpha1 \
+    -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
+}
+export -f nodeagent_groups
+
 # Componentconfig for admission plugins
 
 shoottolerationrestriction_groups() {
   echo "Generating API groups for plugin/pkg/shoot/tolerationrestriction/apis/shoottolerationrestriction"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     deepcopy,defaulter \
     github.com/gardener/gardener/pkg/client/componentconfig \
     github.com/gardener/gardener/plugin/pkg/shoot/tolerationrestriction/apis \
@@ -392,7 +420,7 @@ shoottolerationrestriction_groups() {
     "shoottolerationrestriction:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     conversion \
     github.com/gardener/gardener/pkg/client/componentconfig \
     github.com/gardener/gardener/plugin/pkg/shoot/tolerationrestriction/apis \
@@ -406,7 +434,7 @@ export -f shoottolerationrestriction_groups
 shootdnsrewriting_groups() {
   echo "Generating API groups for plugin/pkg/shoot/dnsrewriting/apis/shootdnsrewriting"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     deepcopy,defaulter \
     github.com/gardener/gardener/pkg/client/componentconfig \
     github.com/gardener/gardener/plugin/pkg/shoot/dnsrewriting/apis \
@@ -414,7 +442,7 @@ shootdnsrewriting_groups() {
     "shootdnsrewriting:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     conversion \
     github.com/gardener/gardener/pkg/client/componentconfig \
     github.com/gardener/gardener/plugin/pkg/shoot/dnsrewriting/apis \
@@ -430,7 +458,7 @@ export -f shootdnsrewriting_groups
 provider_local_groups() {
   echo "Generating API groups for pkg/provider-local/apis/local"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     deepcopy,defaulter \
     github.com/gardener/gardener/pkg/client/provider-local \
     github.com/gardener/gardener/pkg/provider-local/apis \
@@ -438,7 +466,7 @@ provider_local_groups() {
     "local:v1alpha1" \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     conversion \
     github.com/gardener/gardener/pkg/client/provider-local \
     github.com/gardener/gardener/pkg/provider-local/apis \
@@ -454,7 +482,7 @@ export -f provider_local_groups
 extensions_config_groups() {
   echo "Generating API groups for extensions/pkg/apis/config"
 
-  bash "${PROJECT_ROOT}"/hack/generate-internal-groups.sh \
+  bash "${CODE_GEN_DIR}"/generate-internal-groups.sh \
     "deepcopy" \
     github.com/gardener/gardener/extensions/pkg/apis \
     github.com/gardener/gardener/extensions/pkg/apis \
@@ -487,8 +515,8 @@ openapi_definitions() {
     --input-dirs=k8s.io/apimachinery/pkg/version \
     --input-dirs=k8s.io/apimachinery/pkg/runtime \
     --input-dirs=k8s.io/apimachinery/pkg/util/intstr \
-    --report-filename=${PROJECT_ROOT}/pkg/openapi/api_violations.report \
-    --output-package=github.com/gardener/gardener/pkg/openapi \
+    --report-filename=${PROJECT_ROOT}/pkg/apiserver/openapi/api_violations.report \
+    --output-package=github.com/gardener/gardener/pkg/apiserver/openapi \
     -h "${PROJECT_ROOT}/hack/LICENSE_BOILERPLATE.txt"
 
 }
@@ -511,7 +539,7 @@ else
             break
         fi
     done
-    
+
     if $valid; then
         valid_options+=("$option")
     else

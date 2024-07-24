@@ -83,6 +83,14 @@ func mergeImageSources(old, override *ImageSource) *ImageSource {
 		tag = old.Tag
 	}
 
+	version := override.Version
+	if version == nil {
+		version = old.Version
+	}
+	if version == nil && tag != nil {
+		version = old.Tag
+	}
+
 	runtimeVersion := override.RuntimeVersion
 	if runtimeVersion == nil {
 		runtimeVersion = old.RuntimeVersion
@@ -105,6 +113,7 @@ func mergeImageSources(old, override *ImageSource) *ImageSource {
 		Architectures:  architectures,
 		Repository:     override.Repository,
 		Tag:            tag,
+		Version:        version,
 	}
 }
 
@@ -255,7 +264,7 @@ func checkVersionConstraint(constraint, version *string) (score int, ok bool, er
 	return score, true, nil
 }
 
-func checkArchitectureConstraint(source []string, desired *string) (score int, ok bool, err error) {
+func checkArchitectureConstraint(source []string, desired *string) (score int, ok bool) {
 	// if image doesn't have a architecture tag it is considered as multi arch image
 	// and if worker pool machine doesn't have architecture tag it is by default considered amd64 machine.
 	var sourceArch, desiredArch = []string{v1beta1constants.ArchitectureAMD64, v1beta1constants.ArchitectureARM64}, v1beta1constants.ArchitectureAMD64
@@ -268,11 +277,11 @@ func checkArchitectureConstraint(source []string, desired *string) (score int, o
 	}
 
 	if len(sourceArch) > 1 && slices.Contains(sourceArch, desiredArch) {
-		return 1, true, nil
+		return 1, true
 	}
 	if len(sourceArch) == 1 && slices.Contains(sourceArch, desiredArch) {
 		// prioritize equal constraints
-		return 2, true, nil
+		return 2, true
 	}
 
 	return
@@ -295,9 +304,9 @@ func match(source *ImageSource, name string, opts *FindOptions) (score int, ok b
 	}
 	score += targetScore
 
-	archScore, ok, err := checkArchitectureConstraint(source.Architectures, opts.Architecture)
-	if err != nil || !ok {
-		return 0, false, err
+	archScore, ok := checkArchitectureConstraint(source.Architectures, opts.Architecture)
+	if !ok {
+		return 0, false, nil
 	}
 	score += archScore
 
@@ -369,10 +378,16 @@ func (i *ImageSource) ToImage(targetVersion *string) *Image {
 		tag = &version
 	}
 
+	version := i.Version
+	if version == nil && tag != nil {
+		version = tag
+	}
+
 	return &Image{
 		Name:       i.Name,
 		Repository: i.Repository,
 		Tag:        tag,
+		Version:    version,
 	}
 }
 

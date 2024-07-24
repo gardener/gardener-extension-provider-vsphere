@@ -44,7 +44,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
-	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -197,7 +196,6 @@ var controlPlaneShootChart = &chart.Chart{
 				{Type: &corev1.Secret{}, Name: vsphere.SecretCSIVsphereConfig},
 				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.CSIDriverName},
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIDriverName},
-				{Type: &policyv1beta1.PodSecurityPolicy{}, Name: strings.Replace(vsphere.UsernamePrefix+vsphere.CSIDriverName, ":", ".", -1)}, // csi-provisioner
 				{Type: &rbacv1.ClusterRole{}, Name: vsphere.UsernamePrefix + vsphere.CSIProvisionerName},
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: vsphere.UsernamePrefix + vsphere.CSIProvisionerName},
 				{Type: &rbacv1.Role{}, Name: vsphere.UsernamePrefix + vsphere.CSIProvisionerName},
@@ -519,7 +517,7 @@ func getTLSCipherSuites(kubeVersion *semver.Version) []string {
 	unsupportedSuites := sets.NewString("TLS_AES_128_GCM_SHA256", "TLS_AES_256_GCM_SHA384", "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256")
 
 	var ciphers []string
-	for _, cipher := range kutil.TLSCipherSuites(kubeVersion) {
+	for _, cipher := range kutil.TLSCipherSuites {
 		if unsupportedSuites.Has(cipher) {
 			continue
 		}
@@ -673,7 +671,6 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(ctx context.Context, c
 				"url":      "https://" + vsphere.CSISnapshotValidation + "." + cp.Namespace + "/volumesnapshot",
 				"caBundle": string(caSecret.Data[secretutils.DataKeyCertificateBundle]),
 			},
-			"pspDisabled":           gardencorev1beta1helper.IsPSPDisabled(cluster.Shoot),
 			"kubernetesServiceHost": kubernetesServiceHost,
 		},
 	}

@@ -41,9 +41,32 @@ type FluentBitConfigSpec struct {
 	OutputSelector metav1.LabelSelector `json:"outputSelector,omitempty"`
 	// Select parser plugins
 	ParserSelector metav1.LabelSelector `json:"parserSelector,omitempty"`
+	// Select multiline parser plugins
+	MultilineParserSelector metav1.LabelSelector `json:"multilineParserSelector,omitempty"`
 	// If namespace is defined, then the configmap and secret for fluent-bit is in this namespace.
 	// If it is not defined, it is in the namespace of the fluentd-operator
 	Namespace *string `json:"namespace,omitempty"`
+}
+
+type Storage struct {
+	// Select an optional location in the file system to store streams and chunks of data/
+	Path string `json:"path,omitempty"`
+	// Configure the synchronization mode used to store the data into the file system
+	// +kubebuilder:validation:Enum:=normal;full
+	Sync string `json:"sync,omitempty"`
+	// Enable the data integrity check when writing and reading data from the filesystem
+	// +kubebuilder:validation:Enum:=on;off
+	Checksum string `json:"checksum,omitempty"`
+	// This option configure a hint of maximum value of memory to use when processing these records
+	BacklogMemLimit string `json:"backlogMemLimit,omitempty"`
+	// If the input plugin has enabled filesystem storage type, this property sets the maximum number of Chunks that can be up in memory
+	MaxChunksUp *int64 `json:"maxChunksUp,omitempty"`
+	// If http_server option has been enabled in the Service section, this option registers a new endpoint where internal metrics of the storage layer can be consumed
+	// +kubebuilder:validation:Enum:=on;off
+	Metrics string `json:"metrics,omitempty"`
+	// When enabled, irrecoverable chunks will be deleted during runtime, and any other irrecoverable chunk located in the configured storage path directory will be deleted when Fluent-Bit starts.
+	// +kubebuilder:validation:Enum:=on;off
+	DeleteIrrecoverableChunks string `json:"deleteIrrecoverableChunks,omitempty"`
 }
 
 type Service struct {
@@ -76,10 +99,18 @@ type Service struct {
 	// File to log diagnostic output
 	LogFile string `json:"logFile,omitempty"`
 	// Diagnostic level (error/warning/info/debug/trace)
-	// +kubebuilder:validation:Enum:=error;warning;info;debug;trace
+	// +kubebuilder:validation:Enum:=off;error;warning;info;debug;trace
 	LogLevel string `json:"logLevel,omitempty"`
 	// Optional 'parsers' config file (can be multiple)
 	ParsersFile string `json:"parsersFile,omitempty"`
+	// backward compatible
+	ParsersFiles []string `json:"parsersFiles,omitempty"`
+	// Configure a global environment for the storage layer in Service. It is recommended to configure the volume and volumeMount separately for this storage. The hostPath type should be used for that Volume in Fluentbit daemon set.
+	Storage *Storage `json:"storage,omitempty"`
+	// Per-namespace re-emitter configuration
+	EmitterName        string `json:"emitterName,omitempty"`
+	EmitterMemBufLimit string `json:"emitterMemBufLimit,omitempty"`
+	EmitterStorageType string `json:"emitterStorageType,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -147,13 +178,51 @@ func (s *Service) Params() *params.KVs {
 		m.Insert("Log_Level", s.LogLevel)
 	}
 	if s.ParsersFile != "" {
-		m.Insert("Parsers_File", s.ParsersFile)
+		if s.ParsersFile == "parsers.conf" {
+			// For backwards compatibility, if the "usual" parsers.conf is
+			// configured, actually write the fully-qualified path  in order
+			// to not break hot-reload.
+			// See https://github.com/fluent/fluent-bit/issues/8275.
+			m.Insert("Parsers_File", "/fluent-bit/etc/parsers.conf")
+		} else {
+			m.Insert("Parsers_File", s.ParsersFile)
+		}
+	}
+	if len(s.ParsersFiles) != 0 {
+		for _, parserFile := range s.ParsersFiles {
+			m.Insert("Parsers_File", parserFile)
+		}
+	}
+	if s.Storage != nil {
+		if s.Storage.Path != "" {
+			m.Insert("storage.path", s.Storage.Path)
+		}
+		if s.Storage.Sync != "" {
+			m.Insert("storage.sync", s.Storage.Sync)
+		}
+		if s.Storage.Checksum != "" {
+			m.Insert("storage.checksum", s.Storage.Checksum)
+		}
+		if s.Storage.BacklogMemLimit != "" {
+			m.Insert("storage.backlog.mem_limit", s.Storage.BacklogMemLimit)
+		}
+		if s.Storage.Metrics != "" {
+			m.Insert("storage.metrics", s.Storage.Metrics)
+		}
+		if s.Storage.MaxChunksUp != nil {
+			m.Insert("storage.max_chunks_up", fmt.Sprint(*s.Storage.MaxChunksUp))
+		}
+		if s.Storage.DeleteIrrecoverableChunks != "" {
+			m.Insert("storage.delete_irrecoverable_chunks", s.Storage.DeleteIrrecoverableChunks)
+		}
 	}
 	return m
 }
 
-func (cfg ClusterFluentBitConfig) RenderMainConfig(sl plugins.SecretLoader, inputs ClusterInputList, filters ClusterFilterList,
-	outputs ClusterOutputList, nsFilterLists []FilterList, nsOutputLists []OutputList, rewriteTagConfigs []string) (string, error) {
+func (cfg ClusterFluentBitConfig) RenderMainConfig(
+	sl plugins.SecretLoader, inputs ClusterInputList, filters ClusterFilterList,
+	outputs ClusterOutputList, nsFilterLists []FilterList, nsOutputLists []OutputList, rewriteTagConfigs []string,
+) (string, error) {
 	var buf bytes.Buffer
 
 	// The Service defines the global behaviour of the Fluent Bit engine.
@@ -231,11 +300,13 @@ func (cfg ClusterFluentBitConfig) RenderMainConfig(sl plugins.SecretLoader, inpu
 	return buf.String(), nil
 }
 
-func (cfg ClusterFluentBitConfig) RenderParserConfig(sl plugins.SecretLoader, parsers ClusterParserList, nsParserLists []ParserList,
-	nsClusterParserLists []ClusterParserList) (string, error) {
+func (cfg ClusterFluentBitConfig) RenderParserConfig(
+	sl plugins.SecretLoader, parsers ClusterParserList, nsParserLists []ParserList,
+	nsClusterParserLists []ClusterParserList,
+) (string, error) {
 	var buf bytes.Buffer
-
-	parserSections, err := parsers.Load(sl)
+	existingParsers := make(map[string]bool)
+	parserSections, err := parsers.Load(sl, existingParsers)
 	if err != nil {
 		return "", err
 	}
@@ -258,11 +329,50 @@ func (cfg ClusterFluentBitConfig) RenderParserConfig(sl plugins.SecretLoader, pa
 	}
 
 	for _, item := range nsClusterParserLists {
-		nsClusterParserSections, err := item.Load(sl)
+		nsClusterParserSections, err := item.Load(sl, existingParsers)
 		if err != nil {
 			return "", err
 		}
 		buf.WriteString(nsClusterParserSections)
+	}
+
+	return buf.String(), nil
+}
+
+func (cfg ClusterFluentBitConfig) RenderMultilineParserConfig(
+	sl plugins.SecretLoader, multilineParsers ClusterMultilineParserList, nsMultilineParserLists []MultilineParserList,
+	nsClusterMultilineParserLists []ClusterMultilineParserList,
+) (string, error) {
+	var buf bytes.Buffer
+
+	multilineParserSection, err := multilineParsers.Load(sl)
+	if err != nil {
+		return "", err
+	}
+
+	buf.WriteString(multilineParserSection)
+
+	for _, nsmp := range nsMultilineParserLists {
+		if len(nsmp.Items) == 0 {
+			continue
+		}
+		if nsmp.Items != nil {
+			ns := nsmp.Items[0].Namespace
+			namespacedSl := plugins.NewSecretLoader(sl.Client, ns)
+			nsmpSection, err := nsmp.Load(namespacedSl)
+			if err != nil {
+				return "", err
+			}
+			buf.WriteString(nsmpSection)
+		}
+	}
+
+	for _, nscmp := range nsClusterMultilineParserLists {
+		nscmpSection, err := nscmp.Load(sl)
+		if err != nil {
+			return "", err
+		}
+		buf.WriteString(nscmpSection)
 	}
 
 	return buf.String(), nil
@@ -284,7 +394,9 @@ func (a ByName) Len() int           { return len(a) }
 func (a ByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByName) Less(i, j int) bool { return a[i].Name < a[j].Name }
 
-func (cfg ClusterFluentBitConfig) RenderLuaScript(cl plugins.ConfigMapLoader, filters ClusterFilterList, namespace string) ([]Script, error) {
+func (cfg ClusterFluentBitConfig) RenderLuaScript(
+	cl plugins.ConfigMapLoader, filters ClusterFilterList, namespace string,
+) ([]Script, error) {
 
 	scripts := make([]Script, 0)
 	for _, f := range filters.Items {

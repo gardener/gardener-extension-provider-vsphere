@@ -71,8 +71,8 @@ type GardenSpec struct {
 
 // RuntimeCluster contains configuration for the runtime cluster.
 type RuntimeCluster struct {
-	// Ingress configures Ingress specific settings for the Garden cluster. This field is immutable.
-	Ingress gardencorev1beta1.Ingress `json:"ingress"`
+	// Ingress configures Ingress specific settings for the Garden cluster.
+	Ingress Ingress `json:"ingress"`
 	// Networking defines the networking configuration of the runtime cluster.
 	Networking RuntimeNetworking `json:"networking"`
 	// Provider defines the provider-specific information for this cluster.
@@ -80,6 +80,20 @@ type RuntimeCluster struct {
 	// Settings contains certain settings for this cluster.
 	// +optional
 	Settings *Settings `json:"settings,omitempty"`
+}
+
+// Ingress configures the Ingress specific settings of the runtime cluster.
+type Ingress struct {
+	// Deprecated: This field is deprecated and will be removed soon. Please use `Domains` instead.
+	// TODO(scheererj): Drop this after v1.90 has been released.
+	// +optional
+	Domain *string `json:"domain,omitempty"`
+	// Domains specify the ingress domains of the cluster pointing to the ingress controller endpoint. They will be used
+	// to construct ingress URLs for system applications running in runtime cluster.
+	// +optional
+	Domains []string `json:"domains,omitempty"`
+	// Controller configures a Gardener managed Ingress Controller listening on the ingressDomain.
+	Controller gardencorev1beta1.IngressController `json:"controller"`
 }
 
 // RuntimeNetworking defines the networking configuration of the runtime cluster.
@@ -373,7 +387,7 @@ type KubeControllerManagerConfig struct {
 	CertificateSigningDuration *metav1.Duration `json:"certificateSigningDuration,omitempty"`
 }
 
-// Gardener contains the configuration settings for the Gardener componenets.
+// Gardener contains the configuration settings for the Gardener components.
 type Gardener struct {
 	// ClusterIdentity is the identity of the garden cluster. This field is immutable.
 	// +kubebuilder:validation:MinLength=1
@@ -421,6 +435,9 @@ type GardenerAPIServerConfig struct {
 	// cache size flags will have no effect, except when setting it to 0 (which disables the watch cache).
 	// +optional
 	WatchCacheSizes *gardencorev1beta1.WatchCacheSizes `json:"watchCacheSizes,omitempty"`
+	// EncryptionConfig contains customizable encryption configuration of the Gardener API server.
+	// +optional
+	EncryptionConfig *gardencorev1beta1.EncryptionConfig `json:"encryptionConfig,omitempty"`
 }
 
 // GardenerAdmissionControllerConfig contains configuration settings for the gardener-admission-controller.
@@ -517,6 +534,11 @@ type GardenStatus struct {
 	// Credentials contains information about the virtual garden cluster credentials.
 	// +optional
 	Credentials *Credentials `json:"credentials,omitempty"`
+	// EncryptedResources is the list of resources which are currently encrypted in the virtual garden by the virtual kube-apiserver.
+	// Resources which are encrypted by default will not appear here.
+	// See https://github.com/gardener/gardener/blob/master/docs/concepts/operator.md#etcd-encryption-config for more details.
+	// +optional
+	EncryptedResources []string `json:"encryptedResources,omitempty"`
 }
 
 // Credentials contains information about the virtual garden cluster credentials.

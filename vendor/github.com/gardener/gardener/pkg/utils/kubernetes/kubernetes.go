@@ -38,7 +38,7 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	clientcmdv1 "k8s.io/client-go/tools/clientcmd/api/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -143,8 +143,8 @@ func ObjectKeyFromSecretRef(ref corev1.SecretReference) client.ObjectKey {
 	}
 }
 
-// WaitUntilResourceDeleted deletes the given resource and then waits until it has been deleted. It respects the
-// given interval and timeout.
+// WaitUntilResourceDeleted waits until it has been deleted. It respects the given interval. Timeout must be provided
+// via the context.
 func WaitUntilResourceDeleted(ctx context.Context, c client.Client, obj client.Object, interval time.Duration) error {
 	key := client.ObjectKeyFromObject(obj)
 	return retry.Until(ctx, interval, func(ctx context.Context) (done bool, err error) {
@@ -740,7 +740,7 @@ func (c *ComparableTolerations) Transform(toleration corev1.Toleration) corev1.T
 
 	tolerationSeconds := *toleration.TolerationSeconds
 	if _, ok := c.tolerationSeconds[tolerationSeconds]; !ok {
-		c.tolerationSeconds[tolerationSeconds] = pointer.Int64(tolerationSeconds)
+		c.tolerationSeconds[tolerationSeconds] = ptr.To(tolerationSeconds)
 	}
 
 	toleration.TolerationSeconds = c.tolerationSeconds[tolerationSeconds]

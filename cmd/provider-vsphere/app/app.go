@@ -180,7 +180,6 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 			// TODO(rfranzke): Remove the GardenletManagesMCM fields as soon as the general options no longer support the
 			//  GardenletManagesMCM field.
-			vsphereworker.DefaultAddOptions.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
 			controlplanewebhook.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
 			healthcheck.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
 

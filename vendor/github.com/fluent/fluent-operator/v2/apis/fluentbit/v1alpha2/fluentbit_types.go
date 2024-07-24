@@ -17,11 +17,11 @@ limitations under the License.
 package v1alpha2
 
 import (
+	"slices"
+
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/fluent/fluent-operator/v2/pkg/utils"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -41,6 +41,9 @@ type FluentBitSpec struct {
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 	// Fluent Bit image pull secret
 	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
+	// MountPropagation option for internal mounts
+	// +kubebuilder:validation:Enum:=None;HostToContainer;Bidirectional
+	InternalMountPropagation *corev1.MountPropagationMode `json:"internalMountPropagation,omitempty"`
 	// Storage for position db. You will use it if tail input is enabled.
 	PositionDB corev1.VolumeSource `json:"positionDB,omitempty"`
 	// Container log path
@@ -67,6 +70,8 @@ type FluentBitSpec struct {
 	Volumes []corev1.Volume `json:"volumes,omitempty"`
 	// Pod volumes to mount into the container's filesystem.
 	VolumesMounts []corev1.VolumeMount `json:"volumesMounts,omitempty"`
+	// DisableLogVolumes removes the hostPath mounts for varlibcontainers, varlogs and systemd.
+	DisableLogVolumes bool `json:"disableLogVolumes,omitempty"`
 	// Annotations to add to each Fluentbit pod.
 	Annotations map[string]string `json:"annotations,omitempty"`
 	// Annotations to add to the Fluentbit service account
@@ -75,6 +80,8 @@ type FluentBitSpec struct {
 	Labels map[string]string `json:"labels,omitempty"`
 	// SecurityContext holds pod-level security attributes and common container settings.
 	SecurityContext *corev1.PodSecurityContext `json:"securityContext,omitempty"`
+	// ContainerSecurityContext holds container-level security attributes.
+	ContainerSecurityContext *corev1.SecurityContext `json:"containerSecurityContext,omitempty"`
 	// Host networking is requested for this pod. Use the host's network namespace. If this option is set, the ports that will be used must be specified. Default to false.
 	HostNetwork bool `json:"hostNetwork,omitempty"`
 	// EnvVars represent environment variables that can be passed to fluentbit pods.
@@ -96,6 +103,8 @@ type FluentBitSpec struct {
 	MetricsPort int32 `json:"metricsPort,omitempty"`
 	// Service represents configurations on the fluent-bit service.
 	Service FluentBitService `json:"service,omitempty"`
+	// SchedulerName represents the desired scheduler for fluent-bit pods.
+	SchedulerName string `json:"schedulerName,omitempty"`
 }
 
 // FluentBitService defines the service of the FluentBit
@@ -137,7 +146,7 @@ const FluentBitFinalizerName = "fluentbit.fluent.io"
 
 // HasFinalizer returns true if the item has the specified finalizer
 func (fb *FluentBit) HasFinalizer(finalizerName string) bool {
-	return utils.ContainString(fb.ObjectMeta.Finalizers, finalizerName)
+	return slices.Contains(fb.ObjectMeta.Finalizers, finalizerName)
 }
 
 // AddFinalizer adds the specified finalizer
@@ -147,7 +156,7 @@ func (fb *FluentBit) AddFinalizer(finalizerName string) {
 
 // RemoveFinalizer removes the specified finalizer
 func (fb *FluentBit) RemoveFinalizer(finalizerName string) {
-	fb.ObjectMeta.Finalizers = utils.RemoveString(fb.ObjectMeta.Finalizers, finalizerName)
+	fb.ObjectMeta.Finalizers = slices.DeleteFunc(fb.ObjectMeta.Finalizers, func(s string) bool { return s == finalizerName })
 }
 
 // +kubebuilder:object:root=true
