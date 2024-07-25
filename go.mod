@@ -30,16 +30,16 @@ require (
 	golang.org/x/oauth2 v0.21.0
 	golang.org/x/tools v0.23.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.30.3
+	k8s.io/api v0.29.6
 	k8s.io/apiextensions-apiserver v0.29.6
 	k8s.io/apimachinery v0.31.0-beta.0
 	k8s.io/autoscaler/vertical-pod-autoscaler v1.1.2
-	k8s.io/client-go v0.30.3
+	k8s.io/client-go v0.29.6
 	k8s.io/cloud-provider-vsphere v1.26.1-0.20230503224600-862eeed8229c
 	k8s.io/code-generator v0.29.6
-	k8s.io/component-base v0.30.3
+	k8s.io/component-base v0.29.6
 	k8s.io/klog v1.0.0
-	k8s.io/kubelet v0.30.3
+	k8s.io/kubelet v0.29.6
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
 	sigs.k8s.io/controller-runtime v0.17.5
 	sigs.k8s.io/controller-tools v0.14.0
@@ -158,10 +158,10 @@ require (
 	helm.sh/helm/v3 v3.14.4 // indirect
 	istio.io/api v1.22.3 // indirect
 	istio.io/client-go v1.22.3 // indirect
-	k8s.io/apiserver v0.30.3 // indirect
-	k8s.io/cloud-provider v0.30.3 // indirect
+	k8s.io/apiserver v0.29.6 // indirect
+	k8s.io/cloud-provider v0.29.6 // indirect
 	k8s.io/cluster-bootstrap v0.29.6 // indirect
-	k8s.io/component-helpers v0.30.3 // indirect
+	k8s.io/component-helpers v0.29.6 // indirect
 	k8s.io/gengo v0.0.0-20240404160639-a0386bf69313 // indirect
 	k8s.io/gengo/v2 v2.0.0-20240228010128-51d4e06bde70 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
