@@ -34,8 +34,6 @@ type Args struct {
 	Mutator extensionswebhook.Mutator
 	// MutatorWithShootClient is a mutator to be used by the admission handler. It needs the shoot client.
 	MutatorWithShootClient extensionswebhook.MutatorWithShootClient
-	// ObjectSelector is the object selector of the underlying webhook.
-	ObjectSelector *metav1.LabelSelector
 	// FailurePolicy is the failure policy for the webhook (defaults to Ignore).
 	FailurePolicy *admissionregistrationv1.FailurePolicyType
 }
@@ -49,8 +47,7 @@ func New(mgr manager.Manager, args Args) (*extensionswebhook.Webhook, error) {
 		Types:             args.Types,
 		Path:              WebhookName,
 		Target:            extensionswebhook.TargetShoot,
-		NamespaceSelector: buildNamespaceSelector(),
-		ObjectSelector:    args.ObjectSelector,
+		NamespaceSelector: buildSelector(),
 		FailurePolicy:     args.FailurePolicy,
 	}
 
@@ -77,8 +74,8 @@ func New(mgr manager.Manager, args Args) (*extensionswebhook.Webhook, error) {
 	return nil, fmt.Errorf("neither mutator nor mutator with shoot client is set")
 }
 
-// buildNamespaceSelector creates and returns a LabelSelector for the given webhook kind and provider.
-func buildNamespaceSelector() *metav1.LabelSelector {
+// buildSelector creates and returns a LabelSelector for the given webhook kind and provider.
+func buildSelector() *metav1.LabelSelector {
 	// Create and return LabelSelector
 	return &metav1.LabelSelector{
 		MatchExpressions: []metav1.LabelSelectorRequirement{

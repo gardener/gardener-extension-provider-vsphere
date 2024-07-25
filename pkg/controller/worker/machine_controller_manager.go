@@ -24,10 +24,10 @@ import (
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	"github.com/gardener/gardener/pkg/utils/chart"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/gardener/gardener-extension-provider-vsphere/pkg/vsphere"
 )
@@ -59,7 +59,12 @@ var (
 
 func (w *workerDelegate) GetMachineControllerManagerChartValues(ctx context.Context) (map[string]interface{}, error) {
 	namespace := &corev1.Namespace{}
-	if err := w.client.Get(ctx, kutil.Key(w.worker.Namespace), namespace); err != nil {
+	namespaceKey := client.ObjectKey{
+		Namespace: w.worker.Namespace,
+		Name:      "",
+	}
+
+	if err := w.client.Get(ctx, namespaceKey, namespace); err != nil {
 		return nil, err
 	}
 

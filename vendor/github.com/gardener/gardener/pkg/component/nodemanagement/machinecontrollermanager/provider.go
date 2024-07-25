@@ -14,15 +14,11 @@ import (
 	gardenerutils "github.com/gardener/gardener/pkg/utils/gardener"
 )
 
-const (
-	portProviderMetrics     = 10259
-	portNameProviderMetrics = "providermetrics"
-)
-
 // ProviderSidecarContainer returns a corev1.Container object which can be injected into the machine-controller-manager
 // deployment managed by the gardenlet. This function can be used in provider-specific control plane webhook
 // implementations when the standard sidecar container is required.
 func ProviderSidecarContainer(namespace, providerName, image string) corev1.Container {
+	const metricsPort = 10259
 	return corev1.Container{
 		Name:            providerSidecarContainerName(providerName),
 		Image:           image,
@@ -36,7 +32,7 @@ func ProviderSidecarContainer(namespace, providerName, image string) corev1.Cont
 			"--machine-safety-apiserver-statuscheck-period=1m",
 			"--machine-safety-orphan-vms-period=30m",
 			"--namespace=" + namespace,
-			"--port=" + strconv.Itoa(portProviderMetrics),
+			"--port=" + strconv.Itoa(metricsPort),
 			"--target-kubeconfig=" + gardenerutils.PathGenericKubeconfig,
 			"--v=3",
 		},
@@ -44,7 +40,7 @@ func ProviderSidecarContainer(namespace, providerName, image string) corev1.Cont
 			ProbeHandler: corev1.ProbeHandler{
 				HTTPGet: &corev1.HTTPGetAction{
 					Path:   "/healthz",
-					Port:   intstr.FromInt32(portProviderMetrics),
+					Port:   intstr.FromInt32(metricsPort),
 					Scheme: corev1.URISchemeHTTP,
 				},
 			},
@@ -54,11 +50,6 @@ func ProviderSidecarContainer(namespace, providerName, image string) corev1.Cont
 			SuccessThreshold:    1,
 			FailureThreshold:    3,
 		},
-		Ports: []corev1.ContainerPort{{
-			Name:          portNameProviderMetrics,
-			ContainerPort: portProviderMetrics,
-			Protocol:      corev1.ProtocolTCP,
-		}},
 		VolumeMounts: []corev1.VolumeMount{{
 			Name:      "kubeconfig",
 			MountPath: gardenerutils.VolumeMountPathGenericKubeconfig,

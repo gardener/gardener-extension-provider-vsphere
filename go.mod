@@ -10,7 +10,7 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gardener/etcd-druid v0.22.2
-	github.com/gardener/gardener v1.99.1
+	github.com/gardener/gardener v1.97.1
 	github.com/gardener/machine-controller-manager v0.53.0
 	github.com/go-logr/logr v1.4.2
 	github.com/google/uuid v1.6.0
@@ -51,7 +51,6 @@ require (
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
-	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/antihax/optional v1.0.0 // indirect
 	github.com/avast/retry-go/v4 v4.6.0 // indirect
 	github.com/beevik/etree v1.4.1 // indirect

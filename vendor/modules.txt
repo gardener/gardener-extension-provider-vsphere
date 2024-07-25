@@ -20,10 +20,6 @@ github.com/Masterminds/sprig/v3
 # github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 ## explicit; go 1.15
 github.com/ahmetb/gen-crd-api-reference-docs
-# github.com/andybalholm/brotli v1.1.0
-## explicit; go 1.13
-github.com/andybalholm/brotli
-github.com/andybalholm/brotli/matchfinder
 # github.com/antihax/optional v1.0.0
 ## explicit; go 1.13
 github.com/antihax/optional
@@ -97,7 +93,7 @@ github.com/gardener/cert-management/pkg/apis/cert/v1alpha1
 # github.com/gardener/etcd-druid v0.22.2
 ## explicit; go 1.21
 github.com/gardener/etcd-druid/api/v1alpha1
-# github.com/gardener/gardener v1.99.1
+# github.com/gardener/gardener v1.97.1
 ## explicit; go 1.22.0
 github.com/gardener/gardener/.github
 github.com/gardener/gardener/.github/ISSUE_TEMPLATE
@@ -194,7 +190,6 @@ github.com/gardener/gardener/pkg/controllerutils/mapper
 github.com/gardener/gardener/pkg/controllerutils/predicate
 github.com/gardener/gardener/pkg/controllerutils/reconciler
 github.com/gardener/gardener/pkg/extensions
-github.com/gardener/gardener/pkg/features
 github.com/gardener/gardener/pkg/gardenlet/apis/config
 github.com/gardener/gardener/pkg/gardenlet/apis/config/v1alpha1
 github.com/gardener/gardener/pkg/healthz
@@ -221,6 +216,7 @@ github.com/gardener/gardener/pkg/utils/secrets/manager
 github.com/gardener/gardener/pkg/utils/secrets/manager/fake
 github.com/gardener/gardener/pkg/utils/test
 github.com/gardener/gardener/pkg/utils/test/matchers
+github.com/gardener/gardener/pkg/utils/test/runtime
 github.com/gardener/gardener/pkg/utils/timewindow
 github.com/gardener/gardener/pkg/utils/validation
 github.com/gardener/gardener/pkg/utils/validation/features
@@ -1122,7 +1118,6 @@ k8s.io/apimachinery/third_party/forked/golang/reflect
 # k8s.io/apiserver v0.30.3
 ## explicit; go 1.22.0
 k8s.io/apiserver/pkg/authentication/user
-k8s.io/apiserver/pkg/util/feature
 # k8s.io/autoscaler/vertical-pod-autoscaler v1.1.2
 ## explicit; go 1.21
 k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1

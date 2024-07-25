@@ -27,7 +27,6 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/component/nodemanagement/machinecontrollermanager"
 	gutil "github.com/gardener/gardener/pkg/utils/gardener"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
@@ -193,7 +192,12 @@ func (e *ensurer) ShouldProvisionKubeletCloudProviderConfig(context.Context, gco
 func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, _ gcontext.GardenContext, _ *semver.Version, data *string, namespace string) error {
 	// Get `cloud-provider-config` secret
 	var cm corev1.ConfigMap
-	err := e.client.Get(ctx, kutil.Key(namespace, vsphere.CloudProviderConfig), &cm)
+	cloudProviderConfigKey := client.ObjectKey{
+		Namespace: namespace,
+		Name:      vsphere.CloudProviderConfig,
+	}
+
+	err := e.client.Get(ctx, cloudProviderConfigKey, &cm)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			e.logger.Info("configmap not found", "name", vsphere.CloudProviderConfig, "namespace", namespace)

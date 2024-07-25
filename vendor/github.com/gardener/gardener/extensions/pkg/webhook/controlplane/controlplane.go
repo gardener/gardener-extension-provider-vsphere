@@ -44,8 +44,6 @@ type Args struct {
 	Types []extensionswebhook.Type
 	// Mutator is a mutator to be used by the admission handler.
 	Mutator extensionswebhook.Mutator
-	// ObjectSelector is the object selector of the underlying webhook
-	ObjectSelector *metav1.LabelSelector
 }
 
 // New creates a new controlplane webhook with the given args.
@@ -62,7 +60,7 @@ func New(mgr manager.Manager, args Args) (*extensionswebhook.Webhook, error) {
 	logger.Info("Creating webhook", "name", getName(args.Kind))
 
 	// Build namespace selector from the webhook kind and provider
-	namespaceSelector, err := buildNamespaceSelector(args.Kind, args.Provider)
+	namespaceSelector, err := buildSelector(args.Kind, args.Provider)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +73,6 @@ func New(mgr manager.Manager, args Args) (*extensionswebhook.Webhook, error) {
 		Path:              getName(args.Kind),
 		Webhook:           &admission.Webhook{Handler: handler, RecoverPanic: true},
 		NamespaceSelector: namespaceSelector,
-		ObjectSelector:    args.ObjectSelector,
 	}, nil
 }
 
@@ -90,8 +87,8 @@ func getName(kind string) string {
 	}
 }
 
-// buildNamespaceSelector creates and returns a LabelSelector for the given webhook kind and provider.
-func buildNamespaceSelector(kind, provider string) (*metav1.LabelSelector, error) {
+// buildSelector creates and returns a LabelSelector for the given webhook kind and provider.
+func buildSelector(kind, provider string) (*metav1.LabelSelector, error) {
 	// Determine label selector key from the kind
 	var key string
 

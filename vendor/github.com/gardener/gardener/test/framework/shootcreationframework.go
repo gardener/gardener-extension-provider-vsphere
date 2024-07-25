@@ -110,7 +110,6 @@ func (f *ShootCreationFramework) AfterEach(ctx context.Context) {
 func validateShootCreationConfig(cfg *ShootCreationConfig) {
 	if cfg == nil {
 		ginkgo.Fail("no shoot creation framework configuration provided")
-		return
 	}
 
 	if StringSet(cfg.shootAnnotations) {

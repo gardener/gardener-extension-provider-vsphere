@@ -79,7 +79,6 @@ type ShootSpec struct {
 	Region string
 	// SecretBindingName is the name of the a SecretBinding that has a reference to the provider secret.
 	// The credentials inside the provider secret will be used to create the shoot in the respective account.
-	// The field is mutually exclusive with CredentialsBindingName.
 	// This field is immutable.
 	SecretBindingName *string
 	// SeedName is the name of the seed cluster that runs the control plane of the Shoot.
@@ -103,10 +102,6 @@ type ShootSpec struct {
 	SchedulerName *string
 	// CloudProfile is a reference to a CloudProfile or a NamespacedCloudProfile.
 	CloudProfile *CloudProfileReference
-	// CredentialsBindingName is the name of the a CredentialsBinding that has a reference to the provider credentials.
-	// The credentials will be used to create the shoot in the respective account. The field is mutually exclusive with SecretBindingName.
-	// This field is immutable.
-	CredentialsBindingName *string
 }
 
 // GetProviderType gets the type of the provider.
@@ -161,8 +156,6 @@ type ShootStatus struct {
 	// Secrets are encrypted by default and are not part of the list.
 	// See https://github.com/gardener/gardener/blob/master/docs/usage/etcd_encryption_config.md for more details.
 	EncryptedResources []string
-	// Networking contains information about cluster networking such as CIDRs.
-	Networking *NetworkingStatus
 }
 
 // LastMaintenance holds information about a maintenance operation on the Shoot.
@@ -175,16 +168,6 @@ type LastMaintenance struct {
 	State LastOperationState
 	// FailureReason holds the information about the last maintenance operation failure reason.
 	FailureReason *string
-}
-
-// NetworkingStatus contains information about cluster networking such as CIDRs.
-type NetworkingStatus struct {
-	// Pods are the CIDRs of the pod network.
-	Pods []string
-	// Nodes are the CIDRs of the node network.
-	Nodes []string
-	// Services are the CIDRs of the service network.
-	Services []string
 }
 
 // ShootCredentials contains information about the shoot credentials.
@@ -213,14 +196,14 @@ type ShootCredentialsRotation struct {
 type CARotation struct {
 	// Phase describes the phase of the certificate authority credential rotation.
 	Phase CredentialsRotationPhase
-	// LastCompletionTime is the most recent time when the certificate authority credential rotation was successfully
-	// completed.
-	LastCompletionTime *metav1.Time
 	// LastInitiationTime is the most recent time when the certificate authority credential rotation was initiated.
 	LastInitiationTime *metav1.Time
 	// LastInitiationFinishedTime is the recent time when the certificate authority credential rotation initiation was
 	// completed.
 	LastInitiationFinishedTime *metav1.Time
+	// LastCompletionTime is the most recent time when the certificate authority credential rotation was successfully
+	// completed.
+	LastCompletionTime *metav1.Time
 	// LastCompletionTriggeredTime is the recent time when the certificate authority credential rotation completion was
 	// triggered.
 	LastCompletionTriggeredTime *metav1.Time
@@ -254,14 +237,14 @@ type ObservabilityRotation struct {
 type ServiceAccountKeyRotation struct {
 	// Phase describes the phase of the service account key credential rotation.
 	Phase CredentialsRotationPhase
-	// LastCompletionTime is the most recent time when the service account key credential rotation was successfully
-	// completed.
-	LastCompletionTime *metav1.Time
 	// LastInitiationTime is the most recent time when the service account key credential rotation was initiated.
 	LastInitiationTime *metav1.Time
 	// LastInitiationFinishedTime is the recent time when the certificate authority credential rotation initiation was
 	// completed.
 	LastInitiationFinishedTime *metav1.Time
+	// LastCompletionTime is the most recent time when the service account key credential rotation was successfully
+	// completed.
+	LastCompletionTime *metav1.Time
 	// LastCompletionTriggeredTime is the recent time when the certificate authority credential rotation completion was
 	// triggered.
 	LastCompletionTriggeredTime *metav1.Time
@@ -271,14 +254,14 @@ type ServiceAccountKeyRotation struct {
 type ETCDEncryptionKeyRotation struct {
 	// Phase describes the phase of the ETCD encryption key credential rotation.
 	Phase CredentialsRotationPhase
-	// LastCompletionTime is the most recent time when the ETCD encryption key credential rotation was successfully
-	// completed.
-	LastCompletionTime *metav1.Time
 	// LastInitiationTime is the most recent time when the ETCD encryption key credential rotation was initiated.
 	LastInitiationTime *metav1.Time
 	// LastInitiationFinishedTime is the recent time when the certificate authority credential rotation initiation was
 	// completed.
 	LastInitiationFinishedTime *metav1.Time
+	// LastCompletionTime is the most recent time when the ETCD encryption key credential rotation was successfully
+	// completed.
+	LastCompletionTime *metav1.Time
 	// LastCompletionTriggeredTime is the recent time when the certificate authority credential rotation completion was
 	// triggered.
 	LastCompletionTriggeredTime *metav1.Time
@@ -886,9 +869,6 @@ type KubeletConfig struct {
 	KubeReserved *KubeletConfigReserved
 	// SystemReserved is the configuration for resources reserved for system processes not managed by kubernetes (e.g. journald).
 	// When updating these values, be aware that cgroup resizes may not succeed on active worker nodes. Look for the NodeAllocatableEnforced event to determine if the configuration was applied.
-	// Deprecated: Separately configuring resource reservations for system processes is deprecated in Gardener and will be removed soon.
-	// Please merge existing resource reservations into the kubeReserved field.
-	// TODO(MichaelEischer): Drop this field after v1.113 has been released.
 	SystemReserved *KubeletConfigReserved
 	// ImageGCHighThresholdPercent describes the percent of the disk usage which triggers image garbage collection.
 	ImageGCHighThresholdPercent *int32

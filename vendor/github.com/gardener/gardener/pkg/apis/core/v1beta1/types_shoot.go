@@ -95,7 +95,6 @@ type ShootSpec struct {
 	Region string `json:"region" protobuf:"bytes,12,opt,name=region"`
 	// SecretBindingName is the name of the a SecretBinding that has a reference to the provider secret.
 	// The credentials inside the provider secret will be used to create the shoot in the respective account.
-	// The field is mutually exclusive with CredentialsBindingName.
 	// This field is immutable.
 	// +optional
 	SecretBindingName *string `json:"secretBindingName,omitempty" protobuf:"bytes,13,opt,name=secretBindingName"`
@@ -131,11 +130,6 @@ type ShootSpec struct {
 	// CloudProfile contains a reference to a CloudProfile or a NamespacedCloudProfile.
 	// +optional
 	CloudProfile *CloudProfileReference `json:"cloudProfile,omitempty" protobuf:"bytes,22,opt,name=cloudProfile"`
-	// CredentialsBindingName is the name of the a CredentialsBinding that has a reference to the provider credentials.
-	// The credentials will be used to create the shoot in the respective account. The field is mutually exclusive with SecretBindingName.
-	// This field is immutable.
-	// +optional
-	CredentialsBindingName *string `json:"credentialsBindingName,omitempty" protobuf:"bytes,23,opt,name=credentialsBindingName"`
 }
 
 // GetProviderType gets the type of the provider.
@@ -210,9 +204,6 @@ type ShootStatus struct {
 	// See https://github.com/gardener/gardener/blob/master/docs/usage/etcd_encryption_config.md for more details.
 	// +optional
 	EncryptedResources []string `json:"encryptedResources,omitempty" protobuf:"bytes,18,rep,name=encryptedResources"`
-	// Networking contains information about cluster networking such as CIDRs.
-	// +optional
-	Networking *NetworkingStatus `json:"networking,omitempty" protobuf:"bytes,19,opt,name=networking"`
 }
 
 // LastMaintenance holds information about a maintenance operation on the Shoot.
@@ -226,19 +217,6 @@ type LastMaintenance struct {
 	// FailureReason holds the information about the last maintenance operation failure reason.
 	// +optional
 	FailureReason *string `json:"failureReason,omitempty" protobuf:"bytes,4,opt,name=failureReason"`
-}
-
-// NetworkingStatus contains information about cluster networking such as CIDRs.
-type NetworkingStatus struct {
-	// Pods are the CIDRs of the pod network.
-	// +optional
-	Pods []string `json:"pods,omitempty" protobuf:"bytes,1,rep,name=pods"`
-	// Nodes are the CIDRs of the node network.
-	// +optional
-	Nodes []string `json:"nodes,omitempty" protobuf:"bytes,2,rep,name=nodes"`
-	// Services are the CIDRs of the service network.
-	// +optional
-	Services []string `json:"services,omitempty" protobuf:"bytes,3,rep,name=services"`
 }
 
 // ShootCredentials contains information about the shoot credentials.
@@ -1141,9 +1119,6 @@ type KubeletConfig struct {
 	KubeReserved *KubeletConfigReserved `json:"kubeReserved,omitempty" protobuf:"bytes,14,opt,name=kubeReserved"`
 	// SystemReserved is the configuration for resources reserved for system processes not managed by kubernetes (e.g. journald).
 	// When updating these values, be aware that cgroup resizes may not succeed on active worker nodes. Look for the NodeAllocatableEnforced event to determine if the configuration was applied.
-	// Deprecated: Separately configuring resource reservations for system processes is deprecated in Gardener and will be removed soon.
-	// Please merge existing resource reservations into the kubeReserved field.
-	// TODO(MichaelEischer): Drop this field after v1.113 has been released.
 	// +optional
 	SystemReserved *KubeletConfigReserved `json:"systemReserved,omitempty" protobuf:"bytes,15,opt,name=systemReserved"`
 	// ImageGCHighThresholdPercent describes the percent of the disk usage which triggers image garbage collection.

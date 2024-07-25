@@ -300,12 +300,22 @@ func (vp *valuesProvider) GetControlPlaneChartValues(ctx context.Context, cp *ex
 	}
 
 	secretCloudProviderConfig := &corev1.Secret{}
-	if err := vp.client.Get(ctx, kutil.Key(cp.Namespace, vsphere.CloudProviderConfig), secretCloudProviderConfig); err == nil {
+	secretCloudProviderConfigKey := client.ObjectKey{
+		Namespace: cp.Namespace,
+		Name:      vsphere.CloudProviderConfig,
+	}
+
+	if err := vp.client.Get(ctx, secretCloudProviderConfigKey, secretCloudProviderConfig); err == nil {
 		checksums[vsphere.CloudProviderConfig] = gutils.ComputeChecksum(secretCloudProviderConfig.Data)
 	}
 
 	secretCSIVsphereConfig := &corev1.Secret{}
-	if err := vp.client.Get(ctx, kutil.Key(cp.Namespace, vsphere.SecretCSIVsphereConfig), secretCSIVsphereConfig); err == nil {
+	secretCSIVsphereConfigKey := client.ObjectKey{
+		Namespace: cp.Namespace,
+		Name:      vsphere.SecretCSIVsphereConfig,
+	}
+
+	if err := vp.client.Get(ctx, secretCSIVsphereConfigKey, secretCSIVsphereConfig); err == nil {
 		checksums[vsphere.SecretCSIVsphereConfig] = gutils.ComputeChecksum(secretCSIVsphereConfig.Data)
 	}
 

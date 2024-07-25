@@ -117,14 +117,21 @@ func (v *Shoot) validateShootSecret(ctx context.Context, shoot *core.Shoot) erro
 		return fmt.Errorf("secretBindingName can't be set to nil")
 	}
 
-	secretBindingKey := kutil.Key(shoot.Namespace, *shoot.Spec.SecretBindingName)
+	secretBindingKey := client.ObjectKey{
+		Namespace: shoot.Namespace,
+		Name:      *shoot.Spec.SecretBindingName,
+	}
+
 	if err := kutil.LookupObject(ctx, v.client, v.apiReader, secretBindingKey, secretBinding); err != nil {
 		return err
 	}
 
 	var (
 		secret    = &corev1.Secret{}
-		secretKey = kutil.Key(secretBinding.SecretRef.Namespace, secretBinding.SecretRef.Name)
+		secretKey = client.ObjectKey{
+			Namespace: secretBinding.SecretRef.Namespace,
+			Name:      secretBinding.SecretRef.Name,
+		}
 	)
 	// Explicitly use the client.Reader to prevent controller-runtime to start Informer for Secrets
 	// under the hood. The latter increases the memory usage of the component.
@@ -154,7 +161,12 @@ func newValidationContext(ctx context.Context, c client.Client, shoot *core.Shoo
 	}
 
 	cloudProfile := &gardencorev1beta1.CloudProfile{}
-	if err := c.Get(ctx, kutil.Key(shoot.Spec.CloudProfileName), cloudProfile); err != nil {
+	cloudProfileKey := client.ObjectKey{
+		Namespace: "",
+		Name:      shoot.Spec.CloudProfileName,
+	}
+
+	if err := c.Get(ctx, cloudProfileKey, cloudProfile); err != nil {
 		return nil, err
 	}
 

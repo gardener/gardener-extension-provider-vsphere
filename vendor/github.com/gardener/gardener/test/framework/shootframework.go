@@ -198,7 +198,6 @@ func (f *ShootFramework) AddShoot(ctx context.Context, shootName, shootNamespace
 func validateShootConfig(cfg *ShootConfig) {
 	if cfg == nil {
 		ginkgo.Fail("no shoot framework configuration provided")
-		return
 	}
 	if !StringSet(cfg.ShootName) {
 		ginkgo.Fail("You should specify a shootName to test against")

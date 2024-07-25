@@ -35,7 +35,6 @@ import (
 	"github.com/gardener/gardener/pkg/component/extensions/operatingsystemconfig/original/components/sshdensurer"
 	"github.com/gardener/gardener/pkg/controllerutils"
 	"github.com/gardener/gardener/pkg/extensions"
-	"github.com/gardener/gardener/pkg/features"
 	nodeagentv1alpha1 "github.com/gardener/gardener/pkg/nodeagent/apis/config/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils"
 	"github.com/gardener/gardener/pkg/utils/flow"
@@ -55,19 +54,13 @@ const (
 	// of an OperatingSystemConfig resource.
 	DefaultTimeout = 3 * time.Minute
 	// WorkerPoolHashesSecretName is the name of the secret that tracks the OSC key calculation version used for each worker pool.
-	WorkerPoolHashesSecretName = "worker-pools-operatingsystemconfig-hashes" // #nosec G101 -- No credential.
+	WorkerPoolHashesSecretName = "worker-pools-operatingsystemconfig-hashes"
 	// poolHashesDataKey is the key in the data of the WorkerPoolHashesSecretName used to store the calculated hashes.
 	poolHashesDataKey = "pools"
 )
 
 // LatestHashVersion is the latest version support for calculateKeyVersion. Exposed for testing.
-var LatestHashVersion = func() int {
-	// WorkerPoolHash is behind feature gate as extensions must be updated first
-	if features.DefaultFeatureGate.Enabled(features.NewWorkerPoolHash) {
-		return 2
-	}
-	return 1
-}
+var LatestHashVersion = 1
 
 // TimeNow returns the current time. Exposed for testing.
 var TimeNow = time.Now
@@ -87,15 +80,11 @@ type Interface interface {
 	SetAPIServerURL(string)
 	// SetCABundle sets the CABundle value.
 	SetCABundle(*string)
-	// SetCredentialsRotationStatus sets the credentials rotation status
-	SetCredentialsRotationStatus(*gardencorev1beta1.ShootCredentialsRotation)
 	// SetSSHPublicKeys sets the SSHPublicKeys value.
 	SetSSHPublicKeys([]string)
 	// WorkerPoolNameToOperatingSystemConfigsMap returns a map whose key is a worker pool name and whose value is a structure
 	// containing both the init and the original operating system config data.
 	WorkerPoolNameToOperatingSystemConfigsMap() map[string]*OperatingSystemConfigs
-	// SetClusterDNSAddresses sets the cluster DNS addresses.
-	SetClusterDNSAddresses([]string)
 }
 
 // Values contains the values used to create an OperatingSystemConfig resource.
@@ -106,8 +95,6 @@ type Values struct {
 	KubernetesVersion *semver.Version
 	// Workers is the list of worker pools.
 	Workers []gardencorev1beta1.Worker
-	// CredentialsRotationStatus
-	CredentialsRotationStatus *gardencorev1beta1.ShootCredentialsRotation
 
 	// InitValues are configuration values required for the 'provision' OperatingSystemConfigPurpose.
 	InitValues
@@ -126,8 +113,8 @@ type InitValues struct {
 type OriginalValues struct {
 	// CABundle is the bundle of certificate authorities that will be added as root certificates.
 	CABundle *string
-	// ClusterDNSAddresses are the addresses for in-cluster DNS.
-	ClusterDNSAddresses []string
+	// ClusterDNSAddress is the address for in-cluster DNS.
+	ClusterDNSAddress string
 	// ClusterDomain is the Kubernetes cluster domain.
 	ClusterDomain string
 	// Images is a map containing the necessary container images for the systemd units (hyperkube and pause-container).
@@ -211,8 +198,6 @@ type Data struct {
 	// Content is the actual cloud-config user data.
 	// TODO(rfranzke): Remove this Content field after v1.100 is released.
 	Content string
-	// IncludeSecretNameInWorkerPool states whether a extensionsv1alpha1.WorkerPool must include the GardenerNodeAgentSecretName
-	IncludeSecretNameInWorkerPool bool
 	// GardenerNodeAgentSecretName is the name of the secret storing the gardener node agent configuration in the shoot cluster.
 	GardenerNodeAgentSecretName string
 	// SecretName is the name of a secret storing the actual cloud-config user data.
@@ -346,7 +331,7 @@ func (o *operatingSystemConfig) updateHashVersioningSecret(ctx context.Context, 
 				if migrated {
 					workerHash.CurrentVersion = 1
 				} else {
-					workerHash.CurrentVersion = LatestHashVersion()
+					workerHash.CurrentVersion = LatestHashVersion
 				}
 			}
 
@@ -364,7 +349,7 @@ func (o *operatingSystemConfig) updateHashVersioningSecret(ctx context.Context, 
 			}
 
 			if hashHasChanged {
-				workerHash.CurrentVersion = LatestHashVersion()
+				workerHash.CurrentVersion = LatestHashVersion
 			}
 
 			// calculate expected hashes
@@ -372,7 +357,7 @@ func (o *operatingSystemConfig) updateHashVersioningSecret(ctx context.Context, 
 			if err != nil {
 				return err
 			}
-			latestHash, err := o.calculateKeyForVersion(LatestHashVersion(), &worker)
+			latestHash, err := o.calculateKeyForVersion(LatestHashVersion, &worker)
 			if err != nil {
 				return err
 			}
@@ -383,7 +368,7 @@ func (o *operatingSystemConfig) updateHashVersioningSecret(ctx context.Context, 
 				workerHash.HashVersionToOSCKey = map[int]string{}
 			}
 			workerHash.HashVersionToOSCKey[workerHash.CurrentVersion] = currentHash
-			workerHash.HashVersionToOSCKey[LatestHashVersion()] = latestHash
+			workerHash.HashVersionToOSCKey[LatestHashVersion] = latestHash
 
 			// update secret
 			workerPoolNameToHashEntry[worker.Name] = workerHash
@@ -478,11 +463,10 @@ func (o *operatingSystemConfig) Wait(ctx context.Context) error {
 				}
 
 				data := Data{
-					Object:                        osc,
-					Content:                       string(secret.Data[extensionsv1alpha1.OperatingSystemConfigSecretDataKey]),
-					IncludeSecretNameInWorkerPool: hashVersion > 1,
-					GardenerNodeAgentSecretName:   oscKey,
-					SecretName:                    &secret.Name,
+					Object:                      osc,
+					Content:                     string(secret.Data[extensionsv1alpha1.OperatingSystemConfigSecretDataKey]),
+					GardenerNodeAgentSecretName: oscKey,
+					SecretName:                  &secret.Name,
 				}
 
 				o.lock.Lock()
@@ -619,7 +603,7 @@ func (o *operatingSystemConfig) getWantedOSCNames() (sets.Set[string], error) {
 			if err != nil {
 				return nil, err
 			}
-			wantedOSCNames.Insert(oscKey + keySuffix(version, worker.Machine.Image.Name, purpose))
+			wantedOSCNames.Insert(oscKey + keySuffix(worker.Machine.Image.Name, purpose))
 		}
 	}
 
@@ -645,7 +629,7 @@ func (o *operatingSystemConfig) forEachWorkerPoolAndPurpose(fn func(int, *extens
 			if err != nil {
 				return err
 			}
-			oscName := oscKey + keySuffix(version, worker.Machine.Image.Name, purpose)
+			oscName := oscKey + keySuffix(worker.Machine.Image.Name, purpose)
 
 			osc, ok := o.oscs[oscName]
 			if !ok {
@@ -691,10 +675,6 @@ func (o *operatingSystemConfig) SetCABundle(val *string) {
 	o.values.CABundle = val
 }
 
-func (o *operatingSystemConfig) SetCredentialsRotationStatus(status *gardencorev1beta1.ShootCredentialsRotation) {
-	o.values.CredentialsRotationStatus = status
-}
-
 // SetSSHPublicKeys sets the SSHPublicKeys value.
 func (o *operatingSystemConfig) SetSSHPublicKeys(keys []string) {
 	o.values.SSHPublicKeys = keys
@@ -704,10 +684,6 @@ func (o *operatingSystemConfig) SetSSHPublicKeys(keys []string) {
 // containing both the init script and the original config.
 func (o *operatingSystemConfig) WorkerPoolNameToOperatingSystemConfigsMap() map[string]*OperatingSystemConfigs {
 	return o.workerPoolNameToOSCs
-}
-
-func (o *operatingSystemConfig) SetClusterDNSAddresses(clusterDNSAddresses []string) {
-	o.values.ClusterDNSAddresses = clusterDNSAddresses
 }
 
 func (o *operatingSystemConfig) newDeployer(version int, osc *extensionsv1alpha1.OperatingSystemConfig, worker gardencorev1beta1.Worker, purpose extensionsv1alpha1.OperatingSystemConfigPurpose) (deployer, error) {
@@ -773,7 +749,7 @@ func (o *operatingSystemConfig) newDeployer(version int, osc *extensionsv1alpha1
 		caBundle:                caBundle,
 		clusterCASecretName:     clusterCASecret.Name,
 		clusterCABundle:         clusterCASecret.Data[secretsutils.DataKeyCertificateBundle],
-		clusterDNSAddresses:     o.values.ClusterDNSAddresses,
+		clusterDNSAddress:       o.values.ClusterDNSAddress,
 		clusterDomain:           o.values.ClusterDomain,
 		criName:                 criName,
 		images:                  images,
@@ -837,7 +813,7 @@ type deployer struct {
 	caBundle                *string
 	clusterCASecretName     string
 	clusterCABundle         []byte
-	clusterDNSAddresses     []string
+	clusterDNSAddress       string
 	clusterDomain           string
 	criName                 extensionsv1alpha1.CRIName
 	images                  map[string]*imagevectorutils.Image
@@ -873,7 +849,7 @@ func (d *deployer) deploy(ctx context.Context, operation string) (extensionsv1al
 	componentsContext := components.Context{
 		Key:                     d.key,
 		CABundle:                d.caBundle,
-		ClusterDNSAddresses:     d.clusterDNSAddresses,
+		ClusterDNSAddress:       d.clusterDNSAddress,
 		ClusterDomain:           d.clusterDomain,
 		CRIName:                 d.criName,
 		Images:                  d.images,
@@ -934,7 +910,6 @@ func (d *deployer) deploy(ctx context.Context, operation string) (extensionsv1al
 		metav1.SetMetaDataAnnotation(&d.osc.ObjectMeta, v1beta1constants.GardenerOperation, operation)
 		metav1.SetMetaDataAnnotation(&d.osc.ObjectMeta, v1beta1constants.GardenerTimestamp, TimeNow().UTC().Format(time.RFC3339Nano))
 		metav1.SetMetaDataLabel(&d.osc.ObjectMeta, v1beta1constants.LabelWorkerPool, d.worker.Name)
-		metav1.SetMetaDataLabel(&d.osc.ObjectMeta, v1beta1constants.LabelExtensionProviderMutatedByControlplaneWebhook, "true")
 
 		d.osc.Spec.Type = d.worker.Machine.Image.Name
 		d.osc.Spec.ProviderConfig = d.worker.Machine.Image.ProviderConfig
@@ -958,32 +933,19 @@ func (o *operatingSystemConfig) calculateKeyForVersion(version int, worker *gard
 	if err != nil {
 		return "", err
 	}
-	kubeletConfiguration := v1beta1helper.CalculateEffectiveKubeletConfiguration(o.values.KubeletConfig, worker.Kubernetes)
 
-	return CalculateKeyForVersion(version, kubernetesVersion, o.values, worker, kubeletConfiguration)
+	return CalculateKeyForVersion(version, kubernetesVersion, worker)
 }
 
 // CalculateKeyForVersion is exposed for testing purposes only
 var CalculateKeyForVersion = calculateKeyForVersion
 
-func calculateKeyForVersion(
-	version int,
-	kubernetesVersion *semver.Version,
-	values *Values,
-	worker *gardencorev1beta1.Worker,
-	kubeletConfiguration *gardencorev1beta1.KubeletConfig,
-) (
-	string,
-	error,
-) {
-	switch version {
+func calculateKeyForVersion(oscVersion int, kubernetesVersion *semver.Version, worker *gardencorev1beta1.Worker) (string, error) {
+	switch oscVersion {
 	case 1:
-		// TODO(MichaelEischer): Remove KeyV1 after support for Kubernetes 1.30 is dropped
 		return KeyV1(worker.Name, kubernetesVersion, worker.CRI), nil
-	case 2:
-		return KeyV2(kubernetesVersion, values.CredentialsRotationStatus, worker, values.NodeLocalDNSEnabled, kubeletConfiguration), nil
 	default:
-		return "", fmt.Errorf("unsupported osc key hash version %v", version)
+		return "", fmt.Errorf("unsupported osc key version %v", oscVersion)
 	}
 }
 
@@ -1006,89 +968,12 @@ func KeyV1(workerPoolName string, kubernetesVersion *semver.Version, criConfig *
 	return fmt.Sprintf("gardener-node-agent-%s-%s", workerPoolName, utils.ComputeSHA256Hex([]byte(kubernetesMajorMinorVersion + string(criName)))[:5])
 }
 
-// KeyV2 returns the key that can be used as secret name based on the provided worker name,
-// Kubernetes version, machine type, image, worker volume, CRI, credentials rotation, node local dns
-// and kubelet configuration.
-func KeyV2(
-	kubernetesVersion *semver.Version,
-	credentialsRotation *gardencorev1beta1.ShootCredentialsRotation,
-	worker *gardencorev1beta1.Worker,
-	nodeLocalDNSEnabled bool,
-	kubeletConfiguration *gardencorev1beta1.KubeletConfig,
-) string {
-	if kubernetesVersion == nil {
-		return ""
-	}
-
-	kubernetesMajorMinorVersion := fmt.Sprintf("%d.%d", kubernetesVersion.Major(), kubernetesVersion.Minor())
-
-	data := []string{
-		kubernetesMajorMinorVersion,
-		worker.Machine.Type,
-		worker.Machine.Image.Name + *worker.Machine.Image.Version,
-	}
-
-	if worker.Volume != nil {
-		data = append(data, worker.Volume.VolumeSize)
-		if worker.Volume.Type != nil {
-			data = append(data, *worker.Volume.Type)
-		}
-	}
-
-	if worker.CRI != nil {
-		data = append(data, string(worker.CRI.Name))
-	}
-
-	if credentialsRotation != nil {
-		if credentialsRotation.CertificateAuthorities != nil && credentialsRotation.CertificateAuthorities.LastInitiationTime != nil {
-			data = append(data, credentialsRotation.CertificateAuthorities.LastInitiationTime.Time.String())
-		}
-		if credentialsRotation.ServiceAccountKey != nil && credentialsRotation.ServiceAccountKey.LastInitiationTime != nil {
-			data = append(data, credentialsRotation.ServiceAccountKey.LastInitiationTime.Time.String())
-		}
-	}
-
-	if nodeLocalDNSEnabled {
-		data = append(data, "node-local-dns")
-	}
-
-	if kubeletConfiguration != nil {
-		if kubeReserved := kubeletConfiguration.KubeReserved; kubeReserved != nil {
-			data = append(data, fmt.Sprintf("%s-%s-%s-%s", kubeReserved.CPU, kubeReserved.Memory, kubeReserved.PID, kubeReserved.EphemeralStorage))
-		}
-		if eviction := kubeletConfiguration.EvictionHard; eviction != nil {
-			data = append(data, fmt.Sprintf("%s-%s-%s-%s-%s",
-				ptr.Deref(eviction.ImageFSAvailable, ""),
-				ptr.Deref(eviction.ImageFSInodesFree, ""),
-				ptr.Deref(eviction.MemoryAvailable, ""),
-				ptr.Deref(eviction.NodeFSAvailable, ""),
-				ptr.Deref(eviction.NodeFSInodesFree, ""),
-			))
-		}
-		if policy := kubeletConfiguration.CPUManagerPolicy; policy != nil {
-			data = append(data, *policy)
-		}
-	}
-
-	var result string
-	for _, v := range data {
-		result += utils.ComputeSHA256Hex([]byte(v))
-	}
-
-	return fmt.Sprintf("gardener-node-agent-%s-%s", worker.Name, utils.ComputeSHA256Hex([]byte(result))[:16])
-}
-
-func keySuffix(version int, machineImageName string, purpose extensionsv1alpha1.OperatingSystemConfigPurpose) string {
-	imagePrefix := ""
-	if version == 1 {
-		imagePrefix = "-" + machineImageName
-	}
-
+func keySuffix(machineImageName string, purpose extensionsv1alpha1.OperatingSystemConfigPurpose) string {
 	switch purpose {
 	case extensionsv1alpha1.OperatingSystemConfigPurposeProvision:
-		return imagePrefix + "-init"
+		return "-" + machineImageName + "-init"
 	case extensionsv1alpha1.OperatingSystemConfigPurposeReconcile:
-		return imagePrefix + "-original"
+		return "-" + machineImageName + "-original"
 	}
 	return ""
 }

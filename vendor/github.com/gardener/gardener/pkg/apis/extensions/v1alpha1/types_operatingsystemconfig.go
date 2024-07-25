@@ -225,7 +225,7 @@ const (
 	OperatingSystemConfigDefaultFilePermission int32 = 0644
 	// OperatingSystemConfigSecretDataKey is a constant for the key in a secret's `.data` field containing the
 	// results of a computed cloud config.
-	OperatingSystemConfigSecretDataKey = "cloud_config" // #nosec G101 -- No credential.
+	OperatingSystemConfigSecretDataKey = "cloud_config"
 )
 
 // CRIConfig contains configurations of the CRI library.

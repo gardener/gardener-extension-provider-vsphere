@@ -11,7 +11,7 @@ import (
 
 const (
 	// DataKeyStaticTokenCSV is the key in a secret data holding the CSV format of a secret.
-	DataKeyStaticTokenCSV = "static_tokens.csv" // #nosec G101 -- No credential.
+	DataKeyStaticTokenCSV = "static_tokens.csv"
 	// DataKeyToken is the key in a secret data holding the token.
 	DataKeyToken = "token"
 )

@@ -25,7 +25,7 @@ const (
 	SecretNameCAETCD = "ca-etcd"
 	// SecretNameCAETCDPeer is a constant for the name of a Kubernetes secret object that contains the CA
 	// certificate of the etcd peer network of a shoot cluster.
-	SecretNameCAETCDPeer = "ca-etcd-peer" // #nosec G101 -- No credential.
+	SecretNameCAETCDPeer = "ca-etcd-peer"
 	// SecretNameCAFrontProxy is a constant for the name of a Kubernetes secret object that contains the CA
 	// certificate of the kube-aggregator a shoot cluster.
 	SecretNameCAFrontProxy = "ca-front-proxy"
@@ -34,7 +34,7 @@ const (
 	SecretNameCAKubelet = "ca-kubelet"
 	// SecretNameCAMetricsServer is a constant for the name of a Kubernetes secret object that contains the CA
 	// certificate of the metrics-server of a shoot cluster.
-	SecretNameCAMetricsServer = "ca-metrics-server" // #nosec G101 -- No credential.
+	SecretNameCAMetricsServer = "ca-metrics-server"
 	// SecretNameCAVPN is a constant for the name of a Kubernetes secret object that contains the CA
 	// certificate of the VPN components of a shoot cluster.
 	SecretNameCAVPN = "ca-vpn"
@@ -47,22 +47,22 @@ const (
 	SecretNameCloudProvider = "cloudprovider"
 	// SecretNameSSHKeyPair is a constant for the name of a Kubernetes secret object that contains the SSH key pair
 	// (public and private key) that can be used to SSH into the shoot nodes.
-	SecretNameSSHKeyPair = "ssh-keypair" // #nosec G101 -- No credential.
+	SecretNameSSHKeyPair = "ssh-keypair"
 	// SecretNameServiceAccountKey is a constant for the name of a Kubernetes secret object that contains a
 	// PEM-encoded private RSA or ECDSA key used by the Kube Controller Manager to sign service account tokens.
 	SecretNameServiceAccountKey = "service-account-key"
 	// SecretNameObservabilityIngress is a constant for the name of a Kubernetes secret object that contains the ingress
 	// credentials for observability components.
-	SecretNameObservabilityIngress = "observability-ingress" // #nosec G101 -- No credential.
+	SecretNameObservabilityIngress = "observability-ingress"
 	// SecretNameObservabilityIngressUsers is a constant for the name of a Kubernetes secret object that contains the
 	// user's ingress credentials for observability components.
-	SecretNameObservabilityIngressUsers = "observability-ingress-users" // #nosec G101 -- No credential.
+	SecretNameObservabilityIngressUsers = "observability-ingress-users"
 	// SecretNameETCDEncryptionKey is a constant for the name of a Kubernetes secret object that contains the key
 	// for encryption data in ETCD.
-	SecretNameETCDEncryptionKey = "kube-apiserver-etcd-encryption-key" // #nosec G101 -- No credential.
+	SecretNameETCDEncryptionKey = "kube-apiserver-etcd-encryption-key"
 	// SecretNamePrefixETCDEncryptionConfiguration is a constant for the name prefix of a Kubernetes secret object that
 	// contains the configuration for encryption data in ETCD.
-	SecretNamePrefixETCDEncryptionConfiguration = "kube-apiserver-etcd-encryption-configuration" // #nosec G101 -- No credential.
+	SecretNamePrefixETCDEncryptionConfiguration = "kube-apiserver-etcd-encryption-configuration"
 	// SecretNameGardenerETCDEncryptionKey is a constant for the name of a Kubernetes secret object that contains the
 	// key for encryption data in ETCD for gardener-apiserver.
 	SecretNameGardenerETCDEncryptionKey = "gardener-apiserver-etcd-encryption-key"
@@ -351,13 +351,13 @@ const (
 	// OperationRotateCredentialsStart is a constant for an annotation indicating that the rotation of all credentials
 	// shall be started. This includes CAs, certificates, kubeconfigs, SSH keypairs, observability credentials, and
 	// ServiceAccount signing key.
-	OperationRotateCredentialsStart = "rotate-credentials-start" // #nosec G101 -- No credential.
+	OperationRotateCredentialsStart = "rotate-credentials-start"
 	// OperationRotateCredentialsComplete is a constant for an annotation indicating that the rotation of the
 	// credentials shall be completed.
-	OperationRotateCredentialsComplete = "rotate-credentials-complete" // #nosec G101 -- No credential.
+	OperationRotateCredentialsComplete = "rotate-credentials-complete"
 	// ShootOperationRotateKubeconfigCredentials is a constant for an annotation on a Shoot indicating that the
 	// credentialscontained in the kubeconfig that is handed out to the user shall be rotated.
-	ShootOperationRotateKubeconfigCredentials = "rotate-kubeconfig-credentials" // #nosec G101 -- No credential.
+	ShootOperationRotateKubeconfigCredentials = "rotate-kubeconfig-credentials"
 	// ShootOperationRotateSSHKeypair is a constant for an annotation on a Shoot indicating that the SSH keypair for the
 	// shoot nodes shall be rotated.
 	ShootOperationRotateSSHKeypair = "rotate-ssh-keypair"
@@ -370,7 +370,7 @@ const (
 	// OperationRotateObservabilityCredentials is a constant for an annotation indicating that the
 	// credentials for the observability stack secret shall be rotated. Note that this only affects the user credentials
 	// since the operator credentials are rotated automatically each `30d`.
-	OperationRotateObservabilityCredentials = "rotate-observability-credentials" // #nosec G101 -- No credential.
+	OperationRotateObservabilityCredentials = "rotate-observability-credentials"
 	// OperationRotateServiceAccountKeyStart is a constant for an annotation on a Shoot indicating that the
 	// rotation of the service account signing key shall be started.
 	OperationRotateServiceAccountKeyStart = "rotate-serviceaccount-key-start"
@@ -385,7 +385,7 @@ const (
 	OperationRotateETCDEncryptionKeyComplete = "rotate-etcd-encryption-key-complete"
 	// SeedOperationRenewGardenAccessSecrets is a constant for an annotation on a Seed indicating that the
 	// all garden access secrets on the seed shall be renewed.
-	SeedOperationRenewGardenAccessSecrets = "renew-garden-access-secrets" // #nosec G101 -- No credential.
+	SeedOperationRenewGardenAccessSecrets = "renew-garden-access-secrets"
 	// KubeconfigSecretOperationRenew is a constant for an annotation on the secret in a Seed containing the garden
 	// cluster kubeconfig of a gardenlet indicating that it should be renewed.
 	KubeconfigSecretOperationRenew = "renew"
@@ -440,8 +440,6 @@ const (
 
 	// LabelSecretBindingReference is used to identify secrets which are referred by a SecretBinding (not necessarily in the same namespace).
 	LabelSecretBindingReference = "reference.gardener.cloud/secretbinding"
-	// LabelCredentialsBindingReference is used to identify credentials which are referred by a CredentialsBinding (not necessarily in the same namespace).
-	LabelCredentialsBindingReference = "reference.gardener.cloud/credentialsbinding"
 	// LabelPrefixSeedName is the prefix for the label key describing the name of a seed, e.g. seed.gardener.cloud/my-seed=true.
 	LabelPrefixSeedName = "seed.gardener.cloud/"
 
@@ -457,9 +455,6 @@ const (
 	LabelExtensionOperatingSystemConfigTypePrefix = "operatingsystemconfig.extensions.gardener.cloud/"
 	// LabelExtensionContainerRuntimeTypePrefix is used to prefix extension label for ContainerRuntime types.
 	LabelExtensionContainerRuntimeTypePrefix = "containerruntime.extensions.gardener.cloud/"
-
-	// LabelExtensionProviderMutatedByControlplaneWebhook is used to specify extension provider controlplane webhook targets
-	LabelExtensionProviderMutatedByControlplaneWebhook = LabelExtensionProviderTypePrefix + "mutated-by-controlplane-webhook"
 
 	// LabelNetworkPolicyToBlockedCIDRs allows Egress from pods labeled with 'networking.gardener.cloud/to-blocked-cidrs=allowed'.
 	LabelNetworkPolicyToBlockedCIDRs = "networking.gardener.cloud/to-blocked-cidrs"

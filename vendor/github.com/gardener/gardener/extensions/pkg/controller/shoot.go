@@ -5,8 +5,6 @@
 package controller
 
 import (
-	"k8s.io/apimachinery/pkg/util/sets"
-
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/gardener/gardener/pkg/chartrenderer"
 )
@@ -25,38 +23,20 @@ func (f ChartRendererFactoryFunc) NewChartRendererForShoot(version string) (char
 	return f(version)
 }
 
-// GetPodNetwork returns the pod network CIDRs of the given Shoot.
-func GetPodNetwork(cluster *Cluster) []string {
-	var pods []string
+// GetPodNetwork returns the pod network CIDR of the given Shoot.
+func GetPodNetwork(cluster *Cluster) string {
 	if cluster.Shoot.Spec.Networking != nil && cluster.Shoot.Spec.Networking.Pods != nil {
-		pods = append(pods, *cluster.Shoot.Spec.Networking.Pods)
+		return *cluster.Shoot.Spec.Networking.Pods
 	}
-	if cluster.Shoot.Status.Networking != nil {
-		existing := sets.New(pods...)
-		for _, p := range cluster.Shoot.Status.Networking.Pods {
-			if !existing.Has(p) {
-				pods = append(pods, p)
-			}
-		}
-	}
-	return pods
+	return ""
 }
 
-// GetServiceNetwork returns the service network CIDRs of the given Shoot.
-func GetServiceNetwork(cluster *Cluster) []string {
-	var services []string
+// GetServiceNetwork returns the service network CIDR of the given Shoot.
+func GetServiceNetwork(cluster *Cluster) string {
 	if cluster.Shoot.Spec.Networking != nil && cluster.Shoot.Spec.Networking.Services != nil {
-		services = append(services, *cluster.Shoot.Spec.Networking.Services)
+		return *cluster.Shoot.Spec.Networking.Services
 	}
-	if cluster.Shoot.Status.Networking != nil {
-		existing := sets.New(services...)
-		for _, s := range cluster.Shoot.Status.Networking.Services {
-			if !existing.Has(s) {
-				services = append(services, s)
-			}
-		}
-	}
-	return services
+	return ""
 }
 
 // IsHibernationEnabled returns true if the shoot is marked for hibernation, or false otherwise.
