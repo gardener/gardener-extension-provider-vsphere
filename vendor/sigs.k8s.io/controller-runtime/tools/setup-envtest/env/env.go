@@ -26,28 +26,24 @@ import (
 // envtest binaries.
 //
 // In general, the methods will use the Exit{,Cause} functions from this package
-// to indicate errors. Catch them with a `defer HandleExitWithCode()`.
+// to indicate errors.  Catch them with a `defer HandleExitWithCode()`.
 type Env struct {
 	// the following *must* be set on input
 
 	// Platform is our current platform
 	Platform versions.PlatformItem
 
-	// VerifySum indicates whether we should run checksums.
+	// VerifiySum indicates whether or not we should run checksums.
 	VerifySum bool
-	// NoDownload forces us to not contact remote services,
-	// looking only at local files instead.
+	// NoDownload forces us to not contact GCS, looking only
+	// at local files instead.
 	NoDownload bool
 	// ForceDownload forces us to ignore local files and always
-	// contact remote services & re-download.
+	// contact GCS & re-download.
 	ForceDownload bool
 
-	// UseDeprecatedGCS signals if the GCS client is used.
-	// Note: This will be removed together with remote.GCSClient.
-	UseDeprecatedGCS bool
-
-	// Client is our remote client for contacting remote services.
-	Client remote.Client
+	// Client is our remote client for contacting GCS.
+	Client *remote.Client
 
 	// Log allows us to log.
 	Log logr.Logger
@@ -137,7 +133,7 @@ func (e *Env) ListVersions(ctx context.Context) {
 }
 
 // LatestVersion returns the latest version matching our version selector and
-// platform from the remote server, with the corresponding checksum for later
+// platform from the remote server, with the correspoding checksum for later
 // use as well.
 func (e *Env) LatestVersion(ctx context.Context) (versions.Concrete, versions.PlatformItem) {
 	vers, err := e.Client.ListVersions(ctx)
@@ -197,7 +193,7 @@ func (e *Env) ExistsAndValid() bool {
 //
 // If necessary, it will enumerate on-disk and remote versions to accomplish
 // this, finding a version that matches our version selector and platform.
-// It will always yield a concrete version, it *may* yield a concrete platform
+// It will always yield a concrete version, it *may* yield a concrete platorm
 // as well.
 func (e *Env) EnsureVersionIsSet(ctx context.Context) {
 	if e.Version.AsConcrete() != nil {
@@ -251,13 +247,13 @@ func (e *Env) EnsureVersionIsSet(ctx context.Context) {
 
 	// if we're not forcing a download, and we have a newer local version, just use that
 	if !e.ForceDownload && localVer != nil && localVer.NewerThan(serverVer) {
-		e.Platform.Platform = localPlat // update our data with hash
+		e.Platform.Platform = localPlat // update our data with md5
 		e.Version.MakeConcrete(*localVer)
 		return
 	}
 
 	// otherwise, use the new version from the server
-	e.Platform = platform // update our data with hash
+	e.Platform = platform // update our data with md5
 	e.Version.MakeConcrete(serverVer)
 }
 
@@ -270,13 +266,13 @@ func (e *Env) Fetch(ctx context.Context) {
 	log := e.Log.WithName("fetch")
 
 	// if we didn't just fetch it, grab the sum to verify
-	if e.VerifySum && e.Platform.Hash == nil {
+	if e.VerifySum && e.Platform.MD5 == "" {
 		if err := e.Client.FetchSum(ctx, *e.Version.AsConcrete(), &e.Platform); err != nil {
-			ExitCause(2, err, "unable to fetch hash for requested version")
+			ExitCause(2, err, "unable to fetch checksum for requested version")
 		}
 	}
 	if !e.VerifySum {
-		e.Platform.Hash = nil // skip verification
+		e.Platform.MD5 = "" // skip verification
 	}
 
 	var packedPath string
@@ -291,7 +287,7 @@ func (e *Env) Fetch(ctx context.Context) {
 		}
 	})
 
-	archiveOut, err := e.FS.TempFile("", "*-"+e.Platform.ArchiveName(e.UseDeprecatedGCS, *e.Version.AsConcrete()))
+	archiveOut, err := e.FS.TempFile("", "*-"+e.Platform.ArchiveName(*e.Version.AsConcrete()))
 	if err != nil {
 		ExitCause(2, err, "unable to open file to write downloaded archive to")
 	}
@@ -369,8 +365,8 @@ func (e *Env) PrintInfo(printFmt PrintFormat) {
 	case PrintOverview:
 		fmt.Fprintf(e.Out, "Version: %s\n", e.Version)
 		fmt.Fprintf(e.Out, "OS/Arch: %s\n", e.Platform)
-		if e.Platform.Hash != nil {
-			fmt.Fprintf(e.Out, "%s: %s\n", e.Platform.Hash.Type, e.Platform.Hash.Value)
+		if e.Platform.MD5 != "" {
+			fmt.Fprintf(e.Out, "md5: %s\n", e.Platform.MD5)
 		}
 		fmt.Fprintf(e.Out, "Path: %s\n", path)
 	case PrintPath:
@@ -413,7 +409,7 @@ func (e *Env) Sideload(ctx context.Context, input io.Reader) {
 }
 
 var (
-	// expectedExecutables are the executables that are checked in PathMatches
+	// expectedExectuables are the executables that are checked in PathMatches
 	// for non-store paths.
 	expectedExecutables = []string{
 		"kube-apiserver",
@@ -462,7 +458,7 @@ func (e *Env) PathMatches(value string) bool {
 }
 
 // versionFromPathName checks if the given path's last component looks like one
-// of our versions, and, if so, what version it represents.  If successful,
+// of our versions, and, if so, what version it represents.  If succesfull,
 // it'll set version and platform, and return true.  Otherwise it returns
 // false.
 func (e *Env) versionFromPathName(value string) bool {

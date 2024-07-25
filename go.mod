@@ -32,7 +32,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.29.6
 	k8s.io/apiextensions-apiserver v0.29.6
-	k8s.io/apimachinery v0.31.0-beta.0
+	k8s.io/apimachinery v0.29.6
 	k8s.io/autoscaler/vertical-pod-autoscaler v1.1.2
 	k8s.io/client-go v0.29.6
 	k8s.io/cloud-provider-vsphere v1.26.1-0.20230503224600-862eeed8229c
@@ -67,7 +67,6 @@ require (
 	github.com/fatih/color v1.17.0 // indirect
 	github.com/fluent/fluent-operator/v2 v2.9.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/gardener/cert-management v0.15.0 // indirect
 	github.com/gardener/hvpa-controller/api v0.15.0 // indirect
 	github.com/gibson042/canonicaljson-go v1.0.3 // indirect
@@ -123,7 +122,6 @@ require (
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
-	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
@@ -168,7 +166,7 @@ require (
 	k8s.io/kube-aggregator v0.29.6 // indirect
 	k8s.io/kube-openapi v0.0.0-20240709000822-3c01b740850f // indirect
 	k8s.io/metrics v0.29.6 // indirect
-	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20240717190548-1ed345090869 // indirect
+	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20231015215740-bf15e44028f9 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 )
