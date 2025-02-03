@@ -36,7 +36,7 @@ This extension controller supports the following Kubernetes versions:
 
 Older versions of the extension [(`v0.16.0` and earlier)](https://github.com/gardener/gardener-extension-provider-vsphere/releases/tag/v0.16.0) are supported prior to current releases.
 
-Please take a look [here](https://github.com/gardener/gardener/blob/master/docs/usage/supported_k8s_versions.md) to see which versions are supported by Gardener in general.
+Please take a look [here](https://github.com/gardener/gardener/blob/master/docs/usage/shoot-operations/supported_k8s_versions.md) to see which versions are supported by Gardener in general.
 
 ----
 ## Deployment patterns
