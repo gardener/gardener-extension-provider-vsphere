@@ -51,3 +51,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, config *exten
 func (a *actuator) Delete(ctx context.Context, log logr.Logger, config *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	return a.delete(ctx, log, config, cluster)
 }
+
+func (a *actuator) ForceDelete(_ context.Context, _ logr.Logger, _ *extensionsv1alpha1.Infrastructure, _ *extensionscontroller.Cluster) error {
+	return nil
+}
