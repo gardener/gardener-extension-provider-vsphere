@@ -92,7 +92,7 @@ string
 </em>
 </td>
 <td>
-<p>DefaultClassStoragePolicyName is the name of the vSphere storage policy to use for the &lsquo;default-class&rsquo; storage class</p>
+<p>DefaultClassStoragePolicyName is the name of the vSphere storage policy to use for the &lsquo;default&rsquo; StorageClass.</p>
 </td>
 </tr>
 <tr>
