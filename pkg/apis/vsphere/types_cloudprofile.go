@@ -30,7 +30,7 @@ type CloudProfileConfig struct {
 	Folder string
 	// Regions is the specification of regions and zones topology
 	Regions []RegionSpec
-	// DefaultClassStoragePolicyName is the name of the vSphere storage policy to use for the 'default-class' storage class
+	// DefaultClassStoragePolicyName is the name of the vSphere storage policy to use for the 'default' StorageClass.
 	DefaultClassStoragePolicyName string
 	// FailureDomainLabels are the tag categories used for regions and zones.
 	FailureDomainLabels *FailureDomainLabels
