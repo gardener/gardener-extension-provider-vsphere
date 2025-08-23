@@ -207,7 +207,7 @@ var _ = Describe("ValuesProvider", func() {
 			},
 			Type: corev1.SecretTypeOpaque,
 			Data: map[string][]byte{
-				"cloudprovider.conf": []byte{}},
+				"cloudprovider.conf": {}},
 		}
 
 		csiSecretKey = client.ObjectKey{Namespace: namespace, Name: vsphere.SecretCSIVsphereConfig}
